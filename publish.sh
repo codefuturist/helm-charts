@@ -33,6 +33,8 @@ git checkout gh-pages
 # git add index.yaml application-5.1.0.tgz homarr-5.1.0.tgz
 git add -A
 
+git add -a
+
 mv /tmp/index.yaml .
 mv /tmp/*.tgz .
 # Step 4: Commit the changes
