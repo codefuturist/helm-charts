@@ -13,7 +13,7 @@ Generic helm chart for applications which:
 ## Installing the Chart
 
 To install the chart with the release name `my-application` in namespace `test`:
-
+-
 ```shell
 helm repo add codefuturist https://codefuturist.github.io/stakater-charts
 helm repo update
