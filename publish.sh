@@ -1,5 +1,7 @@
 git checkout master
 
+# Step 4: Commit the changes
+git commit -a -m "Move index.yaml and Helm chart from main to gh-pages"
 
 helm package homarr
 
@@ -17,7 +19,7 @@ git checkout master -- homarr-5.1.0.tgz
 git checkout master -- application-5.1.0.tgz
 
 # Step 3: Stage the copied files
-# git add index.yaml application-5.1.0.tgz homarr-5.1.0.tgz
+git add index.yaml application-5.1.0.tgz homarr-5.1.0.tgz
 
 # Step 4: Commit the changes
 git commit -m "Move index.yaml and Helm chart from main to gh-pages"
