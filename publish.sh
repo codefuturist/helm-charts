@@ -3,6 +3,9 @@ git checkout master
 # Step 4: Commit the changes
 git commit -a -m "Move index.yaml and Helm chart from main to gh-pages"
 
+# Step 5: Push the changes to the remote repository
+git push master
+
 helm package homarr
 
 helm package application

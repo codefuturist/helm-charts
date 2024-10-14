@@ -2,9 +2,9 @@ apiVersion: v1
 entries:
   application:
   - apiVersion: v2
-    created: "2024-10-14T14:04:20.208824+02:00"
+    created: "2024-10-14T14:09:19.533114+02:00"
     description: Generic helm chart for all kind of applications
-    digest: 97355bd7c262ca81c7d335a9b19c2b7e69c59ebf1c9d9942b18625b48d6109ea
+    digest: 6f4ae5b1ddf0fb2caa24e9f61c477a019ddefca29d1c141e6d505f0e83971fa3
     home: https://github.com/codefuturist/application
     icon: https://github.com/stakater/ForecastleIcons/blob/master/stakater.png
     keywords:
@@ -24,9 +24,9 @@ entries:
     version: 5.1.0
   homarr:
   - apiVersion: v2
-    created: "2024-10-14T14:04:20.210548+02:00"
+    created: "2024-10-14T14:09:19.534573+02:00"
     description: Generic helm chart for all kind of applications
-    digest: 345fe95af778e889d8d8b9f96277807835a63bc27bb5acf8537f19f8e1153592
+    digest: a35fee50e167e466c1a074584b7606e4e19c4766d8339fb4bb8256088687b339
     home: https://github.com/codefuturist/application
     icon: https://github.com/stakater/ForecastleIcons/blob/master/stakater.png
     keywords:
@@ -44,4 +44,4 @@ entries:
     urls:
     - https://codefuturist.github.io/application/homarr-5.1.0.tgz
     version: 5.1.0
-generated: "2024-10-14T14:04:20.207076+02:00"
+generated: "2024-10-14T14:09:19.531488+02:00"
