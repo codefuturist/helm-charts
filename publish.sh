@@ -29,12 +29,14 @@ git checkout gh-pages
 
 # Step 3: Stage the copied files
 # git add index.yaml application-5.1.0.tgz homarr-5.1.0.tgz
-git add -A
 
-git add -a
 
 mv /tmp/index.yaml ./
 mv /tmp/*.tgz ./
+
+git add -A
+
+git add -a
 # Step 4: Commit the changes
 git commit -m "Move index.yaml and Helm chart from main to gh-pages"
 
