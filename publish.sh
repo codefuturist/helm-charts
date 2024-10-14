@@ -18,6 +18,9 @@ helm repo index . --url https://codefuturist.github.io/application/
 
 mv index.yaml /tmp/
 mv *.tgz /tmp/
+
+git commit -a -m "Move index.yaml and Helm chart from main to gh-pages"
+
 # Step 1: Checkout to the destination branch
 git checkout gh-pages
 
