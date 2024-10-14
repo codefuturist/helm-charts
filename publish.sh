@@ -12,8 +12,6 @@ helm package homarr
 
 helm package application
 
-
-
 helm repo index . --url https://codefuturist.github.io/application/
 
 mv index.yaml /tmp/
@@ -35,8 +33,8 @@ git add -A
 
 git add -a
 
-mv /tmp/index.yaml .
-mv /tmp/*.tgz .
+mv /tmp/index.yaml ./
+mv /tmp/*.tgz ./
 # Step 4: Commit the changes
 git commit -m "Move index.yaml and Helm chart from main to gh-pages"
 
