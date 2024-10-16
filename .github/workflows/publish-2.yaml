@@ -194,7 +194,7 @@ jobs:
 
       - name: Copy index.yaml
         run: |
-          cp ${{ github.workspace }}/index.yaml ${{ env.CHART_TARGET_REPO }}/actions-runner-controller/index.yaml
+          cp ${{ github.workspace }}/index.yaml ${{ env.CHART_TARGET_REPO }}/homarr/index.yaml
 
       - name: Commit and push to target repository
         run: |
