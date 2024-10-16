@@ -11,10 +11,12 @@ on:
 
 permissions: write-all
 
-environment: Main-Env
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: Main-Env
+
     env:
       GH_TOKEN: ${{ secrets.MANUAL_GITHUB_TOKEN }}
       TT: ${{ secrets.GITHUB_TOKEN }}
