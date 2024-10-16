@@ -20,7 +20,7 @@ jobs:
           lfs: true
           fetch-depth: 0
 
-      # Set up Helm
+      # Set up Helmm
       - name: Set up Helm
         uses: azure/setup-helm@v3
         with:
