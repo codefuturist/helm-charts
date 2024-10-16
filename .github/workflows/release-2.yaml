@@ -19,33 +19,33 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          lfs: true
-          fetch-depth: 0
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        lfs: true
+        fetch-depth: 0
 
-      - run: |
-          git checkout gh-pages
-          git config --local user.email "58808821+codefuturist@users.noreply.github.com"
-          git config --local user.name "codefuturist"
-          git checkout master -- homarr/
-          git checkout nginx -- application/
-          git checkout nginx -- nginx/
-          git commit -am "Update chart version to $(git describe --tags)"
-          git push origin gh-pages
+      run: |
+        git checkout gh-pages
+        git config --local user.email "58808821+codefuturist@users.noreply.github.com"
+        git config --local user.name "codefuturist"
+        git checkout master -- homarr/
+        git checkout nginx -- application/
+        git checkout nginx -- nginx/
+        git commit -am "Update chart version to $(git describe --tags)"
+        git push origin gh-pages
       # gh release create $(git describe --tags) $(git describe --tags | sed 's|release/||; s/@/-/g' | awk '{print $0".tgz"}') --title "$(git describe --tags)" --notes "Automated release notes."
 
-      - name: Publish Helm chart
-        uses: stefanprodan/helm-gh-pages@master
-        with:
-          branch: master
-          repository: helm-charts
-          target_dir: docs
-          token: ${{ secrets.GITHUB_TOKEN }}
-          charts_dir: .
-          charts_url: https://codefuturist.github.io/helm-charts
-          owner: codefuturist
-          linting: off
-          commit_username: codefuturist
-          commit_email: 58808821+codefuturist@users.noreply.github.com
+    - name: Publish Helm chart
+      uses: stefanprodan/helm-gh-pages@master
+      with:
+        branch: master
+        repository: helm-charts
+        target_dir: docs
+        token: ${{ secrets.GITHUB_TOKEN }}
+        charts_dir: .
+        charts_url: https://codefuturist.github.io/helm-charts
+        owner: codefuturist
+        linting: off
+        commit_username: codefuturist
+        commit_email: 58808821+codefuturist@users.noreply.github.com
