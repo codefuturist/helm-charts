@@ -129,8 +129,8 @@ jobs:
     permissions:
       contents: write # for helm/chart-releaser-action to push chart release and create a release
     env:
-      CHART_TARGET_ORG: actions-runner-controller
-      CHART_TARGET_REPO: actions-runner-controller.github.io
+      CHART_TARGET_ORG: codefuturist
+      CHART_TARGET_REPO: helm-charts.github.io
       CHART_TARGET_BRANCH: master
 
     steps:
