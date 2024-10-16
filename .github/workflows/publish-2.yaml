@@ -26,8 +26,13 @@ env:
   KUBE_SCORE_VERSION: 1.10.0
   HELM_VERSION: v3.8.0
 
-permissions:
-  contents: write
+permissions: write-all
+  # contents: write
+
+ # Test
+ # packages: write
+ # issues: write
+ # pull-requests: write
 
 concurrency:
   group: ${{ github.workflow }}
