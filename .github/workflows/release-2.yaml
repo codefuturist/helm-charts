@@ -3,7 +3,11 @@ name: Release
 on:
   push:
     branches:
-      - main
+      - master
+    tags:
+      - 'release/*'
+      - 'release/**'
+  workflow_dispatch:
 
 jobs:
   release:
