@@ -32,10 +32,13 @@ jobs:
         run: echo ${{ vars.MM }} > test.txt
 
       - name: Checkout code
-        run: echo ${{ env.MM }}
+        run: echo "${{ vars.MM }}"
 
       - name: Checkout code
-        run: echo $GG
+        run: echo "${{ env.MM }}"
+
+      - name: Checkout code
+        run: echo "$GG"
 
       - name: Checkout code
         uses: actions/checkout@v3
