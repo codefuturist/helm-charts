@@ -44,7 +44,7 @@ jobs:
           target_dir: docs
           token: ${{ secrets.GITHUB_TOKEN }}
           charts_dir: .
-          charts_url: https://stakater.github.io/stakater-charts
+          charts_url: https://codefuturist.github.io/helm-charts
           owner: codefuturist
           linting: off
           commit_username: codefuturist
