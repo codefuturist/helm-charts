@@ -1,0 +1,25 @@
+apiVersion: v2
+name: homarr
+description: Generic helm chart for all kind of applications
+
+type: application
+
+# Helm chart Version
+
+version: 5.1.6
+
+
+keywords:
+  - java
+  - node
+  - dotnet
+  - kubernetes
+  - stakater
+  - application
+
+home: https://github.com/codefuturist/application
+maintainers:
+- name: codefuturist
+  email: hello@allcloud.trade
+
+icon: https://github.com/stakater/ForecastleIcons/blob/master/stakater.png

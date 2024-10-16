@@ -3,7 +3,7 @@ name: Publish Helm Chart
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'charts/**'
       - '.github/workflows/publish-helm-chart.yml'
@@ -51,7 +51,7 @@ jobs:
         run: |
           git add charts/*
           git commit -m "Add packaged Helm chart and update index"
-          git push origin main
+          git push origin master
 
       # Optionally: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
