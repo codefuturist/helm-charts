@@ -30,7 +30,7 @@ jobs:
 
       - name: Checkout code
         run: |
-          echo ${{ vars.MM }} > test.txt && cat test.txt
+          echo "${{ vars.MM }}" > test.txt && cat test.txt
 
       - name: Checkout code
         run: echo "${{ vars.MM }}"
