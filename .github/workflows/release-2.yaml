@@ -44,7 +44,7 @@ jobs:
         run: echo "$GG"
 
       - name: Checkout code
-        run: echo "$TEST"
+        run: echo "$PP"
 
       - name: Checkout code
         uses: actions/checkout@v3
