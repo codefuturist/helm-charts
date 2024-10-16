@@ -44,7 +44,7 @@ jobs:
       # Update Helm repository index
       - name: Update Helm repo index
         run: |
-          helm repo index ./charts --url https://<YOUR-GITHUB-USERNAME>.github.io/<YOUR-REPOSITORY-NAME>/charts
+          helm repo index ./charts --url https://codefuturist.github.io/helm-charts/charts
 
       # Commit the updated index.yaml and packaged chart
       - name: Commit and Push Changes
