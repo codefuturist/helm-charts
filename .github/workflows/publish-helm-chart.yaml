@@ -29,7 +29,7 @@ jobs:
 
       # Set up Helm
       - name: Set up Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
         with:
           version: v3.12.0
 
@@ -72,4 +72,4 @@ jobs:
           cp -r charts/* .
           git add .
           git commit -m "Update Helm repo"
-          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git gh-pages
+          git push origin gh-pages
