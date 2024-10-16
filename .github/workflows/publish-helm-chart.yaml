@@ -20,7 +20,7 @@ jobs:
           lfs: true
           fetch-depth: 0
 
-      # Set up Helmm
+      # Set up Helm
       - name: Set up Helm
         uses: azure/setup-helm@v3
         with:
@@ -65,4 +65,4 @@ jobs:
           cp -r charts/* .
           git add .
           git commit -m "Update Helm repo"
-          git push origin gh-pages
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git gh-pages
