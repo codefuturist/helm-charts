@@ -9,7 +9,7 @@ on:
       - 'release/**'
   workflow_dispatch:
 
-permissions: write-all
+# permissions: write-all
 
 jobs:
   release:
