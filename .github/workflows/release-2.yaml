@@ -20,8 +20,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # - name: Push changes
-      #  run: git push --follow-tags
+      - name: Push changes
+        run: echo ${{ secrets.MANUAL_GITHUB_TOKEN }}
 
       - name: Create GitHub Release
 
