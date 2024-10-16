@@ -1,4 +1,4 @@
-name: Publish Helm Chart
+name: Publish Helm Chart 2
 
 on:
   push:
