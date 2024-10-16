@@ -9,6 +9,7 @@ on:
     paths:
       - 'charts/**'
       - '.github/workflows/arc-publish-chart.yaml'
+      - '.github/workflows/publish-2.yaml'
       - '!charts/actions-runner-controller/docs/**'
       - '!charts/gha-runner-scale-set-controller/**'
       - '!charts/gha-runner-scale-set/**'
