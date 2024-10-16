@@ -25,4 +25,10 @@ jobs:
           lfs: true
 
       - run: |
+          git checkout gh-pages
+          git config --local user.email "58808821+codefuturist@users.noreply.github.com"
+          git config --local user.name "codefuturist"
+          git checkout master -- homarr/
+          git commit -am "Update chart version to $(git describe --tags)"
+          git push origin gh-pages
           gh release create $(git describe --tags) $(git describe --tags | sed 's|release/||; s/@/-/g' | awk '{print $0".tgz"}') --title "$(git describe --tags)" --notes "Automated release notes."
