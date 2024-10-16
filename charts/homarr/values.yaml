@@ -235,10 +235,10 @@ deployment:
   image:
     # -- (string) Repository.
     # @section -- Deployment Parameters
-    repository: ""
+    repository: "nginx"
     # -- (string) Tag.
     # @section -- Deployment Parameters
-    tag: ""
+    tag: "latest"
     # -- (string) Image digest. If set to a non-empty value, digest takes precedence on the tag.
     # @section -- Deployment Parameters
     digest: ""
