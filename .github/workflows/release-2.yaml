@@ -14,6 +14,8 @@ permissions: write-all
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.MANUAL_GITHUB_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -22,8 +24,7 @@ jobs:
       #  run: git push --follow-tags
 
       - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.MANUAL_GITHUB_TOKEN }}
+
         run: gh status
 
         #gh release create $(git describe --tags) --title "Release $(git describe --tags)" --notes "Automated release notes."
