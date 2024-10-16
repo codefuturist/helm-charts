@@ -25,4 +25,4 @@ jobs:
           lfs: true
 
       - run: |
-          gh release create $(git describe --tags) $($(git describe --tags) | sed 's|release/||; s/@/-/g' | awk '{print $0".tgz"}') --title "$(git describe --tags)" --notes "Automated release notes."
+          gh release create $(git describe --tags) $(git describe --tags | sed 's|release/||; s/@/-/g' | awk '{print $0".tgz"}') --title "$(git describe --tags)" --notes "Automated release notes."
