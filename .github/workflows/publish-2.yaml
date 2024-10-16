@@ -161,7 +161,7 @@ jobs:
       - name: Package and upload release assets
         run: |
           cr package \
-            ${{ github.workspace }}/charts/actions-runner-controller/ \
+            ${{ github.workspace }}/charts/homarr/ \
             --package-path .cr-release-packages
           
           cr upload \
