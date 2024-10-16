@@ -66,6 +66,27 @@ entries:
     version: 5.1.2
   homarr:
   - apiVersion: v2
+    created: "2024-10-16T16:53:46.816256667Z"
+    description: Generic helm chart for all kind of applications
+    digest: b099d4b99b9332325be71b919db041f49f3afb6a6bd1006e44a9aa75b3340f76
+    home: https://github.com/codefuturist/application
+    icon: https://github.com/stakater/ForecastleIcons/blob/master/stakater.png
+    keywords:
+    - java
+    - node
+    - dotnet
+    - kubernetes
+    - stakater
+    - application
+    maintainers:
+    - email: hello@allcloud.trade
+      name: codefuturist
+    name: homarr
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/homarr-5.1.6/homarr-5.1.6.tgz
+    version: 5.1.6
+  - apiVersion: v2
     created: "2024-10-14T16:12:52.341774+02:00"
     description: Generic helm chart for all kind of applications
     digest: 29a5a6ed833fb50be0a35e671d12e2afcd8d74790813abe74525d17321e68e5e
@@ -128,4 +149,4 @@ entries:
     urls:
     - https://codefuturist.github.io/helm-charts/homarr-5.1.2.tgz
     version: 5.1.2
-generated: "2024-10-14T16:12:52.331722+02:00"
+generated: "2024-10-16T16:53:46.816305729Z"
