@@ -130,7 +130,7 @@ jobs:
       contents: write # for helm/chart-releaser-action to push chart release and create a release
     env:
       CHART_TARGET_ORG: codefuturist
-      CHART_TARGET_REPO: helm-charts.github.io
+      CHART_TARGET_REPO: codefuturist.github.io/helm-charts
       CHART_TARGET_BRANCH: master
 
     steps:
