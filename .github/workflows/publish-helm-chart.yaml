@@ -55,7 +55,7 @@ jobs:
 
       # Optionally: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/master' }}
         run: |
           git fetch origin gh-pages:gh-pages || git checkout --orphan gh-pages
           git checkout gh-pages
