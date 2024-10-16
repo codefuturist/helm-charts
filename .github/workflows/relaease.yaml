@@ -26,8 +26,10 @@ jobs:
       - name: Create release version
         run: npx lerna version --conventional-commits
 
-      - name: Push changes
-        run: git push --follow-tags
+      # - name: Push changes
+      #  run: git push --follow-tags
 
       - name: Create GitHub Release
-        run: gh release create $(git describe --tags) --title "Release $(git describe --tags)" --notes "Automated release notes."
+        run: gh status
+
+        #gh release create $(git describe --tags) --title "Release $(git describe --tags)" --notes "Automated release notes."
