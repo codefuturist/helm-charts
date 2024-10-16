@@ -30,9 +30,9 @@ jobs:
       PG: ${{ vars.HEI }}
 
     steps:
-
-      - name: Create GitHub Release
-        run: gh status
+      - run: |
+          gh issue --repo ${{ github.repository }} \
+            create --title "Issue title" --body "Issue body"
 
       - name: Checkout code
         uses: actions/checkout@v3
