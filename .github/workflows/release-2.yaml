@@ -23,7 +23,7 @@ jobs:
 
       - name: Create GitHub Release
         env:
-          GH_TOKEN: ${{ secrets._MANUAL_GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.MANUAL_GITHUB_TOKEN }}
         run: gh status
 
         #gh release create $(git describe --tags) --title "Release $(git describe --tags)" --notes "Automated release notes."
