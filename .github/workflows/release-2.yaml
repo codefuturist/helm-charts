@@ -9,7 +9,7 @@ on:
       - 'release/**'
   workflow_dispatch:
 
-# permissions: write-all
+permissions: write-all
 
 jobs:
   release:
@@ -17,9 +17,6 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.MANUAL_GITHUB_TOKEN }}
       TT: ${{ secrets.GITHUB_TOKEN }}
-    permissions:
-      contents: read
-      issues: write
     steps:
       - run: |
           gh issue --repo ${{ github.repository }} \
