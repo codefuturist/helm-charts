@@ -16,20 +16,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
-
-      - name: Create release version
-        run: npx lerna version --conventional-commits
-
       # - name: Push changes
       #  run: git push --follow-tags
 
