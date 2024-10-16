@@ -24,8 +24,12 @@ jobs:
             create --title "Issue title" --body "Issue body"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout code
-        run: echo ${{ vars.MM }}
+        run: echo "Hello"
+
+      - name: Checkout code
+        run: echo ${{ vars.MM }} > test.txt
 
       - name: Checkout code
         run: echo ${{ env.MM }}
