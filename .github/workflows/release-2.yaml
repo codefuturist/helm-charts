@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.MANUAL_GITHUB_TOKEN }}
+      TT: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: read
       issues: write
@@ -25,6 +26,8 @@ jobs:
 
       - name: Push changes
         run: echo ${{ secrets.MANUAL_GITHUB_TOKEN }}
+      - name: Push changes
+        run: echo ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
 
