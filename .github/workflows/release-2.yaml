@@ -11,7 +11,7 @@ on:
 
 permissions: write-all
 
-environment: main-env
+environment: Main-Env
 jobs:
   release:
     runs-on: ubuntu-latest
