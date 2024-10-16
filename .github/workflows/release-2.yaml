@@ -17,12 +17,15 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.MANUAL_GITHUB_TOKEN }}
       TT: ${{ secrets.GITHUB_TOKEN }}
+      GG: ${{ secrets.MM }}
     steps:
       - run: |
           gh issue --repo ${{ github.repository }} \
             create --title "Issue title" --body "Issue body"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout code
+        run: echo $GG
 
       - name: Checkout code
         uses: actions/checkout@v3
