@@ -64,7 +64,7 @@ jobs:
         uses: stefanprodan/helm-gh-pages@master
         with:
           branch: master
-          repository: https://github.com/codefuturist/helm-charts.git
+          repository: helm-charts
           target_dir: docs
           token: ${{ secrets.GITHUB_TOKEN }}
           charts_dir: .
