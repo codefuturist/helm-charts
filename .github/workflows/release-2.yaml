@@ -2,8 +2,6 @@ name: Release
 
 on:
   push:
-    branches:
-      - master
     tags:
       - 'release/*'
       - 'release/**'
@@ -30,31 +28,8 @@ jobs:
       PG: ${{ vars.HEI }}
 
     steps:
-      - run: |
-          gh issue --repo ${{ github.repository }} \
-            create --title "Issue title" --body "Issue body"
-
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
-
-      - name: Create release version
-        run: npx lerna version --conventional-commits
-
-      # - name: Push changes
-      #  run: git push --follow-tags
-
-      - name: Create GitHub Release
-        run: gh status
-
-        #gh release create $(git describe --tags) --title "Release $(git describe --tags)" --notes "Automated release notes."
+      - run: |
+          gh release create $(git describe --tags) --title "Release $(git describe --tags)" --notes "Automated release notes."
