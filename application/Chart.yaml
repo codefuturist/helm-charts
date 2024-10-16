@@ -1,5 +1,5 @@
 apiVersion: v2
-name: homarr
+name: application
 description: Generic helm chart for all kind of applications
 
 type: application
