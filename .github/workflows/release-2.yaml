@@ -18,6 +18,7 @@ jobs:
       GH_TOKEN: ${{ secrets.MANUAL_GITHUB_TOKEN }}
       TT: ${{ secrets.GITHUB_TOKEN }}
       GG: ${{ secrets.MM }}
+      GP: ${{ secrets.TS }}
       PP: ${{ vars.TEST }}
 
     steps:
