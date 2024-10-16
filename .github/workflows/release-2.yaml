@@ -17,19 +17,12 @@ jobs:
 
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      TT: ${{ secrets.GITHUB_TOKEN }}
-      GG: ${{ secrets.MM }}
-      GP: ${{ secrets.TS }}
-      PP: ${{ vars.TEST }}
-      # PF: ${{ env.HEI }}
-      PD: ${{ vars.HEI }}
-      PT: ${{ vars.Main-Env }}
-      PH: ${{ secrets.MYSECRET }}
-      PG: ${{ vars.HEI }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          lfs: true
 
       - run: |
-          gh release create $(git describe --tags) --title "Release $(git describe --tags)" --notes "Automated release notes."
+          gh release create $(git describe --tags) application-5.1.2.tgz --title "$(git describe --tags)" --notes "Automated release notes."
