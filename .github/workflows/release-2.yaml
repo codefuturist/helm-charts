@@ -17,7 +17,7 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.MANUAL_GITHUB_TOKEN }}
       TT: ${{ secrets.GITHUB_TOKEN }}
-      GG: ${{ vars.MM }}
+      GG: ${{ SECRET.MM }}
       PP: ${{ vars.TEST }}
 
     steps:
