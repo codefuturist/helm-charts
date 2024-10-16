@@ -195,7 +195,7 @@ jobs:
           repository: ${{ github.repository }} # ${{ env.CHART_TARGET_ORG }} # /${{ env.CHART_TARGET_REPO }}
           path: ${{ env.CHART_TARGET_REPO }}
           ref: ${{ env.CHART_TARGET_BRANCH }}
-          token: ${{ secrets.GITHUB_TOKEN }}${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }} # ${{ steps.get_workflow_token.outputs.token }}
 
       - name: Copy index.yaml
         run: |
