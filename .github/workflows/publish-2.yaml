@@ -150,7 +150,7 @@ jobs:
         with:
           application_id: ${{ secrets.ACTIONS_ACCESS_APP_ID }}
           application_private_key: ${{ secrets.ACTIONS_ACCESS_PK }}
-          organization: ${{ env.CHART_TARGET_ORG }}
+        #  organization: ${{ env.CHART_TARGET_ORG }}
 
       - name: Install chart-releaser
         uses: helm/chart-releaser-action@v1.4.1
