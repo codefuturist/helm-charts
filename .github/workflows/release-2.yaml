@@ -11,6 +11,7 @@ on:
 
 permissions: write-all
 
+environment: main-env
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -22,6 +23,8 @@ jobs:
       PP: ${{ vars.TEST }}
       # PF: ${{ env.HEI }}
       PD: ${{ vars.HEI }}
+      PT: ${{ vars.Main-Env }}
+      PH: ${{ secrets.MYSECRET }}
 
     steps:
       - run: |
