@@ -20,7 +20,7 @@ jobs:
       GG: ${{ secrets.MM }}
       GP: ${{ secrets.TS }}
       PP: ${{ vars.TEST }}
-      PF: ${{ vars.HEI }}
+      PF: ${{ env.HEI }}
 
     steps:
       - run: |
