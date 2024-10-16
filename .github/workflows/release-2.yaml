@@ -18,7 +18,7 @@ jobs:
     environment: Main-Env
 
     env:
-      GH_TOKEN: ${{ secrets.MANUAL_GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TT: ${{ secrets.GITHUB_TOKEN }}
       GG: ${{ secrets.MM }}
       GP: ${{ secrets.TS }}
@@ -27,43 +27,36 @@ jobs:
       PD: ${{ vars.HEI }}
       PT: ${{ vars.Main-Env }}
       PH: ${{ secrets.MYSECRET }}
+      PG: ${{ vars.HEI }}
 
     steps:
       - run: |
-          gh issue --repo ${{ github.repository }} \
+          gh status \
             create --title "Issue title" --body "Issue body"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout code
-        run: echo "Hello"
-
-      - name: Checkout code
-        run: |
-          echo "${{ vars.MM }}" > test.txt && cat test.txt
-
-      - name: Checkout code
-        run: echo "${{ vars.MM }}"
-
-      - name: Checkout code
-        run: echo "${{ env.TEST }}"
-
-      - name: Checkout code
-        run: echo "$GG"
-
-      - name: Checkout code
-        run: echo "$PP"
-
-      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Push changes
-        run: echo ${{ secrets.MANUAL_GITHUB_TOKEN }}
-      - name: Push changes
-        run: echo ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Create release version
+        run: npx lerna version --conventional-commits
+
+      # - name: Push changes
+      #  run: git push --follow-tags
 
       - name: Create GitHub Release
-
         run: gh status
 
         #gh release create $(git describe --tags) --title "Release $(git describe --tags)" --notes "Automated release notes."
