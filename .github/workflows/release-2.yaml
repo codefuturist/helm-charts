@@ -36,7 +36,7 @@ jobs:
         run: echo "${{ vars.MM }}"
 
       - name: Checkout code
-        run: echo "${{ env.MM }}"
+        run: echo "${{ env.TEST }}"
 
       - name: Checkout code
         run: echo "$GG"
