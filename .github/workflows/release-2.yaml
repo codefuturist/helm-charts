@@ -17,7 +17,7 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.MANUAL_GITHUB_TOKEN }}
       TT: ${{ secrets.GITHUB_TOKEN }}
-      GG: ${{ secrets.MM }}
+      GG: ${{ vars.MM }}
     steps:
       - run: |
           gh issue --repo ${{ github.repository }} \
