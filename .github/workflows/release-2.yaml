@@ -19,7 +19,6 @@ jobs:
       TT: ${{ secrets.GITHUB_TOKEN }}
       GG: ${{ vars.MM }}
       PP: ${{ vars.TEST }}
-      PD: ${{ env.TEST }}
 
     steps:
       - run: |
