@@ -7,8 +7,11 @@ on:
       - 'release/**'
   workflow_dispatch:
 
-permissions: write-all
-
+permissions:
+  contents: write
+  packages: write
+  issues: write
+  pull-requests: write
 
 jobs:
   release:
@@ -19,22 +22,30 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        lfs: true
-        fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
 
-      run: |
-        git checkout gh-pages
-        git config --local user.email "58808821+codefuturist@users.noreply.github.com"
-        git config --local user.name "codefuturist"
-        git checkout master -- homarr/
-        git checkout nginx -- application/
-        git checkout nginx -- nginx/
-        git commit -am "Update chart version to $(git describe --tags)"
-        git push origin gh-pages
-      # gh release create $(git describe --tags) $(git describe --tags | sed 's|release/||; s/@/-/g' | awk '{print $0".tgz"}') --title "$(git describe --tags)" --notes "Automated release notes."
+      - name: Update gh-pages branch
+        run: |
+          git checkout gh-pages
+          git config --local user.email "58808821+codefuturist@users.noreply.github.com"
+          git config --local user.name "codefuturist"
+          git checkout master -- homarr/
+          git checkout nginx -- application/
+          git checkout nginx -- nginx/
+          git commit -am "Update chart version to $(git describe --tags)"
+          git push origin gh-pages
+
+      # Uncomment this section if you want to create a release using GitHub CLI.
+      # - name: Create GitHub Release
+      #   run: |
+      #     gh release create $(git describe --tags) \
+      #       $(git describe --tags | sed 's|release/||; s/@/-/g' | awk '{print $0".tgz"}') \
+      #       --title "$(git describe --tags)" \
+      #       --notes "Automated release notes."
 
   release2:
     runs-on: ubuntu-latest
@@ -42,17 +53,18 @@ jobs:
 
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
-    - name: Publish Helm chart
-      uses: stefanprodan/helm-gh-pages@master
-      with:
-        branch: master
-        repository: helm-charts
-        target_dir: docs
-        token: ${{ secrets.GITHUB_TOKEN }}
-        charts_dir: .
-        charts_url: https://codefuturist.github.io/helm-charts
-        owner: codefuturist
-        linting: off
-        commit_username: codefuturist
-        commit_email: 58808821+codefuturist@users.noreply.github.com
+      - name: Publish Helm chart
+        uses: stefanprodan/helm-gh-pages@master
+        with:
+          branch: master
+          repository: helm-charts
+          target_dir: docs
+          token: ${{ secrets.GITHUB_TOKEN }}
+          charts_dir: .
+          charts_url: https://codefuturist.github.io/helm-charts
+          owner: codefuturist
+          linting: off
+          commit_username: codefuturist
+          commit_email: 58808821+codefuturist@users.noreply.github.com
