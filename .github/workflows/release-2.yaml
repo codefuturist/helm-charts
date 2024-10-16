@@ -30,10 +30,9 @@ jobs:
       PG: ${{ vars.HEI }}
 
     steps:
-      - run: |
-          gh status
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        run: gh status
 
       - name: Checkout code
         uses: actions/checkout@v3
