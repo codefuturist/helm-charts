@@ -190,14 +190,14 @@
         <div class="info-box">
             <h2>Getting Started</h2>
             <p>Add this repository to your Helm client:</p>
-            <div class="code-block">helm repo add codefuturist https://codefuturist.github.io/helm-charts
+            <div class="code-block">helm repo add pandia https://charts.pandia.io/
 helm repo update</div>
             
             <h3>Search Available Charts</h3>
-            <div class="code-block">helm search repo codefuturist</div>
+            <div class="code-block">helm search repo pandia</div>
             
             <h3>Install a Chart</h3>
-            <div class="code-block">helm install my-release codefuturist/&lt;chart-name&gt;</div>
+            <div class="code-block">helm install my-release pandia/&lt;chart-name&gt;</div>
         </div>
 
         <div class="info-box">
@@ -258,18 +258,18 @@ helm repo update</div>
             <h2>Usage Examples</h2>
             
             <h3>Install Chart</h3>
-            <div class="code-block">helm install my-nginx codefuturist/nginx</div>
+            <div class="code-block">helm install my-nginx pandia/nginx</div>
             
             <h3>Install with Custom Values</h3>
-            <div class="code-block">helm install my-nginx codefuturist/nginx \
+            <div class="code-block">helm install my-nginx pandia/nginx \
   --set replicaCount=3 \
   --set service.type=LoadBalancer</div>
             
             <h3>Install from Values File</h3>
-            <div class="code-block">helm install my-nginx codefuturist/nginx -f custom-values.yaml</div>
+            <div class="code-block">helm install my-nginx pandia/nginx -f custom-values.yaml</div>
             
             <h3>Upgrade Release</h3>
-            <div class="code-block">helm upgrade my-nginx codefuturist/nginx --version 0.2.0</div>
+            <div class="code-block">helm upgrade my-nginx pandia/nginx --version 0.2.0</div>
         </div>
 
         <div class="info-box">
@@ -298,10 +298,10 @@ helm repo update</div>
             <h2>Chart Versions</h2>
             <p>All charts follow <a href="https://semver.org/">Semantic Versioning</a>. Check the <a href="https://github.com/codefuturist/helm-charts/releases">releases page</a> for full changelog.</p>
             <div class="code-block"># List all versions of a specific chart
-helm search repo codefuturist/nginx --versions
+helm search repo pandia/nginx --versions
 
 # Install specific version
-helm install my-nginx codefuturist/nginx --version 0.1.4</div>
+helm install my-nginx pandia/nginx --version 0.1.4</div>
         </div>
 
         <div class="info-box">
