@@ -74,6 +74,85 @@ bump-chart: ## Bump chart version (usage: make bump-chart CHART=application VERS
 	sed -i '' 's/^version: [0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}/version: $(VERSION)/' $(CHARTS_DIR)/$(CHART)/Chart.yaml
 	@echo "Bumped $(CHART) to version $(VERSION)"
 
+.PHONY: bump-patch
+bump-patch: ## Bump patch version (usage: make bump-patch CHART=application)
+	@test -n "$(CHART)" || (echo "CHART is not set. Usage: make bump-patch CHART=application"; exit 1)
+	@CURRENT=$$(grep "^version:" $(CHARTS_DIR)/$(CHART)/Chart.yaml | awk '{print $$2}'); \
+	MAJOR=$$(echo $$CURRENT | cut -d. -f1); \
+	MINOR=$$(echo $$CURRENT | cut -d. -f2); \
+	PATCH=$$(echo $$CURRENT | cut -d. -f3); \
+	NEW_PATCH=$$(($$PATCH + 1)); \
+	NEW_VERSION="$$MAJOR.$$MINOR.$$NEW_PATCH"; \
+	sed -i '' "s/^version: .*/version: $$NEW_VERSION/" $(CHARTS_DIR)/$(CHART)/Chart.yaml; \
+	echo "Bumped $(CHART) from $$CURRENT to $$NEW_VERSION"
+
+.PHONY: bump-minor
+bump-minor: ## Bump minor version (usage: make bump-minor CHART=application)
+	@test -n "$(CHART)" || (echo "CHART is not set. Usage: make bump-minor CHART=application"; exit 1)
+	@CURRENT=$$(grep "^version:" $(CHARTS_DIR)/$(CHART)/Chart.yaml | awk '{print $$2}'); \
+	MAJOR=$$(echo $$CURRENT | cut -d. -f1); \
+	MINOR=$$(echo $$CURRENT | cut -d. -f2); \
+	NEW_MINOR=$$(($$MINOR + 1)); \
+	NEW_VERSION="$$MAJOR.$$NEW_MINOR.0"; \
+	sed -i '' "s/^version: .*/version: $$NEW_VERSION/" $(CHARTS_DIR)/$(CHART)/Chart.yaml; \
+	echo "Bumped $(CHART) from $$CURRENT to $$NEW_VERSION"
+
+.PHONY: bump-major
+bump-major: ## Bump major version (usage: make bump-major CHART=application)
+	@test -n "$(CHART)" || (echo "CHART is not set. Usage: make bump-major CHART=application"; exit 1)
+	@CURRENT=$$(grep "^version:" $(CHARTS_DIR)/$(CHART)/Chart.yaml | awk '{print $$2}'); \
+	MAJOR=$$(echo $$CURRENT | cut -d. -f1); \
+	NEW_MAJOR=$$(($$MAJOR + 1)); \
+	NEW_VERSION="$$NEW_MAJOR.0.0"; \
+	sed -i '' "s/^version: .*/version: $$NEW_VERSION/" $(CHARTS_DIR)/$(CHART)/Chart.yaml; \
+	echo "Bumped $(CHART) from $$CURRENT to $$NEW_VERSION"
+
+.PHONY: release-patch
+release-patch: ## Bump patch, generate docs, commit and tag (usage: make release-patch CHART=application)
+	@test -n "$(CHART)" || (echo "CHART is not set. Usage: make release-patch CHART=application"; exit 1)
+	@$(MAKE) bump-patch CHART=$(CHART)
+	@$(MAKE) docs-chart CHART=$(CHART)
+	@NEW_VERSION=$$(grep "^version:" $(CHARTS_DIR)/$(CHART)/Chart.yaml | awk '{print $$2}'); \
+	git add $(CHARTS_DIR)/$(CHART)/Chart.yaml $(CHARTS_DIR)/$(CHART)/README.md; \
+	git commit -m "chore($(CHART)): release version $$NEW_VERSION"; \
+	git tag "$(CHART)-$$NEW_VERSION"; \
+	echo "✓ Released $(CHART) version $$NEW_VERSION"; \
+	echo "Run 'git push origin main --tags' to publish"
+
+.PHONY: release-minor
+release-minor: ## Bump minor, generate docs, commit and tag (usage: make release-minor CHART=application)
+	@test -n "$(CHART)" || (echo "CHART is not set. Usage: make release-minor CHART=application"; exit 1)
+	@$(MAKE) bump-minor CHART=$(CHART)
+	@$(MAKE) docs-chart CHART=$(CHART)
+	@NEW_VERSION=$$(grep "^version:" $(CHARTS_DIR)/$(CHART)/Chart.yaml | awk '{print $$2}'); \
+	git add $(CHARTS_DIR)/$(CHART)/Chart.yaml $(CHARTS_DIR)/$(CHART)/README.md; \
+	git commit -m "chore($(CHART)): release version $$NEW_VERSION"; \
+	git tag "$(CHART)-$$NEW_VERSION"; \
+	echo "✓ Released $(CHART) version $$NEW_VERSION"; \
+	echo "Run 'git push origin main --tags' to publish"
+
+.PHONY: release-major
+release-major: ## Bump major, generate docs, commit and tag (usage: make release-major CHART=application)
+	@test -n "$(CHART)" || (echo "CHART is not set. Usage: make release-major CHART=application"; exit 1)
+	@$(MAKE) bump-major CHART=$(CHART)
+	@$(MAKE) docs-chart CHART=$(CHART)
+	@NEW_VERSION=$$(grep "^version:" $(CHARTS_DIR)/$(CHART)/Chart.yaml | awk '{print $$2}'); \
+	git add $(CHARTS_DIR)/$(CHART)/Chart.yaml $(CHARTS_DIR)/$(CHART)/README.md; \
+	git commit -m "chore($(CHART)): release version $$NEW_VERSION"; \
+	git tag "$(CHART)-$$NEW_VERSION"; \
+	echo "✓ Released $(CHART) version $$NEW_VERSION"; \
+	echo "Run 'git push origin main --tags' to publish"
+
+.PHONY: publish-release
+publish-release: ## Push commits and tags to trigger release workflow
+	git push origin main --tags
+	@echo "✓ Pushed to main with tags. Check GitHub Actions for release progress."
+
+.PHONY: current-version
+current-version: ## Show current version of a chart (usage: make current-version CHART=application)
+	@test -n "$(CHART)" || (echo "CHART is not set. Usage: make current-version CHART=application"; exit 1)
+	@grep "^version:" $(CHARTS_DIR)/$(CHART)/Chart.yaml | awk '{print $$2}'
+
 .PHONY: test
 test: ## Run helm unit tests (requires helm unittest plugin)
 	@command -v helm unittest 2>&1 >/dev/null || (echo "helm unittest plugin not found. Install it with: helm plugin install https://github.com/helm-unittest/helm-unittest"; exit 1)
