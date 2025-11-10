@@ -1,75 +1,39 @@
-name: Release Chartsname: Release
+name: Release Charts
 
 on:
-
-on:  push:
-
-  push:    tags:
-
-    branches:      - "v*"
-
+  push:
+    branches:
       - main
+    paths:
+      - 'charts/**'
 
-    paths:jobs:
-
-      - 'charts/**'  build:
-
-    name: Release
-
-permissions:    runs-on: ubuntu-latest
-
+permissions:
   contents: write
+  pages: write
+  id-token: write
 
-  pages: write    steps:
-
-  id-token: write      - name: Check out code
-
-        uses: actions/checkout@v4
-
-jobs:        with:
-
-  release:          fetch-depth: 0 # See: https://goreleaser.com/ci/actions/
-
+jobs:
+  release:
     runs-on: ubuntu-latest
-
-    steps:      - name: Create Release
-
-      - name: Checkout        id: create_release
-
-        uses: actions/checkout@v4        uses: actions/create-release@v1
-
-        with:        env:
-
-          fetch-depth: 0          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
+          fetch-depth: 0
 
-      - name: Configure Git          tag_name: ${{ github.ref }}
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-        run: |          release_name: ${{ github.ref }}
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.13.0
 
-          git config user.name "$GITHUB_ACTOR"          draft: false
-
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"          prerelease: false
-
-
-
-      - name: Install Helm      - name: Notify Slack
-
-        uses: azure/setup-helm@v4        uses: 8398a7/action-slack@v3
-
-        with:        if: always()
-
-          version: v3.13.0        with:
-
-          status: ${{ job.status }}
-
-      - name: Add dependencies          fields: repo,author,action,eventName,ref,workflow
-
-        run: |        env:
-
-          for dir in charts/*/; do          SLACK_WEBHOOK_URL: ${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}
-
+      - name: Add dependencies
+        run: |
+          for dir in charts/*/; do
             if [ -f "$dir/Chart.yaml" ]; then
               echo "Checking dependencies for $dir"
               helm dependency update "$dir" || true
@@ -83,13 +47,3 @@ jobs:        with:
         with:
           charts_dir: charts
           skip_existing: true
-
-      - name: Update index.yaml for root
-        run: |
-          git checkout gh-pages
-          cp index.yaml /tmp/index.yaml
-          git checkout main
-          cp /tmp/index.yaml ./index.yaml
-          git add index.yaml
-          git commit -m "Update index.yaml from gh-pages" || echo "No changes to commit"
-          git push origin main || echo "Nothing to push"
