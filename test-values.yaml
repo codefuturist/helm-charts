@@ -1,0 +1,16 @@
+eapplicationName: test-app
+
+deployment:
+  enabled: true
+  image:
+    repository: nginx
+    tag: "1.27.0"
+    pullPolicy: IfNotPresent
+  
+service:
+  enabled: true
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP

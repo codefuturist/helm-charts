@@ -36,7 +36,8 @@ spec:
   template:
     metadata:
       labels:
-{{ include "application.selectorLabels" . | indent 8 }}
+      {{- include "application.labels" . | nindent 8 }}
+        application.stakater.com/workload-class: serving
 {{- if .Values.deployment.podLabels }}
 {{ toYaml .Values.deployment.podLabels | indent 8 }}
 {{- end }}
@@ -74,9 +75,8 @@ spec:
           ]
 {{- end }}
     spec:
-      {{- if .Values.deployment.hostAliases }}
-      hostAliases:
-{{ toYaml .Values.deployment.hostAliases | indent 6 }}
+      {{- with .Values.deployment.hostAliases }}
+      hostAliases: {{- toYaml . | nindent 6 }}
       {{- end }}
       {{- if .Values.deployment.initContainers }}
       initContainers:
@@ -91,6 +91,9 @@ spec:
       {{- end }}
       {{- with .Values.deployment.priorityClassName }}
       priorityClassName: {{ . }}
+      {{- end }}
+      {{- if .Values.deployment.runtimeClassName }}
+      runtimeClassName: {{ .Values.deployment.runtimeClassName }}
       {{- end }}
       {{- if .Values.deployment.tolerations }}
       tolerations:
@@ -137,12 +140,16 @@ spec:
           name: proxy-tls
         {{- end }}
       - name: {{ template "application.name" . }}
+        {{- $repo := include "application.tplvalues.render" (dict "value" .Values.deployment.image.repository "context" $) -}}
+        {{- $repo = required "Undefined image for application container" $repo -}}
 
-        {{- $image := required "Undefined image for application container" .Values.deployment.image.repository }}
-        {{- with .Values.deployment.image.tag    }} {{- $image = print $image ":" . }} {{- end }}
-        {{- with .Values.deployment.image.digest }} {{- $image = print $image "@" . }} {{- end }}
+        {{- $tag    := include "application.tplvalues.render" (dict "value" .Values.deployment.image.tag "context" $) -}}
+        {{- $digest := include "application.tplvalues.render" (dict "value" .Values.deployment.image.digest "context" $) -}}
+
+        {{- $image := $repo -}}
+        {{- with $tag    }} {{- $image  = print $image  ":" . }} {{- end }}
+        {{- with $digest }} {{- $image  = print $image  "@" . }} {{- end }}
         image: {{ $image }}
-
         imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
         {{- with .Values.deployment.lifecycle }}
         lifecycle:
@@ -170,6 +177,7 @@ spec:
             {{- else }}
             name: {{ template "application.name" $ }}
             {{- end }}
+            optional: {{ default false $value.optional }}
         {{- end }}
         {{- if (eq .type "secret") }}
         - secretRef:
@@ -180,6 +188,7 @@ spec:
             {{- else }}
             name: {{ template "application.name" $ }}
             {{- end }}
+            optional: {{ default false $value.optional }}
         {{- end }}
         {{- end }}
         {{- end }}
@@ -285,6 +294,9 @@ spec:
       dnsConfig:
 {{ toYaml .Values.deployment.dnsConfig | indent 8 }}
           {{- end }}
+      {{- if .Values.deployment.dnsPolicy }}
+      dnsPolicy: {{ .Values.deployment.dnsPolicy }}
+      {{- end }}
       {{- if or (.Values.deployment.openshiftOAuthProxy.enabled) (.Values.deployment.volumes) (and (eq .Values.persistence.enabled true) (eq .Values.persistence.mountPVC true) )}}
       volumes:
         {{- if .Values.deployment.openshiftOAuthProxy.enabled }}
@@ -319,4 +331,7 @@ spec:
       hostNetwork: {{ .Values.deployment.hostNetwork }}
       {{- end }}
       terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
+      {{- if not (kindIs "invalid" .Values.deployment.minReadySeconds) }}
+      minReadySeconds: {{ .Values.deployment.minReadySeconds }}
+      {{- end }}
 {{- end }}

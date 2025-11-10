@@ -20,6 +20,9 @@ spec:
   clusterIP: {{ . }}
 {{- end }}
 {{- if eq .Values.service.type "LoadBalancer" }}
+  {{- with .Values.service.loadBalancerClass }}
+  loadBalancerClass: {{ . }}
+  {{- end }}
   {{- with .Values.service.loadBalancerIP }}
   loadBalancerIP: {{ . }}
   {{- end }}
@@ -34,9 +37,6 @@ spec:
   {{- end }}
   selector:
 {{ include "application.selectorLabels" . | indent 4 }}
-{{- if .Values.deployment.podLabels }}
-{{ toYaml .Values.deployment.podLabels | indent 4 }}
-{{- end }}
   ports:
   {{- if .Values.deployment.openshiftOAuthProxy.enabled }}
   - name: proxy

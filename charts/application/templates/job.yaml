@@ -10,18 +10,20 @@ kind: Job
 metadata:
   labels:
   {{- include "application.labels" $ | nindent 4 }}
-{{- if $job.additionalLabels }}
-{{ $job.additionalLabels | indent 4 }}
+{{- with $job.additionalLabels }}
+{{ toYaml . | indent 4 }}
 {{- end }}
-{{- if $job.annotations }}
-  annotations:
-{{ $job.annotations | indent 4 }}
+{{- with $job.annotations }}
+  annotations: {{ toYaml . | nindent 4 }}
 {{- end }}
   name: {{ $name }}
   namespace: {{ template "application.namespace" $ }}
 spec:
-  {{- with $job.activeDeadlineSeconds }}
-  activeDeadlineSeconds: {{ . }}
+  {{- if not (kindIs "invalid" $job.startingDeadlineSeconds) }}
+  startingDeadlineSeconds: {{ $job.startingDeadlineSeconds }}
+  {{- end }}
+  {{- if not (kindIs "invalid" $job.activeDeadlineSeconds) }}
+  activeDeadlineSeconds: {{ $job.activeDeadlineSeconds }}
   {{- end }}
   {{- if not (kindIs "invalid" $job.backoffLimit) }}
   backoffLimit: {{ $job.backoffLimit }}
@@ -30,6 +32,7 @@ spec:
     metadata:
       labels:
       {{- include "application.labels" $ | nindent 8 }}
+        application.stakater.com/workload-class: batch
       {{- with $job.additionalPodLabels }}
       {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -44,17 +47,28 @@ spec:
       serviceAccountName: {{ template "application.name" $ }}
       {{- end }}
       {{- end }}
+      {{- with $job.initContainers }}
+      initContainers:
+      {{- range $key, $value := . }}
+      - name: {{ $key }}
+        {{- dict "value" (omit $value "name") "context" $ | include "application.tplvalues.render" | nindent 8 }}
+      {{- end }}
+      {{- end }}
       containers:
       - name: {{ $name }}
+        {{- $repo := include "application.tplvalues.render" (dict "value" $job.image.repository "context" $) -}}
+        {{- $repo = required (printf "Undefined image repo for container '%s'" $name) $repo -}}
 
-        {{- $image := required (print "Undefined image repo for container '" $name "'") $job.image.repository }}
-        {{- with $job.image.tag    }} {{- $image = print $image ":" . }} {{- end }}
-        {{- with $job.image.digest }} {{- $image = print $image "@" . }} {{- end }}
+        {{- $tag    := include "application.tplvalues.render" (dict "value" $job.image.tag "context" $) -}}
+        {{- $digest := include "application.tplvalues.render" (dict "value" $job.image.digest "context" $) -}}
+
+        {{- $image := $repo -}}
+        {{- with $tag    }} {{- $image = print $image ":" . }} {{- end }}
+        {{- with $digest }} {{- $image = print $image "@" . }} {{- end }}
         image: {{ $image }}
-
         {{- if $job.image.imagePullPolicy }}
         imagePullPolicy: {{ $job.image.imagePullPolicy }}
-        {{ end }}
+        {{- end }}
         {{- with $job.env }}
         env:
         {{- range $key, $value := $job.env }}
@@ -104,9 +118,19 @@ spec:
       restartPolicy: OnFailure
       {{ end }}
       {{- with $job.imagePullSecrets}}
-      imagePullSecrets: 
+      imagePullSecrets:
 {{ toYaml . | indent 8 }}
       {{ end }}
+      {{- if $job.dnsConfig }}
+      dnsConfig:
+{{ toYaml $job.dnsConfig | indent 8 }}
+      {{- end }}
+      {{- if $job.dnsPolicy }}
+      dnsPolicy: {{ $job.dnsPolicy }}
+      {{- end }}
+      {{- with $job.hostAliases }}
+      hostAliases: {{- toYaml . | nindent 6 }}
+      {{- end }}
       {{- with $job.volumes }}
       volumes:
 {{ toYaml . | indent 8 }}

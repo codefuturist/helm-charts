@@ -174,3 +174,62 @@ tests:
       - equal:
           path: spec.ports[0].targetPort
           value: 8080
+
+  - it: includes loadBalancerClass when service type is LoadBalancer and loadBalancerClass is defined
+    set:
+      service:
+        enabled: true
+        type: LoadBalancer
+        loadBalancerClass: tailscale
+    asserts:
+      - equal:
+          path: spec.loadBalancerClass
+          value: tailscale
+
+  - it: does not include loadBalancerClass if service type is not LoadBalancer
+    set:
+      service:
+        enabled: true
+        type: ClusterIP
+        loadBalancerClass: tailscale
+    asserts:
+      - notExists:
+          path: spec.loadBalancerClass
+
+  - it: does not include loadBalancerClass if service type is LoadBalancer but loadBalancerClass is not defined
+    set:
+      service:
+        enabled: true
+        type: LoadBalancer
+    asserts:
+      - notExists:
+          path: spec.loadBalancerClass
+
+  - it: uses app.kubernetes.io/name and application.stakater.com/workload-class as selector labels
+    set:
+      service:
+        enabled: true
+      applicationName: my-app
+    asserts:
+      - equal:
+          path: spec.selector["app.kubernetes.io/name"]
+          value: my-app
+      - equal:
+          path: spec.selector["application.stakater.com/workload-class"]
+          value: serving
+
+  - it: service selector specifically requires workload-class serving to exclude batch and scheduled workloads
+    set:
+      service:
+        enabled: true
+      applicationName: my-app
+    asserts:
+      - equal:
+          path: spec.selector["application.stakater.com/workload-class"]
+          value: serving
+      - notEqual:
+          path: spec.selector["application.stakater.com/workload-class"]
+          value: batch
+      - notEqual:
+          path: spec.selector["application.stakater.com/workload-class"]
+          value: scheduled
