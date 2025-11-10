@@ -1,0 +1,169 @@
+name: Update Chart Documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "charts/**/Chart.yaml"
+      - "charts/**/values.yaml"
+      - "charts/**/README.md"
+      - ".github/workflows/docs.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install helm-docs
+        run: |
+          cd /tmp
+          wget https://github.com/norwoodj/helm-docs/releases/download/v1.14.2/helm-docs_1.14.2_Linux_x86_64.tar.gz
+          tar -xzf helm-docs_1.14.2_Linux_x86_64.tar.gz
+          sudo mv helm-docs /usr/local/bin/
+          helm-docs --version
+
+      - name: Generate chart documentation
+        run: |
+          echo "Generating documentation for all charts..."
+          helm-docs --chart-search-root=charts
+          
+      - name: Check for documentation changes
+        id: git-check
+        run: |
+          git diff --exit-code charts/*/README.md || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit documentation to main
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git add charts/*/README.md
+          git commit -m "docs: auto-update chart documentation [skip ci]"
+          git push origin main
+
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Copy chart documentation to gh-pages
+        run: |
+          echo "Setting up documentation structure..."
+          
+          # Create charts directory structure
+          mkdir -p gh-pages/charts
+          
+          # Copy each chart's README
+          for chart_dir in charts/*/; do
+            chart_name=$(basename "$chart_dir")
+            echo "Processing chart: $chart_name"
+            
+            # Create chart directory in gh-pages
+            mkdir -p "gh-pages/charts/$chart_name"
+            
+            # Copy README if it exists
+            if [ -f "$chart_dir/README.md" ]; then
+              cp "$chart_dir/README.md" "gh-pages/charts/$chart_name/"
+              echo "✓ Copied README for $chart_name"
+            fi
+            
+            # Copy Chart.yaml for reference
+            if [ -f "$chart_dir/Chart.yaml" ]; then
+              cp "$chart_dir/Chart.yaml" "gh-pages/charts/$chart_name/"
+              echo "✓ Copied Chart.yaml for $chart_name"
+            fi
+            
+            # Copy values.yaml for reference
+            if [ -f "$chart_dir/values.yaml" ]; then
+              cp "$chart_dir/values.yaml" "gh-pages/charts/$chart_name/"
+              echo "✓ Copied values.yaml for $chart_name"
+            fi
+          done
+          
+          # Create the index HTML file
+          cat > gh-pages/charts/index.html << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Chart Documentation - Pandia Helm Charts</title>
+              <link rel="icon" href="https://helm.sh/img/helm.svg" type="image/svg+xml">
+              <style>
+                  :root { --primary-color: #0f1689; --secondary-color: #326ce5; --bg-light: #f8f9fa; --border-color: #dee2e6; }
+                  * { margin: 0; padding: 0; box-sizing: border-box; }
+                  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #2c3e50; background-color: var(--bg-light); }
+                  header { background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white; padding: 2rem; text-align: center; }
+                  header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+                  .container { max-width: 1200px; margin: 2rem auto; padding: 2rem; }
+                  .chart-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-top: 2rem; }
+                  .chart-card { background: white; border-radius: 8px; padding: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 4px solid var(--secondary-color); transition: transform 0.3s ease; }
+                  .chart-card:hover { transform: translateY(-4px); }
+                  .chart-card h2 { color: var(--primary-color); margin-bottom: 1rem; }
+                  .chart-card p { color: #6c757d; margin-bottom: 1rem; }
+                  .chart-card a { display: inline-block; padding: 0.5rem 1rem; background: var(--secondary-color); color: white; text-decoration: none; border-radius: 4px; margin-right: 0.5rem; margin-top: 0.5rem; }
+                  .chart-card a:hover { background: var(--primary-color); }
+                  .back-link { display: inline-block; margin-bottom: 2rem; color: var(--secondary-color); text-decoration: none; }
+                  .back-link:hover { text-decoration: underline; }
+              </style>
+          </head>
+          <body>
+              <header>
+                  <h1>📚 Chart Documentation</h1>
+                  <p>Detailed documentation for all available Helm charts</p>
+              </header>
+              <div class="container">
+                  <a href="../" class="back-link">← Back to Home</a>
+                  <div class="chart-list">
+          HTMLEOF
+          
+          # Add a card for each chart
+          for chart_dir in charts/*/; do
+            chart_name=$(basename "$chart_dir")
+            if [ -f "$chart_dir/Chart.yaml" ]; then
+              description=$(grep "^description:" "$chart_dir/Chart.yaml" | sed 's/description: //' | sed 's/^"//' | sed 's/"$//')
+              version=$(grep "^version:" "$chart_dir/Chart.yaml" | awk '{print $2}')
+              
+              cat >> gh-pages/charts/index.html << HTMLEOF
+                      <div class="chart-card">
+                          <h2>$chart_name</h2>
+                          <p>$description</p>
+                          <p><strong>Version:</strong> $version</p>
+                          <a href="$chart_name/">📖 README</a>
+                          <a href="$chart_name/Chart.yaml">📋 Chart.yaml</a>
+                          <a href="$chart_name/values.yaml">⚙️ values.yaml</a>
+                      </div>
+          HTMLEOF
+            fi
+          done
+          
+          cat >> gh-pages/charts/index.html << 'HTMLEOF'
+                  </div>
+              </div>
+          </body>
+          </html>
+          HTMLEOF
+
+      - name: Commit and push to gh-pages
+        run: |
+          cd gh-pages
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git add charts/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "docs: update chart documentation"
+            git push origin gh-pages
+            echo "✓ Documentation updated successfully"
+          fi
