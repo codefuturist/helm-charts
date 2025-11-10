@@ -112,3 +112,19 @@ list-charts: ## List all charts in the repository
 		fi \
 	done
 
+.PHONY: docs
+docs: ## Generate documentation for all charts using helm-docs
+	@command -v helm-docs 2>&1 >/dev/null || (echo "helm-docs not found. Install it with: brew install norwoodj/tap/helm-docs"; exit 1)
+	helm-docs --chart-search-root=$(CHARTS_DIR)
+	@echo "Documentation generated successfully!"
+
+.PHONY: docs-chart
+docs-chart: ## Generate documentation for a specific chart (usage: make docs-chart CHART=nginx)
+	@command -v helm-docs 2>&1 >/dev/null || (echo "helm-docs not found. Install it with: brew install norwoodj/tap/helm-docs"; exit 1)
+	@if [ -z "$(CHART)" ]; then \
+		echo "Error: CHART variable is required. Usage: make docs-chart CHART=nginx"; \
+		exit 1; \
+	fi
+	helm-docs --chart-search-root=$(CHARTS_DIR)/$(CHART)
+	@echo "Documentation generated for $(CHART)!"
+
