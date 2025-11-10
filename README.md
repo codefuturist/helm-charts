@@ -130,15 +130,14 @@ helm-docs charts/<chart-name>
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+We welcome contributions! Please see our [Contributing Guidelines](docs/CONTRIBUTING.md) for details on:
+
 - How to submit issues and pull requests
-- Development setup and workflow
-- Chart development guidelines
-- Testing requirements
+- Code standards and testing requirements
+- Development workflow
+- Release process
 
-## Security
-
-For security concerns, please review our [Security Policy](SECURITY.md) and report vulnerabilities responsibly.
+For security concerns, please review our [Security Policy](docs/SECURITY.md) and report vulnerabilities responsibly.
 
 ## Chart Releases
 
@@ -164,11 +163,9 @@ helm-charts/
 │   ├── application/     # Generic application chart
 │   ├── homarr/         # Homarr dashboard chart
 │   └── nginx/          # NGINX chart
-├── docs/               # GitHub Pages content (auto-generated)
+├── docs/               # Documentation (CHANGELOG, CONTRIBUTING, SECURITY)
 ├── ct.yaml             # Chart testing configuration
 ├── artifacthub-repo.yaml  # Artifact Hub metadata
-├── CONTRIBUTING.md     # Contribution guidelines
-├── SECURITY.md        # Security policy
 ├── LICENSE            # MIT License
 └── README.md          # This file
 ```
