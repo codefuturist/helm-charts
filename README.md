@@ -51,7 +51,7 @@ Helm chart for deploying NGINX web server with customizable configuration option
 ### Adding the Repository
 
 ```bash
-helm repo add codefuturist https://codefuturist.github.io/helm-charts
+helm repo add pandia https://charts.pandia.io/
 helm repo update
 ```
 
@@ -59,19 +59,19 @@ helm repo update
 
 ```bash
 # Install with default values
-helm install my-release codefuturist/<chart-name>
+helm install my-release pandia/<chart-name>
 
 # Install with custom values
-helm install my-release codefuturist/<chart-name> -f values.yaml
+helm install my-release pandia/<chart-name> -f values.yaml
 
 # Install in a specific namespace
-helm install my-release codefuturist/<chart-name> --namespace my-namespace --create-namespace
+helm install my-release pandia/<chart-name> --namespace my-namespace --create-namespace
 ```
 
 ### Upgrading a Release
 
 ```bash
-helm upgrade my-release codefuturist/<chart-name>
+helm upgrade my-release pandia/<chart-name>
 ```
 
 ### Uninstalling a Release
