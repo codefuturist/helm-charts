@@ -153,6 +153,171 @@ current-version: ## Show current version of a chart (usage: make current-version
 	@test -n "$(CHART)" || (echo "CHART is not set. Usage: make current-version CHART=application"; exit 1)
 	@grep "^version:" $(CHARTS_DIR)/$(CHART)/Chart.yaml | awk '{print $$2}'
 
+# ============================================================================
+# Git Flow Release Helpers
+# ============================================================================
+
+.PHONY: flow-start
+flow-start: ## Start a new release branch (usage: make flow-start CHART=nginx TYPE=patch)
+	@test -n "$(CHART)" || (echo "CHART is not set. Usage: make flow-start CHART=nginx TYPE=patch"; exit 1)
+	@test -n "$(TYPE)" || TYPE=patch; \
+	CURRENT=$$(grep "^version:" $(CHARTS_DIR)/$(CHART)/Chart.yaml | awk '{print $$2}'); \
+	case "$(TYPE)" in \
+		patch) \
+			MAJOR=$$(echo $$CURRENT | cut -d. -f1); \
+			MINOR=$$(echo $$CURRENT | cut -d. -f2); \
+			PATCH=$$(echo $$CURRENT | cut -d. -f3); \
+			NEW_PATCH=$$(($$PATCH + 1)); \
+			NEW_VERSION="$$MAJOR.$$MINOR.$$NEW_PATCH" ;; \
+		minor) \
+			MAJOR=$$(echo $$CURRENT | cut -d. -f1); \
+			MINOR=$$(echo $$CURRENT | cut -d. -f2); \
+			NEW_MINOR=$$(($$MINOR + 1)); \
+			NEW_VERSION="$$MAJOR.$$NEW_MINOR.0" ;; \
+		major) \
+			MAJOR=$$(echo $$CURRENT | cut -d. -f1); \
+			NEW_MAJOR=$$(($$MAJOR + 1)); \
+			NEW_VERSION="$$NEW_MAJOR.0.0" ;; \
+		*) \
+			echo "Invalid TYPE. Use: patch, minor, or major"; \
+			exit 1 ;; \
+	esac; \
+	echo "📦 Starting release branch: release/$(CHART)-$$NEW_VERSION"; \
+	git checkout -b "release/$(CHART)-$$NEW_VERSION" main; \
+	sed -i '' "s/^version: .*/version: $$NEW_VERSION/" $(CHARTS_DIR)/$(CHART)/Chart.yaml; \
+	echo "✓ Created release branch and bumped version from $$CURRENT to $$NEW_VERSION"; \
+	echo ""; \
+	echo "Next steps:"; \
+	echo "  1. Make any final changes"; \
+	echo "  2. Run: make flow-finish CHART=$(CHART)"
+
+.PHONY: flow-finish
+flow-finish: ## Finish release branch and create tag (usage: make flow-finish CHART=nginx)
+	@test -n "$(CHART)" || (echo "CHART is not set. Usage: make flow-finish CHART=nginx"; exit 1)
+	@BRANCH=$$(git branch --show-current); \
+	if [[ ! "$$BRANCH" =~ ^release/$(CHART)- ]]; then \
+		echo "Error: Not on a release branch for $(CHART)"; \
+		echo "Current branch: $$BRANCH"; \
+		exit 1; \
+	fi; \
+	VERSION=$$(grep "^version:" $(CHARTS_DIR)/$(CHART)/Chart.yaml | awk '{print $$2}'); \
+	echo "🔨 Finishing release: $(CHART)-$$VERSION"; \
+	$(MAKE) docs-chart CHART=$(CHART); \
+	git add $(CHARTS_DIR)/$(CHART)/Chart.yaml $(CHARTS_DIR)/$(CHART)/README.md; \
+	git commit -m "chore($(CHART)): release version $$VERSION"; \
+	echo ""; \
+	echo "✓ Committed changes"; \
+	echo "📝 Merging to main..."; \
+	git checkout main; \
+	git merge --no-ff "$$BRANCH" -m "Merge branch '$$BRANCH'"; \
+	git tag "$(CHART)-$$VERSION" -m "Release $(CHART) version $$VERSION"; \
+	git branch -d "$$BRANCH"; \
+	echo ""; \
+	echo "✅ Release completed successfully!"; \
+	echo ""; \
+	echo "📋 Summary:"; \
+	echo "  Chart: $(CHART)"; \
+	echo "  Version: $$VERSION"; \
+	echo "  Tag: $(CHART)-$$VERSION"; \
+	echo ""; \
+	echo "Next step:"; \
+	echo "  Run: make flow-publish"
+
+.PHONY: flow-publish
+flow-publish: ## Push release to remote and trigger CI/CD
+	@echo "🚀 Publishing release to remote..."
+	git push origin main --tags
+	@echo ""; \
+	echo "✅ Release published!"; \
+	echo ""; \
+	echo "🔍 Monitor the release:"; \
+	echo "  https://github.com/codefuturist/helm-charts/actions"
+
+.PHONY: flow-abort
+flow-abort: ## Abort current release branch (usage: make flow-abort CHART=nginx)
+	@test -n "$(CHART)" || (echo "CHART is not set. Usage: make flow-abort CHART=nginx"; exit 1)
+	@BRANCH=$$(git branch --show-current); \
+	if [[ ! "$$BRANCH" =~ ^release/$(CHART)- ]]; then \
+		echo "Error: Not on a release branch for $(CHART)"; \
+		echo "Current branch: $$BRANCH"; \
+		exit 1; \
+	fi; \
+	echo "⚠️  Aborting release branch: $$BRANCH"; \
+	read -p "Are you sure? This will delete the branch and lose changes. [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		git checkout main; \
+		git branch -D "$$BRANCH"; \
+		echo "✓ Release branch deleted"; \
+	else \
+		echo "Cancelled"; \
+	fi
+
+.PHONY: flow-status
+flow-status: ## Show current git flow status
+	@echo "📊 Git Flow Status"; \
+	echo ""; \
+	BRANCH=$$(git branch --show-current); \
+	echo "Current branch: $$BRANCH"; \
+	echo ""; \
+	if [[ "$$BRANCH" =~ ^release/ ]]; then \
+		echo "🔄 Active release detected!"; \
+		CHART=$$(echo $$BRANCH | sed 's/release\/\([^-]*\)-.*/\1/'); \
+		VERSION=$$(echo $$BRANCH | sed 's/release\/[^-]*-//'); \
+		echo "  Chart: $$CHART"; \
+		echo "  Target version: $$VERSION"; \
+		if [ -f "$(CHARTS_DIR)/$$CHART/Chart.yaml" ]; then \
+			CURRENT=$$(grep "^version:" $(CHARTS_DIR)/$$CHART/Chart.yaml | awk '{print $$2}'); \
+			echo "  Chart.yaml version: $$CURRENT"; \
+		fi; \
+		echo ""; \
+		echo "Next steps:"; \
+		echo "  - Finish: make flow-finish CHART=$$CHART"; \
+		echo "  - Abort:  make flow-abort CHART=$$CHART"; \
+	else \
+		echo "ℹ️  No active release branch"; \
+		echo ""; \
+		echo "Start a new release:"; \
+		echo "  make flow-start CHART=<name> TYPE=<patch|minor|major>"; \
+	fi; \
+	echo ""; \
+	echo "Available charts:"; \
+	$(MAKE) --no-print-directory list-charts
+
+.PHONY: flow-help
+flow-help: ## Show git flow usage guide
+	@echo "📚 Git Flow Release Guide"; \
+	echo ""; \
+	echo "Complete release workflow:"; \
+	echo ""; \
+	echo "1️⃣  Start a release:"; \
+	echo "   make flow-start CHART=nginx TYPE=patch"; \
+	echo "   (TYPE can be: patch, minor, or major)"; \
+	echo ""; \
+	echo "2️⃣  Make changes (optional):"; \
+	echo "   - Edit chart files"; \
+	echo "   - Test changes: make lint-chart CHART=nginx"; \
+	echo "   - Add commits as needed"; \
+	echo ""; \
+	echo "3️⃣  Finish the release:"; \
+	echo "   make flow-finish CHART=nginx"; \
+	echo "   (Auto-generates docs, commits, merges, and tags)"; \
+	echo ""; \
+	echo "4️⃣  Publish the release:"; \
+	echo "   make flow-publish"; \
+	echo "   (Pushes to GitHub and triggers CI/CD)"; \
+	echo ""; \
+	echo "Other commands:"; \
+	echo "  make flow-status          - Check current release status"; \
+	echo "  make flow-abort CHART=x   - Cancel and delete release branch"; \
+	echo "  make current-version CHART=x - Show current chart version"; \
+	echo "  make list-charts          - List all available charts"; \
+	echo ""; \
+	echo "Quick release (all-in-one):"; \
+	echo "  make release-patch CHART=nginx && make publish-release"
+
+
+
 .PHONY: test
 test: ## Run helm unit tests (requires helm unittest plugin)
 	@command -v helm unittest 2>&1 >/dev/null || (echo "helm unittest plugin not found. Install it with: helm plugin install https://github.com/helm-unittest/helm-unittest"; exit 1)
