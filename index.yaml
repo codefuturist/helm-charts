@@ -2,6 +2,27 @@ apiVersion: v1
 entries:
   application:
   - apiVersion: v2
+    created: "2025-11-10T07:40:23.972234585Z"
+    description: Generic helm chart for all kind of applications
+    digest: d4bbe4518e72a38a5bdfe51bb81f5099f21e95fa92afc535b1b8df23ace276a3
+    home: https://github.com/stakater/application
+    icon: https://github.com/stakater/ForecastleIcons/blob/master/stakater.png
+    keywords:
+    - java
+    - node
+    - dotnet
+    - kubernetes
+    - stakater
+    - application
+    maintainers:
+    - email: hello@stakater.com
+      name: Stakater
+    name: application
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/application-6.14.0/application-6.14.0.tgz
+    version: 6.14.0
+  - apiVersion: v2
     created: "2024-10-14T16:12:52.3373+02:00"
     description: Generic helm chart for all kind of applications
     digest: 7e1b16a307dd7f97cdd5e1fde528e84ed5d9e04ff942dd35e63219f756302cbe
@@ -300,4 +321,4 @@ entries:
     urls:
     - https://github.com/codefuturist/helm-charts/releases/download/nginx-0.1.1/nginx-0.1.1.tgz
     version: 0.1.1
-generated: "2025-11-10T07:35:24.234838383Z"
+generated: "2025-11-10T07:40:23.972274199Z"
