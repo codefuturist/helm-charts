@@ -2,6 +2,27 @@ apiVersion: v1
 entries:
   application:
   - apiVersion: v2
+    created: "2025-11-10T08:05:41.011106251Z"
+    description: Generic helm chart for all kind of applications
+    digest: 259824deed3157770185ffb55e0c6139d622e5aff851f0ca3c26159498442664
+    home: https://github.com/stakater/application
+    icon: https://github.com/stakater/ForecastleIcons/blob/master/stakater.png
+    keywords:
+    - java
+    - node
+    - dotnet
+    - kubernetes
+    - stakater
+    - application
+    maintainers:
+    - email: hello@stakater.com
+      name: Stakater
+    name: application
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/application-6.14.1/application-6.14.1.tgz
+    version: 6.14.1
+  - apiVersion: v2
     created: "2025-11-10T07:40:23.972234585Z"
     description: Generic helm chart for all kind of applications
     digest: d4bbe4518e72a38a5bdfe51bb81f5099f21e95fa92afc535b1b8df23ace276a3
@@ -86,6 +107,27 @@ entries:
     - https://codefuturist.github.io/helm-charts/application-5.1.2.tgz
     version: 5.1.2
   homarr:
+  - apiVersion: v2
+    created: "2025-11-10T08:05:41.154703425Z"
+    description: Generic helm chart for all kind of applications
+    digest: f40c199de8d16b66eaec0ad48abe980cfbadde861d2a50632371bde1e4a70fd6
+    home: https://github.com/codefuturist/application
+    icon: https://github.com/stakater/ForecastleIcons/blob/master/stakater.png
+    keywords:
+    - java
+    - node
+    - dotnet
+    - kubernetes
+    - stakater
+    - application
+    maintainers:
+    - email: hello@allcloud.trade
+      name: codefuturist
+    name: homarr
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/homarr-5.2.12/homarr-5.2.12.tgz
+    version: 5.2.12
   - apiVersion: v2
     created: "2024-10-16T17:37:40.860897493Z"
     description: Generic helm chart for all kind of applications
@@ -299,6 +341,30 @@ entries:
   nginx:
   - apiVersion: v2
     appVersion: 1.27.0
+    created: "2025-11-10T08:05:41.311712989Z"
+    description: Helm chart for deploying NGINX web server with customizable configuration
+    digest: e432bb2b41754cf7949b6a2037bb6856911be614cc1b1c691fc69269c863c517
+    home: https://github.com/codefuturist/helm-charts
+    icon: https://raw.githubusercontent.com/codefuturist/helm-charts/main/.github/icon.png
+    keywords:
+    - nginx
+    - web-server
+    - proxy
+    - kubernetes
+    - ingress
+    maintainers:
+    - email: hello@allcloud.trade
+      name: codefuturist
+    name: nginx
+    sources:
+    - https://github.com/codefuturist/helm-charts/tree/main/charts/nginx
+    - https://nginx.org
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/nginx-0.1.2/nginx-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
+    appVersion: 1.27.0
     created: "2025-11-10T07:35:24.234805241Z"
     description: Helm chart for deploying NGINX web server with customizable configuration
     digest: 4bedd95b0b6c2d771d4d422c156b8164ee51ae52ef5930a485b1d3d9a5ab533f
@@ -321,4 +387,4 @@ entries:
     urls:
     - https://github.com/codefuturist/helm-charts/releases/download/nginx-0.1.1/nginx-0.1.1.tgz
     version: 0.1.1
-generated: "2025-11-10T07:40:23.972274199Z"
+generated: "2025-11-10T08:05:41.311774233Z"
