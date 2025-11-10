@@ -275,4 +275,29 @@ entries:
     urls:
     - https://codefuturist.github.io/helm-charts/homarr-5.1.2.tgz
     version: 5.1.2
-generated: "2024-10-16T17:37:40.860960491Z"
+  nginx:
+  - apiVersion: v2
+    appVersion: 1.27.0
+    created: "2025-11-10T07:35:24.234805241Z"
+    description: Helm chart for deploying NGINX web server with customizable configuration
+    digest: 4bedd95b0b6c2d771d4d422c156b8164ee51ae52ef5930a485b1d3d9a5ab533f
+    home: https://github.com/codefuturist/helm-charts
+    icon: https://raw.githubusercontent.com/codefuturist/helm-charts/main/.github/icon.png
+    keywords:
+    - nginx
+    - web-server
+    - proxy
+    - kubernetes
+    - ingress
+    maintainers:
+    - email: hello@allcloud.trade
+      name: codefuturist
+    name: nginx
+    sources:
+    - https://github.com/codefuturist/helm-charts/tree/main/charts/nginx
+    - https://nginx.org
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/nginx-0.1.1/nginx-0.1.1.tgz
+    version: 0.1.1
+generated: "2025-11-10T07:35:24.234838383Z"
