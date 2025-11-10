@@ -1,0 +1,28 @@
+# Chart Testing Configuration
+# See: https://github.com/helm/chart-testing/blob/main/doc/ct_lint.md
+
+# Directory containing Helm charts
+chart-dirs:
+  - charts
+
+# Additional Helm arguments
+helm-extra-args: --timeout 600s
+
+# Check for changed charts (important for CI)
+check-version-increment: true
+
+# Validate maintainers is disabled since we're a single maintainer repo
+validate-maintainers: false
+
+# Validate chart version format
+validate-chart-schema: true
+
+# Additional YAML linters
+additional-commands:
+  - helm lint {chart}
+
+# Excluded charts (if any)
+excluded-charts: []
+
+# Target branch for detecting changes
+target-branch: develop

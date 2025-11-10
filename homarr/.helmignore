@@ -1,7 +1,0 @@
-# so we dont include these in our chart secret
-tests/
-docs/
-tekton/
-quick-starts/
-README.md
-.git

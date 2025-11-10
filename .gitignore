@@ -1,6 +1,30 @@
+# macOS
 .DS_Store
 **/.DS_Store
+
+# IDEs
 .idea
 .vscode
 .project
+
+# Migration artifacts
 /_migration/
+
+# Helm
+*.tgz
+charts/**/charts/
+Chart.lock
+
+# Temporary files
+*.swp
+*.bak
+*~
+
+# Created by https://www.toptal.com/developers/gitignore/api/helm
+# Edit at https://www.toptal.com/developers/gitignore?templates=helm
+
+### Helm ###
+# Chart dependencies
+**/charts/*.tgz
+
+# End of https://www.toptal.com/developers/gitignore/api/helm

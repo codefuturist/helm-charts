@@ -1,6 +1,0 @@
-rules:
-  # One blank line is OK
-  empty-lines: 
-    max-start: 2
-    max-end: 2
-    max: 2

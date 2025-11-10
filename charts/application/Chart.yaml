@@ -1,0 +1,28 @@
+apiVersion: v2
+name: application
+description: A generic, flexible Helm chart for deploying applications as Deployments, Jobs, or CronJobs with extensive configuration options
+
+type: application
+
+version: 5.1.4
+
+keywords:
+  - java
+  - node
+  - dotnet
+  - kubernetes
+  - application
+  - generic
+  - deployment
+  - job
+  - cronjob
+
+home: https://github.com/codefuturist/helm-charts
+sources:
+  - https://github.com/codefuturist/helm-charts/tree/main/charts/application
+
+maintainers:
+  - name: codefuturist
+    email: hello@allcloud.trade
+
+icon: https://raw.githubusercontent.com/codefuturist/helm-charts/main/.github/icon.png
