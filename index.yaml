@@ -64,6 +64,103 @@ entries:
     urls:
     - https://github.com/codefuturist/helm-charts/releases/download/application-6.14.2/application-6.14.2.tgz
     version: 6.14.2
+  bitwarden-eso-provider:
+  - annotations:
+      category: Security
+    apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-11-18T14:51:39.951052763Z"
+    description: A Bitwarden webhook provider for External Secrets Operator that works
+      with personal/organizational vaults using the Bitwarden CLI
+    digest: 9717826471820f4b0e8cbad4123fe843e7c8cbc809462870c6e93789888018a0
+    home: https://github.com/codefuturist/helm-charts
+    keywords:
+    - bitwarden
+    - secrets
+    - external-secrets
+    - eso
+    - webhook
+    - security
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: bitwarden-eso-provider
+    sources:
+    - https://github.com/codefuturist/helm-charts
+    - https://github.com/codefuturist/helm-charts/tree/main/apps/bitwarden-eso-provider-app
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/bitwarden-eso-provider-1.0.0/bitwarden-eso-provider-1.0.0.tgz
+    version: 1.0.0
+  compass-web:
+  - annotations:
+      artifacthub.io/category: database
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release of MongoDB Compass Web Helm chart v1.0.0
+        - kind: added
+          description: Support for Deployment and StatefulSet controller types
+        - kind: added
+          description: MongoDB connection string configuration with multi-URI support
+        - kind: added
+          description: Comprehensive security with pod security contexts, RBAC, and network policies
+        - kind: added
+          description: Monitoring support with ServiceMonitor and PrometheusRule
+        - kind: added
+          description: All official Compass Web environment variables
+        - kind: added
+          description: Basic authentication and OpenAI GenAI features support
+        - kind: added
+          description: Reverse proxy configuration support
+        - kind: added
+          description: High availability features (HPA, PDB, anti-affinity)
+        - kind: added
+          description: Comprehensive test suite with multiple CI configurations
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/kubeVersion: '>=1.21.0-0'
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Chart Repository
+          url: https://github.com/codefuturist/helm-charts/tree/main/charts/compass-web
+        - name: MongoDB Compass Web Docs
+          url: https://github.com/haohanyang/compass-web
+        - name: Container Image
+          url: https://hub.docker.com/r/haohanyang/compass-web
+      artifacthub.io/maintainers: |
+        - name: codefuturist
+          email: 58808821+codefuturist@users.noreply.github.com
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "false"
+      artifacthub.io/recommendations: |
+        - url: https://artifacthub.io/packages/helm/bitnami/postgresql
+        - url: https://artifacthub.io/packages/helm/cloudnative-pg/cloudnative-pg
+    apiVersion: v2
+    appVersion: 0.3.1
+    created: "2025-11-18T14:51:40.058756638Z"
+    description: A production-ready Helm chart for MongoDB Compass Web - MongoDB database
+      management and administration tool
+    digest: 2fa61f63f56757f33006324f46bfa04343ed3a0759177bf9260272237d0513b7
+    home: https://github.com/haohanyang/compass-web
+    icon: https://raw.githubusercontent.com/mongodb-js/compass/main/packages/compass/app-icon.png
+    keywords:
+    - compass
+    - mongodb
+    - database
+    - admin
+    - management
+    - gui
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: compass-web
+    sources:
+    - https://github.com/haohanyang/compass-web
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/compass-web-1.0.0/compass-web-1.0.0.tgz
+    version: 1.0.0
   homarr:
   - apiVersion: v2
     created: "2025-11-10T09:03:29.204773131Z"
@@ -128,6 +225,141 @@ entries:
     urls:
     - https://github.com/codefuturist/helm-charts/releases/download/homarr-5.2.13/homarr-5.2.13.tgz
     version: 5.2.13
+  - apiVersion: v2
+    appVersion: latest
+    created: "2025-11-18T14:51:40.207950606Z"
+    description: A Helm chart for Homarr - A simple, yet powerful dashboard for your
+      server
+    digest: 3381865c83f0f3d841150089ef0b09688ff2f829b56e88c2d726949b43d94c29
+    home: https://homarr.dev
+    icon: https://homarr.dev/img/logo.png
+    keywords:
+    - homarr
+    - dashboard
+    - home-server
+    - kubernetes
+    - monitoring
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: homarr
+    sources:
+    - https://github.com/homarr-labs/homarr
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/homarr-1.0.0/homarr-1.0.0.tgz
+    version: 1.0.0
+  home-assistant:
+  - apiVersion: v2
+    appVersion: 2024.11.1
+    created: "2025-11-18T14:51:40.32597399Z"
+    description: A comprehensive Helm chart for Home Assistant - Open source home
+      automation that puts local control and privacy first
+    digest: 6373d4abf1c1c93a7b1dd63b25889521c3864c10ceb63748ebbeed49f2d35c85
+    home: https://www.home-assistant.io/
+    icon: https://www.home-assistant.io/images/home-assistant-logo.svg
+    keywords:
+    - home-assistant
+    - home-automation
+    - iot
+    - smart-home
+    - kubernetes
+    - homelab
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: home-assistant
+    sources:
+    - https://github.com/home-assistant/core
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/home-assistant-1.0.0/home-assistant-1.0.0.tgz
+    version: 1.0.0
+  mailrise:
+  - annotations:
+      artifacthub.io/category: integration-delivery
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release of Mailrise Helm chart v1.0.0
+        - kind: added
+          description: SMTP to Apprise notification gateway
+        - kind: added
+          description: Support for Deployment and StatefulSet controller types
+        - kind: added
+          description: ConfigMap-based or inline configuration
+        - kind: added
+          description: TLS support with cert-manager integration
+        - kind: added
+          description: SMTP authentication with secrets
+        - kind: added
+          description: Comprehensive security with pod security contexts, RBAC, and network policies
+        - kind: added
+          description: Monitoring support with ServiceMonitor and PrometheusRule
+        - kind: added
+          description: Runs as non-root user (UID 999)
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/kubeVersion: '>=1.21.0-0'
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Chart Documentation
+          url: https://github.com/codefuturist/helm-charts/tree/main/charts/mailrise
+        - name: Mailrise Documentation
+          url: https://github.com/YoRyan/mailrise
+        - name: Apprise Documentation
+          url: https://github.com/caronc/apprise
+      artifacthub.io/maintainers: |
+        - name: codefuturist
+          email: 58808821+codefuturist@users.noreply.github.com
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "false"
+      artifacthub.io/recommendations: |
+        - url: https://artifacthub.io/packages/helm/apprise/apprise-api
+    apiVersion: v2
+    appVersion: 1.4.0
+    created: "2025-11-18T14:51:40.455890275Z"
+    description: An SMTP gateway for Apprise notifications - convert emails to 60+
+      notification services
+    digest: 9ef958dfde63690e617f737e2d683394053a6c1ddcce4a8e735c9a7577b294b9
+    home: https://github.com/YoRyan/mailrise
+    icon: https://raw.githubusercontent.com/YoRyan/mailrise/main/src/mailrise/asset/mailrise-logo.png
+    keywords:
+    - mailrise
+    - smtp
+    - apprise
+    - notifications
+    - email
+    - gateway
+    - homelab
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: mailrise
+    sources:
+    - https://github.com/YoRyan/mailrise
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/mailrise-1.0.0/mailrise-1.0.0.tgz
+    version: 1.0.0
+  mealie:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-11-18T14:51:40.622594725Z"
+    description: A Helm chart for mealie
+    digest: bbd50f27578e7d48bd0e453a4fb0c4671da7a1ecc14c3cf0c1d337c62cc6de2c
+    keywords:
+    - mealie
+    - kubernetes
+    maintainers:
+    - email: your.email@example.com
+      name: Your Name
+    name: mealie
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/mealie-0.1.0/mealie-0.1.0.tgz
+    version: 0.1.0
   nginx:
   - apiVersion: v2
     appVersion: 1.27.0
@@ -201,4 +433,497 @@ entries:
     urls:
     - https://github.com/codefuturist/helm-charts/releases/download/nginx-0.1.3/nginx-0.1.3.tgz
     version: 0.1.3
-generated: "2025-11-10T09:03:29.354179463Z"
+  pgadmin:
+  - annotations:
+      artifacthub.io/category: database
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release of pgAdmin 4 Helm chart v1.0.0
+        - kind: added
+          description: Support for Deployment and StatefulSet controller types
+        - kind: added
+          description: PostgreSQL server definitions for pre-configured connections
+        - kind: added
+          description: Comprehensive security with pod security contexts, RBAC, and network policies
+        - kind: added
+          description: Monitoring support with ServiceMonitor and PrometheusRule
+        - kind: added
+          description: All official pgAdmin environment variables (SMTP, LDAP, Gunicorn, etc.)
+        - kind: added
+          description: Support for pgpass file and config_local.py customization
+        - kind: added
+          description: Reverse proxy configuration with SCRIPT_NAME support
+        - kind: added
+          description: High availability features (HPA, PDB, anti-affinity)
+        - kind: added
+          description: Comprehensive test suite with 11 CI configurations
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/kubeVersion: '>=1.21.0-0'
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Chart Documentation
+          url: https://github.com/codefuturist/helm-charts/tree/main/charts/pgadmin
+        - name: pgAdmin Official Docs
+          url: https://www.pgadmin.org/docs/
+        - name: Container Deployment Guide
+          url: https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html
+      artifacthub.io/maintainers: |
+        - name: codefuturist
+          email: 58808821+codefuturist@users.noreply.github.com
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "false"
+      artifacthub.io/recommendations: |
+        - url: https://artifacthub.io/packages/helm/bitnami/postgresql
+        - url: https://artifacthub.io/packages/helm/cloudnative-pg/cloudnative-pg
+    apiVersion: v2
+    appVersion: 9.10.0
+    created: "2025-11-18T14:51:40.758746997Z"
+    description: A production-ready Helm chart for pgAdmin 4 - PostgreSQL management
+      and administration tool
+    digest: 88b61d3b49307a3702062cbe1625d10bf84bedc9e69359a947fb426e76b01e4e
+    home: https://www.pgadmin.org/
+    icon: https://www.pgadmin.org/static/img/logos/pgAdmin.svg
+    keywords:
+    - pgadmin
+    - postgresql
+    - database
+    - admin
+    - management
+    - gui
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: pgadmin
+    sources:
+    - https://github.com/pgadmin-org/pgadmin4
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/pgadmin-1.0.0/pgadmin-1.0.0.tgz
+    version: 1.0.0
+  postgresql:
+  - annotations:
+      artifacthub.io/category: database
+      artifacthub.io/changes: |
+        - kind: added
+          description: Easy database recovery with interactive recovery script
+        - kind: added
+          description: One-command full backup recovery
+        - kind: added
+          description: Point-in-Time Recovery (PITR) via recovery script
+        - kind: added
+          description: Recovery Job for automated restore on install/upgrade
+        - kind: added
+          description: List backups command in recovery script
+        - kind: added
+          description: Recovery status monitoring and log viewing
+        - kind: added
+          description: Comprehensive recovery documentation (RECOVERY_GUIDE.md)
+        - kind: added
+          description: Example recovery values files (full and PITR)
+        - kind: improved
+          description: User-friendly recovery process with guided wizards
+        - kind: added
+          description: Lifecycle hooks for graceful shutdown
+        - kind: added
+          description: Kubernetes-friendly annotations (Prometheus, Reloader)
+        - kind: added
+          description: Enhanced pod labels for better filtering
+        - kind: added
+          description: Auto-reload support for config/secret changes
+        - kind: added
+          description: Istio DestinationRule for traffic management
+        - kind: added
+          description: Support for StatefulSet with volumeClaimTemplates
+        - kind: added
+          description: Improved secret management with lookup function
+        - kind: added
+          description: PostgreSQL extensions support
+        - kind: added
+          description: Pre-upgrade backup hooks
+        - kind: added
+          description: Pod anti-affinity and topology spread constraints
+        - kind: added
+          description: Improved health probes with pg_isready
+        - kind: added
+          description: Better backup error handling and validation
+        - kind: added
+          description: Values JSON schema validation
+        - kind: security
+          description: Secure password management for additional users
+        - kind: security
+          description: Added POSTGRES_HOST_AUTH_METHOD control
+        - kind: security
+          description: PVC retention policy to prevent data loss
+      artifacthub.io/containsSecurityUpdates: "true"
+      artifacthub.io/kubeVersion: '>=1.21.0-0'
+      artifacthub.io/links: |
+        - name: Chart Source
+          url: https://github.com/codefuturist/helm-charts/tree/main/charts/postgresql
+        - name: PostgreSQL Documentation
+          url: https://www.postgresql.org/docs/
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "false"
+      artifacthub.io/recommendations: |
+        - url: https://artifacthub.io/packages/helm/bitnami/postgresql
+      artifacthub.io/screenshots: |
+        - title: PostgreSQL Dashboard
+          url: https://grafana.com/api/dashboards/9628/images/6114/image
+      artifacthub.io/signKey: |
+        fingerprint: ""
+        url: ""
+    apiVersion: v2
+    appVersion: "16.4"
+    created: "2025-11-18T14:51:40.949797602Z"
+    description: A production-ready Helm chart for PostgreSQL database with advanced
+      features including replication, backups, monitoring, and security
+    digest: 15b9b7cde464d51638e60a884deabcff7e1d65939599c9ded3d4499159e4993d
+    home: https://www.postgresql.org/
+    icon: https://wiki.postgresql.org/images/a/a4/PostgreSQL_logo.3colors.svg
+    keywords:
+    - postgresql
+    - postgres
+    - database
+    - sql
+    - kubernetes
+    - replication
+    - backup
+    - monitoring
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: postgresql
+    sources:
+    - https://github.com/postgres/postgres
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/postgresql-1.7.0/postgresql-1.7.0.tgz
+    version: 1.7.0
+  proxmox-backup-server:
+  - annotations:
+      artifacthub.io/category: storage
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release of Proxmox Backup Server Helm chart v1.0.0
+        - kind: added
+          description: Support for Deployment and StatefulSet controller types
+        - kind: added
+          description: Persistent storage for config, logs, and lib directories
+        - kind: added
+          description: Support for backup data volumes with flexible configuration
+        - kind: added
+          description: Comprehensive security with pod security contexts, RBAC, and network policies
+        - kind: added
+          description: Monitoring support with ServiceMonitor and PrometheusRule
+        - kind: added
+          description: SMART device access support with SYS_RAWIO capability
+        - kind: added
+          description: Timezone configuration support
+        - kind: added
+          description: tmpfs mount for /run directory (required for authentication)
+        - kind: added
+          description: High availability features (HPA, PDB, anti-affinity)
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/kubeVersion: '>=1.21.0-0'
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Chart Documentation
+          url: https://github.com/codefuturist/helm-charts/tree/main/charts/proxmox-backup-server
+        - name: Proxmox Backup Server Docs
+          url: https://pbs.proxmox.com/docs/
+        - name: Container Repository
+          url: https://github.com/ayufan/pve-backup-server-dockerfiles
+        - name: Docker Hub
+          url: https://hub.docker.com/r/ayufan/proxmox-backup-server
+      artifacthub.io/maintainers: |
+        - name: codefuturist
+          email: 58808821+codefuturist@users.noreply.github.com
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "false"
+      artifacthub.io/recommendations: |
+        - url: https://artifacthub.io/packages/helm/bitnami/mongodb
+        - url: https://artifacthub.io/packages/helm/bitnami/postgresql
+    apiVersion: v2
+    appVersion: 4.0.12
+    created: "2025-11-18T14:51:41.094194356Z"
+    description: A production-ready Helm chart for Proxmox Backup Server - Enterprise
+      backup solution for virtual environments
+    digest: 5dc114125fcbe55c3e5eeed3577d0ff00b24e7f42af0ee5227c1b3b1afba726b
+    home: https://pbs.proxmox.com/
+    icon: https://www.proxmox.com/images/proxmox/Proxmox_symbol_standard_hex_400px.png
+    keywords:
+    - proxmox
+    - backup
+    - pbs
+    - storage
+    - virtualization
+    - enterprise
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: proxmox-backup-server
+    sources:
+    - https://github.com/ayufan/pve-backup-server-dockerfiles
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/proxmox-backup-server-1.0.0/proxmox-backup-server-1.0.0.tgz
+    version: 1.0.0
+  redisinsight:
+  - annotations:
+      artifacthub.io/category: database
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release of Redis Insight Helm chart v1.0.0
+        - kind: added
+          description: Support for Deployment and StatefulSet controller types
+        - kind: added
+          description: Redis connection pre-configuration with environment variables
+        - kind: added
+          description: Comprehensive security with pod security contexts, RBAC, and network policies
+        - kind: added
+          description: Monitoring support with ServiceMonitor and PrometheusRule
+        - kind: added
+          description: All official Redis Insight environment variables
+        - kind: added
+          description: TLS/SSL configuration support
+        - kind: added
+          description: Encryption key support for sensitive data
+        - kind: added
+          description: Reverse proxy configuration with proxy path support
+        - kind: added
+          description: High availability features (HPA, PDB, anti-affinity)
+        - kind: added
+          description: Comprehensive test suite with multiple CI configurations
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/kubeVersion: '>=1.21.0-0'
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Chart Repository
+          url: https://github.com/codefuturist/helm-charts/tree/main/charts/redisinsight
+        - name: Redis Insight Official Docs
+          url: https://redis.io/docs/latest/operate/redisinsight/
+        - name: Container Image
+          url: https://hub.docker.com/r/redis/redisinsight
+      artifacthub.io/maintainers: |
+        - name: codefuturist
+          email: 58808821+codefuturist@users.noreply.github.com
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "false"
+      artifacthub.io/recommendations: |
+        - url: https://artifacthub.io/packages/helm/bitnami/redis
+        - url: https://artifacthub.io/packages/helm/bitnami/redis-cluster
+    apiVersion: v2
+    appVersion: latest
+    created: "2025-11-18T14:51:41.233145539Z"
+    description: A production-ready Helm chart for Redis Insight - Redis database
+      management and administration tool
+    digest: 3c1b8c8ee0454b101783abe98d84987404f5a7ac639c424fbc74fcef102b9f42
+    home: https://redis.io/insight/
+    icon: https://redis.io/wp-content/uploads/2024/04/Logotype.svg
+    keywords:
+    - redisinsight
+    - redis
+    - database
+    - admin
+    - management
+    - gui
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: redisinsight
+    sources:
+    - https://github.com/RedisInsight/RedisInsight
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/redisinsight-1.0.0/redisinsight-1.0.0.tgz
+    version: 1.0.0
+  restic-backup:
+  - annotations:
+      artifacthub.io/changes: |
+        - kind: added
+          description: "Default dedicated backup volume for out-of-the-box local backups"
+        - kind: added
+          description: "Automatic PVC creation for backup repository storage"
+        - kind: added
+          description: "Support for multiple backup volume types (PVC, hostPath, NFS, emptyDir)"
+        - kind: changed
+          description: "Simplified default configuration for better user experience"
+        - kind: changed
+          description: "Updated examples to demonstrate local-first backup approach"
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/license: MIT
+      artifacthub.io/signKey: |
+        fingerprint: 0000000000000000000000000000000000000000
+        url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0000000000000000000000000000000000000000
+    apiVersion: v2
+    appVersion: 0.17.3
+    created: "2025-11-18T14:51:41.367081318Z"
+    description: A user-friendly Helm chart for automated Kubernetes volume backups
+      using restic with support for multiple storage backends and flexible scheduling
+    digest: 19b4d6cfce0beb308bede7e500d3ec79db239f540fc6b30929b9771dcacaa784
+    home: https://restic.net
+    icon: https://restic.net/img/logo.png
+    keywords:
+    - restic
+    - backup
+    - restore
+    - volumes
+    - pvc
+    - kubernetes
+    - s3
+    - azure
+    - google-cloud
+    - sftp
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: restic-backup
+    sources:
+    - https://github.com/restic/restic
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/restic-backup-1.2.0/restic-backup-1.2.0.tgz
+    version: 1.2.0
+  semaphore:
+  - annotations:
+      artifacthub.io/category: integration-delivery
+      artifacthub.io/changes: |
+        - kind: added
+          description: Added SEMAPHORE_DB_OPTIONS environment variable support for database connection tuning
+        - kind: added
+          description: Added JSON configuration environment variables (SEMAPHORE_APPS, SEMAPHORE_ENV_VARS, SEMAPHORE_FORWARDED_ENV_VARS)
+        - kind: added
+          description: Added TLS/HTTPS configuration environment variables (SEMAPHORE_TLS_ENABLED, TLS_CERT_FILE, TLS_KEY_FILE, TLS_HTTP_REDIRECT_PORT)
+        - kind: added
+          description: Added process control environment variables (SEMAPHORE_PROCESS_USER, UID, GID, CHROOT)
+        - kind: added
+          description: Added health probes to runner deployment (liveness, readiness, startup)
+        - kind: added
+          description: Added SSH private key management for runner operations
+        - kind: added
+          description: Added optional database migration init container support
+        - kind: changed
+          description: Enhanced ConfigMap to properly store JSON configurations
+        - kind: changed
+          description: Updated chart to v1.3.0 with comprehensive environment variable support
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/kubeVersion: '>=1.21.0-0'
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Chart Documentation
+          url: https://github.com/codefuturist/helm-charts/tree/main/charts/semaphore
+        - name: Semaphore Documentation
+          url: https://semaphoreui.com
+        - name: Semaphore GitHub
+          url: https://github.com/semaphoreui/semaphore
+      artifacthub.io/maintainers: |
+        - name: codefuturist
+          email: 58808821+codefuturist@users.noreply.github.com
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 2.10.32
+    created: "2025-11-18T14:51:41.513912999Z"
+    description: Modern UI for Ansible, Terraform, OpenTofu, Bash, and Pulumi - task
+      automation and infrastructure orchestration
+    digest: 37f17fdb1ab36e0a095fbab8e93418af568a2b1276dec586a378eebfacec3890
+    home: https://semaphoreui.com
+    icon: https://raw.githubusercontent.com/semaphoreui/semaphore/main/web/public/img/logo.png
+    keywords:
+    - semaphore
+    - ansible
+    - terraform
+    - opentofu
+    - automation
+    - ci-cd
+    - devops
+    - infrastructure
+    - orchestration
+    - homelab
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: semaphore
+    sources:
+    - https://github.com/semaphoreui/semaphore
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/semaphore-1.3.0/semaphore-1.3.0.tgz
+    version: 1.3.0
+  uptime-kuma:
+  - annotations:
+      artifacthub.io/category: monitoring-logging
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release of Uptime Kuma Helm chart v1.0.0
+        - kind: added
+          description: Self-hosted monitoring and status page application
+        - kind: added
+          description: Support for Deployment and StatefulSet controller types
+        - kind: added
+          description: Persistent storage for monitoring data
+        - kind: added
+          description: Docker socket integration for container monitoring
+        - kind: added
+          description: Ingress support with TLS
+        - kind: added
+          description: Comprehensive security with pod security contexts, RBAC, and network policies
+        - kind: added
+          description: Monitoring support with ServiceMonitor and PrometheusRule
+        - kind: added
+          description: Runs as non-root user (UID 1000)
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/kubeVersion: '>=1.21.0-0'
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Chart Documentation
+          url: https://github.com/codefuturist/helm-charts/tree/main/charts/uptime-kuma
+        - name: Uptime Kuma Documentation
+          url: https://github.com/louislam/uptime-kuma/wiki
+        - name: Uptime Kuma Demo
+          url: https://demo.uptime.kuma.pet
+      artifacthub.io/maintainers: |
+        - name: codefuturist
+          email: 58808821+codefuturist@users.noreply.github.com
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "false"
+      artifacthub.io/recommendations: |
+        - url: https://artifacthub.io/packages/helm/prometheus-community/prometheus
+    apiVersion: v2
+    appVersion: 2.0.0
+    created: "2025-11-18T14:51:41.635663338Z"
+    description: A self-hosted monitoring tool - monitor uptime for HTTP(s) / TCP
+      / HTTP(s) Keyword / Ping / DNS Record / Push / Steam Game Server
+    digest: 11552eebd65da143894f533ee84a6e67ad3cb486265bcf2dcc6b93ef06859ecc
+    home: https://github.com/louislam/uptime-kuma
+    icon: https://raw.githubusercontent.com/louislam/uptime-kuma/master/public/icon.svg
+    keywords:
+    - uptime-kuma
+    - monitoring
+    - uptime
+    - status-page
+    - health-check
+    - alerting
+    - homelab
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: uptime-kuma
+    sources:
+    - https://github.com/louislam/uptime-kuma
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/uptime-kuma-1.0.0/uptime-kuma-1.0.0.tgz
+    version: 1.0.0
+generated: "2025-11-18T14:51:41.635690589Z"
