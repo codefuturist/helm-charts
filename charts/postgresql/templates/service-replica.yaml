@@ -1,0 +1,36 @@
+{{- if and .Values.replication.enabled .Values.replication.replicaService.enabled (eq .Values.deployment.type "statefulset") }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgresql.fullname" . }}-{{ .Values.replication.replicaService.nameSuffix }}
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    app.kubernetes.io/component: replica
+    {{- with .Values.replication.replicaService.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.replication.replicaService.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.replication.replicaService.type }}
+  {{- if and (eq .Values.replication.replicaService.type "LoadBalancer") .Values.replication.replicaService.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml .Values.replication.replicaService.loadBalancerSourceRanges | nindent 4 }}
+  {{- end }}
+  ports:
+    - name: postgresql
+      port: {{ .Values.replication.replicaService.port }}
+      targetPort: postgresql
+      protocol: TCP
+  selector:
+    {{- include "postgresql.selectorLabels" . | nindent 4 }}
+    # Exclude primary (pod-0) by using a label that only replicas have
+    app.kubernetes.io/component: replica
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+{{- end }}

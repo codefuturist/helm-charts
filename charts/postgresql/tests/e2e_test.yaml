@@ -1,0 +1,224 @@
+suite: end-to-end configuration tests
+templates:
+  - statefulset.yaml
+  - configmap.yaml
+  - secret.yaml
+  - service.yaml
+  - backup.yaml
+tests:
+  - it: should create complete HA setup with all features
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      replication.enabled: true
+      backup.walArchiving.enabled: true
+      backup.walArchiving.method: "local"
+      postgresql.auth.usePasswordFiles: true
+      persistence.retentionPolicy.enabled: true
+      persistence.retentionPolicy.whenScaled: Retain
+      persistence.retentionPolicy.whenDeleted: Retain
+      postgresql.preInitScripts:
+        ha-setup.sh: "#!/bin/bash"
+    asserts:
+      # Replication configured
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: setup-replication
+      # Password files configured
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD_FILE
+            value: /opt/bitnami/postgresql/secrets/postgresql-password
+      # WAL archiving configured
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_ARCHIVE_MODE
+            value: "on"
+      # PVC retention configured
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenScaled
+          value: Retain
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenDeleted
+          value: Retain
+      # Pre-init scripts configured
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: pre-init-scripts
+
+  - it: should create production-ready secure configuration
+    templates:
+      - statefulset.yaml
+      - secret.yaml
+    set:
+      statefulset.enabled: true
+      postgresql.auth.usePasswordFiles: true
+      postgresql.auth.passwordFilesPath: /secrets/pg
+      replication.enabled: true
+      backup.enabled: true
+      backup.schedule: "0 2 * * *"
+      backup.storage.type: "s3"
+      persistence.retentionPolicy.enabled: true
+      persistence.retentionPolicy.whenDeleted: Retain
+    asserts:
+      # Secret created with all password keys
+      - template: secret.yaml
+        hasDocuments:
+          count: 1
+      - template: secret.yaml
+        equal:
+          path: data
+          value:
+            postgresql-password: null
+            replication-password: null
+      # Custom password path used
+      - template: statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD_FILE
+            value: /secrets/pg/postgresql-password
+      # Replication password file configured
+      - template: statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_REPLICATION_PASSWORD_FILE
+            value: /secrets/pg/replication-password
+      # PVC retention protects data
+      - template: statefulset.yaml
+        equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenDeleted
+          value: Retain
+
+  - it: should support development mode with diagnostics
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      diagnosticMode.enabled: true
+      diagnosticMode.command: ["sleep"]
+      diagnosticMode.args: ["infinity"]
+      replication.enabled: false
+      backup.enabled: false
+      postgresql.auth.usePasswordFiles: false
+    asserts:
+      # Diagnostic command override
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value: ["sleep"]
+      # Probes disabled
+      - notExists:
+          path: spec.template.spec.containers[0].livenessProbe
+      - notExists:
+          path: spec.template.spec.containers[0].readinessProbe
+      # Simple auth without files
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-postgresql
+                key: postgresql-password
+
+  - it: should handle migration scenario with pre-init
+    templates:
+      - statefulset.yaml
+      - configmap.yaml
+    set:
+      statefulset.enabled: true
+      postgresql.preInitScripts:
+        01-prepare-migration.sh: |
+          #!/bin/bash
+          echo "Preparing for migration"
+        02-tune-system.sh: |
+          #!/bin/bash
+          echo "Tuning system"
+      backup.walArchiving.enabled: true
+      persistence.retentionPolicy.enabled: true
+      persistence.retentionPolicy.whenDeleted: Retain
+    asserts:
+      # Pre-init ConfigMap created
+      - template: configmap.yaml
+        hasDocuments:
+          count: 2
+      - template: configmap.yaml
+        documentIndex: 1
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-postgresql-pre-init-scripts
+      # Pre-init runs first
+      - template: statefulset.yaml
+        equal:
+          path: spec.template.spec.initContainers[0].name
+          value: pre-init-scripts
+      # Data protected during migration
+      - template: statefulset.yaml
+        equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenDeleted
+          value: Retain
+      # WAL archiving ensures point-in-time recovery
+      - template: statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_ARCHIVE_MODE
+            value: "on"
+
+  - it: should properly order init containers with all features
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      postgresql.preInitScripts:
+        setup.sh: "#!/bin/bash"
+      replication.enabled: true
+      backup.walArchiving.enabled: true
+    asserts:
+      # Correct init container count
+      - equal:
+          path: spec.template.spec.initContainers | length
+          value: 2
+      # Pre-init must be first
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: pre-init-scripts
+      # Replication setup second
+      - equal:
+          path: spec.template.spec.initContainers[1].name
+          value: setup-replication
+
+  - it: should support zero-downtime upgrade scenario
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      replication.enabled: true
+      replication.synchronousCommit: "on"
+      backup.walArchiving.enabled: true
+      persistence.retentionPolicy.enabled: true
+      persistence.retentionPolicy.whenScaled: Retain
+      postgresql.auth.usePasswordFiles: true
+    asserts:
+      # Synchronous replication for safety
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name=="POSTGRES_SYNCHRONOUS_COMMIT")].value
+          pattern: "on"
+      # PVC retained during scale operations
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenScaled
+          value: Retain
+      # WAL archiving for recovery
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_ARCHIVE_MODE
+            value: "on"
+      # Secure password handling
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD_FILE
+            value: /opt/bitnami/postgresql/secrets/postgresql-password

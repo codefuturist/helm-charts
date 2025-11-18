@@ -1,0 +1,35 @@
+# CI Test: Default values
+# Basic deployment with minimal configuration
+
+semaphore:
+  database:
+    dialect: sqlite
+  admin:
+    username: admin
+    password: testpass123
+    email: admin@example.com
+
+controller:
+  type: deployment
+  replicas: 1
+
+service:
+  type: ClusterIP
+
+persistence:
+  data:
+    enabled: true
+    size: 1Gi
+  config:
+    enabled: false # Not needed for SQLite
+  tmp:
+    enabled: true
+    size: 2Gi
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi

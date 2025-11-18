@@ -1,0 +1,26 @@
+# CI Test: TLS enabled
+# Tests TLS configuration with certificates
+
+mailrise:
+  config:
+    configs:
+      secure:
+        urls:
+          - "json://localhost/secure"
+    listen:
+      host: "0.0.0.0"
+      port: 8025
+    tls:
+      mode: "starttls"
+
+  tls:
+    enabled: true
+    existingSecret: "mailrise-tls"
+    certKey: "tls.crt"
+    keyKey: "tls.key"
+
+controller:
+  type: deployment
+
+service:
+  type: LoadBalancer

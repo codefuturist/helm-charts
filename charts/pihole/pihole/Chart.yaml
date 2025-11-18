@@ -1,0 +1,48 @@
+apiVersion: v2
+name: pihole
+description: A Helm chart for Pi-hole DNS ad blocker with Kubernetes best practices
+type: application
+version: 0.2.0
+appVersion: 2024.07.0
+keywords:
+- pihole
+- dns
+- ad-blocker
+- network
+- security
+- kubernetes
+home: https://pi-hole.net/
+sources:
+- https://github.com/pi-hole/pi-hole
+- https://docs.pi-hole.net/docker/configuration/
+maintainers:
+- name: Your Name
+  email: your.email@example.com
+annotations:
+  artifacthub.io/category: networking
+  artifacthub.io/license: MIT
+  artifacthub.io/signKey: |
+    # Optional: Add your signing key
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/recommendations: |
+    - url: https://artifacthub.io/packages/helm/prometheus-community/prometheus
+    - url: https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx
+  artifacthub.io/changes: |
+    - kind: added
+      description: ServiceAccount with RBAC support
+    - kind: added
+      description: NetworkPolicy for network isolation
+    - kind: added
+      description: PodDisruptionBudget for high availability
+    - kind: added
+      description: ServiceMonitor for Prometheus integration
+    - kind: added
+      description: Pod and container security contexts
+    - kind: added
+      description: Startup, readiness, and liveness probes
+    - kind: added
+      description: HPA with behavior configuration
+    - kind: added
+      description: Persistence configuration
+    - kind: improved
+      description: Kubernetes best practices implementation

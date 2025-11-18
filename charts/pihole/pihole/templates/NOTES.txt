@@ -1,0 +1,17 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release: {{ .Release.Name }}
+Namespace: {{ include "pihole.namespace" . }}
+
+To access Pi-hole:
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}/admin
+{{- end }}
+{{- else if contains "ClusterIP" .Values.service.type }}
+  kubectl port-forward svc/{{ include "pihole.fullname" . }} 8080:80 -n {{ include "pihole.namespace" . }}
+  Then visit: http://localhost:8080/admin
+{{- end }}
+
+View pods:
+  kubectl get pods -n {{ include "pihole.namespace" . }} -l app.kubernetes.io/name={{ include "pihole.name" . }}

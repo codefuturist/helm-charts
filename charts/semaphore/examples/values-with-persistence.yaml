@@ -1,0 +1,79 @@
+# Uptime Kuma with Docker Socket Access
+#
+# This configuration enables Docker socket access for monitoring containers.
+# Suitable for environments where you want to monitor Docker containers.
+#
+# Usage:
+#   helm install my-uptime-kuma codefuturist/uptime-kuma -f values-with-persistence.yaml
+
+# =============================================================================
+# Uptime Kuma Configuration
+# =============================================================================
+uptimeKuma:
+  # Enable Docker socket for container monitoring
+  dockerSocket:
+    enabled: true
+    hostPath: /var/run/docker.sock
+
+# =============================================================================
+# Persistence Configuration
+# =============================================================================
+persistence:
+  # Enable persistent storage
+  enabled: true
+
+  # Storage class (leave empty to use default)
+  storageClassName: ""
+
+  # Access mode
+  accessMode: ReadWriteOnce
+
+  # Storage size
+  size: 4Gi
+
+  # Annotations for the PVC (optional)
+  annotations:
+    backup.velero.io/backup-volumes: "data"
+
+# =============================================================================
+# Controller Configuration
+# =============================================================================
+controller:
+  type: deployment
+  replicas: 1
+
+# =============================================================================
+# Resource Configuration
+# =============================================================================
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+# =============================================================================
+# Ingress Configuration (Optional)
+# =============================================================================
+# ingress:
+#   enabled: true
+#   className: "nginx"
+#   annotations:
+#     cert-manager.io/cluster-issuer: "letsencrypt-prod"
+#   hosts:
+#     - host: uptime.example.com
+#       paths:
+#         - path: /
+#           pathType: Prefix
+#   tls:
+#     - secretName: uptime-kuma-tls
+#       hosts:
+#         - uptime.example.com
+#       1:
+#         Name: "My PostgreSQL"
+#         Group: "Development"
+#         Host: "postgresql.default.svc.cluster.local"
+#         Port: 5432
+#         MaintenanceDB: "postgres"
+#         Username: "postgres"
+#         SSLMode: "prefer"

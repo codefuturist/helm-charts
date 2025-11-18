@@ -1,0 +1,164 @@
+{{- include "redisinsight.validateValues" . -}}
+{{- if eq .Values.controller.type "statefulset" }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "redisinsight.fullname" . }}
+  namespace: {{ include "redisinsight.namespace" . }}
+  labels:
+    {{- include "redisinsight.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "redisinsight.fullname" . }}
+  replicas: {{ .Values.controller.replicas }}
+  {{- with .Values.controller.podManagementPolicy }}
+  podManagementPolicy: {{ . }}
+  {{- end }}
+  {{- with .Values.controller.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "redisinsight.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "redisinsight.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "redisinsight.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: redisinsight
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: RI_APP_PORT
+              value: {{ .Values.redisInsight.port | quote }}
+            - name: RI_APP_HOST
+              value: {{ .Values.redisInsight.host | quote }}
+            - name: RI_LOG_LEVEL
+              value: {{ .Values.redisInsight.logLevel | quote }}
+            - name: RI_FILES_LOGGER
+              value: {{ .Values.redisInsight.filesLogger | quote }}
+            - name: RI_STDOUT_LOGGER
+              value: {{ .Values.redisInsight.stdoutLogger | quote }}
+            {{- if .Values.redisInsight.proxyPath }}
+            - name: RI_PROXY_PATH
+              value: {{ .Values.redisInsight.proxyPath | quote }}
+            {{- end }}
+            - name: RI_DATABASE_MANAGEMENT
+              value: {{ .Values.redisInsight.databaseManagement | quote }}
+            {{- if or .Values.redisInsight.encryptionKey .Values.redisInsight.existingEncryptionKeySecret }}
+            - name: RI_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redisinsight.encryptionKeySecretName" . }}
+                  key: {{ .Values.redisInsight.existingEncryptionKeySecretKey }}
+            {{- end }}
+            {{- if .Values.redisInsight.tls.enabled }}
+            {{- if or .Values.redisInsight.tls.key .Values.redisInsight.tls.existingSecret }}
+            - name: RI_SERVER_TLS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redisinsight.tlsSecretName" . }}
+                  key: {{ .Values.redisInsight.tls.existingSecretKeyKey }}
+            {{- end }}
+            {{- if or .Values.redisInsight.tls.cert .Values.redisInsight.tls.existingSecret }}
+            - name: RI_SERVER_TLS_CERT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redisinsight.tlsSecretName" . }}
+                  key: {{ .Values.redisInsight.tls.existingSecretCertKey }}
+            {{- end }}
+            {{- end }}
+            {{- range $conn := .Values.redisInsight.connections }}
+            - name: RI_REDIS_HOST{{ $conn.id }}
+              value: {{ $conn.host | quote }}
+            - name: RI_REDIS_PORT{{ $conn.id }}
+              value: {{ $conn.port | default 6379 | quote }}
+            {{- if $conn.alias }}
+            - name: RI_REDIS_ALIAS{{ $conn.id }}
+              value: {{ $conn.alias | quote }}
+            {{- end }}
+            {{- if $conn.username }}
+            - name: RI_REDIS_USERNAME{{ $conn.id }}
+              value: {{ $conn.username | quote }}
+            {{- end }}
+            {{- if $conn.password }}
+            - name: RI_REDIS_PASSWORD{{ $conn.id }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redisinsight.connectionPasswordsSecretName" $ }}
+                  key: password-{{ $conn.id }}
+            {{- end }}
+            {{- if $conn.tls }}
+            - name: RI_REDIS_TLS{{ $conn.id }}
+              value: "TRUE"
+            {{- if $conn.tlsCaBase64 }}
+            - name: RI_REDIS_TLS_CA_BASE64{{ $conn.id }}
+              value: {{ $conn.tlsCaBase64 | quote }}
+            {{- end }}
+            {{- if $conn.tlsCaPath }}
+            - name: RI_REDIS_TLS_CA_PATH{{ $conn.id }}
+              value: {{ $conn.tlsCaPath | quote }}
+            {{- end }}
+            {{- if $conn.tlsCertBase64 }}
+            - name: RI_REDIS_TLS_CERT_BASE64{{ $conn.id }}
+              value: {{ $conn.tlsCertBase64 | quote }}
+            {{- end }}
+            {{- if $conn.tlsCertPath }}
+            - name: RI_REDIS_TLS_CERT_PATH{{ $conn.id }}
+              value: {{ $conn.tlsCertPath | quote }}
+            {{- end }}
+            {{- if $conn.tlsKeyBase64 }}
+            - name: RI_REDIS_TLS_KEY_BASE64{{ $conn.id }}
+              value: {{ $conn.tlsKeyBase64 | quote }}
+            {{- end }}
+            {{- if $conn.tlsKeyPath }}
+            - name: RI_REDIS_TLS_KEY_PATH{{ $conn.id }}
+              value: {{ $conn.tlsKeyPath | quote }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: redisinsight-data
+              mountPath: /data
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            storage: {{ .Values.persistence.size }}
+  {{- end }}
+{{- end }}

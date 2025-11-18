@@ -1,0 +1,116 @@
+{{- if and .Values.replication.enabled .Values.replication.monitoring.enabled .Values.monitoring.prometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "postgresql.fullname" . }}-replication
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    {{- with .Values.monitoring.prometheusRule.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  groups:
+    - name: postgresql-replication
+      interval: {{ .Values.replication.monitoring.scrapeInterval }}
+      rules:
+        # Replication Lag Alert
+        - alert: PostgreSQLReplicationLag
+          expr: |
+            (pg_replication_lag{job="{{ include "postgresql.fullname" . }}"} > {{ .Values.replication.monitoring.lagThresholdSeconds }})
+            or
+            (pg_stat_replication_replay_lag_bytes{job="{{ include "postgresql.fullname" . }}"} > {{ mul .Values.replication.monitoring.lagThresholdBytes 1048576 }})
+          for: {{ .Values.replication.monitoring.alertFor }}
+          labels:
+            severity: warning
+            component: replication
+          annotations:
+            summary: "PostgreSQL replication lag is high"
+            description: "PostgreSQL replication lag for {{ "{{" }} $labels.instance {{ "}}" }} is {{ "{{" }} $value {{ "}}" }} seconds behind primary."
+
+        # Replication Broken Alert
+        - alert: PostgreSQLReplicationBroken
+          expr: |
+            pg_stat_replication_state{job="{{ include "postgresql.fullname" . }}"} == 0
+          for: 2m
+          labels:
+            severity: critical
+            component: replication
+          annotations:
+            summary: "PostgreSQL replication connection broken"
+            description: "PostgreSQL replication connection for {{ "{{" }} $labels.application_name {{ "}}" }} on {{ "{{" }} $labels.instance {{ "}}" }} is broken."
+
+        # No Replicas Connected Alert
+        - alert: PostgreSQLNoReplicasConnected
+          expr: |
+            sum(pg_stat_replication_state{job="{{ include "postgresql.fullname" . }}"}) == 0
+          for: 5m
+          labels:
+            severity: warning
+            component: replication
+          annotations:
+            summary: "No PostgreSQL replicas connected"
+            description: "Primary PostgreSQL instance has no connected replicas for more than 5 minutes."
+
+        # Replication Slot Lag Alert
+        - alert: PostgreSQLReplicationSlotLag
+          expr: |
+            pg_replication_slots_active{job="{{ include "postgresql.fullname" . }}"} == 0
+          for: 5m
+          labels:
+            severity: warning
+            component: replication
+          annotations:
+            summary: "PostgreSQL replication slot inactive"
+            description: "Replication slot {{ "{{" }} $labels.slot_name {{ "}}" }} on {{ "{{" }} $labels.instance {{ "}}" }} is inactive."
+
+        # WAL Sender Process Count
+        - alert: PostgreSQLWALSenderCountHigh
+          expr: |
+            pg_stat_activity_count{job="{{ include "postgresql.fullname" . }}",state="active",application_name=~"walreceiver"} > {{ .Values.replication.advanced.maxWalSenders }}
+          for: 5m
+          labels:
+            severity: warning
+            component: replication
+          annotations:
+            summary: "PostgreSQL WAL sender count is at maximum"
+            description: "Number of WAL sender processes on {{ "{{" }} $labels.instance {{ "}}" }} is at maximum ({{ "{{" }} $value {{ "}}" }})."
+
+        # Synchronous Replication Not Working
+        {{- if .Values.replication.synchronousCommit }}
+        - alert: PostgreSQLSynchronousReplicationNotWorking
+          expr: |
+            pg_stat_replication_sync_state{job="{{ include "postgresql.fullname" . }}",sync_state="sync"} == 0
+          for: 2m
+          labels:
+            severity: critical
+            component: replication
+          annotations:
+            summary: "PostgreSQL synchronous replication not working"
+            description: "Synchronous replication is enabled but no synchronous replicas are connected to {{ "{{" }} $labels.instance {{ "}}" }}."
+        {{- end }}
+
+        # Replica Apply Lag
+        - alert: PostgreSQLReplicaApplyLag
+          expr: |
+            (pg_stat_replication_replay_lag_bytes{job="{{ include "postgresql.fullname" . }}"} / 1048576) > {{ .Values.replication.monitoring.lagThresholdBytes }}
+          for: {{ .Values.replication.monitoring.alertFor }}
+          labels:
+            severity: warning
+            component: replication
+          annotations:
+            summary: "PostgreSQL replica apply lag is high"
+            description: "Replica {{ "{{" }} $labels.application_name {{ "}}" }} on {{ "{{" }} $labels.instance {{ "}}" }} is {{ "{{" }} $value {{ "}}" }}MB behind in applying WAL."
+
+        # Replication Slot Disk Usage
+        - alert: PostgreSQLReplicationSlotDiskUsage
+          expr: |
+            pg_replication_slots_wal_status{job="{{ include "postgresql.fullname" . }}"} == 1
+          for: 10m
+          labels:
+            severity: warning
+            component: replication
+          annotations:
+            summary: "PostgreSQL replication slot consuming disk space"
+            description: "Replication slot {{ "{{" }} $labels.slot_name {{ "}}" }} on {{ "{{" }} $labels.instance {{ "}}" }} is consuming significant disk space."
+{{- end }}

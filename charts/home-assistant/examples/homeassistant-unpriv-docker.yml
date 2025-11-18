@@ -1,0 +1,47 @@
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: ${HOMEASSISTANT_IMAGE:-ghcr.io/home-assistant/home-assistant}:${HOMEASSISTANT_TAG:-stable}
+    environment:
+      TZ: ${TIMEZONE:-Europe/Zurich}
+    volumes:
+      - homeassistant-config:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 0
+        window: "0s"
+    # Instead of privileged: true, use specific capabilities
+    cap_add:
+      - NET_ADMIN # For network discovery
+      - NET_RAW # For ping integration
+      - SYS_ADMIN # For some hardware access
+    # For USB devices (Z-Wave, Zigbee), add specific device access
+    # devices:
+    #   - /dev/ttyUSB0:/dev/ttyUSB0  # Example: Z-Wave stick
+    #   - /dev/ttyACM0:/dev/ttyACM0  # Example: Zigbee stick
+    # Use bridge network instead of host when possible
+    networks:
+      - homeassistant
+    ports:
+      - "${HOMEASSISTANT_PORT:-8123}:8123"
+
+volumes:
+  homeassistant-config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${BASE_PATH:-/var/local/docker/volumes}/homeassistant/${ENVIRONMENT:-prod}/config
+    labels:
+      com.example.description: "Home Assistant configuration"
+      com.example.department: "IT"
+      com.example.backup: "daily"
+    name: homeassistant_config_${ENVIRONMENT:-prod}
+
+networks:
+  homeassistant:
+    external: true

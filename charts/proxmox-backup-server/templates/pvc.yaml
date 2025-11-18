@@ -1,0 +1,71 @@
+{{- if and .Values.persistence.enabled .Values.persistence.etc.enabled (not .Values.persistence.etc.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "pbs.pvcEtcName" . }}
+  namespace: {{ include "pbs.namespace" . }}
+  labels:
+    {{- include "pbs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: etc
+  {{- with .Values.persistence.etc.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.etc.accessMode }}
+  {{- if .Values.persistence.etc.storageClassName }}
+  storageClassName: {{ .Values.persistence.etc.storageClassName }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.etc.size }}
+{{- end }}
+---
+{{- if and .Values.persistence.enabled .Values.persistence.logs.enabled (not .Values.persistence.logs.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "pbs.pvcLogsName" . }}
+  namespace: {{ include "pbs.namespace" . }}
+  labels:
+    {{- include "pbs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: logs
+  {{- with .Values.persistence.logs.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.logs.accessMode }}
+  {{- if .Values.persistence.logs.storageClassName }}
+  storageClassName: {{ .Values.persistence.logs.storageClassName }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.logs.size }}
+{{- end }}
+---
+{{- if and .Values.persistence.enabled .Values.persistence.lib.enabled (not .Values.persistence.lib.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "pbs.pvcLibName" . }}
+  namespace: {{ include "pbs.namespace" . }}
+  labels:
+    {{- include "pbs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: lib
+  {{- with .Values.persistence.lib.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.lib.accessMode }}
+  {{- if .Values.persistence.lib.storageClassName }}
+  storageClassName: {{ .Values.persistence.lib.storageClassName }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.lib.size }}
+{{- end }}

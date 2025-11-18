@@ -1,0 +1,120 @@
+PostgreSQL has been installed successfully!
+
+{{- if .Values.postgresql.password }}
+⚠️  WARNING: You have set a password in values.yaml. This is not recommended for production use.
+    Use existingSecret instead for better security.
+{{- end }}
+
+{{- if not .Values.persistence.enabled }}
+⚠️  WARNING: Persistence is disabled. Data will be lost when pods are restarted.
+    Enable persistence for production workloads.
+{{- end }}
+
+{{- if not .Values.backup.enabled }}
+⚠️  WARNING: Automated backups are disabled. Enable backups to prevent data loss.
+{{- end }}
+
+{{- if and .Values.statefulset.enabled .Values.replication.enabled (lt (int .Values.replication.readReplicas) 1) }}
+⚠️  WARNING: Replication is enabled but readReplicas is set to {{ .Values.replication.readReplicas }}.
+    Increase readReplicas for high availability.
+{{- end }}
+
+{{- if and (not .Values.tls.enabled) (eq .Values.service.type "LoadBalancer") }}
+⚠️  WARNING: TLS is disabled but service is exposed via LoadBalancer.
+    Enable TLS for secure external connections.
+{{- end }}
+
+{{- if .Values.postgresql.additionalUsers }}
+{{- range .Values.postgresql.additionalUsers }}
+{{- if .password }}
+⚠️  WARNING: User '{{ .username }}' has password defined directly in values.yaml.
+    Use existingSecret instead for better security.
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- if and .Values.postgresql.externalResources.enabled (or .Values.postgresql.externalResources.databasesConfigMap.name .Values.postgresql.externalResources.usersConfigMap.name) }}
+✓  Using external Kubernetes resources for database/user management
+{{- if .Values.postgresql.externalResources.databasesConfigMap.name }}
+   - Databases from: {{ .Values.postgresql.externalResources.databasesConfigMap.name }}
+{{- end }}
+{{- if .Values.postgresql.externalResources.usersConfigMap.name }}
+   - Users from: {{ .Values.postgresql.externalResources.usersConfigMap.name }}
+{{- end }}
+{{- end }}
+
+1. Get the PostgreSQL password by running:
+
+{{- if .Values.postgresql.existingSecret }}
+    export POSTGRES_PASSWORD=$(kubectl get secret --namespace {{ include "postgresql.namespace" . }} {{ .Values.postgresql.existingSecret }} -o jsonpath="{.data.{{ .Values.postgresql.existingSecretPasswordKey }}}" | base64 -d)
+{{- else }}
+    export POSTGRES_PASSWORD=$(kubectl get secret --namespace {{ include "postgresql.namespace" . }} {{ include "postgresql.fullname" . }} -o jsonpath="{.data.postgresql-password}" | base64 -d)
+{{- end }}
+
+2. Connect to PostgreSQL from within the cluster:
+
+    kubectl run {{ include "postgresql.fullname" . }}-client --rm --tty -i --restart='Never' \
+      --namespace {{ include "postgresql.namespace" . }} \
+      --image {{ include "postgresql.image" . }} \
+      --env="PGPASSWORD=$POSTGRES_PASSWORD" \
+      --command -- psql --host {{ include "postgresql.fullname" . }} -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }} -p {{ .Values.service.port }}
+
+3. To connect from outside the cluster:
+
+{{- if eq .Values.service.type "NodePort" }}
+    export NODE_IP=$(kubectl get nodes --namespace {{ include "postgresql.namespace" . }} -o jsonpath="{.items[0].status.addresses[0].address}")
+    export NODE_PORT=$(kubectl get --namespace {{ include "postgresql.namespace" . }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "postgresql.fullname" . }})
+
+    PGPASSWORD="$POSTGRES_PASSWORD" psql --host $NODE_IP --port $NODE_PORT -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }}
+{{- else if eq .Values.service.type "LoadBalancer" }}
+    NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+
+    export SERVICE_IP=$(kubectl get svc --namespace {{ include "postgresql.namespace" . }} {{ include "postgresql.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+
+    PGPASSWORD="$POSTGRES_PASSWORD" psql --host $SERVICE_IP --port {{ .Values.service.port }} -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }}
+{{- else }}
+    kubectl port-forward --namespace {{ include "postgresql.namespace" . }} svc/{{ include "postgresql.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} &
+
+    PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 --port {{ .Values.service.port }} -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }}
+{{- end }}
+
+{{- if .Values.metrics.enabled }}
+
+4. Access PostgreSQL metrics:
+
+    kubectl port-forward --namespace {{ include "postgresql.namespace" . }} svc/{{ include "postgresql.fullname" . }} {{ .Values.metrics.port }}:{{ .Values.metrics.port }} &
+
+    # Metrics available at: http://localhost:{{ .Values.metrics.port }}/metrics
+{{- end }}
+
+{{- if .Values.backup.enabled }}
+
+5. Backup is enabled and scheduled to run: {{ .Values.backup.schedule }}
+   Backups will be retained for {{ .Values.backup.retentionDays }} days.
+{{- end }}
+
+{{- if .Values.replication.enabled }}
+
+6. Replication is enabled with {{ .Values.replication.readReplicas }} read replica(s).
+{{- end }}
+
+{{- if or .Values.postgresql.additionalDatabases (and .Values.postgresql.externalResources.enabled .Values.postgresql.externalResources.databasesConfigMap.name) }}
+
+7. Additional databases have been created:
+{{- if .Values.postgresql.additionalDatabases }}
+{{- range .Values.postgresql.additionalDatabases }}
+   - {{ .name }}{{ if .owner }} (owner: {{ .owner }}){{ end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- if or .Values.postgresql.additionalUsers (and .Values.postgresql.externalResources.enabled .Values.postgresql.externalResources.usersConfigMap.name) }}
+
+8. Additional users have been created with configured privileges.
+   Use the respective secrets to retrieve user passwords.
+{{- end }}
+
+For more information, visit the chart documentation:
+https://github.com/codefuturist/helm-charts/tree/main/charts/postgresql
+
+For more information, visit: https://github.com/codefuturist/helm-charts/tree/main/charts/postgresql

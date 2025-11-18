@@ -1,0 +1,22 @@
+# S3 Backend Configuration Example
+# For remote backups to AWS S3 or S3-compatible storage
+
+restic:
+  # S3-compatible storage (AWS S3, MinIO, Wasabi, etc.)
+  repository: "s3:s3.amazonaws.com/my-backup-bucket/kubernetes"
+  password: "change-me-to-a-secure-password"
+
+  backendEnv:
+    AWS_ACCESS_KEY_ID: "your-access-key-id"
+    AWS_SECRET_ACCESS_KEY: "your-secret-access-key"
+    AWS_DEFAULT_REGION: "us-east-1"
+
+# Disable backup volume since we're using remote S3 storage
+backupVolume:
+  enabled: false
+
+# List of volumes to backup
+volumes:
+  - name: app-data
+    claimName: myapp-pvc
+    mountPath: /data

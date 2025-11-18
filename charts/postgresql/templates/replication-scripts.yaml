@@ -1,0 +1,225 @@
+{{- if and .Values.replication.enabled (eq .Values.deployment.type "statefulset") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "postgresql.fullname" . }}-replication-scripts
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    app.kubernetes.io/component: replication
+data:
+  setup-replication.sh: |
+    #!/bin/bash
+    set -e
+
+    echo "======================================"
+    echo "PostgreSQL Replication Setup"
+    echo "======================================"
+    echo ""
+
+    # Load passwords from files if using password files
+    {{- if .Values.postgresql.auth.usePasswordFiles }}
+    export POSTGRES_PASSWORD=$(cat "${POSTGRES_PASSWORD_FILE}")
+    export POSTGRES_REPLICATION_PASSWORD=$(cat "${POSTGRES_REPLICATION_PASSWORD_FILE}")
+    {{- end }}
+
+    # Determine if this is primary or replica based on pod ordinal
+    POD_NAME=${HOSTNAME}
+    POD_ORDINAL=${POD_NAME##*-}
+
+    echo "Pod: $POD_NAME"
+    echo "Ordinal: $POD_ORDINAL"
+    echo ""
+
+    if [ "$POD_ORDINAL" = "0" ]; then
+      echo "This is the PRIMARY server (ordinal 0)"
+      echo "PRIMARY_SERVER=true" > /tmp/pg-role
+
+      # Wait for PostgreSQL to be ready
+      until pg_isready -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }}; do
+        echo "Waiting for PostgreSQL to be ready..."
+        sleep 2
+      done
+
+      # Create replication user if it doesn't exist
+      echo "Creating replication user..."
+      {{- if .Values.postgresql.auth.usePasswordFiles }}
+      PGPASSWORD="${POSTGRES_PASSWORD}" psql -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }} <<EOF
+      {{- else }}
+      psql -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }} <<EOF
+      {{- end }}
+    DO \$\$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = '{{ .Values.replication.user }}') THEN
+        CREATE ROLE {{ .Values.replication.user }} WITH REPLICATION LOGIN PASSWORD '${POSTGRES_REPLICATION_PASSWORD}';
+      END IF;
+    END
+    \$\$;
+    EOF
+
+      {{- if and .Values.replication.slots.enabled .Values.replication.slots.autoCreate }}
+      # Create replication slots for each replica
+      echo "Creating replication slots..."
+      for i in $(seq 1 {{ .Values.replication.readReplicas }}); do
+        SLOT_NAME="{{ .Values.replication.slots.prefix }}_$i"
+        psql -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }} -tAc \
+          "SELECT 1 FROM pg_replication_slots WHERE slot_name = '$SLOT_NAME'" | grep -q 1 || \
+        psql -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }} -c \
+          "SELECT pg_create_physical_replication_slot('$SLOT_NAME');"
+        echo "✓ Created replication slot: $SLOT_NAME"
+      done
+      {{- end }}
+
+      echo ""
+      echo "✓ Primary server setup complete"
+
+    else
+      echo "This is a REPLICA server (ordinal $POD_ORDINAL)"
+      echo "PRIMARY_SERVER=false" > /tmp/pg-role
+
+      # Determine primary server name
+      PRIMARY_POD="{{ include "postgresql.fullname" . }}-0"
+      {{- if .Values.replication.primary.serviceName }}
+      PRIMARY_HOST="{{ .Values.replication.primary.serviceName }}"
+      {{- else }}
+      PRIMARY_HOST="${PRIMARY_POD}.{{ include "postgresql.fullname" . }}-headless.{{ include "postgresql.namespace" . }}.svc.cluster.local"
+      {{- end }}
+
+      echo "Primary host: $PRIMARY_HOST"
+      echo ""
+
+      # Check if data directory is empty or needs initialization
+      if [ ! -s "$PGDATA/PG_VERSION" ]; then
+        echo "Initializing replica from primary..."
+
+        # Remove any existing data
+        rm -rf $PGDATA/*
+
+        # Wait for primary to be ready
+        echo "Waiting for primary server to be ready..."
+        until pg_isready -h $PRIMARY_HOST -U {{ .Values.replication.user }} -d {{ .Values.postgresql.database }}; do
+          echo "Primary not ready yet, waiting..."
+          sleep 5
+        done
+
+        echo "Primary is ready, starting base backup..."
+
+        # Create base backup from primary
+        {{- if .Values.replication.slots.enabled }}
+        SLOT_NAME="{{ .Values.replication.slots.prefix }}_${POD_ORDINAL}"
+        echo "Using replication slot: $SLOT_NAME"
+        PGPASSWORD="${POSTGRES_REPLICATION_PASSWORD}" pg_basebackup \
+          -h $PRIMARY_HOST \
+          -U {{ .Values.replication.user }} \
+          -D $PGDATA \
+          -P \
+          -Xs \
+          -S "$SLOT_NAME" \
+          -R
+        {{- else }}
+        PGPASSWORD="${POSTGRES_REPLICATION_PASSWORD}" pg_basebackup \
+          -h $PRIMARY_HOST \
+          -U {{ .Values.replication.user }} \
+          -D $PGDATA \
+          -P \
+          -Xs \
+          -R
+        {{- end }}
+
+        echo "✓ Base backup completed"
+
+        # Configure replica-specific settings
+        cat >> $PGDATA/postgresql.auto.conf <<EOF
+    # Replica configuration
+    hot_standby = on
+    {{- if .Values.replication.replica.hotStandbyFeedback }}
+    hot_standby_feedback = on
+    {{- end }}
+    max_standby_streaming_delay = {{ .Values.replication.replica.maxStandbyStreamingDelay }}
+    max_standby_archive_delay = {{ .Values.replication.replica.maxStandbyArchiveDelay }}
+    wal_receiver_timeout = {{ .Values.replication.replica.walReceiverTimeout }}
+    wal_receiver_status_interval = {{ .Values.replication.replica.walReceiverStatusInterval }}
+    {{- if .Values.replication.failover.triggerFileEnabled }}
+    promote_trigger_file = '{{ .Values.replication.failover.triggerFilePath }}'
+    {{- end }}
+    EOF
+
+        echo "✓ Replica configuration added"
+
+      else
+        echo "Data directory already exists, assuming replica is configured"
+      fi
+
+      echo ""
+      echo "✓ Replica server setup complete"
+    fi
+
+    echo ""
+    echo "======================================"
+
+  check-replication.sh: |
+    #!/bin/bash
+    # Health check script for replication status
+
+    # Check if this is primary or replica
+    if [ -f /tmp/pg-role ]; then
+      source /tmp/pg-role
+    fi
+
+    if [ "$PRIMARY_SERVER" = "true" ] || [ ! -f /tmp/pg-role ]; then
+      # Primary: Check if accepting connections
+      pg_isready -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }}
+    else
+      # Replica: Check if in recovery and receiving WAL
+      psql -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }} -tAc \
+        "SELECT CASE WHEN pg_is_in_recovery() THEN 0 ELSE 1 END" | grep -q 0
+    fi
+
+  replication-status.sh: |
+    #!/bin/bash
+    # Display replication status
+
+    echo "======================================"
+    echo "Replication Status"
+    echo "======================================"
+    echo ""
+
+    # Check if this is primary or replica
+    IS_PRIMARY=$(psql -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }} -tAc \
+      "SELECT NOT pg_is_in_recovery()")
+
+    if [ "$IS_PRIMARY" = "t" ]; then
+      echo "Role: PRIMARY"
+      echo ""
+      echo "Connected Replicas:"
+      psql -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }} -x -c \
+        "SELECT client_addr, state, sync_state,
+                pg_wal_lsn_diff(pg_current_wal_lsn(), sent_lsn) as send_lag_bytes,
+                pg_wal_lsn_diff(pg_current_wal_lsn(), write_lsn) as write_lag_bytes,
+                pg_wal_lsn_diff(pg_current_wal_lsn(), flush_lsn) as flush_lag_bytes,
+                pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn) as replay_lag_bytes
+         FROM pg_stat_replication;"
+
+      {{- if .Values.replication.slots.enabled }}
+      echo ""
+      echo "Replication Slots:"
+      psql -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }} -c \
+        "SELECT slot_name, slot_type, active,
+                pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn) as lag_bytes
+         FROM pg_replication_slots;"
+      {{- end }}
+    else
+      echo "Role: REPLICA"
+      echo ""
+      echo "Replication Status:"
+      psql -U {{ .Values.postgresql.username }} -d {{ .Values.postgresql.database }} -x -c \
+        "SELECT pg_is_in_recovery() as is_replica,
+                pg_last_wal_receive_lsn() as receive_lsn,
+                pg_last_wal_replay_lsn() as replay_lsn,
+                pg_wal_lsn_diff(pg_last_wal_receive_lsn(), pg_last_wal_replay_lsn()) as replay_lag_bytes,
+                EXTRACT(EPOCH FROM (now() - pg_last_xact_replay_timestamp())) as lag_seconds;"
+    fi
+
+    echo ""
+    echo "======================================"
+{{- end }}

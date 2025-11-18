@@ -1,0 +1,84 @@
+# Example: Backup using hostPath volumes
+# This configuration demonstrates backing up host directories and using a dedicated backup PV
+
+restic:
+  repository: "s3:s3.amazonaws.com/my-backups/host-backup"
+  password: "my-secure-password"
+
+  backup:
+    enabled: true
+    schedule: "0 3 * * *" # Daily at 3 AM
+    tags:
+      - hostpath
+      - production
+
+  init:
+    enabled: true
+
+  prune:
+    enabled: true
+    schedule: "0 4 * * 0" # Weekly on Sunday at 4 AM
+
+# Volumes to backup - demonstrating multiple types
+volumes:
+  # Backup a host directory (e.g., Docker volumes, host data)
+  - name: docker-volumes
+    type: hostPath
+    hostPath:
+      path: /var/lib/docker/volumes
+      type: Directory
+    mountPath: /backup/docker-volumes
+    readOnly: true # Read-only for safety
+
+  # Backup application data from host
+  - name: app-data
+    type: hostPath
+    hostPath:
+      path: /mnt/data/app
+      type: Directory
+    mountPath: /backup/app-data
+    readOnly: true
+
+  # Backup from a dedicated PVC
+  - name: database-backup
+    type: pvc # or omit type, PVC is default
+    claimName: postgres-backup-pvc
+    mountPath: /backup/database
+    readOnly: true
+
+  # Use NFS mount for backups
+  - name: nfs-data
+    type: custom
+    volumeSpec:
+      nfs:
+        server: nfs-server.example.com
+        path: /exports/data
+    mountPath: /backup/nfs-data
+    readOnly: true
+
+# Node selector to ensure backup runs on node with access to host paths
+cronjob:
+  nodeSelector:
+    kubernetes.io/hostname: backup-node # Replace with your node name
+
+  # Resource limits for backup job
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 256Mi
+
+# Security context - may need root access for hostPath
+podSecurityContext:
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+  runAsNonRoot: false
+
+# Notifications for backup status
+notifications:
+  enabled: true
+  webhook:
+    url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"

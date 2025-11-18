@@ -1,0 +1,159 @@
+{{- if .Values.userManagement.dynamicSync.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "postgresql.fullname" . }}-user-sync
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    app.kubernetes.io/component: user-sync
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.userManagement.dynamicSync.schedule | quote }}
+  {{- if .Values.userManagement.dynamicSync.suspend }}
+  suspend: true
+  {{- end }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: {{ .Values.userManagement.dynamicSync.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.userManagement.dynamicSync.failedJobsHistoryLimit }}
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "postgresql.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: user-sync
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "postgresql.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: user-sync
+          {{- with .Values.userManagement.dynamicSync.podAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        spec:
+          restartPolicy: Never
+          serviceAccountName: {{ include "postgresql.fullname" . }}-user-sync
+          {{- if .Values.userManagement.dynamicSync.watchExternalResources.enabled }}
+          initContainers:
+            - name: fetch-external-scripts
+              image: bitnami/kubectl:latest
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -e
+                  echo "Fetching external ConfigMaps..."
+                  {{- range .Values.userManagement.dynamicSync.watchExternalResources.configMaps }}
+                  mkdir -p /scripts/external-{{ .namespace }}-{{ .name }}
+                  echo "Fetching ConfigMap {{ .namespace }}/{{ .name }}..."
+
+                  # Get all keys from the ConfigMap
+                  keys=$(kubectl get configmap {{ .name }} -n {{ .namespace }} -o jsonpath='{.data}' | jq -r 'keys[]' || echo "")
+
+                  if [ -z "$keys" ]; then
+                    echo "Warning: ConfigMap {{ .namespace }}/{{ .name }} not found or empty"
+                  else
+                    # Fetch each SQL file
+                    for key in $keys; do
+                      if [[ "$key" == *.sql ]]; then
+                        echo "  - Fetching $key..."
+                        kubectl get configmap {{ .name }} -n {{ .namespace }} -o jsonpath="{.data['$key']}" > /scripts/external-{{ .namespace }}-{{ .name }}/$key
+                      fi
+                    done
+                  fi
+                  {{- end }}
+
+                  echo "External ConfigMaps fetched successfully"
+                  ls -la /scripts/
+              volumeMounts:
+                - name: external-scripts
+                  mountPath: /scripts
+          {{- end }}
+          containers:
+            - name: user-sync
+              image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+              imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+              command:
+              - /bin/sh
+              - -c
+              - |
+                set -e
+                echo "Starting user synchronization..."
+
+                # Wait for PostgreSQL to be ready
+                until pg_isready -h {{ include "postgresql.fullname" . }} -p {{ .Values.service.port }} -U {{ .Values.postgresql.username }}; do
+                  echo "Waiting for PostgreSQL..."
+                  sleep 2
+                done
+
+                echo "PostgreSQL is ready, synchronizing users and databases..."
+
+                # Execute init scripts from local ConfigMap
+                if [ -d /sync-scripts ]; then
+                  echo "Processing local sync scripts..."
+                  for script in /sync-scripts/*.sql; do
+                    if [ -f "$script" ]; then
+                      echo "Executing: $script"
+                      psql -h {{ include "postgresql.fullname" . }} -p {{ .Values.service.port }} -U {{ .Values.postgresql.username }} -f "$script" || echo "Warning: Script $script failed"
+                    fi
+                  done
+                fi
+
+                {{- if .Values.userManagement.dynamicSync.watchExternalResources.enabled }}
+                # Execute scripts from external ConfigMaps (cross-namespace)
+                if [ -d /external-scripts ]; then
+                  echo "Processing external resource ConfigMaps..."
+                  {{- range .Values.userManagement.dynamicSync.watchExternalResources.configMaps }}
+                  if [ -d /external-scripts/external-{{ .namespace }}-{{ .name }} ]; then
+                    echo "Processing external ConfigMap: {{ .namespace }}/{{ .name }}"
+                    for script in /external-scripts/external-{{ .namespace }}-{{ .name }}/*.sql; do
+                      if [ -f "$script" ]; then
+                        echo "Executing: $(basename $script)"
+                        psql -h {{ include "postgresql.fullname" $ }} -p {{ $.Values.service.port }} -U {{ $.Values.postgresql.username }} -f "$script" || echo "Warning: External script $script failed"
+                      fi
+                    done
+                  else
+                    echo "Warning: Directory /external-scripts/external-{{ .namespace }}-{{ .name }} not found"
+                  fi
+                  {{- end }}
+                fi
+                {{- end }}
+
+                echo "User synchronization complete!"
+              env:
+              - name: PGPASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "postgresql.secretName" . }}
+                    key: {{ .Values.postgresql.existingSecretPasswordKey }}
+              volumeMounts:
+              {{- if .Values.userManagement.dynamicSync.configMapName }}
+              - name: sync-scripts
+                mountPath: /sync-scripts
+                readOnly: true
+              {{- end }}
+              {{- if .Values.userManagement.dynamicSync.watchExternalResources.enabled }}
+              - name: external-scripts
+                mountPath: /external-scripts
+                readOnly: true
+              {{- end }}
+              {{- with .Values.userManagement.dynamicSync.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+          volumes:
+          {{- if .Values.userManagement.dynamicSync.configMapName }}
+          - name: sync-scripts
+            configMap:
+              name: {{ .Values.userManagement.dynamicSync.configMapName }}
+              defaultMode: 0755
+          {{- end }}
+          {{- if .Values.userManagement.dynamicSync.watchExternalResources.enabled }}
+          - name: external-scripts
+            emptyDir: {}
+          {{- end }}
+{{- end }}

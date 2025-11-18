@@ -1,0 +1,14 @@
+# CI Test: Host network mode
+# Tests host network with system volumes
+
+hostNetwork:
+  enabled: true
+
+systemVolumes:
+  localtime:
+    enabled: true
+  dbus:
+    enabled: true
+
+persistence:
+  enabled: false

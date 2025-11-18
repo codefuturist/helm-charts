@@ -1,0 +1,4 @@
+# Minimal configuration example
+deployment:
+  enabled: true
+  replicas: 1

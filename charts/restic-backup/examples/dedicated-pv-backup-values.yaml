@@ -1,0 +1,98 @@
+# Example: Dedicated Backup PV Configuration
+# This example shows how to use a dedicated PersistentVolume for restic repository storage (local backup)
+
+restic:
+  # Use local repository on a dedicated backup PV
+  repository: "/backup-repo"
+  password: "my-secure-password"
+
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"
+    tags:
+      - local-backup
+      - pv-storage
+
+  init:
+    enabled: true
+
+  prune:
+    enabled: true
+    schedule: "0 5 * * 0"
+
+# Source volumes to backup
+volumes:
+  # Application data
+  - name: app-data
+    claimName: myapp-data-pvc
+    mountPath: /data/app
+
+  # Database data
+  - name: postgres-data
+    claimName: postgres-data-pvc
+    mountPath: /data/postgres
+    readOnly: true
+
+# Mount the dedicated backup PV for the restic repository
+extraVolumes:
+  - name: backup-repository
+    persistentVolumeClaim:
+      claimName: restic-backup-repo-pvc # Dedicated PVC for backup storage
+
+extraVolumeMounts:
+  - name: backup-repository
+    mountPath: /backup-repo
+
+cronjob:
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+
+---
+# Example: PersistentVolumeClaim for dedicated backup storage
+# Deploy this first: kubectl apply -f dedicated-backup-pvc.yaml
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: restic-backup-repo-pvc
+  namespace: default # Change to your namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi # Adjust based on your backup needs
+  # Optional: Use specific storage class for fast/reliable storage
+  storageClassName: fast-ssd
+
+---
+# Optional: PersistentVolume with hostPath for local storage
+# Use this if you want to store backups on a specific host directory
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: restic-backup-repo-pv
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/backup-storage # Host directory for backups
+    type: DirectoryOrCreate
+  # Optional: Node affinity to ensure PV is on specific node
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - backup-node # Replace with your node name

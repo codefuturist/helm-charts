@@ -1,0 +1,41 @@
+# Dockerfile for Restic Backup Metrics Exporter
+# This creates a lightweight Python-based Prometheus exporter for restic backups
+
+FROM python:3.11-alpine
+
+LABEL maintainer="codefuturist <58808821+codefuturist@users.noreply.github.com>"
+LABEL description="Prometheus metrics exporter for restic backups in Kubernetes"
+
+# Install required packages
+RUN apk add --no-cache \
+    restic \
+    curl \
+    kubectl \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user
+RUN addgroup -g 65534 exporter && \
+    adduser -D -u 65534 -G exporter exporter
+
+# Set working directory
+WORKDIR /app
+
+# Copy metrics exporter script
+# Note: In actual deployment, this will be mounted from ConfigMap
+COPY metrics-exporter.py /app/
+
+# Make script executable
+RUN chmod +x /app/metrics-exporter.py
+
+# Switch to non-root user
+USER exporter
+
+# Expose metrics port
+EXPOSE 9092
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:9092/health || exit 1
+
+# Run the exporter
+ENTRYPOINT ["python3", "/app/metrics-exporter.py"]

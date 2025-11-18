@@ -1,0 +1,27 @@
+{{- range .Values.additionalServices }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "home-assistant.fullname" $ }}-{{ .name }}
+  namespace: {{ $.Values.namespaceOverride | default $.Release.Namespace }}
+  labels:
+    {{- include "home-assistant.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ .name }}
+  {{- with .annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .type | default "ClusterIP" }}
+  {{- if and (eq (.type | default "ClusterIP") "LoadBalancer") .loadBalancerIP }}
+  loadBalancerIP: {{ .loadBalancerIP }}
+  {{- end }}
+  ports:
+    - port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      protocol: {{ .protocol | default "TCP" }}
+      name: {{ .name }}
+  selector:
+    {{- include "home-assistant.selectorLabels" $ | nindent 4 }}
+{{- end }}

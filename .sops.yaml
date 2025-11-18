@@ -1,0 +1,20 @@
+# .sops.yaml - SOPS configuration for FluxCD
+creation_rules:
+  # FluxCD secrets - encrypt all YAML files with 'secret' in the path
+  - path_regex: .*/flux/.*secret.*\.ya?ml$
+    encrypted_regex: ^(data|stringData)$
+    age: "age1yubikey1qv3fxvnkgvn6txfld39ztg2fksqgtqhp29dntdhtwmll39q2z3fs2k3wjcn,age1t8gm5avm9z5pquta4w2kaud7zn3c588mkk2shdpdskvp76wxh3gsxctyst"
+
+  # General secrets in catalog
+  - path_regex: .*/(secrets?|secret-.*)\.ya?ml$
+    encrypted_regex: ^(data|stringData)$
+    age: "age1yubikey1qv3fxvnkgvn6txfld39ztg2fksqgtqhp29dntdhtwmll39q2z3fs2k3wjcn,age1t8gm5avm9z5pquta4w2kaud7zn3c588mkk2shdpdskvp76wxh3gsxctyst"
+
+  # Legacy patterns with multiple keys (all Yubikeys + software key)
+  - path_regex: .*/*secret.*
+    encrypted_regex: ^(data|stringData)$
+    age: "age1yubikey1qv3fxvnkgvn6txfld39ztg2fksqgtqhp29dntdhtwmll39q2z3fs2k3wjcn,age1yubikey1ae5dsekqqmamy29fkr8tccyw8rxl20zl0pgxj7kxzswusuaf0yxs8x56pl,age1yubikey1dvyezkkz763ukzh54g2t6xt9as9h04mcmyujxarwwavrlvvggc5q6hyq00,age1gav0dwax4eejeas4q70g502ps6nvckulhn33nh5k3vv7c3klquvswfnvcr,age1t8gm5avm9z5pquta4w2kaud7zn3c588mkk2shdpdskvp76wxh3gsxctyst"
+
+  - path_regex: secret.*
+    encrypted_regex: ^(data|stringData)$
+    age: "age1yubikey1qv3fxvnkgvn6txfld39ztg2fksqgtqhp29dntdhtwmll39q2z3fs2k3wjcn,age1yubikey1ae5dsekqqmamy29fkr8tccyw8rxl20zl0pgxj7kxzswusuaf0yxs8x56pl,age1yubikey1dvyezkkz763ukzh54g2t6xt9as9h04mcmyujxarwwavrlvvggc5q6hyq00,age1gav0dwax4eejeas4q70g502ps6nvckulhn33nh5k3vv7c3klquvswfnvcr,age1t8gm5avm9z5pquta4w2kaud7zn3c588mkk2shdpdskvp76wxh3gsxctyst"

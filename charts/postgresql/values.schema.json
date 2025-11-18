@@ -1,0 +1,398 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "title": "PostgreSQL Helm Chart Values Schema",
+    "properties": {
+        "postgresql": {
+            "type": "object",
+            "required": [
+                "database",
+                "username"
+            ],
+            "properties": {
+                "database": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "PostgreSQL database name"
+                },
+                "username": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "PostgreSQL username"
+                },
+                "password": {
+                    "type": "string",
+                    "description": "PostgreSQL password (not recommended for production)"
+                },
+                "hostAuthMethod": {
+                    "type": "string",
+                    "enum": [
+                        "scram-sha-256",
+                        "md5",
+                        "password",
+                        "trust"
+                    ],
+                    "default": "scram-sha-256",
+                    "description": "PostgreSQL host authentication method"
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "repository": {
+                            "type": "string"
+                        },
+                        "tag": {
+                            "type": "string"
+                        },
+                        "pullPolicy": {
+                            "type": "string",
+                            "enum": [
+                                "Always",
+                                "IfNotPresent",
+                                "Never"
+                            ]
+                        }
+                    }
+                },
+                "extensions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of PostgreSQL extensions to enable"
+                },
+                "additionalDatabases": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "name"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Database name"
+                            },
+                            "owner": {
+                                "type": "string",
+                                "description": "Database owner"
+                            },
+                            "encoding": {
+                                "type": "string",
+                                "description": "Database encoding (e.g., UTF8)"
+                            },
+                            "lc_collate": {
+                                "type": "string",
+                                "description": "Locale collation (e.g., en_US.UTF-8)"
+                            },
+                            "lc_ctype": {
+                                "type": "string",
+                                "description": "Locale character type (e.g., en_US.UTF-8)"
+                            },
+                            "template": {
+                                "type": "string",
+                                "description": "Template database (e.g., template0)"
+                            }
+                        }
+                    },
+                    "description": "Additional databases to create"
+                },
+                "additionalUsers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "username"
+                        ],
+                        "properties": {
+                            "username": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Username"
+                            },
+                            "password": {
+                                "type": "string",
+                                "description": "Password (not recommended, use existingSecret)"
+                            },
+                            "existingSecret": {
+                                "type": "string",
+                                "description": "Existing Kubernetes Secret name"
+                            },
+                            "existingSecretKey": {
+                                "type": "string",
+                                "default": "password",
+                                "description": "Key in the secret containing the password"
+                            },
+                            "databases": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Databases to grant access to"
+                            },
+                            "privileges": {
+                                "type": "string",
+                                "default": "ALL",
+                                "description": "Privileges to grant (e.g., ALL, SELECT, INSERT)"
+                            },
+                            "superuser": {
+                                "type": "boolean",
+                                "default": false,
+                                "description": "Whether user is a superuser"
+                            },
+                            "createdb": {
+                                "type": "boolean",
+                                "default": false,
+                                "description": "Whether user can create databases"
+                            },
+                            "createrole": {
+                                "type": "boolean",
+                                "default": false,
+                                "description": "Whether user can create roles"
+                            },
+                            "replication": {
+                                "type": "boolean",
+                                "default": false,
+                                "description": "Whether user can perform replication"
+                            }
+                        }
+                    },
+                    "description": "Additional users to create"
+                },
+                "externalResources": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Enable reading from external ConfigMaps/Secrets"
+                        },
+                        "databasesConfigMap": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "ConfigMap name"
+                                },
+                                "namespace": {
+                                    "type": "string",
+                                    "description": "ConfigMap namespace"
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "default": "databases.yaml",
+                                    "description": "Key in ConfigMap containing database definitions"
+                                }
+                            }
+                        },
+                        "usersConfigMap": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "ConfigMap name"
+                                },
+                                "namespace": {
+                                    "type": "string",
+                                    "description": "ConfigMap namespace"
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "default": "users.yaml",
+                                    "description": "Key in ConfigMap containing user definitions"
+                                }
+                            }
+                        },
+                        "usersSecret": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Secret name"
+                                },
+                                "namespace": {
+                                    "type": "string",
+                                    "description": "Secret namespace"
+                                },
+                                "passwordKeys": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "description": "Map of username to secret key"
+                                }
+                            }
+                        }
+                    },
+                    "description": "External Kubernetes resources configuration"
+                }
+            }
+        },
+        "deployment": {
+            "type": "object",
+            "properties": {
+                "replicas": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Number of PostgreSQL replicas"
+                },
+                "resources": {
+                    "type": "object",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "statefulset": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Use StatefulSet instead of Deployment"
+                }
+            }
+        },
+        "persistence": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable persistence using PVC"
+                },
+                "size": {
+                    "type": "string",
+                    "pattern": "^[0-9]+(Gi|Mi|Ti)$",
+                    "description": "Size of the volume"
+                },
+                "storageClass": {
+                    "type": "string",
+                    "description": "Storage class name"
+                },
+                "accessModes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "ReadWriteOnce",
+                            "ReadWriteMany",
+                            "ReadOnlyMany"
+                        ]
+                    }
+                }
+            }
+        },
+        "service": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "ClusterIP",
+                        "NodePort",
+                        "LoadBalancer"
+                    ],
+                    "description": "Service type"
+                },
+                "port": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 65535,
+                    "description": "Service port"
+                }
+            }
+        },
+        "replication": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable replication (requires StatefulSet)"
+                },
+                "readReplicas": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Number of read replicas"
+                },
+                "user": {
+                    "type": "string",
+                    "description": "Replication user"
+                }
+            }
+        },
+        "backup": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable automated backups"
+                },
+                "schedule": {
+                    "type": "string",
+                    "pattern": "^(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\\d+(ns|us|µs|ms|s|m|h))+)|((((\\d+,)+\\d+|(\\d+(/|-)\\d+)|\\d+|\\*) ?){5,7})$",
+                    "description": "Backup schedule (cron format)"
+                },
+                "retentionDays": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Backup retention in days"
+                }
+            }
+        },
+        "monitoring": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable monitoring"
+                }
+            }
+        },
+        "metrics": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable PostgreSQL metrics exporter"
+                },
+                "port": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 65535,
+                    "description": "Metrics port"
+                }
+            }
+        },
+        "tls": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable TLS"
+                }
+            }
+        }
+    }
+}

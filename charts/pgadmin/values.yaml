@@ -1,0 +1,699 @@
+# =============================================================================
+# Global Parameters
+# @section -- Global Parameters
+# =============================================================================
+
+# -- Override the namespace for all resources
+# @default -- `.Release.Namespace`
+namespaceOverride: ""
+
+# -- Override the name of the chart
+nameOverride: ""
+
+# -- Override the full name of the chart
+fullnameOverride: ""
+
+# -- Additional labels to add to all resources
+additionalLabels: {}
+
+# -- Additional annotations to add to all resources
+additionalAnnotations: {}
+
+# =============================================================================
+# Image Configuration
+# @section -- Image Configuration
+# =============================================================================
+
+image:
+  # -- pgAdmin 4 Docker image repository
+  repository: dpage/pgadmin4
+  # -- pgAdmin 4 Docker image tag
+  # @default -- Chart appVersion
+  tag: "9.10.0"
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+  # -- Image digest (overrides tag if set)
+  digest: ""
+
+# -- Image pull secrets for private registries
+imagePullSecrets: []
+
+# =============================================================================
+# pgAdmin Configuration
+# @section -- pgAdmin Configuration
+# =============================================================================
+
+pgadmin:
+  # -- Default pgAdmin login email address (required if existingSecret is not set)
+  email: "admin@example.com"
+
+  # -- Default pgAdmin login password (required if existingSecret is not set)
+  # @default -- (must be set or use existingSecret)
+  password: ""
+
+  # -- Name of an existing secret containing pgAdmin credentials
+  # The secret must contain keys for email and password (see existingSecretEmailKey and existingSecretPasswordKey)
+  existingSecret: ""
+
+  # -- Key in existingSecret that contains the email address
+  existingSecretEmailKey: "email"
+
+  # -- Key in existingSecret that contains the password
+  existingSecretPasswordKey: "password"
+
+  # -- pgAdmin configuration settings as environment variables
+  # See https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html
+  config:
+    PGADMIN_LISTEN_PORT: "80"
+    PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
+    PGADMIN_CONFIG_CONSOLE_LOG_LEVEL: "10"
+    PGADMIN_CONFIG_SESSION_COOKIE_NAME: "pgadmin4_session"
+
+  # -- Disable internal Postfix server (set to any value to disable)
+  # Useful when using external SMTP server or in environments that prevent sudo
+  disablePostfix: false
+
+  # -- Replace server definitions on every startup (not just first launch)
+  # When true, server definitions from serverDefinitions or existingServerDefinitionsConfigMap are reloaded on each start
+  replaceServersOnStartup: false
+
+  # -- Script name for reverse proxy subdirectory hosting
+  # Set this when hosting pgAdmin under a subdirectory (e.g., /pgadmin4)
+  # This sets the SCRIPT_NAME environment variable
+  scriptName: ""
+
+  # -- Gunicorn configuration
+  gunicorn:
+    # -- Number of threads per Gunicorn worker
+    threads: 25
+    # -- Access log file path (- for stdout, empty to disable)
+    accessLogfile: "-"
+    # -- Maximum size of HTTP request line in bytes (0 for unlimited, not recommended)
+    limitRequestLine: 8190
+
+  # -- Pre-configured PostgreSQL server definitions
+  # This will create a servers.json file mounted into pgAdmin
+  # Example:
+  # serverDefinitions:
+  #   servers:
+  #     1:
+  #       Name: "Production PostgreSQL"
+  #       Group: "Production"
+  #       Host: "postgresql.default.svc.cluster.local"
+  #       Port: 5432
+  #       MaintenanceDB: "postgres"
+  #       Username: "postgres"
+  #       SSLMode: "prefer"
+  serverDefinitions: {}
+
+  # -- Name of an existing ConfigMap containing server definitions (servers.json)
+  # If set, this takes precedence over serverDefinitions
+  existingServerDefinitionsConfigMap: ""
+
+  # -- pgpass file content for automatic PostgreSQL authentication
+  # Format: hostname:port:database:username:password (one entry per line)
+  # Example:
+  # pgpassFile: |
+  #   postgresql.default.svc.cluster.local:5432:*:postgres:password123
+  #   postgresql-prod.database.svc:5432:production:dbuser:secret
+  pgpassFile: ""
+
+  # -- Name of an existing Secret containing pgpass file
+  # The secret must contain a key 'pgpass' with the pgpass file content
+  existingPgpassSecret: ""
+
+  # -- Custom config_local.py content for advanced pgAdmin configuration
+  # This Python file is loaded after config.py and can override any settings
+  # Example:
+  # configLocal: |
+  #   MASTER_PASSWORD_REQUIRED = False
+  #   SESSION_EXPIRATION_TIME = 1
+  #   ENHANCED_COOKIE_PROTECTION = True
+  configLocal: ""
+
+  # -- Name of an existing ConfigMap containing config_local.py
+  existingConfigLocalConfigMap: ""
+
+  # -- SMTP/Email configuration for notifications and user management
+  smtp:
+    # -- Enable SMTP configuration
+    enabled: false
+    # -- SMTP server host
+    server: ""
+    # -- SMTP server port
+    port: 587
+    # -- Use TLS for SMTP
+    useTLS: true
+    # -- Use SSL for SMTP
+    useSSL: false
+    # -- SMTP username
+    username: ""
+    # -- SMTP password
+    password: ""
+    # -- Name of existing secret containing SMTP credentials
+    existingSecret: ""
+    # -- Key in existingSecret for SMTP username
+    existingSecretUsernameKey: "smtp-username"
+    # -- Key in existingSecret for SMTP password
+    existingSecretPasswordKey: "smtp-password"
+    # -- Email sender address
+    fromAddress: "pgadmin@example.com"
+
+  # -- LDAP/OAuth integration configuration
+  ldap:
+    # -- Enable LDAP authentication
+    enabled: false
+    # -- LDAP server URI
+    server: ""
+    # -- LDAP bind DN
+    bindDN: ""
+    # -- LDAP bind password
+    bindPassword: ""
+    # -- LDAP user base DN
+    userBaseDN: ""
+    # -- LDAP group base DN
+    groupBaseDN: ""
+
+# =============================================================================
+# Controller Configuration
+# @section -- Controller Configuration
+# =============================================================================
+
+controller:
+  # -- Controller type (deployment or statefulset)
+  type: deployment
+
+  # -- Number of pgAdmin replicas
+  replicas: 1
+
+  # -- Deployment update strategy
+  strategy:
+    type: Recreate
+
+  # -- StatefulSet update strategy (only used if controller.type is statefulset)
+  updateStrategy:
+    type: RollingUpdate
+
+  # -- Pod management policy (only used if controller.type is statefulset)
+  podManagementPolicy: OrderedReady
+
+  # -- Command override for the main container
+  command: []
+
+  # -- Args override for the main container
+  args: []
+
+  # -- Working directory for the main container
+  workingDir: ""
+
+  # -- Termination grace period in seconds
+  terminationGracePeriodSeconds: 30
+
+  # -- Lifecycle hooks for the main container
+  lifecycle: {}
+    # preStop:
+    #   exec:
+    #     command:
+    #       - /bin/sh
+    #       - -c
+    #       - sleep 15
+    # postStart:
+    #   exec:
+    #     command:
+    #       - /bin/sh
+    #       - -c
+    #       - echo "Container started"
+
+# =============================================================================
+# Service Configuration
+# @section -- Service Configuration
+# =============================================================================
+
+service:
+  # -- Service type
+  type: ClusterIP
+
+  # -- Service port
+  port: 80
+
+  # -- Service target port (container port)
+  targetPort: 80
+
+  # -- Node port (only used if type is NodePort)
+  nodePort: ""
+
+  # -- Load balancer IP (only used if type is LoadBalancer)
+  loadBalancerIP: ""
+
+  # -- Load balancer source ranges (only used if type is LoadBalancer)
+  loadBalancerSourceRanges: []
+
+  # -- External traffic policy (only used if type is LoadBalancer or NodePort)
+  externalTrafficPolicy: ""
+
+  # -- Cluster IP (set to None for headless service)
+  clusterIP: ""
+
+  # -- Session affinity
+  sessionAffinity: None
+
+  # -- Session affinity config
+  sessionAffinityConfig: {}
+
+  # -- Service annotations
+  annotations: {}
+
+  # -- Service labels
+  labels: {}
+
+# =============================================================================
+# Ingress Configuration
+# @section -- Ingress Configuration
+# =============================================================================
+
+ingress:
+  # -- Enable ingress
+  enabled: false
+
+  # -- Ingress class name
+  className: ""
+
+  # -- Ingress annotations
+  # Example for nginx ingress:
+  # annotations:
+  #   cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  #   nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+  annotations: {}
+
+  # -- Ingress hosts configuration
+  # Example:
+  # hosts:
+  #   - host: pgadmin.example.com
+  #     paths:
+  #       - path: /
+  #         pathType: Prefix
+  hosts: []
+
+  # -- Ingress TLS configuration
+  # Example:
+  # tls:
+  #   - secretName: pgadmin-tls
+  #     hosts:
+  #       - pgadmin.example.com
+  tls: []
+
+# =============================================================================
+# Persistence Configuration
+# @section -- Persistence Configuration
+# =============================================================================
+
+persistence:
+  # -- Enable persistent storage for pgAdmin data
+  # Data includes user preferences, sessions, and saved queries
+  enabled: false
+
+  # -- Storage class name
+  # @default -- Default storage class
+  storageClassName: ""
+
+  # -- Access mode for the persistent volume
+  accessMode: ReadWriteOnce
+
+  # -- Size of the persistent volume
+  size: 1Gi
+
+  # -- Name of an existing PVC to use
+  existingClaim: ""
+
+  # -- Annotations for the PVC
+  annotations: {}
+
+# =============================================================================
+# Security Context
+# @section -- Security Context
+# =============================================================================
+
+# -- Pod security context
+# pgAdmin runs as user 5050 by default
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 5050
+  fsGroup: 5050
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+# -- Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 5050
+  # pgAdmin needs to write temporary files
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# =============================================================================
+# Resources
+# @section -- Resources
+# =============================================================================
+
+# -- Resource limits and requests
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# =============================================================================
+# Probes
+# @section -- Health Probes
+# =============================================================================
+
+# -- Liveness probe configuration
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /misc/ping
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+# -- Readiness probe configuration
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /misc/ping
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+  successThreshold: 1
+
+# -- Startup probe configuration
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /misc/ping
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 30
+  successThreshold: 1
+
+# =============================================================================
+# Pod Configuration
+# @section -- Pod Configuration
+# =============================================================================
+
+# -- Pod annotations
+podAnnotations: {}
+
+# -- Pod labels
+podLabels: {}
+
+# -- Node selector for pod assignment
+nodeSelector: {}
+
+# -- Tolerations for pod assignment
+tolerations: []
+
+# -- Affinity for pod assignment
+affinity: {}
+
+# -- Priority class name for the pod
+priorityClassName: ""
+
+# -- Topology spread constraints for pod distribution
+topologySpreadConstraints: []
+  # - maxSkew: 1
+  #   topologyKey: topology.kubernetes.io/zone
+  #   whenUnsatisfiable: ScheduleAnyway
+  #   labelSelector:
+  #     matchLabels:
+  #       app.kubernetes.io/name: pgadmin
+
+# -- DNS policy
+dnsPolicy: ClusterFirst
+
+# -- DNS config
+dnsConfig: {}
+  # nameservers:
+  #   - 1.1.1.1
+  # searches:
+  #   - my-namespace.svc.cluster.local
+  # options:
+  #   - name: ndots
+  #     value: "2"
+
+# -- Host aliases
+hostAliases: []
+  # - ip: "192.168.1.100"
+  #   hostnames:
+  #     - "db.example.com"
+  #     - "database.local"
+
+# -- Runtime class name
+runtimeClassName: ""
+
+# -- Init containers to run before the main container
+initContainers: []
+  # - name: init-permissions
+  #   image: busybox:latest
+  #   command: ['sh', '-c', 'chown -R 5050:5050 /var/lib/pgadmin']
+  #   volumeMounts:
+  #     - name: pgadmin-data
+  #       mountPath: /var/lib/pgadmin
+
+# -- Extra sidecar containers
+extraContainers: []
+  # - name: backup-agent
+  #   image: backup-tool:latest
+  #   volumeMounts:
+  #     - name: pgadmin-data
+  #       mountPath: /var/lib/pgadmin
+  #       readOnly: true
+
+# -- Extra environment variables
+extraEnv: []
+  # - name: CUSTOM_VAR
+  #   value: "custom-value"
+  # - name: SECRET_VAR
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: my-secret
+  #       key: secret-key
+
+# -- Extra environment variables from ConfigMaps or Secrets
+extraEnvFrom: []
+  # - configMapRef:
+  #     name: my-configmap
+  # - secretRef:
+  #     name: my-secret
+
+# -- Extra volumes
+extraVolumes: []
+  # - name: custom-config
+  #   configMap:
+  #     name: pgadmin-custom-config
+  # - name: certificates
+  #   secret:
+  #     secretName: ssl-certs
+
+# -- Extra volume mounts
+extraVolumeMounts: []
+  # - name: custom-config
+  #   mountPath: /etc/pgadmin/custom
+  #   readOnly: true
+  # - name: certificates
+  #   mountPath: /etc/ssl/certs
+  #   readOnly: true
+
+# =============================================================================
+# Monitoring
+# @section -- Monitoring
+# =============================================================================
+
+monitoring:
+  serviceMonitor:
+    # -- Enable ServiceMonitor for Prometheus Operator
+    enabled: false
+
+    # -- Namespace for the ServiceMonitor (defaults to the release namespace)
+    namespace: ""
+
+    # -- Interval at which metrics should be scraped
+    interval: 30s
+
+    # -- Timeout for scraping metrics
+    scrapeTimeout: 10s
+
+    # -- Additional labels for the ServiceMonitor
+    labels: {}
+
+    # -- Additional annotations for the ServiceMonitor
+    annotations: {}
+
+    # -- Metric relabelings
+    metricRelabelings: []
+      # - sourceLabels: [__name__]
+      #   action: keep
+      #   regex: 'pgadmin_.*'
+
+    # -- Relabelings
+    relabelings: []
+      # - sourceLabels: [__meta_kubernetes_pod_name]
+      #   targetLabel: pod
+
+  prometheusRule:
+    # -- Enable PrometheusRule for alerting
+    enabled: false
+
+    # -- Namespace for the PrometheusRule (defaults to the release namespace)
+    namespace: ""
+
+    # -- Additional labels for the PrometheusRule
+    labels: {}
+
+    # -- Alert rules
+    rules: []
+      # - alert: PgAdminDown
+      #   expr: up{job="pgadmin"} == 0
+      #   for: 5m
+      #   labels:
+      #     severity: critical
+      #   annotations:
+      #     summary: "pgAdmin is down"
+      #     description: "pgAdmin instance {{ $labels.instance }} is down"
+
+# =============================================================================
+# High Availability
+# @section -- High Availability
+# =============================================================================
+
+pdb:
+  # -- Enable PodDisruptionBudget
+  enabled: false
+
+  # -- Minimum number of pods that must be available
+  minAvailable: 1
+
+  # -- Maximum number of pods that can be unavailable
+  maxUnavailable: ""
+
+# -- Horizontal Pod Autoscaler configuration
+# Note: HPA is generally not recommended for pgAdmin as it's typically single-instance
+hpa:
+  # -- Enable HorizontalPodAutoscaler
+  enabled: false
+
+  # -- Minimum number of replicas
+  minReplicas: 1
+
+  # -- Maximum number of replicas
+  maxReplicas: 3
+
+  # -- Target CPU utilization percentage
+  targetCPUUtilizationPercentage: 80
+
+  # -- Target memory utilization percentage
+  targetMemoryUtilizationPercentage: 80
+
+  # -- Custom metrics for autoscaling
+  customMetrics: []
+    # - type: Pods
+    #   pods:
+    #     metric:
+    #       name: custom_metric
+    #     target:
+    #       type: AverageValue
+    #       averageValue: "100"
+
+# =============================================================================
+# RBAC Configuration
+# @section -- RBAC Configuration
+# =============================================================================
+
+serviceAccount:
+  # -- Create a service account
+  create: true
+
+  # -- Service account name (generated if not set and create is true)
+  name: ""
+
+  # -- Service account annotations
+  annotations: {}
+
+rbac:
+  # -- Create RBAC resources
+  create: true
+
+  # -- Additional RBAC rules
+  rules: []
+
+# =============================================================================
+# Network Policy
+# @section -- Network Policy
+# =============================================================================
+
+networkPolicy:
+  # -- Enable network policy
+  enabled: false
+
+  # -- Policy types
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # -- Ingress rules
+  # Example to allow traffic from specific namespaces:
+  # ingress:
+  #   - from:
+  #     - namespaceSelector:
+  #         matchLabels:
+  #           name: ingress-nginx
+  #     ports:
+  #     - protocol: TCP
+  #       port: 80
+  ingress: []
+
+  # -- Egress rules
+  # By default, allow egress to PostgreSQL port
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+
+# =============================================================================
+# Diagnostic Mode
+# @section -- Diagnostic Mode
+# =============================================================================
+
+diagnosticMode:
+  # -- Enable diagnostic mode (disables probes, overrides command)
+  # Useful for debugging container startup issues
+  enabled: false
+
+  # -- Command override for diagnostic mode
+  command:
+    - sleep
+
+  # -- Args override for diagnostic mode
+  args:
+    - infinity

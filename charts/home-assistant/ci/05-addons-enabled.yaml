@@ -1,0 +1,15 @@
+# CI Test: Add-ons enabled
+# Tests code-server and MQTT sidecars
+
+codeserver:
+  enabled: true
+  password: "test-password"
+
+mqtt:
+  enabled: true
+  persistence:
+    enabled: false
+
+persistence:
+  enabled: true
+  size: 5Gi

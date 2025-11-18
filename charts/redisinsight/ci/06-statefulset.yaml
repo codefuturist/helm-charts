@@ -1,0 +1,9 @@
+# Test: Using StatefulSet instead of Deployment
+controller:
+  type: statefulset
+  replicas: 1
+redisInsight:
+  port: 5540
+persistence:
+  enabled: true
+  size: 1Gi

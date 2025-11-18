@@ -1,0 +1,432 @@
+# =============================================================================
+# Global Parameters
+# =============================================================================
+
+namespaceOverride: ""
+nameOverride: ""
+fullnameOverride: ""
+additionalLabels: {}
+additionalAnnotations: {}
+
+# =============================================================================
+# Image Configuration
+# =============================================================================
+
+image:
+  repository: louislam/uptime-kuma
+  tag: "2"
+  pullPolicy: IfNotPresent
+  digest: ""
+
+imagePullSecrets: []
+
+# =============================================================================
+# Uptime Kuma Configuration
+# =============================================================================
+
+uptimeKuma:
+  # Base path for reverse proxy setups (e.g., /uptime)
+  basePath: ""
+
+  # Enable Docker socket access for container monitoring
+  # This mounts /var/run/docker.sock into the container
+  dockerSocket:
+    enabled: false
+    # Path to Docker socket on host (default: /var/run/docker.sock)
+    hostPath: /var/run/docker.sock
+
+  # Environment variables
+  env: []
+    # - name: UPTIME_KUMA_PORT
+    #   value: "3001"
+    # - name: NODE_EXTRA_CA_CERTS
+    #   value: "/path/to/ca.crt"
+
+  # Additional environment variables from secrets/configmaps
+  envFrom: []
+
+# =============================================================================
+# Controller Configuration
+# =============================================================================
+
+controller:
+  # Type: deployment or statefulset
+  # StatefulSet is recommended for production to maintain persistent identity
+  type: deployment
+
+  # Number of replicas (deployment only)
+  replicas: 1
+
+  # Update strategy
+  strategy:
+    type: RollingUpdate
+
+  # Pod management policy (statefulset only)
+  podManagementPolicy: OrderedReady
+
+  # Update strategy for statefulset
+  updateStrategy:
+    type: RollingUpdate
+
+  # Command override
+  command: []
+
+  # Args override
+  args: []
+
+  # Working directory
+  workingDir: ""
+
+  # Termination grace period
+  terminationGracePeriodSeconds: 30
+
+  # Lifecycle hooks
+  # Example for graceful shutdown:
+  # lifecycle:
+  #   preStop:
+  #     exec:
+  #       command:
+  #         - /bin/sh
+  #         - -c
+  #         - sleep 15  # Allow active monitoring checks to complete
+  lifecycle: {}
+
+# =============================================================================
+# Service Configuration
+# =============================================================================
+
+service:
+  type: ClusterIP
+  port: 3001
+  targetPort: 3001
+
+  # NodePort (if type is NodePort)
+  nodePort: ""
+
+  # LoadBalancer configuration
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+
+  # Additional annotations
+  annotations: {}
+
+  # Additional labels
+  labels: {}
+
+  # Session affinity
+  sessionAffinity: None
+  sessionAffinityConfig: {}
+
+  # External traffic policy
+  externalTrafficPolicy: ""
+
+  # ClusterIP (if you want a specific IP)
+  clusterIP: ""
+
+# =============================================================================
+# Ingress Configuration
+# =============================================================================
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    # nginx.ingress.kubernetes.io/websocket-services: uptime-kuma
+  hosts:
+    - host: uptime.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: uptime-kuma-tls
+    #   hosts:
+    #     - uptime.example.com
+
+# =============================================================================
+# Persistence Configuration
+# =============================================================================
+
+persistence:
+  # Enable persistence for /app/data
+  enabled: true
+
+  storageClassName: ""
+  accessMode: ReadWriteOnce
+  size: 4Gi
+  # Backup annotations for Velero/Kasten K10
+  annotations:
+    # Velero backup annotations
+    backup.velero.io/backup-volumes: data
+    # Kasten K10 annotations
+    k10.kasten.io/appname: uptime-kuma
+    k10.kasten.io/forcegenericbackup: "true"
+  existingClaim: ""
+
+  # For StatefulSet, use volumeClaimTemplates instead
+  volumeClaimTemplate:
+    enabled: false
+    storageClassName: ""
+    accessMode: ReadWriteOnce
+    size: 4Gi
+
+# =============================================================================
+# Security Contexts
+# =============================================================================
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# =============================================================================
+# Resources
+# =============================================================================
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# =============================================================================
+# Health Probes
+# =============================================================================
+
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+    scheme: HTTP
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+    scheme: HTTP
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+    scheme: HTTP
+  initialDelaySeconds: 0
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 60
+  successThreshold: 1
+
+# =============================================================================
+# Service Account and RBAC
+# =============================================================================
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+  automount: true
+
+rbac:
+  create: true
+
+# =============================================================================
+# Pod Configuration
+# =============================================================================
+
+podAnnotations: {}
+  # Velero backup annotations (if using Velero)
+  # backup.velero.io/backup-volumes: data
+  # pre.hook.backup.velero.io/command: '["/bin/sh", "-c", "sync"]'
+  # pre.hook.backup.velero.io/timeout: 30s
+
+podLabels: {}
+  # Backup labels for Kasten K10
+  # k10.kasten.io/appname: uptime-kuma
+  # k10.kasten.io/release: {{ .Release.Name }}
+
+priorityClassName: ""
+
+runtimeClassName: ""
+
+dnsPolicy: ClusterFirst
+
+dnsConfig: {}
+
+hostNetwork: false
+
+# =============================================================================
+# Scheduling
+# =============================================================================
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+topologySpreadConstraints: []
+
+# =============================================================================
+# High Availability
+# =============================================================================
+
+pdb:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: ""
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# =============================================================================
+# Monitoring
+# =============================================================================
+
+monitoring:
+  serviceMonitor:
+    enabled: false
+    interval: 60s
+    scrapeTimeout: 30s
+    honorLabels: false
+    labels: {}
+    annotations: {}
+
+  prometheusRule:
+    enabled: false
+    labels: {}
+    annotations: {}
+    # Example alert rules for Uptime Kuma
+    rules:
+      # High memory usage
+      - alert: UptimeKumaHighMemory
+        expr: |
+          container_memory_working_set_bytes{pod=~"uptime-kuma-.*"} /
+          container_spec_memory_limit_bytes{pod=~"uptime-kuma-.*"} > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uptime Kuma high memory usage (instance {{ $labels.pod }})"
+          description: "Memory usage is above 85% for 5 minutes. Current: {{ $value | humanizePercentage }}"
+
+      # High CPU usage
+      - alert: UptimeKumaHighCPU
+        expr: |
+          rate(container_cpu_usage_seconds_total{pod=~"uptime-kuma-.*"}[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uptime Kuma high CPU usage (instance {{ $labels.pod }})"
+          description: "CPU usage is above 80% for 5 minutes. Current: {{ $value | humanizePercentage }}"
+
+      # Pod not ready
+      - alert: UptimeKumaPodNotReady
+        expr: |
+          kube_pod_status_ready{condition="true",pod=~"uptime-kuma-.*"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Uptime Kuma pod not ready (instance {{ $labels.pod }})"
+          description: "Pod has been in a non-ready state for 5 minutes"
+
+      # Frequent pod restarts
+      - alert: UptimeKumaHighRestartRate
+        expr: |
+          rate(kube_pod_container_status_restarts_total{pod=~"uptime-kuma-.*"}[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uptime Kuma frequent restarts (instance {{ $labels.pod }})"
+          description: "Pod is restarting frequently. Check logs for errors."
+
+      # Persistent volume almost full
+      - alert: UptimeKumaPVAlmostFull
+        expr: |
+          kubelet_volume_stats_available_bytes{persistentvolumeclaim=~".*uptime-kuma.*"} /
+          kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=~".*uptime-kuma.*"} < 0.15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uptime Kuma PV almost full ({{ $labels.persistentvolumeclaim }})"
+          description: "Less than 15% space remaining. Consider increasing volume size."
+
+# =============================================================================
+# Network Policy
+# =============================================================================
+
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress: []
+  egress:
+    # Allow all egress for Apprise notifications
+    - {}
+
+# =============================================================================
+# Extra Configuration
+# =============================================================================
+
+extraEnv: []
+
+extraEnvFrom: []
+
+extraVolumes: []
+
+extraVolumeMounts: []
+
+extraContainers: []
+
+initContainers: []
+
+# =============================================================================
+# Diagnostic Mode
+# =============================================================================
+
+diagnosticMode:
+  enabled: false
+  command:
+    - /bin/sh
+  args:
+    - -c
+    - sleep infinity

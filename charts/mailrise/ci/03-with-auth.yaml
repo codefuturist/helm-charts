@@ -1,0 +1,32 @@
+# CI Test: SMTP authentication
+# Tests authentication configuration
+
+mailrise:
+  config:
+    configs:
+      authenticated:
+        urls:
+          - "json://localhost/auth"
+    listen:
+      host: "0.0.0.0"
+      port: 8025
+    smtp:
+      auth:
+        basic:
+          testuser: testpass
+
+  auth:
+    enabled: true
+    users:
+      testuser: testpass
+
+controller:
+  type: deployment
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi

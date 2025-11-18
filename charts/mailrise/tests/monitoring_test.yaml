@@ -1,0 +1,106 @@
+suite: test pgadmin monitoring
+templates:
+  - servicemonitor.yaml
+  - prometheusrule.yaml
+  - hpa.yaml
+tests:
+  - it: should not create ServiceMonitor by default
+    template: servicemonitor.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create ServiceMonitor when enabled
+    template: servicemonitor.yaml
+    set:
+      monitoring.serviceMonitor.enabled: true
+    asserts:
+      - isKind:
+          of: ServiceMonitor
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-pgadmin
+      - equal:
+          path: spec.endpoints[0].interval
+          value: 30s
+
+  - it: should configure ServiceMonitor with custom settings
+    template: servicemonitor.yaml
+    set:
+      monitoring.serviceMonitor.enabled: true
+      monitoring.serviceMonitor.interval: "60s"
+      monitoring.serviceMonitor.scrapeTimeout: "30s"
+    asserts:
+      - equal:
+          path: spec.endpoints[0].interval
+          value: "60s"
+      - equal:
+          path: spec.endpoints[0].scrapeTimeout
+          value: "30s"
+
+  - it: should not create PrometheusRule by default
+    template: prometheusrule.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create PrometheusRule when enabled
+    template: prometheusrule.yaml
+    set:
+      monitoring.prometheusRule.enabled: true
+      monitoring.prometheusRule.rules[0].alert: "PgAdminDown"
+      monitoring.prometheusRule.rules[0].expr: "up == 0"
+    asserts:
+      - isKind:
+          of: PrometheusRule
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-pgadmin
+
+  - it: should not create HPA by default
+    template: hpa.yaml
+    set:
+      pgadmin.email: admin@example.com
+      pgadmin.password: test123
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create HPA when enabled
+    template: hpa.yaml
+    set:
+      pgadmin.email: admin@example.com
+      pgadmin.password: test123
+      hpa.enabled: true
+    asserts:
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-pgadmin
+      - equal:
+          path: spec.minReplicas
+          value: 1
+      - equal:
+          path: spec.maxReplicas
+          value: 10
+
+  - it: should configure HPA with custom metrics
+    template: hpa.yaml
+    set:
+      pgadmin.email: admin@example.com
+      pgadmin.password: test123
+      hpa.enabled: true
+      hpa.minReplicas: 2
+      hpa.maxReplicas: 5
+      hpa.targetCPU: 75
+    asserts:
+      - equal:
+          path: spec.minReplicas
+          value: 2
+      - equal:
+          path: spec.maxReplicas
+          value: 5
+      - equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 75

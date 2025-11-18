@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "semaphore.fullname" . }}
+  namespace: {{ include "semaphore.namespace" . }}
+  labels:
+    {{- include "semaphore.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  {{- if .Values.semaphore.apps }}
+  apps: {{ .Values.semaphore.apps | toJson | quote }}
+  {{- end }}
+  {{- if .Values.semaphore.envVars }}
+  envVars: {{ .Values.semaphore.envVars | toJson | quote }}
+  {{- end }}
+  {{- if .Values.semaphore.forwardedEnvVars }}
+  forwardedEnvVars: {{ .Values.semaphore.forwardedEnvVars | toJson | quote }}
+  {{- end }}
+  {{- if .Values.semaphore.database.options }}
+  database-options: {{ .Values.semaphore.database.options | toJson | quote }}
+  {{- end }}

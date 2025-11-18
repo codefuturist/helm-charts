@@ -1,0 +1,35 @@
+# Example ConfigMap for defining users externally
+# This can be used with postgresql.externalResources.usersConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-users
+  namespace: default
+data:
+  users.yaml: |
+    - username: myapp_user
+      databases:
+        - myapp_db
+        - staging_db
+      privileges: ALL
+      superuser: false
+      createdb: false
+      createrole: false
+      replication: false
+    - username: readonly_user
+      databases:
+        - myapp_db
+        - analytics_db
+      privileges: SELECT
+      superuser: false
+      createdb: false
+      createrole: false
+      replication: false
+    - username: analytics_user
+      databases:
+        - analytics_db
+      privileges: ALL
+      superuser: false
+      createdb: true
+      createrole: false
+      replication: false

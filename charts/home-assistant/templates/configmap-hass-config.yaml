@@ -1,0 +1,12 @@
+{{- if .Values.configuration.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "home-assistant.fullname" . }}-hass-config
+  namespace: {{ .Values.namespaceOverride | default .Release.Namespace }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+data:
+  configuration.yaml: |
+    {{- tpl .Values.configuration.templateConfig . | nindent 4 }}
+{{- end }}

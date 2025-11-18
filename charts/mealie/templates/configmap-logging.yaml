@@ -1,0 +1,12 @@
+{{- if .Values.mealie.logging.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mealie.fullname" . }}-logging
+  namespace: {{ include "mealie.namespace" . }}
+  labels:
+    {{- include "mealie.labels" . | nindent 4 }}
+data:
+  logging-config.yaml: |
+    {{- toYaml .Values.mealie.logging.config | nindent 4 }}
+{{- end }}

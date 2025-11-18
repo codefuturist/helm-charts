@@ -1,0 +1,118 @@
+suite: test uptime-kuma deployment
+templates:
+  - deployment.yaml
+tests:
+  - it: should create deployment by default
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-uptime-kuma
+      - equal:
+          path: spec.replicas
+          value: 1
+
+  - it: should use custom image tag
+    set:
+      image.tag: "2.1.0"
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: "louislam/uptime-kuma:2.1.0$"
+
+  - it: should set uptime-kuma environment variables
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: UPTIME_KUMA_PORT
+            value: "3001"
+
+  - it: should configure resources correctly
+    set:
+      resources.limits.cpu: "2000m"
+      resources.limits.memory: "2Gi"
+      resources.requests.cpu: "500m"
+      resources.requests.memory: "512Mi"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: "2000m"
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: "2Gi"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "500m"
+
+  - it: should mount persistent volume when enabled
+    set:
+      persistence.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: data
+            persistentVolumeClaim:
+              claimName: RELEASE-NAME-uptime-kuma
+
+  - it: should use emptyDir when persistence disabled
+    set:
+      persistence.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: data
+            emptyDir: {}
+
+  - it: should set security context
+    set:
+      securityContext.runAsUser: 1000
+      securityContext.runAsNonRoot: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+      - contains:
+          path: spec.template.spec.containers[0].securityContext.capabilities.drop
+          content: ALL
+
+  - it: should configure custom replicas
+    set:
+      controller.replicas: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+
+  - it: should add extra environment variables
+    set:
+      uptimeKuma:
+        env:
+          - name: CUSTOM_VAR
+            value: "custom-value"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CUSTOM_VAR
+            value: "custom-value"
+
+  - it: should configure lifecycle hooks
+    set:
+      controller.lifecycle.preStop.exec.command:
+        - /bin/sh
+        - -c
+        - sleep 15
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].lifecycle.preStop.exec.command
+          value:
+            - /bin/sh
+            - -c
+            - sleep 15

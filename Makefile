@@ -371,4 +371,3 @@ docs-chart: ## Generate documentation for a specific chart (usage: make docs-cha
 	fi
 	helm-docs --chart-search-root=$(CHARTS_DIR)/$(CHART)
 	@echo "Documentation generated for $(CHART)!"
-

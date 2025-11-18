@@ -1,0 +1,181 @@
+{{- if .Values.runnerDeployment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "semaphore.fullname" . }}-runner
+  namespace: {{ include "semaphore.namespace" . }}
+  labels:
+    {{- include "semaphore.labels" . | nindent 4 }}
+    app.kubernetes.io/component: runner
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.runnerDeployment.replicas }}
+  {{- with .Values.runnerDeployment.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "semaphore.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: runner
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/runner-secret.yaml") . | sha256sum }}
+        {{- with .Values.runnerDeployment.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "semaphore.labels" . | nindent 8 }}
+        app.kubernetes.io/component: runner
+        {{- with .Values.runnerDeployment.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "semaphore.runner.serviceAccountName" . }}
+      {{- with .Values.runnerDeployment.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.runnerDeployment.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.runnerDeployment.runtimeClassName }}
+      runtimeClassName: {{ . }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.runnerDeployment.terminationGracePeriodSeconds }}
+      {{- if .Values.runnerDeployment.initContainers }}
+      initContainers:
+        {{- toYaml .Values.runnerDeployment.initContainers | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: runner
+          image: {{ .Values.runnerDeployment.image.repository }}:{{ .Values.runnerDeployment.image.tag }}
+          imagePullPolicy: {{ .Values.runnerDeployment.image.pullPolicy }}
+          {{- with .Values.runnerDeployment.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: SEMAPHORE_WEB_ROOT
+              value: {{ .Values.runnerDeployment.server.webRoot | quote }}
+            - name: SEMAPHORE_RUNNER_REGISTRATION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.runner.secretName" . }}
+                  key: {{ .Values.runnerDeployment.server.existingSecretKey }}
+            - name: SEMAPHORE_RUNNER_PRIVATE_KEY_FILE
+              value: {{ .Values.runnerDeployment.config.privateKeyFile | quote }}
+            {{- if .Values.runnerDeployment.config.alreadyRegistered }}
+            - name: SEMAPHORE_RUNNER_ALREADY_REGISTERED
+              value: "true"
+            {{- end }}
+            - name: ANSIBLE_HOST_KEY_CHECKING
+              value: {{ .Values.runnerDeployment.ansible.hostKeyChecking | quote }}
+            {{- with .Values.runnerDeployment.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.runnerDeployment.envFrom }}
+          envFrom:
+            {{- toYaml .Values.runnerDeployment.envFrom | nindent 12 }}
+          {{- end }}
+          {{- if .Values.runnerDeployment.livenessProbe.enabled }}
+          livenessProbe:
+            {{- omit .Values.runnerDeployment.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.runnerDeployment.readinessProbe.enabled }}
+          readinessProbe:
+            {{- omit .Values.runnerDeployment.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.runnerDeployment.startupProbe.enabled }}
+          startupProbe:
+            {{- omit .Values.runnerDeployment.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- with .Values.runnerDeployment.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if gt (len .Values.runnerDeployment.privateKeys) 0 }}
+            - name: ssh-keys
+              mountPath: /root/.ssh
+              readOnly: true
+            {{- end }}
+            {{- if .Values.runnerDeployment.persistence.data.enabled }}
+            - name: data
+              mountPath: {{ .Values.runnerDeployment.persistence.data.mountPath }}
+            {{- end }}
+            {{- if .Values.runnerDeployment.persistence.config.enabled }}
+            - name: config
+              mountPath: {{ .Values.runnerDeployment.persistence.config.mountPath }}
+            {{- end }}
+            {{- if .Values.runnerDeployment.persistence.tmp.enabled }}
+            - name: tmp
+              mountPath: {{ .Values.runnerDeployment.persistence.tmp.mountPath }}
+            {{- end }}
+            {{- with .Values.runnerDeployment.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- with .Values.runnerDeployment.extraContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      volumes:
+        {{- if gt (len .Values.runnerDeployment.privateKeys) 0 }}
+        - name: ssh-keys
+          secret:
+            secretName: {{ include "semaphore.fullname" . }}-runner-ssh
+            defaultMode: 0600
+        {{- end }}
+        {{- if .Values.runnerDeployment.persistence.data.enabled }}
+        - name: data
+          {{- if .Values.runnerDeployment.persistence.data.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.runnerDeployment.persistence.data.existingClaim }}
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ include "semaphore.fullname" . }}-runner-data
+          {{- end }}
+        {{- end }}
+        {{- if .Values.runnerDeployment.persistence.config.enabled }}
+        - name: config
+          {{- if .Values.runnerDeployment.persistence.config.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.runnerDeployment.persistence.config.existingClaim }}
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ include "semaphore.fullname" . }}-runner-config
+          {{- end }}
+        {{- end }}
+        {{- if .Values.runnerDeployment.persistence.tmp.enabled }}
+        - name: tmp
+          {{- if .Values.runnerDeployment.persistence.tmp.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.runnerDeployment.persistence.tmp.existingClaim }}
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ include "semaphore.fullname" . }}-runner-tmp
+          {{- end }}
+        {{- end }}
+        {{- with .Values.runnerDeployment.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.runnerDeployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.runnerDeployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.runnerDeployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

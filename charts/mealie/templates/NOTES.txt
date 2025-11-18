@@ -1,0 +1,68 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  $ helm get all {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+{{- if .Values.ingress.enabled }}
+
+Mealie is accessible via Ingress at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}{{ .path }}
+{{- end }}
+{{- else }}
+
+To access Mealie, run these commands:
+
+  export POD_NAME=$(kubectl get pods -n {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "mealie.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=mealie" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod -n {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl -n {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+{{- end }}
+
+{{- if .Values.postgres.enabled }}
+
+Database: PostgreSQL ({{ .Values.postgres.image.tag }})
+{{- else }}
+
+Database: SQLite (local file storage)
+{{- end }}
+
+⚠️  IMPORTANT: Change default credentials on first login!
+   Default username: changeme@example.com
+   Default password: MyPassword
+
+   Go to Settings → Profile to update your credentials immediately.
+{{- if .Values.config }}
+{{- if and .Values.config.smtp .Values.config.smtp.host .Values.config.smtp.from }}
+
+Email notifications are configured via SMTP:
+  Host: {{ .Values.config.smtp.host }}
+  Port: {{ .Values.config.smtp.port }}
+  From: {{ .Values.config.smtp.from }}
+{{- end }}
+
+{{- if and .Values.config.oidc .Values.config.oidc.authUrl }}
+
+OIDC authentication is enabled:
+  Provider: {{ .Values.config.oidc.authUrl }}
+  Auto-redirect: {{ .Values.config.oidc.autoRedirect }}
+{{- end }}
+
+{{- if and .Values.config.ldap .Values.config.ldap.authUrl }}
+
+LDAP authentication is enabled:
+  URL: {{ .Values.config.ldap.authUrl }}
+  Base DN: {{ .Values.config.ldap.baseDn }}
+{{- end }}
+{{- end }}
+
+To run tests against this release:
+
+  $ helm test {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+For more information and examples, see:
+  https://github.com/codefuturist/helm-charts/tree/main/charts/mealie

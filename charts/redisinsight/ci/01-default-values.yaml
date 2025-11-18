@@ -1,0 +1,5 @@
+# Test: Default values
+redisInsight:
+  port: 5540
+  host: "0.0.0.0"
+  logLevel: "info"

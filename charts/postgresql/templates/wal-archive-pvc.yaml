@@ -1,0 +1,27 @@
+{{- if and .Values.backup.wal.enabled .Values.backup.wal.persistence.enabled (eq .Values.backup.wal.method "simple") }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "postgresql.fullname" . }}-wal-archive
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    app.kubernetes.io/component: wal-archive
+  {{- with .Values.backup.wal.persistence.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- toYaml .Values.backup.wal.persistence.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.backup.wal.persistence.size }}
+  {{- if .Values.backup.wal.persistence.storageClass }}
+  {{- if (eq "-" .Values.backup.wal.persistence.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: {{ .Values.backup.wal.persistence.storageClass }}
+  {{- end }}
+  {{- end }}
+{{- end }}

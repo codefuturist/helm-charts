@@ -1,0 +1,281 @@
+# PostgreSQL High Availability Configuration
+# Full production HA setup with monitoring, backups, and replication
+
+replication:
+  enabled: true
+  readReplicas: 3 # 1 primary + 3 replicas = 4 total pods
+  user: replicator
+  password: "changeme-replication-password"
+
+  # Remote write for balanced durability and performance
+  synchronousCommit: "remote_write"
+  numSynchronousReplicas: 1 # At least one replica must confirm
+
+  # Replication slots for reliability
+  slots:
+    enabled: true
+    autoCreate: true
+    prefix: "replica"
+
+  # Load-balanced read service with LoadBalancer
+  replicaService:
+    enabled: true
+    type: LoadBalancer # External access for read replicas
+    port: 5432
+    sessionAffinity: true
+    sessionAffinityTimeout: 10800
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb" # AWS example
+
+  # Replica configuration
+  replica:
+    hotStandbyFeedback: true
+    maxStandbyStreamingDelay: "30s"
+    walReceiverStatusInterval: "10s"
+    walReceiverTimeout: "60s"
+
+  # Primary service
+  primary:
+    service:
+      enabled: true
+      type: LoadBalancer # External access for primary
+      port: 5432
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+
+  # Production monitoring
+  monitoring:
+    enabled: true
+    scrapeInterval: "30s"
+    lagThresholdSeconds: 30
+    lagThresholdBytes: 100
+    alertFor: "5m"
+
+  # Failover configuration
+  failover:
+    enabled: true
+    autoPromote: false # Manual promotion for safety
+    triggerFile: "/tmp/postgresql.trigger"
+
+  # Advanced replication settings
+  advanced:
+    maxWalSenders: 10
+    maxReplicationSlots: 10
+    walKeepSize: "2GB"
+
+# PostgreSQL configuration
+postgresql:
+  image:
+    repository: postgres
+    tag: "16.4-alpine"
+    pullPolicy: IfNotPresent
+
+  username: postgres
+  password: "changeme-postgres-password"
+  database: postgres
+
+  # Production-tuned PostgreSQL settings
+  config:
+    # Memory
+    shared_buffers: "2GB"
+    effective_cache_size: "6GB"
+    maintenance_work_mem: "512MB"
+    work_mem: "10MB"
+
+    # WAL
+    wal_buffers: "16MB"
+    min_wal_size: "2GB"
+    max_wal_size: "8GB"
+
+    # Checkpoints
+    checkpoint_completion_target: "0.9"
+    checkpoint_timeout: "15min"
+
+    # Query Planning
+    default_statistics_target: "100"
+    random_page_cost: "1.1" # For SSD
+    effective_io_concurrency: "200"
+
+    # Logging
+    log_destination: "stderr"
+    logging_collector: "off"
+    log_min_duration_statement: "1000" # Log slow queries (>1s)
+    log_line_prefix: "%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h "
+    log_checkpoints: "on"
+    log_connections: "on"
+    log_disconnections: "on"
+    log_lock_waits: "on"
+    log_temp_files: "0"
+
+    # Connections
+    max_connections: "200"
+
+  # Enable common extensions
+  extensions:
+    - pg_stat_statements
+    - pgcrypto
+    - uuid-ossp
+
+  # Security
+  hostAuthMethod: scram-sha-256
+
+# WAL Archiving for PITR backups
+backup:
+  wal:
+    enabled: true
+    method: "wal-g" # Use wal-g for cloud backups
+
+    # wal-g configuration
+    walg:
+      envVars:
+        WALG_S3_PREFIX: "s3://my-postgresql-backups/wal"
+        AWS_REGION: "us-east-1"
+        # AWS credentials from secret
+      existingSecret: "postgresql-backup-credentials"
+      existingSecretKeys:
+        AWS_ACCESS_KEY_ID: "aws-access-key-id"
+        AWS_SECRET_ACCESS_KEY: "aws-secret-access-key"
+
+    compression: "lz4"
+
+    # Cleanup old WAL files
+    cleanup:
+      enabled: true
+      schedule: "0 2 * * *" # 2 AM daily
+      retentionDays: 7
+
+  # Full backup configuration
+  full:
+    enabled: true
+    schedule: "0 1 * * 0" # Weekly on Sunday at 1 AM
+
+    persistence:
+      enabled: true
+      size: 50Gi
+      storageClass: "fast-ssd"
+
+# Persistence with SSD storage
+persistence:
+  enabled: true
+  size: 100Gi # Large for production
+  accessModes:
+    - ReadWriteOnce
+  storageClass: "fast-ssd" # Use fast SSD
+
+# Resource limits for production
+deployment:
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2000m"
+    limits:
+      memory: "8Gi"
+      cpu: "4000m"
+
+  # Pod anti-affinity - spread across nodes
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - postgresql
+          topologyKey: kubernetes.io/hostname
+
+  # Tolerate node failures
+  tolerations:
+    - key: "node.kubernetes.io/unreachable"
+      operator: "Exists"
+      effect: "NoExecute"
+      tolerationSeconds: 30
+
+  # Security context
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+    fsGroup: 999
+    fsGroupChangePolicy: "OnRootMismatch"
+
+  # Graceful shutdown
+  terminationGracePeriodSeconds: 120
+
+# Pod Disruption Budget
+pdb:
+  enabled: true
+  minAvailable: 2 # Keep at least 2 pods (primary + 1 replica) available
+
+# Horizontal Pod Autoscaling (for replicas)
+hpa:
+  enabled: false # Not recommended for stateful databases
+
+# Vertical Pod Autoscaling
+vpa:
+  enabled: false # Can enable for resource optimization
+
+# Network Policy
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: default
+        - podSelector:
+            matchLabels:
+              app: my-application
+      ports:
+        - protocol: TCP
+          port: 5432
+
+# Monitoring
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    additionalLabels:
+      prometheus: kube-prometheus
+
+  prometheusRule:
+    enabled: true
+    additionalLabels:
+      prometheus: kube-prometheus
+# Usage:
+# 1. Create backup credentials secret:
+#    kubectl create secret generic postgresql-backup-credentials \
+#      --from-literal=aws-access-key-id=YOUR_ACCESS_KEY \
+#      --from-literal=aws-secret-access-key=YOUR_SECRET_KEY
+#
+# 2. Deploy:
+#    helm install postgres ./postgresql -f examples/values-replication-ha.yaml
+#
+# 3. Verify:
+#    kubectl get pods -l app.kubernetes.io/name=postgresql
+#    kubectl exec postgresql-0 -- psql -U postgres -c "SELECT * FROM pg_stat_replication;"
+#
+# Architecture:
+# - postgresql-0: Primary (read-write)
+# - postgresql-1: Sync replica (immediate failover candidate)
+# - postgresql-2: Async replica (read scaling)
+# - postgresql-3: Async replica (read scaling)
+#
+# Access:
+# - Write: postgresql.default.svc.cluster.local:5432 (or LoadBalancer IP)
+# - Read: postgresql-read.default.svc.cluster.local:5432 (or LoadBalancer IP)
+#
+# Failover Procedure:
+# 1. If primary (postgresql-0) fails, promote a replica:
+#    kubectl exec postgresql-1 -- pg_ctl promote -D /var/lib/postgresql/data/pgdata
+# 2. Update application to point to new primary
+# 3. When postgresql-0 comes back, it will rejoin as a replica
+#
+# Monitoring:
+# - Prometheus metrics: postgresql-metrics.default.svc.cluster.local:9187
+# - Alerts configured for: replication lag, broken connections, slot issues
+#
+# Backups:
+# - WAL archiving to S3: Continuous
+# - Full backups: Weekly
+# - PITR: Restore to any point in last 7 days

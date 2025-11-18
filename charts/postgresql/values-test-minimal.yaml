@@ -1,0 +1,88 @@
+# Minimal test for user and database creation
+postgresql:
+  database: "postgres"
+  username: "postgres"
+
+  # Minimal config to avoid secret size issues
+  config:
+    listen_addresses: "*" # Allow network connections
+
+  extensions:
+    - pg_stat_statements
+    - pgcrypto
+
+  additionalDatabases:
+    - name: myapp_db
+      # owner is automatically set to myapp_user (first user with ALL privileges on this db)
+      encoding: UTF8
+    - name: analytics_db
+      owner: postgres # Explicitly set owner
+    - name: staging_db
+      # owner is automatically set to myapp_user (has ALL privileges)
+
+  additionalUsers:
+    - username: myapp_user
+      existingSecret: myapp-user-secret
+      databases:
+        - myapp_db
+        - staging_db
+      privileges: ALL
+      superuser: false
+    - username: readonly_user
+      existingSecret: readonly-user-secret
+      databases:
+        - myapp_db
+        - analytics_db
+      privileges: SELECT
+
+deployment:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  # Disable lifecycle hooks to reduce size
+  lifecycle: {}
+  podAnnotations: {}
+  affinity: {}
+  topologySpreadConstraints: []
+
+persistence:
+  enabled: true
+  size: 1Gi
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 5432
+
+backup:
+  enabled: false
+
+metrics:
+  enabled: false
+
+monitoring:
+  serviceMonitor:
+    enabled: false
+  prometheusRule:
+    enabled: false
+
+replication:
+  enabled: false
+
+statefulset:
+  enabled: false
+
+tls:
+  enabled: false
+
+serviceMesh:
+  enabled: false
+
+kubernetesIntegration:
+  autoReload:
+    enabled: false

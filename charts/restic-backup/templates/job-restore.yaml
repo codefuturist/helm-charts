@@ -1,0 +1,129 @@
+{{- if .Values.restore.enabled -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "restic-backup.name" . }}-restore-{{ now | date "20060102-150405" }}
+  namespace: {{ include "restic-backup.namespace" . }}
+  labels:
+    {{- include "restic-backup.labels" . | nindent 4 }}
+    app.kubernetes.io/component: restore-job
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "restic-backup.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: restore-job
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ include "restic-backup.serviceAccountName" . }}
+      {{- with .Values.image.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.cronjob.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: restic-restore
+          image: {{ include "restic-backup.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.cronjob.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "=== Restic Restore Job Started at $(date) ==="
+              echo "Repository: ${RESTIC_REPOSITORY}"
+              echo "Snapshot: {{ .Values.restore.snapshotId }}"
+              echo "Target: {{ .Values.restore.targetPath }}"
+
+              # List available snapshots
+              echo "Available snapshots:"
+              restic snapshots
+
+              # Perform restore
+              echo "Starting restore..."
+              restic restore {{ .Values.restore.snapshotId }} \
+                --target {{ .Values.restore.targetPath }} \
+                {{- if .Values.restore.verify }}
+                --verify \
+                {{- end }}
+                --verbose
+
+              RESTORE_EXIT_CODE=$?
+
+              if [ $RESTORE_EXIT_CODE -eq 0 ]; then
+                echo "Restore completed successfully."
+              else
+                echo "Restore failed with exit code: $RESTORE_EXIT_CODE"
+                exit $RESTORE_EXIT_CODE
+              fi
+
+              echo "=== Restic Restore Job Completed at $(date) ==="
+          env:
+            - name: RESTIC_REPOSITORY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "restic-backup.secretName" . }}
+                  key: RESTIC_REPOSITORY
+            - name: RESTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "restic-backup.secretName" . }}
+                  key: RESTIC_PASSWORD
+          envFrom:
+            - secretRef:
+                name: {{ include "restic-backup.secretName" . }}
+            {{- with .Values.envFrom }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.cronjob.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- include "restic-backup.backupVolumeMount" . | nindent 12 }}
+            {{- if .Values.restore.targetVolume }}
+            - name: restore-target
+              mountPath: {{ .Values.restore.targetPath }}
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      volumes:
+        {{- include "restic-backup.backupVolume" . | nindent 8 }}
+        {{- if or .Values.restore.targetVolume .Values.restore.targetVolumeConfig }}
+        - name: restore-target
+          {{- if .Values.restore.targetVolumeConfig }}
+          {{- $volumeConfig := .Values.restore.targetVolumeConfig }}
+          {{- if or (not $volumeConfig.type) (eq $volumeConfig.type "pvc") }}
+          persistentVolumeClaim:
+            claimName: {{ $volumeConfig.claimName }}
+          {{- else if eq $volumeConfig.type "hostPath" }}
+          hostPath:
+            path: {{ $volumeConfig.hostPath.path }}
+            {{- if $volumeConfig.hostPath.type }}
+            type: {{ $volumeConfig.hostPath.type }}
+            {{- end }}
+          {{- else if eq $volumeConfig.type "emptyDir" }}
+          emptyDir:
+            {{- if $volumeConfig.emptyDir.sizeLimit }}
+            sizeLimit: {{ $volumeConfig.emptyDir.sizeLimit }}
+            {{- end }}
+          {{- else if eq $volumeConfig.type "custom" }}
+          {{- toYaml $volumeConfig.volumeSpec | nindent 10 }}
+          {{- end }}
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.restore.targetVolume }}
+          {{- end }}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+{{- end }}

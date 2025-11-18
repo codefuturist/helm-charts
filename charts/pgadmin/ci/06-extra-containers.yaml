@@ -1,0 +1,31 @@
+# CI Test: Extra containers and volumes
+# Tests init containers, sidecars, and custom volumes
+
+pgadmin:
+  email: admin@example.com
+  password: SuperSecurePassword123
+
+initContainers:
+  - name: init-permissions
+    image: busybox:latest
+    command: ["sh", "-c", 'echo "Initializing permissions"']
+
+extraContainers:
+  - name: backup-sidecar
+    image: busybox:latest
+    command: ["sh", "-c", "while true; do sleep 3600; done"]
+
+extraVolumes:
+  - name: backup-storage
+    emptyDir: {}
+
+extraVolumeMounts:
+  - name: backup-storage
+    mountPath: /backups
+
+extraEnv:
+  - name: CUSTOM_VAR
+    value: "test-value"
+
+persistence:
+  enabled: false

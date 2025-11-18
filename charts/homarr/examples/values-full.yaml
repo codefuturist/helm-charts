@@ -1,0 +1,271 @@
+# Full configuration example for Homarr Helm Chart
+# This file demonstrates all major configuration options
+
+applicationName: homarr
+
+deployment:
+  enabled: true
+  replicas: 1
+
+  image:
+    repository: ghcr.io/homarr-labs/homarr
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  env:
+    # ============================================================
+    # SECURITY (REQUIRED)
+    # Generate with: openssl rand -hex 32
+    # ============================================================
+    SECRET_ENCRYPTION_KEY:
+      valueFrom:
+        secretKeyRef:
+          name: homarr-secret
+          key: encryption-key
+
+    # ============================================================
+    # GENERAL CONFIGURATION
+    # ============================================================
+    LOG_LEVEL:
+      value: "info"  # debug / info / warn / error
+
+    PUID:
+      value: "1000"  # User ID to run as
+
+    PGID:
+      value: "1000"  # Group ID to run as
+
+    NO_EXTERNAL_CONNECTION:
+      value: "false"  # Disable external requests
+
+    ENABLE_DNS_CACHING:
+      value: "false"  # Enable DNS caching
+
+    # ============================================================
+    # DOCKER INTEGRATION (Optional)
+    # Requires docker socket to be mounted (see volumes below)
+    # ============================================================
+    # DOCKER_HOSTNAMES:
+    #   value: "localhost,docker.example.com"
+    # DOCKER_PORTS:
+    #   value: "2375,2376"
+
+    # ============================================================
+    # DATABASE CONFIGURATION
+    # ============================================================
+    # SQLite (default - no additional config needed)
+    DB_DRIVER:
+      value: "better-sqlite3"
+    DB_DIALECT:
+      value: "sqlite"
+    DB_URL:
+      value: "/appdata/db/db.sqlite"
+
+    # MySQL Example (uncomment to use)
+    # DB_DRIVER:
+    #   value: "mysql2"
+    # DB_DIALECT:
+    #   value: "mysql"
+    # DB_HOST:
+    #   value: "mysql.database.svc.cluster.local"
+    # DB_PORT:
+    #   value: "3306"
+    # DB_NAME:
+    #   value: "homarr"
+    # DB_USER:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: homarr-db-secret
+    #       key: username
+    # DB_PASSWORD:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: homarr-db-secret
+    #       key: password
+
+    # PostgreSQL Example (uncomment to use)
+    # DB_DRIVER:
+    #   value: "node-postgres"
+    # DB_DIALECT:
+    #   value: "postgresql"
+    # DB_HOST:
+    #   value: "postgres.database.svc.cluster.local"
+    # DB_PORT:
+    #   value: "5432"
+    # DB_NAME:
+    #   value: "homarr"
+    # DB_USER:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: homarr-db-secret
+    #       key: username
+    # DB_PASSWORD:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: homarr-db-secret
+    #       key: password
+
+    # ============================================================
+    # EXTERNAL REDIS (Optional)
+    # By default Redis runs within the container
+    # ============================================================
+    # REDIS_IS_EXTERNAL:
+    #   value: "true"
+    # REDIS_HOST:
+    #   value: "redis.cache.svc.cluster.local"
+    # REDIS_PORT:
+    #   value: "6379"
+    # REDIS_USERNAME:
+    #   value: "default"
+    # REDIS_PASSWORD:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: homarr-redis-secret
+    #       key: password
+    # REDIS_DATABASE_INDEX:
+    #   value: "0"
+    # REDIS_TLS_CA:
+    #   value: ""  # CA certificate for TLS connections
+
+    # ============================================================
+    # ADVANCED
+    # ============================================================
+    # DB_MIGRATIONS_DISABLED:
+    #   value: "false"
+
+  # ============================================================
+  # VOLUMES - Docker Socket Integration (Optional)
+  # Enables Docker widget functionality
+  # ============================================================
+  # volumes:
+  #   docker-socket:
+  #     hostPath:
+  #       path: /var/run/docker.sock
+  #       type: Socket
+  # volumeMounts:
+  #   docker-socket:
+  #     mountPath: /var/run/docker.sock
+  #     readOnly: true
+
+  # Health Probes
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: http
+    failureThreshold: 3
+    periodSeconds: 10
+
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: http
+    failureThreshold: 3
+    periodSeconds: 10
+
+  # Resources
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: 500m
+    requests:
+      memory: 256Mi
+      cpu: 100m
+
+# ============================================================
+# PERSISTENCE
+# ============================================================
+persistence:
+  enabled: true
+  mountPVC: true
+  mountPath: "/appdata"
+  storageSize: 2Gi
+  storageClass: ""  # Use default storage class
+  accessMode: ReadWriteOnce
+
+# ============================================================
+# SERVICE
+# ============================================================
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+    - port: 7575
+      name: http
+      protocol: TCP
+      targetPort: 7575
+
+# ============================================================
+# INGRESS
+# ============================================================
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hosts:
+    - host: homarr.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  tls:
+    - secretName: homarr-tls
+      hosts:
+        - homarr.example.com
+
+# ============================================================
+# AUTOSCALING (Optional)
+# ============================================================
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+# ============================================================
+# POD DISRUPTION BUDGET (Optional)
+# ============================================================
+pdb:
+  enabled: false
+  minAvailable: 1
+
+# ============================================================
+# NETWORK POLICY (Optional)
+# ============================================================
+networkPolicy:
+  enabled: false
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+
+# ============================================================
+# SERVICE MONITOR (Prometheus Operator)
+# ============================================================
+servicemonitor:
+  enabled: false
+  additionalLabels:
+    prometheus: monitoring
+  endpoints:
+    - port: http
+      interval: 30s
+      path: /api/health
+
+# ============================================================
+# RBAC
+# ============================================================
+rbac:
+  enabled: true
+  serviceAccount:
+    enabled: true
+    name: ""
+    annotations: {}

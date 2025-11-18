@@ -1,0 +1,38 @@
+# CI Test: Monitoring and autoscaling enabled
+# Tests ServiceMonitor, PrometheusRule, and HPA
+
+pbs:
+  username: admin@pbs
+  password: SuperSecurePassword123
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings:
+      - sourceLabels: [__name__]
+        regex: "go_.*"
+        action: drop
+
+  prometheusRule:
+    enabled: true
+    rules:
+      - alert: ProxmoxBackupServerDown
+        expr: up{job="proxmox-backup-server"} == 0
+        for: 5m
+        labels:
+          severity: critical
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+persistence:
+  enabled: false

@@ -1,0 +1,66 @@
+# RedisInsight with Multiple Redis Servers
+#
+# This configuration demonstrates how to pre-configure multiple
+# Redis database connections in RedisInsight.
+#
+# Usage:
+#   helm install my-redisinsight codefuturist/redisinsight -f values-multiple-servers.yaml
+
+redisinsight:
+  email: "admin@example.com"
+  password: "changeme"
+
+  # Pre-configured Redis server definitions
+  serverDefinitions:
+    servers:
+      1:
+        Name: "Production Database"
+        Group: "Production"
+        Host: "redis-prod.database.svc.cluster.local"
+        Port: 5432
+        MaintenanceDB: "postgres"
+        Username: "postgres"
+        SSLMode: "require"
+        Comment: "Production Redis cluster"
+
+      2:
+        Name: "Staging Database"
+        Group: "Staging"
+        Host: "redis-staging.database.svc.cluster.local"
+        Port: 5432
+        MaintenanceDB: "postgres"
+        Username: "postgres"
+        SSLMode: "prefer"
+        Comment: "Staging environment database"
+
+      3:
+        Name: "Development Database"
+        Group: "Development"
+        Host: "redis-dev.database.svc.cluster.local"
+        Port: 5432
+        MaintenanceDB: "postgres"
+        Username: "postgres"
+        SSLMode: "disable"
+        Comment: "Local development database"
+
+      4:
+        Name: "Analytics Database"
+        Group: "Production"
+        Host: "redis-analytics.database.svc.cluster.local"
+        Port: 5432
+        MaintenanceDB: "analytics"
+        Username: "readonly_user"
+        SSLMode: "require"
+        Comment: "Read-only analytics database"
+
+persistence:
+  enabled: true
+  size: 2Gi
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi

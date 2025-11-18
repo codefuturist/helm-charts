@@ -1,0 +1,16 @@
+# CI Test: Diagnostic mode
+# Tests diagnostic mode configuration
+
+redisinsight:
+  email: admin@example.com
+  password: SuperSecurePassword123
+
+diagnosticMode:
+  enabled: true
+  command:
+    - sleep
+  args:
+    - "infinity"
+
+persistence:
+  enabled: false

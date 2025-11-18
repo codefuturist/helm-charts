@@ -1,0 +1,291 @@
+{{- include "pgadmin.validateValues" . -}}
+{{- if eq .Values.controller.type "deployment" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pgadmin.fullname" . }}
+  namespace: {{ include "pgadmin.namespace" . }}
+  labels:
+    {{- include "pgadmin.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.controller.replicas }}
+  {{- with .Values.controller.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "pgadmin.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if not .Values.pgadmin.existingSecret }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "pgadmin.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "pgadmin.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.runtimeClassName }}
+      runtimeClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.controller.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsPolicy }}
+      dnsPolicy: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hostAliases }}
+      hostAliases:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.initContainers }}
+      initContainers:
+        {{- toYaml .Values.initContainers | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: pgadmin
+          image: {{ include "pgadmin.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if or .Values.controller.command .Values.diagnosticMode.enabled }}
+          command:
+            {{- if .Values.diagnosticMode.enabled }}
+            {{- toYaml .Values.diagnosticMode.command | nindent 12 }}
+            {{- else }}
+            {{- toYaml .Values.controller.command | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.controller.args .Values.diagnosticMode.enabled }}
+          args:
+            {{- if .Values.diagnosticMode.enabled }}
+            {{- toYaml .Values.diagnosticMode.args | nindent 12 }}
+            {{- else }}
+            {{- toYaml .Values.controller.args | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.controller.workingDir }}
+          workingDir: {{ . }}
+          {{- end }}
+          env:
+            - name: PGADMIN_DEFAULT_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pgadmin.secretName" . }}
+                  key: {{ .Values.pgadmin.existingSecretEmailKey }}
+            - name: PGADMIN_DEFAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pgadmin.secretName" . }}
+                  key: {{ .Values.pgadmin.existingSecretPasswordKey }}
+            {{- if .Values.pgadmin.disablePostfix }}
+            - name: PGADMIN_DISABLE_POSTFIX
+              value: "1"
+            {{- end }}
+            {{- if .Values.pgadmin.replaceServersOnStartup }}
+            - name: PGADMIN_REPLACE_SERVERS_ON_STARTUP
+              value: "True"
+            {{- end }}
+            {{- if .Values.pgadmin.scriptName }}
+            - name: SCRIPT_NAME
+              value: {{ .Values.pgadmin.scriptName | quote }}
+            {{- end }}
+            {{- if or .Values.pgadmin.serverDefinitions .Values.pgadmin.existingServerDefinitionsConfigMap }}
+            - name: PGADMIN_SERVER_JSON_FILE
+              value: "/pgadmin4/servers.json"
+            {{- end }}
+            {{- if or .Values.pgadmin.pgpassFile .Values.pgadmin.existingPgpassSecret }}
+            - name: PGPASS_FILE
+              value: "/var/lib/pgadmin/.pgpass"
+            {{- end }}
+            - name: GUNICORN_THREADS
+              value: {{ .Values.pgadmin.gunicorn.threads | quote }}
+            {{- if .Values.pgadmin.gunicorn.accessLogfile }}
+            - name: GUNICORN_ACCESS_LOGFILE
+              value: {{ .Values.pgadmin.gunicorn.accessLogfile | quote }}
+            {{- end }}
+            - name: GUNICORN_LIMIT_REQUEST_LINE
+              value: {{ .Values.pgadmin.gunicorn.limitRequestLine | quote }}
+            {{- if .Values.pgadmin.smtp.enabled }}
+            {{- if .Values.pgadmin.smtp.server }}
+            - name: PGADMIN_CONFIG_MAIL_SERVER
+              value: {{ .Values.pgadmin.smtp.server | quote }}
+            {{- end }}
+            {{- if .Values.pgadmin.smtp.port }}
+            - name: PGADMIN_CONFIG_MAIL_PORT
+              value: {{ .Values.pgadmin.smtp.port | quote }}
+            {{- end }}
+            - name: PGADMIN_CONFIG_MAIL_USE_TLS
+              value: {{ .Values.pgadmin.smtp.useTLS | quote }}
+            - name: PGADMIN_CONFIG_MAIL_USE_SSL
+              value: {{ .Values.pgadmin.smtp.useSSL | quote }}
+            {{- if or .Values.pgadmin.smtp.username .Values.pgadmin.smtp.existingSecret }}
+            - name: PGADMIN_CONFIG_MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pgadmin.smtpSecretName" . }}
+                  key: {{ .Values.pgadmin.smtp.existingSecretUsernameKey }}
+            {{- end }}
+            {{- if or .Values.pgadmin.smtp.password .Values.pgadmin.smtp.existingSecret }}
+            - name: PGADMIN_CONFIG_MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pgadmin.smtpSecretName" . }}
+                  key: {{ .Values.pgadmin.smtp.existingSecretPasswordKey }}
+            {{- end }}
+            {{- if .Values.pgadmin.smtp.fromAddress }}
+            - name: PGADMIN_CONFIG_MAIL_FROM
+              value: {{ .Values.pgadmin.smtp.fromAddress | quote }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.pgadmin.ldap.enabled }}
+            {{- if .Values.pgadmin.ldap.server }}
+            - name: PGADMIN_CONFIG_LDAP_SERVER_URI
+              value: {{ .Values.pgadmin.ldap.server | quote }}
+            {{- end }}
+            {{- if .Values.pgadmin.ldap.bindDN }}
+            - name: PGADMIN_CONFIG_LDAP_BIND_DN
+              value: {{ .Values.pgadmin.ldap.bindDN | quote }}
+            {{- end }}
+            {{- if .Values.pgadmin.ldap.userBaseDN }}
+            - name: PGADMIN_CONFIG_LDAP_BASE_DN
+              value: {{ .Values.pgadmin.ldap.userBaseDN | quote }}
+            {{- end }}
+            {{- end }}
+            {{- range $key, $value := .Values.pgadmin.config }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            {{- omit .Values.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.controller.lifecycle }}
+          lifecycle:
+            {{- toYaml .Values.controller.lifecycle | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: pgadmin-data
+              mountPath: /var/lib/pgadmin
+            {{- if or .Values.pgadmin.serverDefinitions .Values.pgadmin.existingServerDefinitionsConfigMap }}
+            - name: server-definitions
+              mountPath: /pgadmin4/servers.json
+              subPath: servers.json
+              readOnly: true
+            {{- end }}
+            {{- if or .Values.pgadmin.pgpassFile .Values.pgadmin.existingPgpassSecret }}
+            - name: pgpass
+              mountPath: /pgpass
+              subPath: pgpass
+              readOnly: true
+            {{- end }}
+            {{- if or .Values.pgadmin.configLocal .Values.pgadmin.existingConfigLocalConfigMap }}
+            - name: config-local
+              mountPath: /pgadmin4/config_local.py
+              subPath: config_local.py
+              readOnly: true
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- if .Values.extraContainers }}
+        {{- toYaml .Values.extraContainers | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: pgadmin-data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "pgadmin.pvcName" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- if or .Values.pgadmin.serverDefinitions .Values.pgadmin.existingServerDefinitionsConfigMap }}
+        - name: server-definitions
+          configMap:
+            name: {{ include "pgadmin.serverDefinitionsConfigMapName" . }}
+        {{- end }}
+        {{- if or .Values.pgadmin.pgpassFile .Values.pgadmin.existingPgpassSecret }}
+        - name: pgpass
+          secret:
+            secretName: {{ include "pgadmin.pgpassSecretName" . }}
+            defaultMode: 0600
+        {{- end }}
+        {{- if or .Values.pgadmin.configLocal .Values.pgadmin.existingConfigLocalConfigMap }}
+        - name: config-local
+          configMap:
+            name: {{ include "pgadmin.configLocalConfigMapName" . }}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

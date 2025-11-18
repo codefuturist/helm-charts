@@ -1,0 +1,68 @@
+{{- if .Values.runnerDeployment.enabled }}
+{{- if .Values.runnerDeployment.persistence.data.enabled }}
+{{- if not .Values.runnerDeployment.persistence.data.existingClaim }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "semaphore.fullname" . }}-runner-data
+  namespace: {{ include "semaphore.namespace" . }}
+  labels:
+    {{- include "semaphore.labels" . | nindent 4 }}
+    app.kubernetes.io/component: runner
+spec:
+  accessModes:
+    - {{ .Values.runnerDeployment.persistence.data.accessMode }}
+  {{- with .Values.runnerDeployment.persistence.data.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.runnerDeployment.persistence.data.size }}
+{{- end }}
+{{- end }}
+{{- if .Values.runnerDeployment.persistence.config.enabled }}
+{{- if not .Values.runnerDeployment.persistence.config.existingClaim }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "semaphore.fullname" . }}-runner-config
+  namespace: {{ include "semaphore.namespace" . }}
+  labels:
+    {{- include "semaphore.labels" . | nindent 4 }}
+    app.kubernetes.io/component: runner
+spec:
+  accessModes:
+    - {{ .Values.runnerDeployment.persistence.config.accessMode }}
+  {{- with .Values.runnerDeployment.persistence.config.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.runnerDeployment.persistence.config.size }}
+{{- end }}
+{{- end }}
+{{- if .Values.runnerDeployment.persistence.tmp.enabled }}
+{{- if not .Values.runnerDeployment.persistence.tmp.existingClaim }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "semaphore.fullname" . }}-runner-tmp
+  namespace: {{ include "semaphore.namespace" . }}
+  labels:
+    {{- include "semaphore.labels" . | nindent 4 }}
+    app.kubernetes.io/component: runner
+spec:
+  accessModes:
+    - {{ .Values.runnerDeployment.persistence.tmp.accessMode }}
+  {{- with .Values.runnerDeployment.persistence.tmp.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.runnerDeployment.persistence.tmp.size }}
+{{- end }}
+{{- end }}
+{{- end }}

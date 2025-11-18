@@ -1,0 +1,96 @@
+{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "home-assistant.configPvcName" . }}
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+  {{- with .Values.persistence.annotations }}
+  annotations:
+    {{- if .Values.persistence.retain }}
+    helm.sh/resource-policy: keep
+    {{- end }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }}
+  {{- if .Values.persistence.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName }}
+  {{- end }}
+{{- end }}
+---
+{{- if and .Values.persistence.media.enabled (not .Values.persistence.media.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "home-assistant.mediaPvcName" . }}
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: media
+  {{- with .Values.persistence.annotations }}
+  annotations:
+    {{- if .Values.persistence.retain }}
+    helm.sh/resource-policy: keep
+    {{- end }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.media.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.media.size }}
+  {{- if .Values.persistence.media.storageClassName }}
+  storageClassName: {{ .Values.persistence.media.storageClassName }}
+  {{- end }}
+{{- end }}
+---
+{{- if and .Values.persistence.backup.enabled (not .Values.persistence.backup.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "home-assistant.backupPvcName" . }}
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+  {{- with .Values.persistence.annotations }}
+  annotations:
+    {{- if .Values.persistence.retain }}
+    helm.sh/resource-policy: keep
+    {{- end }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.backup.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.backup.size }}
+  {{- if .Values.persistence.backup.storageClassName }}
+  storageClassName: {{ .Values.persistence.backup.storageClassName }}
+  {{- end }}
+{{- end }}
+---
+{{- if and .Values.mqtt.enabled .Values.mqtt.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "home-assistant.fullname" . }}-mqtt
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mqtt
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.mqtt.persistence.size }}
+{{- end }}

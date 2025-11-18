@@ -1,0 +1,66 @@
+# Example: Using external Kubernetes resources for user/database management
+# This example shows how to read database and user definitions from ConfigMaps/Secrets
+
+postgresql:
+  database: "postgres"
+  username: "postgres"
+
+  extensions:
+    - pg_stat_statements
+    - pgcrypto
+    - uuid-ossp
+
+  # Enable reading from external Kubernetes resources
+  externalResources:
+    enabled: true
+
+    # Read database definitions from a ConfigMap
+    databasesConfigMap:
+      name: postgresql-databases
+      namespace: default # Optional, defaults to Release.Namespace
+      key: databases.yaml
+
+    # Read user definitions from a ConfigMap
+    usersConfigMap:
+      name: postgresql-users
+      namespace: default
+      key: users.yaml
+
+    # Read user passwords from a Secret
+    usersSecret:
+      name: postgresql-user-passwords
+      namespace: default
+      # Map username to secret key
+      passwordKeys:
+        myapp_user: myapp-password
+        readonly_user: readonly-password
+        analytics_user: analytics-password
+
+  # You can still define additional users/databases here
+  # They will be merged with the external resources
+  additionalDatabases:
+    - name: cache_db
+      owner: postgres
+      encoding: UTF8
+
+  additionalUsers:
+    - username: cache_user
+      existingSecret: cache-user-secret
+      databases:
+        - cache_db
+      privileges: ALL
+
+deployment:
+  replicas: 1
+
+persistence:
+  enabled: true
+  size: 20Gi
+# Example of creating the required external resources:
+#
+# kubectl apply -f examples/external-databases-configmap.yaml
+# kubectl apply -f examples/external-users-configmap.yaml
+# kubectl apply -f examples/external-users-secret.yaml
+#
+# Then install the chart:
+# helm install my-postgres . -f examples/values-external-resources.yaml

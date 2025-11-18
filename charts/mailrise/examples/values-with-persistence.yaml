@@ -1,0 +1,58 @@
+# pgAdmin with Persistence Configuration
+#
+# This configuration enables persistent storage for pgAdmin data,
+# which includes user preferences, saved queries, and session data.
+# Suitable for development, staging, and production environments.
+#
+# Usage:
+#   helm install my-pgadmin codefuturist/pgadmin -f values-with-persistence.yaml
+
+pgadmin:
+  email: "admin@example.com"
+  password: "changeme" # Change to a secure password or use existingSecret
+
+# =============================================================================
+# Persistence Configuration
+# =============================================================================
+persistence:
+  # Enable persistent storage
+  enabled: true
+
+  # Storage class (leave empty to use default)
+  storageClassName: ""
+
+  # Access mode
+  accessMode: ReadWriteOnce
+
+  # Storage size
+  size: 2Gi
+
+  # Annotations for the PVC (optional)
+  annotations:
+    backup.velero.io/backup-volumes: "pgadmin-data"
+
+# =============================================================================
+# Optional: Resource Configuration
+# =============================================================================
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+# =============================================================================
+# Optional: Add PostgreSQL Server Definitions
+# =============================================================================
+# Uncomment to pre-configure PostgreSQL servers
+# pgadmin:
+#   serverDefinitions:
+#     servers:
+#       1:
+#         Name: "My PostgreSQL"
+#         Group: "Development"
+#         Host: "postgresql.default.svc.cluster.local"
+#         Port: 5432
+#         MaintenanceDB: "postgres"
+#         Username: "postgres"
+#         SSLMode: "prefer"

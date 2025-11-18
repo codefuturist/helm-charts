@@ -1,0 +1,569 @@
+# Helm chart values generated from Docker Compose
+# Generated on: 2025-11-12 07:04:14
+#
+# For Pi-hole Docker configuration reference, see:
+# https://docs.pi-hole.net/docker/configuration/
+
+# Application metadata
+namespaceOverride: ''
+componentOverride: ''
+partOfOverride: ''
+applicationName: ''
+additionalLabels: {}
+
+# ServiceAccount configuration
+serviceAccount:
+  # Specifies whether a service account should be created
+  enabled: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+  # Image pull secrets to attach to the service account
+  imagePullSecrets: []
+
+# NetworkPolicy configuration for network isolation
+networkPolicy:
+  enabled: false
+  # Ingress rules - example below
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: ingress-nginx
+      ports:
+      - protocol: TCP
+        port: 80
+      - protocol: TCP
+        port: 443
+    - from:
+      - podSelector: {}
+      ports:
+      - protocol: UDP
+        port: 53
+      - protocol: TCP
+        port: 53
+  # Egress rules - allow DNS queries to upstream servers
+  egress:
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: UDP
+        port: 53
+      - protocol: TCP
+        port: 53
+    - to:
+      - podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+      ports:
+      - protocol: UDP
+        port: 53
+
+# PodDisruptionBudget for high availability
+podDisruptionBudget:
+  enabled: false
+  # minAvailable: 1
+  maxUnavailable: 1
+  # Kubernetes 1.26+ feature
+  # unhealthyPodEvictionPolicy: IfHealthyBudget
+
+# ServiceMonitor for Prometheus monitoring
+serviceMonitor:
+  enabled: false
+  # Additional labels for ServiceMonitor
+  additionalLabels: {}
+  # Scrape interval
+  interval: 30s
+  # Scrape timeout
+  scrapeTimeout: 10s
+  # HTTP path to scrape metrics from
+  path: /admin/api.php?summaryRaw
+  # Port name to scrape
+  portName: port-80-tcp
+  # Scheme http or https
+  scheme: http
+  # TLS configuration
+  tlsConfig: {}
+  # Relabeling configs
+  relabelings: []
+  # Metric relabeling configs
+  metricRelabelings: []
+
+deployment:
+  enabled: true
+  additionalLabels: {}
+  podLabels: {}
+  annotations: {}
+  additionalPodAnnotations: {}
+  reloadOnChange: true
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+    # Custom metrics for HPA
+    customMetrics: []
+    # Behavior configuration for scaling
+    behavior:
+      scaleDown:
+        stabilizationWindowSeconds: 300
+        policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+      scaleUp:
+        stabilizationWindowSeconds: 0
+        policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+        selectPolicy: Max
+
+  # Priority class for pod scheduling
+  priorityClassName: ""
+
+  # DNS policy and configuration
+  dnsPolicy: ClusterFirst
+  dnsConfig: {}
+  #   options:
+  #   - name: ndots
+  #     value: "1"
+
+  # Pod-level security context (commented out by default - uncomment and adjust for your security requirements)
+  # Note: Pi-hole may require elevated privileges to function correctly
+  podSecurityContext: {}
+  #   fsGroup: 1000
+  #   fsGroupChangePolicy: "OnRootMismatch"
+  #   seccompProfile:
+  #     type: RuntimeDefault
+
+  # Container-level security context (commented out by default - uncomment and adjust for your security requirements)
+  # Note: Pi-hole requires NET_BIND_SERVICE and other capabilities to function
+  securityContext: {}
+  #   capabilities:
+  #     drop:
+  #     - ALL
+  #     add:
+  #     - NET_BIND_SERVICE
+  #     - CHOWN
+  #     - SETGID
+  #     - SETUID
+  #   readOnlyRootFilesystem: false
+  #   runAsNonRoot: true
+  #   runAsUser: 1000
+  #   runAsGroup: 1000
+  #   allowPrivilegeEscalation: false
+
+  imagePullSecrets: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  #   podAntiAffinity:
+  #     preferredDuringSchedulingIgnoredDuringExecution:
+  #     - weight: 100
+  #       podAffinityTerm:
+  #         labelSelector:
+  #           matchExpressions:
+  #           - key: app.kubernetes.io/name
+  #             operator: In
+  #             values:
+  #             - pihole
+  #         topologyKey: kubernetes.io/hostname
+
+  topologySpreadConstraints: []
+  #   - maxSkew: 1
+  #     topologyKey: topology.kubernetes.io/zone
+  #     whenUnsatisfiable: DoNotSchedule
+  #     labelSelector:
+  #       matchLabels:
+  #         app.kubernetes.io/name: pihole
+
+  image:
+    repository: pihole/pihole
+    tag: latest
+    digest: ''
+    imagePullPolicy: IfNotPresent
+
+  # Environment variables for Pi-hole configuration
+  # You can reference secrets using valueFrom
+  # For FTLCONF variables, use format: FTLCONF_[section_][setting]
+  # Array values should be delimited with semicolons (;)
+  # Full configuration reference: https://docs.pi-hole.net/docker/configuration/
+  env:
+    TZ:
+      value: Europe/Zurich
+
+    # ===== Password Configuration =====
+    # IMPORTANT: DO NOT store passwords in plain text!
+    #
+    # Option 1: Reference from Kubernetes secret (RECOMMENDED)
+    # FTLCONF_webserver_api_password:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: pihole-secrets  # Use secret.existingSecret or chart fullname
+    #       key: FTLCONF_webserver_api_password
+    #
+    # Option 2: Use WEBPASSWORD_FILE with mounted secret (RECOMMENDED for file-based secrets)
+    # WEBPASSWORD_FILE:
+    #   value: /run/secrets/pihole_password
+    # Then mount secret as a file in volumes section
+    #
+    # Option 3: Plain text (NOT RECOMMENDED - for testing only)
+    # If unset, Pi-hole will generate a random password on startup
+    FTLCONF_webserver_api_password:
+      value: correct_horse_battery_staple  # CHANGE THIS! Use secrets in production
+
+    # ===== DNS Configuration =====
+    # Listening mode: all, local, single, bind
+    FTLCONF_dns_listeningMode:
+      value: all
+
+    # Upstream DNS servers (semicolon-separated)
+    # Supports non-standard ports: 127.0.0.1#5053;8.8.8.8
+    FTLCONF_dns_upstreams:
+      value: 8.8.8.8;8.8.4.4;1.1.1.1
+
+    # Enable DNSSEC validation
+    FTLCONF_dns_dnssec:
+      value: 'true'
+
+    # ===== FTL Configuration =====
+    FTLCONF_database_DBfile:
+      value: /etc/pihole/pihole-FTL.db
+
+    # Web server ports (format: port[o][s], where o=optional, s=ssl)
+    # Example: 80o,[::]:80o,443os,[::]:443os
+    FTLCONF_webserver_port:
+      value: 80o,[::]:80o,443os,[::]:443os
+
+    # ===== User/Group Configuration =====
+    # User ID to run Pi-hole as (must not already exist in container)
+    PIHOLE_UID:
+      value: '1000'
+
+    # Group ID to run Pi-hole as (must not already exist in container)
+    PIHOLE_GID:
+      value: '1000'
+
+    # ===== Optional Advanced Configuration =====
+    # Uncomment to customize these settings
+
+    # Whether to output FTL log (0 to disable, 1 to enable)
+    # TAIL_FTL_LOG:
+    #   value: '1'
+
+    # Custom dnsmasq options (e.g., "no-daemon -- --dns-forward-max 300")
+    # FTL_CMD:
+    #   value: 'no-daemon'
+
+    # User that FTLDNS runs as (default: pihole, some NAS may need: root)
+    # DNSMASQ_USER:
+    #   value: 'pihole'
+
+    # Additional Alpine packages to install (space-separated)
+    # ADDITIONAL_PACKAGES:
+    #   value: 'nano curl'
+
+    # Enable verbose logging for startup scripts (0 or 1)
+    # PH_VERBOSE:
+    #   value: '0'
+
+  ports:
+  - name: port-53-tcp
+    containerPort: 53
+    protocol: TCP
+  - name: port-53-udp
+    containerPort: 53
+    protocol: UDP
+  - name: port-80-tcp
+    containerPort: 80
+    protocol: TCP
+  - name: port-443-tcp
+    containerPort: 443
+    protocol: TCP
+  - name: port-67-udp
+    containerPort: 67
+    protocol: UDP
+
+  resources:
+    limits:
+      cpu: '2'
+      memory: 512M
+    requests:
+      cpu: '0.5'
+      memory: 256M
+
+  # Startup probe for slow-starting containers
+  startupProbe:
+    exec:
+      command:
+      - dig
+      - +short
+      - +norecurse
+      - +retry=0
+      - '@127.0.0.1'
+      - pi.hole
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 30
+    successThreshold: 1
+
+  # Liveness probe to detect if container is alive
+  livenessProbe:
+    exec:
+      command:
+      - dig
+      - +short
+      - +norecurse
+      - +retry=0
+      - '@127.0.0.1'
+      - pi.hole
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+
+  # Readiness probe to detect if container is ready to serve traffic
+  readinessProbe:
+    exec:
+      command:
+      - dig
+      - +short
+      - +norecurse
+      - +retry=0
+      - '@127.0.0.1'
+      - pi.hole
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+  volumes:
+  - name: etc-pihole
+    type: hostPath
+    mountPath: /etc/pihole
+    hostPath: ./etc-pihole
+    readOnly: false
+  - name: etc-dnsmasq-d
+    type: hostPath
+    mountPath: /etc/dnsmasq.d
+    hostPath: ./etc-dnsmasq.d
+    readOnly: false
+
+# Persistence configuration for stateful data
+persistence:
+  etc-pihole:
+    enabled: false
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+    annotations: {}
+  etc-dnsmasq:
+    enabled: false
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 500Mi
+    annotations: {}
+
+service:
+  # Service type: ClusterIP, NodePort, or LoadBalancer
+  # - ClusterIP: Internal cluster access only (default)
+  # - NodePort: Exposes service on each node's IP at a static port
+  # - LoadBalancer: Exposes service externally using cloud provider's load balancer
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+  # ===== NodePort Configuration =====
+  # To use NodePort, set type: NodePort and optionally specify port numbers
+  # Example NodePort configuration:
+  #
+  # service:
+  #   type: NodePort
+  #   annotations: {}
+  #   # Optional: Specify custom NodePort numbers (default: auto-assigned from 30000-32767)
+  #   nodePorts:
+  #     http: 30080      # HTTP web interface
+  #     https: 30443     # HTTPS web interface
+  #     dns-tcp: 30053   # DNS TCP
+  #     dns-udp: 30053   # DNS UDP
+  #     dhcp: 30067      # DHCP (if used)
+  #   # Optional: External traffic policy (Cluster or Local)
+  #   # - Cluster: traffic distributed to all nodes (may add hop, preserves client IP with externalTrafficPolicy)
+  #   # - Local: traffic only to node with pod (no extra hop, preserves client IP)
+  #   externalTrafficPolicy: Local
+  #
+  # Access via NodePort:
+  #   Web UI: http://<NODE_IP>:30080/admin
+  #   DNS: <NODE_IP>:30053
+  #   Get node IP: kubectl get nodes -o wide
+  #
+  # Note: NodePort requires ports in range 30000-32767 (configurable in k8s)
+  # =================================
+
+  # Optional: Set a specific cluster IP (ClusterIP type only)
+  # clusterIP: ""
+
+  # Optional: Set load balancer IP (LoadBalancer type only)
+  # loadBalancerIP: ""
+
+  # Optional: Set load balancer source ranges (LoadBalancer type only)
+  # loadBalancerSourceRanges: []
+
+  # Optional: Set external traffic policy (NodePort or LoadBalancer)
+  # externalTrafficPolicy: Cluster
+
+  # Optional: Session affinity
+  # sessionAffinity: ClientIP
+  # sessionAffinityConfig:
+  #   clientIP:
+  #     timeoutSeconds: 10800
+
+ingress:
+  enabled: false
+  className: ''
+  annotations: {}
+  #   cert-manager.io/cluster-issuer: letsencrypt-prod
+  #   nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts: []
+  #   - host: pihole.example.com
+  #     paths:
+  #     - path: /
+  #       pathType: Prefix
+  #       port: 80
+  tls: []
+  #   - secretName: pihole-tls
+  #     hosts:
+  #     - pihole.example.com
+
+configMap:
+  enabled: false
+  data: {}
+
+# Secret management configuration
+secret:
+  # Create a new secret with the chart
+  enabled: false
+
+  # Secret data as key-value pairs (NOT RECOMMENDED for production - use existingSecret instead)
+  # These values will be base64 encoded automatically
+  data: {}
+  #   WEBPASSWORD: "your-secure-password-here"
+  #   API_KEY: "your-api-key-here"
+
+  # Use an existing secret instead of creating one
+  # This is the RECOMMENDED approach for production
+  existingSecret: ""
+
+  # Keys to use from the existing secret for specific values
+  existingSecretKeys:
+    # Key in the secret that contains the web password
+    webPassword: "WEBPASSWORD"
+    # Key in the secret that contains the API password
+    apiPassword: "FTLCONF_webserver_api_password"
+
+# External Secrets Operator configuration
+# Requires External Secrets Operator to be installed in the cluster
+# https://external-secrets.io/
+externalSecrets:
+  enabled: false
+
+  # Name of the SecretStore or ClusterSecretStore to use
+  secretStoreName: ""
+  secretStoreKind: SecretStore  # SecretStore or ClusterSecretStore
+
+  # Refresh interval for the external secret
+  refreshInterval: 1h
+
+  # Target secret configuration
+  target:
+    name: ""  # Leave empty to use chart fullname
+    creationPolicy: Owner  # Owner, Merge, or None
+    deletionPolicy: Retain  # Retain or Delete
+
+  # Data to fetch from external secret store
+  # Each entry maps a secret key to a path in the external store
+  data: []
+  #   - secretKey: WEBPASSWORD
+  #     remoteRef:
+  #       key: pihole/webpassword  # Path in secret store (e.g., AWS Secrets Manager, Vault)
+  #   - secretKey: FTLCONF_webserver_api_password
+  #     remoteRef:
+  #       key: pihole/api-password
+
+  # Additional ExternalSecret template configuration
+  template:
+    engineVersion: v2
+    data: {}
+    #   # You can transform or combine secrets here
+    #   COMBINED_PASSWORD: "{{ .WEBPASSWORD }}-{{ .API_KEY }}"
+
+# Sealed Secrets configuration
+# Requires Sealed Secrets controller to be installed in the cluster
+# https://github.com/bitnami-labs/sealed-secrets
+sealedSecrets:
+  enabled: false
+
+  # Encrypted secret data (generated using kubeseal CLI)
+  # Example: echo -n "mypassword" | kubectl create secret generic mysecret --dry-run=client --from-file=password=/dev/stdin -o yaml | kubeseal -o yaml
+  encryptedData: {}
+  #   WEBPASSWORD: AgBZ8Vz... (encrypted value from kubeseal)
+
+  # Sealed secret scope: strict, namespace-wide, or cluster-wide
+  # - strict: Can only be decrypted by the same name and namespace
+  # - namespace-wide: Can be decrypted by any name in the same namespace
+  # - cluster-wide: Can be decrypted anywhere in the cluster
+  scope: strict
+
+  # Annotations for the SealedSecret
+  annotations: {}
+
+# Secret Store CSI Driver configuration
+# Requires Secrets Store CSI Driver to be installed in the cluster
+# https://secrets-store-csi-driver.sigs.k8s.io/
+secretProviderClass:
+  enabled: false
+
+  # Name of the SecretProviderClass
+  name: ""  # Leave empty to use chart fullname
+
+  # Provider (aws, azure, gcp, vault)
+  provider: ""
+
+  # Provider-specific parameters
+  parameters: {}
+  #   # Example for AWS Secrets Manager:
+  #   objects: |
+  #     - objectName: "pihole-webpassword"
+  #       objectType: "secretsmanager"
+  #       objectAlias: "WEBPASSWORD"
+  #     - objectName: "pihole-api-password"
+  #       objectType: "secretsmanager"
+  #       objectAlias: "FTLCONF_webserver_api_password"
+
+  # Secret objects to create from CSI mount
+  secretObjects: []
+  #   - secretName: pihole-secrets
+  #     type: Opaque
+  #     data:
+  #     - objectName: WEBPASSWORD
+  #       key: WEBPASSWORD
+  #     - objectName: FTLCONF_webserver_api_password
+  #       key: FTLCONF_webserver_api_password

@@ -1,0 +1,54 @@
+suite: test uptime-kuma statefulset
+templates:
+  - statefulset.yaml
+tests:
+  - it: should create statefulset when controller.type is statefulset
+    set:
+      controller.type: statefulset
+    asserts:
+      - isKind:
+          of: StatefulSet
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-uptime-kuma
+      - equal:
+          path: spec.replicas
+          value: 1
+
+  - it: should configure volumeClaimTemplates in statefulset
+    set:
+      controller.type: statefulset
+      persistence.volumeClaimTemplate.enabled: true
+      persistence.volumeClaimTemplate.size: 5Gi
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[0].metadata.name
+          value: data
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 5Gi
+
+  - it: should use custom storage class in statefulset
+    set:
+      controller.type: statefulset
+      persistence.volumeClaimTemplate.enabled: true
+      persistence.volumeClaimTemplate.storageClassName: "fast-storage"
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.storageClassName
+          value: "fast-storage"
+
+  - it: should set serviceName in statefulset
+    set:
+      controller.type: statefulset
+    asserts:
+      - equal:
+          path: spec.serviceName
+          value: RELEASE-NAME-uptime-kuma
+
+  - it: should not create statefulset when controller.type is deployment
+    set:
+      controller.type: deployment
+    asserts:
+      - hasDocuments:
+          count: 0

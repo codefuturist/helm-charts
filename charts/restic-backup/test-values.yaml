@@ -1,0 +1,67 @@
+# Test Values for CI/CD
+# Used for automated testing of the restic-backup chart
+
+restic:
+  # Use local backup by default for testing
+  repository: "/backup-repository"
+  password: "test-password-not-for-production"
+
+  backup:
+    enabled: true
+    schedule: "*/5 * * * *" # Every 5 minutes for testing
+
+    tags:
+      - test
+      - ci
+
+    excludes:
+      - "*.tmp"
+
+    retention:
+      enabled: true
+      keepLast: 3
+      keepDaily: 7
+      keepWeekly: 0
+      keepMonthly: 0
+      keepYearly: 0
+
+  init:
+    enabled: true
+
+  check:
+    enabled: true
+    schedule: "*/30 * * * *" # Every 30 minutes for testing
+    readData: false
+
+# Use default backup volume (enabled by default)
+backupVolume:
+  enabled: true
+  type: pvc
+  pvc:
+    size: 5Gi # Smaller size for testing
+
+volumes:
+  - name: test-data
+    claimName: test-pvc
+    mountPath: /test-data
+
+cronjob:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+serviceAccount:
+  create: true
+
+rbac:
+  create: true
+
+networkPolicy:
+  enabled: false # Disabled for testing
+
+serviceMonitor:
+  enabled: false # Disabled for basic tests

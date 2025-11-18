@@ -1,0 +1,213 @@
+# Production configuration example with Kubernetes best practices
+
+# ServiceAccount with proper RBAC
+serviceAccount:
+  enabled: true
+  annotations: {}
+
+# Network isolation with NetworkPolicy
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: ingress-nginx
+      ports:
+      - protocol: TCP
+        port: 80
+      - protocol: TCP
+        port: 443
+    - from:
+      - podSelector: {}
+      ports:
+      - protocol: UDP
+        port: 53
+      - protocol: TCP
+        port: 53
+  egress:
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: UDP
+        port: 53
+      - protocol: TCP
+        port: 53
+
+# High availability with PDB
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Prometheus monitoring
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  additionalLabels:
+    release: prometheus
+
+deployment:
+  enabled: true
+  replicas: 3
+
+  # Rolling update strategy for zero-downtime deployments
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  # Production resource limits
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+  # Pod security context
+  podSecurityContext:
+    fsGroup: 1000
+    fsGroupChangePolicy: "OnRootMismatch"
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Container security context
+  securityContext:
+    capabilities:
+      drop:
+      - ALL
+      add:
+      - NET_BIND_SERVICE
+      - CHOWN
+      - SETGID
+      - SETUID
+    readOnlyRootFilesystem: false
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    allowPrivilegeEscalation: false
+
+  # Anti-affinity for high availability
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - pihole
+          topologyKey: kubernetes.io/hostname
+
+  # Topology spread for better distribution
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: pihole
+
+  # Production image with digest for security
+  image:
+    repository: pihole/pihole
+    tag: "2024.07.0"
+    # digest: "sha256:..."  # Add digest for immutable deployments
+    imagePullPolicy: IfNotPresent
+
+  # Enhanced probes for production
+  startupProbe:
+    exec:
+      command:
+      - dig
+      - +short
+      - +norecurse
+      - +retry=0
+      - '@127.0.0.1'
+      - pi.hole
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 30
+
+  livenessProbe:
+    exec:
+      command:
+      - dig
+      - +short
+      - +norecurse
+      - +retry=0
+      - '@127.0.0.1'
+      - pi.hole
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  readinessProbe:
+    exec:
+      command:
+      - dig
+      - +short
+      - +norecurse
+      - +retry=0
+      - '@127.0.0.1'
+      - pi.hole
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # Use PVCs instead of hostPath
+  volumes:
+  - name: etc-pihole
+    type: persistentVolumeClaim
+    mountPath: /etc/pihole
+    readOnly: false
+  - name: etc-dnsmasq-d
+    type: persistentVolumeClaim
+    mountPath: /etc/dnsmasq.d
+    readOnly: false
+
+# Persistent storage
+persistence:
+  etc-pihole:
+    enabled: true
+    storageClass: "fast-ssd"  # Use your storage class
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+  etc-dnsmasq:
+    enabled: true
+    storageClass: "fast-ssd"
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+
+# Service configuration
+service:
+  type: ClusterIP
+  annotations: {}
+
+# Ingress with TLS
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+  - host: pihole.example.com
+    paths:
+    - path: /
+      pathType: Prefix
+      port: 80
+  tls:
+  - secretName: pihole-tls
+    hosts:
+    - pihole.example.com

@@ -1,0 +1,31 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "restic-backup.name" . }}
+  namespace: {{ include "restic-backup.namespace" . }}
+  labels:
+    {{- include "restic-backup.labels" . | nindent 4 }}
+rules:
+  # Required to list and access PVCs
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list"]
+  # Required to access pods for volume mounting
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  # Required to read secrets if using external secrets
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+  {{- if .Values.metrics.enabled }}
+  # Required for metrics exporter to read job status
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- with .Values.rbac.additionalRules }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{- end }}

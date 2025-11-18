@@ -1,0 +1,27 @@
+{{- if and .Values.backupVolume.enabled (eq .Values.backupVolume.type "pvc") (not .Values.backupVolume.pvc.existingClaim) -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "restic-backup.name" . }}-repository
+  namespace: {{ include "restic-backup.namespace" . }}
+  labels:
+    {{- include "restic-backup.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup-storage
+  {{- with .Values.backupVolume.pvc.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- toYaml .Values.backupVolume.pvc.accessModes | nindent 4 }}
+  {{- if .Values.backupVolume.pvc.storageClassName }}
+  storageClassName: {{ .Values.backupVolume.pvc.storageClassName }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.backupVolume.pvc.size }}
+  {{- with .Values.backupVolume.pvc.selector }}
+  selector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

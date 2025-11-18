@@ -1,0 +1,25 @@
+# CI Test: Ingress configuration
+# Tests ingress with TLS and annotations
+
+redisinsight:
+  email: admin@example.com
+  password: SuperSecurePassword123
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: redisinsight.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: redisinsight-tls
+      hosts:
+        - redisinsight.example.com
+
+persistence:
+  enabled: false

@@ -1,0 +1,25 @@
+# CI Test: Ingress configuration
+# Tests ingress with TLS and annotations
+
+pbs:
+  email: admin@example.com
+  password: SuperSecurePassword123
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: pbs.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: pbs-tls
+      hosts:
+        - pbs.example.com
+
+persistence:
+  enabled: false

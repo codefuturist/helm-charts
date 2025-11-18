@@ -1,0 +1,117 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    🐘 pgAdmin 4 Successfully Deployed! 🎉                    ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+📋 QUICK REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Release Name:    {{ .Release.Name }}
+  Namespace:       {{ include "pgadmin.namespace" . }}
+  Chart Version:   {{ .Chart.Version }}
+  App Version:     {{ .Chart.AppVersion }}
+  Controller:      {{ .Values.controller.type }}
+{{- if .Values.persistence.enabled }}
+  Persistence:     ✓ Enabled ({{ .Values.persistence.size }})
+{{- else }}
+  Persistence:     ✗ Disabled
+{{- end }}
+{{- if .Values.pgadmin.serverDefinitions }}
+  Pre-configured:  {{ len .Values.pgadmin.serverDefinitions.servers }} server(s)
+{{- end }}
+
+🌐 ACCESS YOUR PGADMIN INSTANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+
+  🔗 http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+
+  Run these commands to get the URL:
+
+  export NODE_PORT=$(kubectl get --namespace {{ include "pgadmin.namespace" . }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "pgadmin.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ include "pgadmin.namespace" . }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "🔗 http://$NODE_IP:$NODE_PORT"
+{{- else if contains "LoadBalancer" .Values.service.type }}
+
+  ⏳ Waiting for LoadBalancer IP (this may take a few minutes)...
+
+  Watch status: kubectl get --namespace {{ include "pgadmin.namespace" . }} svc -w {{ include "pgadmin.fullname" . }}
+
+  Get URL:
+  export SERVICE_IP=$(kubectl get svc --namespace {{ include "pgadmin.namespace" . }} {{ include "pgadmin.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "🔗 http://$SERVICE_IP:{{ .Values.service.port }}"
+{{- else if contains "ClusterIP" .Values.service.type }}
+
+  Port-forward to access locally:
+
+  export POD_NAME=$(kubectl get pods --namespace {{ include "pgadmin.namespace" . }} -l "app.kubernetes.io/name={{ include "pgadmin.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ include "pgadmin.namespace" . }} port-forward $POD_NAME 8080:80
+
+  Then visit: 🔗 http://127.0.0.1:8080
+{{- end }}
+
+🔐 LOGIN CREDENTIALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Email:    {{ .Values.pgadmin.email }}
+  Password: {{ if .Values.pgadmin.existingSecret }}<stored in secret: {{ .Values.pgadmin.existingSecret }}>{{ else }}<the password you configured>{{ end }}
+{{- if .Values.pgadmin.serverDefinitions }}
+
+✅ PRE-CONFIGURED SERVERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  {{ len .Values.pgadmin.serverDefinitions.servers }} PostgreSQL server(s) are pre-configured and ready to use.
+  They will appear in the browser tree after login.
+{{- end }}
+
+💡 HELPFUL COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # View pods
+  kubectl get pods --namespace {{ include "pgadmin.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+  # View logs
+  kubectl logs --namespace {{ include "pgadmin.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }} -f
+
+  # Get all resources
+  kubectl get all --namespace {{ include "pgadmin.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }}
+{{- if .Values.persistence.enabled }}
+
+  # Check persistent volume claim
+  kubectl get pvc --namespace {{ include "pgadmin.namespace" . }} {{ include "pgadmin.fullname" . }}
+{{- end }}
+{{- if not .Values.persistence.enabled }}
+
+⚠️  WARNING: PERSISTENCE DISABLED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Persistence is disabled. All configurations, saved queries, and preferences
+  will be LOST when the pod restarts.
+
+  📝 Enable persistence for production:
+     helm upgrade {{ .Release.Name }} codefuturist/pgadmin \
+       --set persistence.enabled=true \
+       --set persistence.size=1Gi \
+       --reuse-values
+{{- end }}
+{{- if and (not .Values.pgadmin.existingSecret) (eq .Values.pgadmin.password "") }}
+
+❌ ERROR: NO PASSWORD CONFIGURED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  You must set pgadmin.password or use pgadmin.existingSecret!
+
+  📝 Set password:
+     helm upgrade {{ .Release.Name }} codefuturist/pgadmin \
+       --set pgadmin.password=YourSecurePassword123 \
+       --reuse-values
+{{- end }}
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Chart README:     https://github.com/codefuturist/helm-charts/tree/main/charts/pgadmin
+  pgAdmin Docs:     https://www.pgadmin.org/docs/
+  Configuration:    https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html
+  Support:          https://github.com/codefuturist/helm-charts/issues
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                              Happy Database Managing! 🚀
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

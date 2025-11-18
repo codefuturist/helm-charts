@@ -1,0 +1,65 @@
+# Example: Using API token from a file (e.g., mounted from External Secrets)
+# This is useful when you want to manage the API token through External Secrets Operator
+# or another secrets management solution
+
+replicaCount: 2
+
+bitwarden:
+  server: "https://vault.bitwarden.com"
+
+  auth:
+    useApiKey: false
+    usePassword: true
+
+    # Use existing secret for Bitwarden credentials
+    existingSecret:
+      name: "bitwarden-credentials"
+      emailKey: "email"
+      passwordKey: "password"
+
+api:
+  port: 8080
+
+  # Don't set token directly - it will be read from file
+  token: ""
+
+  # Disable the default secret
+  existingSecret:
+    name: ""
+
+  # Enable reading token from file
+  tokenFile:
+    enabled: true
+    path: "/etc/secrets/api-token"
+    # Reference a secret created by External Secrets or other means
+    secretName: "bitwarden-eso-api-token"
+    secretKey: "token"
+
+cache:
+  enabled: true
+  ttl: 60
+  maxSize: 1000
+
+logging:
+  level: "info"
+  format: "json"
+
+---
+# Example External Secret for API token
+# apiVersion: external-secrets.io/v1beta1
+# kind: ExternalSecret
+# metadata:
+#   name: bitwarden-eso-api-token
+# spec:
+#   refreshInterval: 1h
+#   secretStoreRef:
+#     name: vault-backend
+#     kind: SecretStore
+#   target:
+#     name: bitwarden-eso-api-token
+#     creationPolicy: Owner
+#   data:
+#   - secretKey: token
+#     remoteRef:
+#       key: bitwarden/api-token
+#       property: value

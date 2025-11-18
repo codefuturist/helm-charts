@@ -1,0 +1,22 @@
+{{- if and .Values.serviceMesh.enabled (eq .Values.serviceMesh.provider "istio") .Values.serviceMesh.istio.trafficPolicy }}
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: {{ include "postgresql.fullname" . }}
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+spec:
+  host: {{ include "postgresql.fullname" . }}.{{ include "postgresql.namespace" . }}.svc.cluster.local
+  {{- with .Values.serviceMesh.istio.trafficPolicy }}
+  trafficPolicy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if .Values.serviceMesh.istio.mtls }}
+  {{- if .Values.serviceMesh.istio.mtls.mode }}
+  trafficPolicy:
+    tls:
+      mode: {{ .Values.serviceMesh.istio.mtls.mode }}
+  {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,30 @@
+{{- if .Values.metrics.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "restic-backup.name" . }}-metrics
+  namespace: {{ include "restic-backup.namespace" . }}
+  labels:
+    {{- include "restic-backup.labels" . | nindent 4 }}
+    app.kubernetes.io/component: metrics
+    {{- with .Values.metrics.service.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.metrics.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.metrics.service.type }}
+  {{- with .Values.metrics.service.clusterIP }}
+  clusterIP: {{ . }}
+  {{- end }}
+  ports:
+    - name: metrics
+      port: {{ .Values.metrics.service.port }}
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    {{- include "restic-backup.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: metrics-exporter
+{{- end }}

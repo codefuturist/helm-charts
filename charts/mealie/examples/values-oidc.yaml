@@ -1,0 +1,120 @@
+# OIDC Authentication Example
+# This configuration shows how to set up Mealie with OpenID Connect authentication
+
+mealie:
+  enabled: true
+  replicas: 2
+  env:
+    # General Configuration
+    ALLOW_SIGNUP:
+      value: 'false'
+    ALLOW_PASSWORD_LOGIN:
+      value: 'false'  # Disable password login when using OIDC
+    TZ:
+      value: America/New_York
+    BASE_URL:
+      value: https://mealie.example.com
+
+    # OpenID Connect (OIDC) Authentication
+    OIDC_AUTH_ENABLED:
+      value: 'true'
+    OIDC_SIGNUP_ENABLED:
+      value: 'true'  # Allow new users to be created on first login
+    OIDC_CONFIGURATION_URL:
+      value: 'https://auth.example.com/.well-known/openid-configuration'
+    OIDC_CLIENT_ID:
+      value: 'mealie'
+    OIDC_CLIENT_SECRET:
+      valueFrom:
+        secretKeyRef:
+          name: mealie-oidc-secret
+          key: client-secret
+    OIDC_AUTO_REDIRECT:
+      value: 'true'  # Skip login page and go directly to IdP
+    OIDC_PROVIDER_NAME:
+      value: 'Keycloak'  # Shown on login button
+    OIDC_REMEMBER_ME:
+      value: 'true'
+    OIDC_SIGNING_ALGORITHM:
+      value: 'RS256'
+    OIDC_USER_CLAIM:
+      value: 'email'  # Claim used to identify users
+    OIDC_NAME_CLAIM:
+      value: 'name'
+
+    # Optional: Restrict access to specific group
+    # OIDC_USER_GROUP:
+    #   value: 'mealie_users'
+
+    # Optional: Make specific group members admins
+    # OIDC_ADMIN_GROUP:
+    #   value: 'mealie_admins'
+
+    # Optional: Custom groups claim
+    # OIDC_GROUPS_CLAIM:
+    #   value: 'groups'
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1000Mi
+      cpu: 1000m
+
+# Database configuration - PostgreSQL
+database:
+  engine: postgres
+  name: mealie
+  user: mealie
+  password: changeme
+
+# Enable PostgreSQL
+postgres:
+  enabled: true
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+# Persistent storage
+persistence:
+  mealie-data:
+    enabled: true
+    size: 10Gi
+  mealie-pgdata:
+    enabled: true
+    size: 20Gi
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+  hosts:
+  - host: mealie.example.com
+    paths:
+    - path: /
+      pathType: Prefix
+      port: 80
+  tls:
+  - secretName: mealie-tls
+    hosts:
+    - mealie.example.com
+
+# Prerequisites:
+# 1. Create OIDC secret:
+#    kubectl create secret generic mealie-oidc-secret --from-literal=client-secret='your-client-secret'
+#
+# 2. Configure your IdP (Keycloak, Authentik, etc.) with:
+#    - Client ID: mealie
+#    - Redirect URI: https://mealie.example.com/login
+#    - Scopes: openid profile email (and groups if using group restrictions)

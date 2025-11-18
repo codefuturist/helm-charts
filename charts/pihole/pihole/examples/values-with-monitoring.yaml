@@ -1,0 +1,53 @@
+# Configuration with Prometheus monitoring enabled
+
+serviceAccount:
+  enabled: true
+
+# Enable Prometheus ServiceMonitor
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /admin/api.php?summaryRaw
+  additionalLabels:
+    release: prometheus
+    prometheus: kube-prometheus
+
+deployment:
+  replicas: 2
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+  podSecurityContext:
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    capabilities:
+      drop:
+      - ALL
+      add:
+      - NET_BIND_SERVICE
+      - CHOWN
+      - SETGID
+      - SETUID
+    readOnlyRootFilesystem: false
+    runAsNonRoot: true
+    runAsUser: 1000
+    allowPrivilegeEscalation: false
+
+# Persistent storage for data
+persistence:
+  etc-pihole:
+    enabled: true
+    size: 2Gi
+  etc-dnsmasq:
+    enabled: true
+    size: 500Mi

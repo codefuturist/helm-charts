@@ -35,7 +35,7 @@ jobs:
         run: |
           echo "Generating documentation for all charts..."
           helm-docs --chart-search-root=charts
-          
+
       - name: Check for documentation changes
         id: git-check
         run: |
@@ -59,37 +59,37 @@ jobs:
       - name: Copy chart documentation to gh-pages
         run: |
           echo "Setting up documentation structure..."
-          
+
           # Create charts directory structure
           mkdir -p gh-pages/charts
-          
+
           # Copy each chart's README
           for chart_dir in charts/*/; do
             chart_name=$(basename "$chart_dir")
             echo "Processing chart: $chart_name"
-            
+
             # Create chart directory in gh-pages
             mkdir -p "gh-pages/charts/$chart_name"
-            
+
             # Copy README if it exists
             if [ -f "$chart_dir/README.md" ]; then
               cp "$chart_dir/README.md" "gh-pages/charts/$chart_name/"
               echo "✓ Copied README for $chart_name"
             fi
-            
+
             # Copy Chart.yaml for reference
             if [ -f "$chart_dir/Chart.yaml" ]; then
               cp "$chart_dir/Chart.yaml" "gh-pages/charts/$chart_name/"
               echo "✓ Copied Chart.yaml for $chart_name"
             fi
-            
+
             # Copy values.yaml for reference
             if [ -f "$chart_dir/values.yaml" ]; then
               cp "$chart_dir/values.yaml" "gh-pages/charts/$chart_name/"
               echo "✓ Copied values.yaml for $chart_name"
             fi
           done
-          
+
           # Create the index HTML file
           cat > gh-pages/charts/index.html << 'HTMLEOF'
           <!DOCTYPE html>
@@ -126,14 +126,14 @@ jobs:
                   <a href="../" class="back-link">← Back to Home</a>
                   <div class="chart-list">
           HTMLEOF
-          
+
           # Add a card for each chart
           for chart_dir in charts/*/; do
             chart_name=$(basename "$chart_dir")
             if [ -f "$chart_dir/Chart.yaml" ]; then
               description=$(grep "^description:" "$chart_dir/Chart.yaml" | sed 's/description: //' | sed 's/^"//' | sed 's/"$//')
               version=$(grep "^version:" "$chart_dir/Chart.yaml" | awk '{print $2}')
-              
+
               cat >> gh-pages/charts/index.html << HTMLEOF
                       <div class="chart-card">
                           <h2>$chart_name</h2>
@@ -146,7 +146,7 @@ jobs:
           HTMLEOF
             fi
           done
-          
+
           cat >> gh-pages/charts/index.html << 'HTMLEOF'
                   </div>
               </div>

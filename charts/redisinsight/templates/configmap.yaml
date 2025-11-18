@@ -1,0 +1,2 @@
+{{- /* Redis Insight does not require a configmap for basic operation */ -}}
+{{- /* Configuration is done through environment variables */ -}}

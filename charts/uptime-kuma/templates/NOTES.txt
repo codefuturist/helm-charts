@@ -1,0 +1,116 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║            📊 Uptime Kuma Successfully Deployed! 🎉                          ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+📋 QUICK REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Release Name:    {{ .Release.Name }}
+  Namespace:       {{ include "uptime-kuma.namespace" . }}
+  Chart Version:   {{ .Chart.Version }}
+  App Version:     {{ .Chart.AppVersion }}
+  Controller:      {{ .Values.controller.type }}
+
+🌐 ACCESS YOUR UPTIME KUMA INSTANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+
+  Run these commands to get the service address:
+
+  export NODE_PORT=$(kubectl get --namespace {{ include "uptime-kuma.namespace" . }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "uptime-kuma.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ include "uptime-kuma.namespace" . }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "Uptime Kuma: http://$NODE_IP:$NODE_PORT"
+{{- else if contains "LoadBalancer" .Values.service.type }}
+
+  ⏳ Waiting for LoadBalancer IP (this may take a few minutes)...
+
+  Watch status: kubectl get --namespace {{ include "uptime-kuma.namespace" . }} svc -w {{ include "uptime-kuma.fullname" . }}
+
+  Get address:
+  export SERVICE_IP=$(kubectl get svc --namespace {{ include "uptime-kuma.namespace" . }} {{ include "uptime-kuma.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "Uptime Kuma: http://$SERVICE_IP:{{ .Values.service.port }}"
+{{- else if contains "ClusterIP" .Values.service.type }}
+
+  Port-forward to access from your local machine:
+
+  export POD_NAME=$(kubectl get pods --namespace {{ include "uptime-kuma.namespace" . }} -l "app.kubernetes.io/name={{ include "uptime-kuma.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ include "uptime-kuma.namespace" . }} port-forward $POD_NAME 3001:3001
+
+  Then open your browser to: http://localhost:3001
+{{- end }}
+
+📚 USEFUL COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  View pods:
+  kubectl get pods -n {{ include "uptime-kuma.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+  View logs:
+  kubectl logs -n {{ include "uptime-kuma.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }} -f
+
+  Test connectivity:
+  kubectl run -it --rm test-uptime-kuma --image=nicolaka/netshoot --restart=Never -- \
+    curl http://{{ include "uptime-kuma.fullname" . }}.{{ include "uptime-kuma.namespace" . }}.svc.cluster.local:{{ .Values.service.port }}
+
+  Delete deployment:
+  helm uninstall {{ .Release.Name }} -n {{ include "uptime-kuma.namespace" . }}
+
+{{- if .Values.monitoring.serviceMonitor.enabled }}
+
+🔍 MONITORING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ServiceMonitor enabled! Metrics are being scraped by Prometheus.
+
+  Access Prometheus:
+  kubectl port-forward -n monitoring svc/prometheus-operated 9090:9090
+  Query: uptime_kuma_* or {{ include "uptime-kuma.fullname" . }}
+
+  {{- if .Values.monitoring.prometheusRule.enabled }}
+  PrometheusRule alerts configured. Check: http://localhost:9090/alerts
+  {{- end }}
+
+{{- end }}
+
+🐛 DEBUGGING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Check pod events:
+  kubectl get events -n {{ include "uptime-kuma.namespace" . }} --field-selector involvedObject.name={{ include "uptime-kuma.fullname" . }} --sort-by='.lastTimestamp'
+
+  Resource usage:
+  kubectl top pod -n {{ include "uptime-kuma.namespace" . }} -l "app.kubernetes.io/name={{ include "uptime-kuma.name" . }}"
+
+  Detailed pod info:
+  kubectl describe pod -n {{ include "uptime-kuma.namespace" . }} -l "app.kubernetes.io/name={{ include "uptime-kuma.name" . }}"
+
+  Shell access:
+  kubectl exec -n {{ include "uptime-kuma.namespace" . }} -it {{ include "uptime-kuma.fullname" . }}-0 -- /bin/sh
+
+{{- if .Values.persistence.enabled }}
+
+  Backup data:
+  kubectl exec -n {{ include "uptime-kuma.namespace" . }} {{ include "uptime-kuma.fullname" . }}-0 -- tar czf - /app/data > backup-$(date +%Y%m%d).tar.gz
+
+  Restore data:
+  cat backup.tar.gz | kubectl exec -n {{ include "uptime-kuma.namespace" . }} -i {{ include "uptime-kuma.fullname" . }}-0 -- tar xzf - -C /app/data
+{{- end }}
+
+📖 NEXT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. Access the web interface
+  2. Create your admin account (first user becomes admin)
+  3. Add monitors for your services
+  4. Configure notifications
+  5. Set up status pages
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Chart:       https://github.com/codefuturist/helm-charts/tree/main/charts/uptime-kuma
+  Uptime Kuma: https://github.com/louislam/uptime-kuma
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           Thank you for using Uptime Kuma! 📊 🚀
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

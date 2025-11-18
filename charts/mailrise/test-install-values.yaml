@@ -1,0 +1,53 @@
+# Test configuration for Mailrise chart
+# This provides a minimal working configuration for testing
+
+mailrise:
+  config:
+    configs:
+      # Basic test notification
+      test:
+        urls:
+          - "json://localhost/test"
+
+      # Example with template
+      formatted:
+        urls:
+          - "json://localhost/formatted"
+        mailrise:
+          title_template: "Test: $subject"
+          body_template: "$body"
+
+    listen:
+      host: "0.0.0.0"
+      port: 8025
+
+controller:
+  type: deployment
+  replicas: 1
+
+service:
+  type: ClusterIP
+  port: 8025
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# Security settings
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 999
+  fsGroup: 999
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 999
+  capabilities:
+    drop:
+      - ALL

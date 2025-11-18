@@ -1,0 +1,82 @@
+{{- if and .Values.backup.wal.enabled .Values.backup.wal.cleanup.enabled (eq .Values.backup.wal.method "simple") }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "postgresql.fullname" . }}-wal-cleanup
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    app.kubernetes.io/component: wal-cleanup
+spec:
+  schedule: {{ .Values.backup.wal.cleanup.schedule | quote }}
+  successfulJobsHistoryLimit: {{ .Values.backup.wal.cleanup.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.backup.wal.cleanup.failedJobsHistoryLimit }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "postgresql.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: wal-cleanup
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "postgresql.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: wal-cleanup
+        spec:
+          restartPolicy: OnFailure
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+          - name: wal-cleanup
+            image: "{{ .Values.backup.image.repository }}:{{ .Values.backup.image.tag }}"
+            imagePullPolicy: {{ .Values.backup.image.pullPolicy }}
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Starting WAL archive cleanup..."
+              echo "WAL archive path: {{ .Values.backup.wal.persistence.mountPath }}"
+              echo "Retention period: {{ .Values.backup.wal.retentionDays }} days"
+
+              # Calculate cutoff date
+              CUTOFF_DATE=$(date -d "{{ .Values.backup.wal.retentionDays }} days ago" +%s 2>/dev/null || date -v -{{ .Values.backup.wal.retentionDays }}d +%s)
+
+              # Count files before cleanup
+              TOTAL_FILES=$(find {{ .Values.backup.wal.persistence.mountPath }} -type f | wc -l)
+              echo "Total WAL files before cleanup: $TOTAL_FILES"
+
+              # Remove old WAL files
+              DELETED_COUNT=0
+              find {{ .Values.backup.wal.persistence.mountPath }} -type f | while read -r file; do
+                FILE_DATE=$(stat -c %Y "$file" 2>/dev/null || stat -f %m "$file")
+                if [ "$FILE_DATE" -lt "$CUTOFF_DATE" ]; then
+                  echo "Deleting old WAL file: $(basename "$file")"
+                  rm -f "$file"
+                  DELETED_COUNT=$((DELETED_COUNT + 1))
+                fi
+              done
+
+              # Count files after cleanup
+              REMAINING_FILES=$(find {{ .Values.backup.wal.persistence.mountPath }} -type f | wc -l)
+              echo "WAL files deleted: $DELETED_COUNT"
+              echo "Remaining WAL files: $REMAINING_FILES"
+
+              # Calculate disk usage
+              DISK_USAGE=$(du -sh {{ .Values.backup.wal.persistence.mountPath }} | cut -f1)
+              echo "WAL archive disk usage: $DISK_USAGE"
+
+              echo "WAL archive cleanup completed successfully"
+            volumeMounts:
+            - name: wal-archive
+              mountPath: {{ .Values.backup.wal.persistence.mountPath }}
+            resources:
+              {{- toYaml .Values.backup.resources | nindent 14 }}
+          volumes:
+          - name: wal-archive
+            persistentVolumeClaim:
+              claimName: {{ include "postgresql.fullname" . }}-wal-archive
+{{- end }}

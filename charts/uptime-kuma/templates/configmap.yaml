@@ -1,0 +1,3 @@
+# Uptime Kuma stores its configuration in the database (SQLite/MySQL/PostgreSQL)
+# No ConfigMap needed for application configuration
+# This file is kept for potential future use with custom scripts or configs

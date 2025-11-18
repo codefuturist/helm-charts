@@ -1,0 +1,27 @@
+# CI Test: Default values
+# Basic deployment with minimal configuration
+
+mailrise:
+  config:
+    configs:
+      test:
+        urls:
+          - "json://localhost/test"
+    listen:
+      host: "0.0.0.0"
+      port: 8025
+
+controller:
+  type: deployment
+  replicas: 1
+
+service:
+  type: ClusterIP
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi

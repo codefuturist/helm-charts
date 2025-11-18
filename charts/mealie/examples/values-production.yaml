@@ -1,0 +1,169 @@
+# Production configuration example - PostgreSQL mode
+# This configuration runs Mealie with PostgreSQL database backend and advanced features
+
+mealie:
+  enabled: true
+  replicas: 2
+  env:
+    # General Configuration
+    ALLOW_SIGNUP:
+      value: "false"
+    TZ:
+      value: America/New_York
+    BASE_URL:
+      value: https://mealie.example.com
+    PUID:
+      value: "1000"
+    PGID:
+      value: "1000"
+    DEFAULT_GROUP:
+      value: "Home"
+    TOKEN_TIME:
+      value: "48"
+    LOG_LEVEL:
+      value: "info"
+    DAILY_SCHEDULE_TIME:
+      value: "02:00"
+
+    # Security Configuration
+    SECURITY_MAX_LOGIN_ATTEMPTS:
+      value: "5"
+    SECURITY_USER_LOCKOUT_TIME:
+      value: "24"
+
+    # Email/SMTP Configuration
+    SMTP_HOST:
+      value: "smtp.gmail.com"
+    SMTP_PORT:
+      value: "587"
+    SMTP_FROM_NAME:
+      value: "Mealie"
+    SMTP_AUTH_STRATEGY:
+      value: "TLS"
+    SMTP_FROM_EMAIL:
+      value: "mealie@example.com"
+    SMTP_USER:
+      value: "mealie@example.com"
+    SMTP_PASSWORD:
+      # Use Kubernetes secrets for sensitive data
+      valueFrom:
+        secretKeyRef:
+          name: mealie-smtp-secret
+          key: password
+
+    # OpenID Connect (OIDC) Authentication
+    # OIDC_AUTH_ENABLED:
+    #   value: 'true'
+    # OIDC_SIGNUP_ENABLED:
+    #   value: 'true'
+    # OIDC_CONFIGURATION_URL:
+    #   value: 'https://auth.example.com/.well-known/openid-configuration'
+    # OIDC_CLIENT_ID:
+    #   value: 'mealie'
+    # OIDC_CLIENT_SECRET:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: mealie-oidc-secret
+    #       key: client-secret
+    # OIDC_AUTO_REDIRECT:
+    #   value: 'false'
+    # OIDC_PROVIDER_NAME:
+    #   value: 'SSO'
+
+    # Custom Theme (Optional)
+    # THEME_LIGHT_PRIMARY:
+    #   value: '#E58325'
+    # THEME_DARK_PRIMARY:
+    #   value: '#E58325'
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1000Mi
+      cpu: 1000m
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - mealie
+                - key: app.kubernetes.io/component
+                  operator: In
+                  values:
+                    - mealie
+            topologyKey: kubernetes.io/hostname
+
+# Database configuration
+database:
+  engine: postgres
+  name: mealie
+  user: mealie
+  password: changeme # IMPORTANT: Use a Kubernetes secret in production!
+  # To use a secret for the password:
+  # 1. Create the secret: kubectl create secret generic mealie-db-secret --from-literal=password=yourpassword
+  # 2. Reference it in postgres.env.POSTGRES_PASSWORD using valueFrom (see postgres section below)
+  port: "5432"
+
+  # Optional: Use URL override for external PostgreSQL
+  # urlOverride: 'postgresql://user:password@external-host:5432/mealie'
+
+# Enable PostgreSQL with production settings
+postgres:
+  enabled: true
+  replicas: 1
+  # If using external secrets for postgres password:
+  # env:
+  #   POSTGRES_PASSWORD:
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: mealie-db-secret
+  #         key: password
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+# Persistent storage
+persistence:
+  mealie-data:
+    enabled: true
+    storageClass: "" # Use default storage class or specify one
+    size: 10Gi
+  mealie-pgdata:
+    enabled: true
+    storageClass: "" # Use default storage class or specify one
+    size: 20Gi
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+  hosts:
+    - host: mealie.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          port: 80
+  tls:
+    - secretName: mealie-tls
+      hosts:
+        - mealie.example.com
+# Note: To create the SMTP secret before deploying:
+# kubectl create secret generic mealie-smtp-secret --from-literal=password='your-smtp-password'

@@ -1,0 +1,23 @@
+# CI Test: StatefulSet controller
+# Tests StatefulSet deployment mode
+
+mailrise:
+  config:
+    configs:
+      stateful:
+        urls:
+          - "json://localhost/stateful"
+    listen:
+      host: "0.0.0.0"
+      port: 8025
+
+controller:
+  type: statefulset
+  replicas: 2
+
+persistence:
+  enabled: true
+  size: 1Gi
+
+service:
+  type: ClusterIP

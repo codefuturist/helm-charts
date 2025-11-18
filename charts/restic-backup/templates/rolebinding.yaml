@@ -1,0 +1,17 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "restic-backup.name" . }}
+  namespace: {{ include "restic-backup.namespace" . }}
+  labels:
+    {{- include "restic-backup.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "restic-backup.name" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "restic-backup.serviceAccountName" . }}
+    namespace: {{ include "restic-backup.namespace" . }}
+{{- end }}

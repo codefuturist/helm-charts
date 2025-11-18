@@ -1,0 +1,41 @@
+MongoDB Compass Web has been deployed successfully!
+
+Release Name: {{ .Release.Name }}
+Namespace: {{ include "compass-web.namespace" . }}
+Chart Version: {{ .Chart.Version }}
+App Version: {{ .Chart.AppVersion }}
+
+{{- if .Values.ingress.enabled }}
+Access the application via Ingress:
+{{- range $host := .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+Access the application via NodePort:
+  export NODE_PORT=$(kubectl get --namespace {{ include "compass-web.namespace" . }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "compass-web.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ include "compass-web.namespace" . }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "http://$NODE_IP:$NODE_PORT"
+{{- else if contains "LoadBalancer" .Values.service.type }}
+Access the application via LoadBalancer:
+  export SERVICE_IP=$(kubectl get svc --namespace {{ include "compass-web.namespace" . }} {{ include "compass-web.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  echo "http://$SERVICE_IP:{{ .Values.service.port }}"
+{{- else }}
+Access the application via port-forward:
+  kubectl --namespace {{ include "compass-web.namespace" . }} port-forward svc/{{ include "compass-web.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+  echo "http://127.0.0.1:{{ .Values.service.port }}"
+{{- end }}
+
+{{- if and (not .Values.compassWeb.mongoUri) (not .Values.compassWeb.existingSecret) }}
+
+WARNING: MongoDB Connection Not Configured!
+You must set compassWeb.mongoUri or compassWeb.existingSecret to connect to MongoDB.
+
+Example:
+  helm upgrade {{ .Release.Name }} codefuturist/compass-web \
+    --set compassWeb.mongoUri=mongodb://username:password@host:27017/database \
+    --reuse-values
+{{- end }}
+
+For more information, visit:
+- Chart: https://github.com/codefuturist/helm-charts/tree/main/charts/compass-web
+- Container: https://github.com/haohanyang/compass-web

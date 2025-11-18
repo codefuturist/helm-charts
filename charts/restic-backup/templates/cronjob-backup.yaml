@@ -1,0 +1,329 @@
+{{- if .Values.restic.backup.enabled -}}
+{{- $_ := include "restic-backup.validateValues" . -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "restic-backup.name" . }}-backup
+  namespace: {{ include "restic-backup.namespace" . }}
+  labels:
+    {{- include "restic-backup.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup-job
+    {{- with .Values.cronjob.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.cronjob.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.restic.backup.schedule | quote }}
+  concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy }}
+  successfulJobsHistoryLimit: {{ .Values.restic.backup.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.restic.backup.failedJobsHistoryLimit }}
+  {{- with .Values.cronjob.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ . }}
+  {{- end }}
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "restic-backup.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backup-job
+    spec:
+      {{- with .Values.cronjob.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ . }}
+      {{- end }}
+      {{- with .Values.cronjob.activeDeadlineSeconds }}
+      activeDeadlineSeconds: {{ . }}
+      {{- end }}
+      template:
+        metadata:
+          labels:
+            {{- include "restic-backup.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: backup-job
+          {{- with .Values.cronjob.additionalPodAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        spec:
+          restartPolicy: {{ .Values.cronjob.restartPolicy }}
+          serviceAccountName: {{ include "restic-backup.serviceAccountName" . }}
+          {{- with .Values.image.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.cronjob.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.priorityClassName }}
+          priorityClassName: {{ . }}
+          {{- end }}
+          {{- if .Values.hostNetwork }}
+          hostNetwork: true
+          {{- end }}
+          dnsPolicy: {{ .Values.dnsPolicy }}
+          {{- with .Values.dnsConfig }}
+          dnsConfig:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.hooks.preBackup }}
+          initContainers:
+          {{- range .Values.hooks.preBackup }}
+            - name: {{ .name }}
+              image: {{ .image }}
+              {{- with .command }}
+              command:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .args }}
+              args:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .env }}
+              env:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .volumeMounts }}
+              volumeMounts:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+          {{- end }}
+          {{- end }}
+          containers:
+            - name: restic-backup
+              image: {{ include "restic-backup.image" . }}
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              {{- with .Values.cronjob.containerSecurityContext }}
+              securityContext:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- if .Values.scripts.useConfigMap }}
+              command:
+                - /bin/sh
+                - /scripts/backup.sh
+              env:
+                - name: NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: SMTP_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "restic-backup.secretName" . }}
+                      key: SMTP_PASSWORD
+                      optional: true
+              {{- else }}
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+
+                  echo "=== Restic Backup Job Started at $(date) ==="
+                  echo "Repository: ${RESTIC_REPOSITORY}"
+                  echo "Hostname: $(hostname)"
+
+                  # Function to send notification
+                  send_notification() {
+                    STATUS=$1
+                    MESSAGE=$2
+                    {{- if .Values.notifications.enabled }}
+                    {{- if .Values.notifications.webhook.url }}
+                    curl -X POST "{{ .Values.notifications.webhook.url }}" \
+                      -H "Content-Type: application/json" \
+                      -d "{\"status\": \"${STATUS}\", \"message\": \"${MESSAGE}\", \"hostname\": \"$(hostname)\", \"timestamp\": \"$(date -Iseconds)\"}" || true
+                    {{- end }}
+                    {{- end }}
+                  }
+
+                  # Initialize repository if needed
+                  if ! restic snapshots --quiet > /dev/null 2>&1; then
+                    echo "Repository not initialized. Initializing..."
+                    restic init
+                    echo "Repository initialized successfully."
+                  fi
+
+                  # Perform backup
+                  echo "Starting backup..."
+                  {{- range .Values.volumes }}
+                  echo "Backing up volume: {{ .name }} from {{ .mountPath }}"
+                  {{- end }}
+
+                  restic backup \
+                    {{- range .Values.volumes }}
+                    {{ .mountPath }}{{ if .subPath }}/{{ .subPath }}{{ end }} \
+                    {{- end }}
+                    {{- range .Values.restic.backup.tags }}
+                    --tag {{ . }} \
+                    {{- end }}
+                    {{- range .Values.restic.backup.excludes }}
+                    --exclude {{ . | quote }} \
+                    {{- end }}
+                    {{- with .Values.restic.backup.options }}
+                    {{- range $key, $value := . }}
+                    --{{ $key }}={{ $value }} \
+                    {{- end }}
+                    {{- end }}
+                    --verbose
+
+                  BACKUP_EXIT_CODE=$?
+
+                  if [ $BACKUP_EXIT_CODE -eq 0 ]; then
+                    echo "Backup completed successfully."
+                    send_notification "success" "Backup completed successfully"
+
+                    # Show latest snapshot
+                    echo "Latest snapshot:"
+                    restic snapshots --latest 1
+
+                    {{- if .Values.restic.backup.retention.enabled }}
+                    # Apply retention policy
+                    echo "Applying retention policy..."
+                    restic forget \
+                      {{- with .Values.restic.backup.retention.keepLast }}
+                      --keep-last {{ . }} \
+                      {{- end }}
+                      {{- with .Values.restic.backup.retention.keepDaily }}
+                      --keep-daily {{ . }} \
+                      {{- end }}
+                      {{- with .Values.restic.backup.retention.keepWeekly }}
+                      --keep-weekly {{ . }} \
+                      {{- end }}
+                      {{- with .Values.restic.backup.retention.keepMonthly }}
+                      --keep-monthly {{ . }} \
+                      {{- end }}
+                      {{- with .Values.restic.backup.retention.keepYearly }}
+                      --keep-yearly {{ . }} \
+                      {{- end }}
+                      --prune \
+                      --verbose
+
+                    echo "Retention policy applied successfully."
+                    {{- end }}
+                  else
+                    echo "Backup failed with exit code: $BACKUP_EXIT_CODE"
+                    send_notification "failure" "Backup failed with exit code: $BACKUP_EXIT_CODE"
+                    exit $BACKUP_EXIT_CODE
+                  fi
+
+                  echo "=== Restic Backup Job Completed at $(date) ==="
+              {{- end }}
+              env:
+                - name: RESTIC_REPOSITORY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "restic-backup.secretName" . }}
+                      key: RESTIC_REPOSITORY
+                - name: RESTIC_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "restic-backup.secretName" . }}
+                      key: RESTIC_PASSWORD
+              envFrom:
+                - secretRef:
+                    name: {{ include "restic-backup.secretName" . }}
+                {{- with .Values.envFrom }}
+                {{- toYaml . | nindent 16 }}
+                {{- end }}
+              {{- with .Values.cronjob.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              volumeMounts:
+                {{- if .Values.scripts.useConfigMap }}
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                {{- end }}
+                {{- include "restic-backup.backupVolumeMount" . | nindent 16 }}
+                {{- range .Values.volumes }}
+                - name: {{ .name }}
+                  mountPath: {{ .mountPath }}
+                  {{- if .subPath }}
+                  subPath: {{ .subPath }}
+                  {{- end }}
+                  {{- if .readOnly }}
+                  readOnly: {{ .readOnly }}
+                  {{- end }}
+                {{- end }}
+                {{- with .Values.extraVolumeMounts }}
+                {{- toYaml . | nindent 16 }}
+                {{- end }}
+            {{- if .Values.hooks.postBackup }}
+            {{- range .Values.hooks.postBackup }}
+            - name: {{ .name }}
+              image: {{ .image }}
+              {{- with .command }}
+              command:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .args }}
+              args:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .env }}
+              env:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with .volumeMounts }}
+              volumeMounts:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+          volumes:
+            {{- if .Values.scripts.useConfigMap }}
+            - name: scripts
+              configMap:
+                name: {{ include "restic-backup.name" . }}-scripts
+                defaultMode: 0755
+            {{- end }}
+            {{- include "restic-backup.backupVolume" . | nindent 12 }}
+            {{- range .Values.volumes }}
+            - name: {{ .name }}
+              {{- if or (not .type) (eq .type "pvc") }}
+              persistentVolumeClaim:
+                claimName: {{ .claimName }}
+              {{- else if eq .type "hostPath" }}
+              hostPath:
+                path: {{ .hostPath.path }}
+                {{- if .hostPath.type }}
+                type: {{ .hostPath.type }}
+                {{- end }}
+              {{- else if eq .type "emptyDir" }}
+              emptyDir:
+                {{- if .emptyDir.sizeLimit }}
+                sizeLimit: {{ .emptyDir.sizeLimit }}
+                {{- end }}
+              {{- else if eq .type "configMap" }}
+              configMap:
+                name: {{ .configMap.name }}
+                {{- if .configMap.defaultMode }}
+                defaultMode: {{ .configMap.defaultMode }}
+                {{- end }}
+              {{- else if eq .type "secret" }}
+              secret:
+                secretName: {{ .secret.secretName }}
+                {{- if .secret.defaultMode }}
+                defaultMode: {{ .secret.defaultMode }}
+                {{- end }}
+              {{- else if eq .type "custom" }}
+              {{- toYaml .volumeSpec | nindent 14 }}
+              {{- end }}
+            {{- end }}
+            {{- with .Values.extraVolumes }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.cronjob.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.cronjob.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.cronjob.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

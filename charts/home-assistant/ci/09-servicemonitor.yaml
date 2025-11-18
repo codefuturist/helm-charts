@@ -1,0 +1,12 @@
+# CI Test: ServiceMonitor with bearer token
+# Tests Prometheus integration
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  bearerToken:
+    secretName: ha-bearer-token
+    secretKey: token
+
+persistence:
+  enabled: false

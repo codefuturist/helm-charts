@@ -1,0 +1,33 @@
+# CI Test: Monitoring enabled
+# Tests ServiceMonitor and PrometheusRule
+
+mailrise:
+  config:
+    configs:
+      monitored:
+        urls:
+          - "json://localhost/monitored"
+    listen:
+      host: "0.0.0.0"
+      port: 8025
+
+controller:
+  type: deployment
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    labels:
+      prometheus: kube-prometheus
+
+  prometheusRule:
+    enabled: true
+    labels:
+      prometheus: kube-prometheus
+    rules:
+      - alert: MailriseDown
+        expr: up{job="mailrise"} == 0
+        for: 5m
+        labels:
+          severity: critical

@@ -1,0 +1,214 @@
+{{- include "pbs.validateValues" . -}}
+{{- if eq .Values.controller.type "statefulset" }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "pbs.fullname" . }}
+  namespace: {{ include "pbs.namespace" . }}
+  labels:
+    {{- include "pbs.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "pbs.fullname" . }}
+  replicas: {{ .Values.controller.replicas }}
+  {{- with .Values.controller.podManagementPolicy }}
+  podManagementPolicy: {{ . }}
+  {{- end }}
+  {{- with .Values.controller.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "pbs.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if not .Values.pbs.existingSecret }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "pbs.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "pbs.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: pbs
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: https
+              containerPort: 8007
+              protocol: TCP
+          env:
+            {{- if .Values.pbs.timezone }}
+            - name: TZ
+              value: {{ .Values.pbs.timezone | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            {{- omit .Values.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: run
+              mountPath: /run
+            {{- if .Values.persistence.etc.enabled }}
+            - name: pbs-etc
+              mountPath: /etc/proxmox-backup
+            {{- end }}
+            {{- if .Values.persistence.logs.enabled }}
+            - name: pbs-logs
+              mountPath: /var/log/proxmox-backup
+            {{- end }}
+            {{- if .Values.persistence.lib.enabled }}
+            - name: pbs-lib
+              mountPath: /var/lib/proxmox-backup
+            {{- end }}
+            {{- range .Values.pbs.backupVolumes }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: run
+          emptyDir:
+            medium: Memory
+            sizeLimit: 100Mi
+        {{- range .Values.pbs.backupVolumes }}
+        {{- if .existingClaim }}
+        - name: {{ .name }}
+          persistentVolumeClaim:
+            claimName: {{ .existingClaim }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+    {{- if .Values.persistence.etc.enabled }}
+    {{- if not .Values.persistence.etc.existingClaim }}
+    - metadata:
+        name: pbs-etc
+        labels:
+          {{- include "pbs.labels" . | nindent 10 }}
+          app.kubernetes.io/component: etc
+        {{- with .Values.persistence.etc.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.etc.accessMode }}
+        {{- if .Values.persistence.etc.storageClassName }}
+        storageClassName: {{ .Values.persistence.etc.storageClassName }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.etc.size }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.logs.enabled }}
+    {{- if not .Values.persistence.logs.existingClaim }}
+    - metadata:
+        name: pbs-logs
+        labels:
+          {{- include "pbs.labels" . | nindent 10 }}
+          app.kubernetes.io/component: logs
+        {{- with .Values.persistence.logs.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.logs.accessMode }}
+        {{- if .Values.persistence.logs.storageClassName }}
+        storageClassName: {{ .Values.persistence.logs.storageClassName }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.logs.size }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.lib.enabled }}
+    {{- if not .Values.persistence.lib.existingClaim }}
+    - metadata:
+        name: pbs-lib
+        labels:
+          {{- include "pbs.labels" . | nindent 10 }}
+          app.kubernetes.io/component: lib
+        {{- with .Values.persistence.lib.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.lib.accessMode }}
+        {{- if .Values.persistence.lib.storageClassName }}
+        storageClassName: {{ .Values.persistence.lib.storageClassName }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.lib.size }}
+    {{- end }}
+    {{- end }}
+    {{- range .Values.pbs.backupVolumes }}
+    {{- if not .existingClaim }}
+    - metadata:
+        name: {{ .name }}
+        labels:
+          {{- include "pbs.labels" $ | nindent 10 }}
+          app.kubernetes.io/component: backup-volume
+      spec:
+        accessModes:
+          - {{ .accessMode | default "ReadWriteOnce" }}
+        {{- if .storageClassName }}
+        storageClassName: {{ .storageClassName }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .size }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

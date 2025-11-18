@@ -1,0 +1,125 @@
+suite: test replication with new features
+templates:
+  - statefulset.yaml
+  - replication-scripts.yaml
+  - configmap.yaml
+tests:
+  - it: should load passwords from files in replication setup script
+    template: replication-scripts.yaml
+    set:
+      statefulset.enabled: true
+      replication.enabled: true
+      postgresql.auth.usePasswordFiles: true
+    asserts:
+      - matchRegex:
+          path: data["setup-replication.sh"]
+          pattern: 'export POSTGRES_PASSWORD=\$\(cat "\$\{POSTGRES_PASSWORD_FILE\}"\)'
+      - matchRegex:
+          path: data["setup-replication.sh"]
+          pattern: 'export POSTGRES_REPLICATION_PASSWORD=\$\(cat "\$\{POSTGRES_REPLICATION_PASSWORD_FILE\}"\)'
+
+  - it: should use PGPASSWORD when using password files
+    template: replication-scripts.yaml
+    set:
+      statefulset.enabled: true
+      replication.enabled: true
+      postgresql.auth.usePasswordFiles: true
+    asserts:
+      - matchRegex:
+          path: data["setup-replication.sh"]
+          pattern: 'PGPASSWORD="\$\{POSTGRES_PASSWORD\}" psql'
+
+  - it: should not load password files when disabled
+    template: replication-scripts.yaml
+    set:
+      statefulset.enabled: true
+      replication.enabled: true
+      postgresql.auth.usePasswordFiles: false
+    asserts:
+      - notMatchRegex:
+          path: data["setup-replication.sh"]
+          pattern: 'export POSTGRES_PASSWORD=\$\(cat'
+
+  - it: should mount password files in replication init container
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      replication.enabled: true
+      postgresql.auth.usePasswordFiles: true
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name=="setup-replication")].volumeMounts
+          content:
+            name: postgresql-password
+            mountPath: /opt/bitnami/postgresql/secrets
+            readOnly: true
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name=="setup-replication")].env
+          content:
+            name: POSTGRES_PASSWORD_FILE
+            value: /opt/bitnami/postgresql/secrets/postgresql-password
+
+  - it: should use env vars for replication when password files disabled
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      replication.enabled: true
+      postgresql.auth.usePasswordFiles: false
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name=="setup-replication")].env
+          content:
+            name: POSTGRES_REPLICATION_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-postgresql
+                key: replication-password
+
+  - it: should respect diagnostic mode in replication setup
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      replication.enabled: true
+      diagnosticMode.enabled: true
+      diagnosticMode.command: ["sleep"]
+      diagnosticMode.args: ["infinity"]
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name=="setup-replication")].command
+          value: ["sleep"]
+      - equal:
+          path: spec.template.spec.initContainers[?(@.name=="setup-replication")].args
+          value: ["infinity"]
+
+  - it: should run pre-init scripts before replication setup
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      postgresql.preInitScripts:
+        setup.sh: "#!/bin/bash"
+      replication.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: pre-init-scripts
+      - equal:
+          path: spec.template.spec.initContainers[1].name
+          value: setup-replication
+
+  - it: should include all password file items for replication
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      postgresql.auth.usePasswordFiles: true
+      replication.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes[?(@.name=="postgresql-password")].secret.items
+          content:
+            key: postgresql-password
+            path: postgresql-password
+      - contains:
+          path: spec.template.spec.volumes[?(@.name=="postgresql-password")].secret.items
+          content:
+            key: replication-password
+            path: replication-password

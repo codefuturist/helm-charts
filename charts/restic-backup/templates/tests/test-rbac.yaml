@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "restic-backup.name" . }}-test-rbac
+  namespace: {{ include "restic-backup.namespace" . }}
+  labels:
+    {{- include "restic-backup.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  restartPolicy: Never
+  serviceAccountName: {{ include "restic-backup.serviceAccountName" . }}
+  containers:
+    - name: test-rbac
+      image: bitnami/kubectl:latest
+      command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Testing RBAC configuration..."
+
+          {{- if .Values.rbac.create }}
+          # Test 1: Check if Role exists
+          echo "Test 1: Checking if Role exists..."
+          ROLE_NAME="{{ include "restic-backup.name" . }}"
+
+          if kubectl get role ${ROLE_NAME} -n {{ include "restic-backup.namespace" . }} > /dev/null 2>&1; then
+            echo "✓ Role exists"
+          else
+            echo "✗ Role does not exist"
+            exit 1
+          fi
+
+          # Test 2: Check if RoleBinding exists
+          echo "Test 2: Checking if RoleBinding exists..."
+          if kubectl get rolebinding ${ROLE_NAME} -n {{ include "restic-backup.namespace" . }} > /dev/null 2>&1; then
+            echo "✓ RoleBinding exists"
+          else
+            echo "✗ RoleBinding does not exist"
+            exit 1
+          fi
+
+          # Test 3: Verify required permissions
+          echo "Test 3: Verifying required permissions..."
+
+          # Check PVC permissions
+          if kubectl auth can-i get persistentvolumeclaims --as=system:serviceaccount:{{ include "restic-backup.namespace" . }}:{{ include "restic-backup.serviceAccountName" . }} -n {{ include "restic-backup.namespace" . }} > /dev/null 2>&1; then
+            echo "✓ Can access PersistentVolumeClaims"
+          else
+            echo "✗ Cannot access PersistentVolumeClaims"
+            exit 1
+          fi
+
+          # Check Pod permissions
+          if kubectl auth can-i get pods --as=system:serviceaccount:{{ include "restic-backup.namespace" . }}:{{ include "restic-backup.serviceAccountName" . }} -n {{ include "restic-backup.namespace" . }} > /dev/null 2>&1; then
+            echo "✓ Can access Pods"
+          else
+            echo "✗ Cannot access Pods"
+            exit 1
+          fi
+
+          # Check Secret permissions
+          if kubectl auth can-i get secrets --as=system:serviceaccount:{{ include "restic-backup.namespace" . }}:{{ include "restic-backup.serviceAccountName" . }} -n {{ include "restic-backup.namespace" . }} > /dev/null 2>&1; then
+            echo "✓ Can access Secrets"
+          else
+            echo "✗ Cannot access Secrets"
+            exit 1
+          fi
+
+          {{- if .Values.metrics.enabled }}
+          # Check Job permissions for metrics exporter
+          if kubectl auth can-i list jobs --as=system:serviceaccount:{{ include "restic-backup.namespace" . }}:{{ include "restic-backup.serviceAccountName" . }} -n {{ include "restic-backup.namespace" . }} > /dev/null 2>&1; then
+            echo "✓ Can list Jobs (required for metrics)"
+          else
+            echo "⚠ Cannot list Jobs (metrics may not work properly)"
+          fi
+          {{- end }}
+
+          echo "RBAC tests passed successfully!"
+          {{- else }}
+          echo "RBAC not managed by chart, skipping RBAC tests"
+          {{- end }}
+
+          # Test 4: Check ServiceAccount
+          echo "Test 4: Checking ServiceAccount..."
+          {{- if .Values.serviceAccount.create }}
+          SA_NAME="{{ include "restic-backup.serviceAccountName" . }}"
+
+          if kubectl get serviceaccount ${SA_NAME} -n {{ include "restic-backup.namespace" . }} > /dev/null 2>&1; then
+            echo "✓ ServiceAccount exists"
+          else
+            echo "✗ ServiceAccount does not exist"
+            exit 1
+          fi
+          {{- else }}
+          echo "ServiceAccount not managed by chart"
+          {{- end }}

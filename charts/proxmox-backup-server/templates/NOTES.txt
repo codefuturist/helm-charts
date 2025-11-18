@@ -1,0 +1,121 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║           🗄️  Proxmox Backup Server Successfully Deployed! 🎉                ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+📋 QUICK REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Release Name:    {{ .Release.Name }}
+  Namespace:       {{ include "pbs.namespace" . }}
+  Chart Version:   {{ .Chart.Version }}
+  App Version:     {{ .Chart.AppVersion }}
+  Controller:      {{ .Values.controller.type }}
+{{- if .Values.persistence.enabled }}
+  Persistence:     ✓ Enabled
+    - /etc:        {{ .Values.persistence.etc.size }}
+    - /logs:       {{ .Values.persistence.logs.size }}
+    - /lib:        {{ .Values.persistence.lib.size }}
+{{- else }}
+  Persistence:     ✗ Disabled (Not recommended for production)
+{{- end }}
+{{- if .Values.pbs.backupVolumes }}
+  Backup Volumes:  {{ len .Values.pbs.backupVolumes }} configured
+{{- end }}
+
+🌐 ACCESS YOUR PROXMOX BACKUP SERVER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+
+  🔗 https://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+
+  Run these commands to get the URL:
+
+  export NODE_PORT=$(kubectl get --namespace {{ include "pbs.namespace" . }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "pbs.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ include "pbs.namespace" . }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "🔗 https://$NODE_IP:$NODE_PORT"
+
+  ⚠️  Note: You'll need to accept the self-signed certificate
+{{- else if contains "LoadBalancer" .Values.service.type }}
+
+  ⏳ Waiting for LoadBalancer IP (this may take a few minutes)...
+
+  Watch status: kubectl get --namespace {{ include "pbs.namespace" . }} svc -w {{ include "pbs.fullname" . }}
+
+  Get URL:
+  export SERVICE_IP=$(kubectl get svc --namespace {{ include "pbs.namespace" . }} {{ include "pbs.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "🔗 https://$SERVICE_IP:{{ .Values.service.port }}"
+
+  ⚠️  Note: You'll need to accept the self-signed certificate
+{{- else if contains "ClusterIP" .Values.service.type }}
+
+  Port-forward to access locally:
+
+  export POD_NAME=$(kubectl get pods --namespace {{ include "pbs.namespace" . }} -l "app.kubernetes.io/name={{ include "pbs.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ include "pbs.namespace" . }} port-forward $POD_NAME 8007:8007
+
+  Then visit: https://localhost:8007/
+
+  ⚠️  Note: You'll need to accept the self-signed certificate
+{{- end }}
+
+🔐 DEFAULT CREDENTIALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Username: {{ .Values.pbs.username }}
+  Password: {{ .Values.pbs.password }}
+
+  ⚠️  IMPORTANT: Change the default password after first login!
+
+📚 USEFUL COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  View pods:
+  kubectl get pods -n {{ include "pbs.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+  View logs:
+  kubectl logs -n {{ include "pbs.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }} -f
+
+  View persistent volumes:
+  kubectl get pvc -n {{ include "pbs.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+  Delete deployment:
+  helm uninstall {{ .Release.Name }} -n {{ include "pbs.namespace" . }}
+
+📖 NEXT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. Log in to the web interface
+  2. Change the default password immediately
+  3. Configure datastores for your backups
+  4. Set up retention policies and schedules
+  5. Configure backup clients to use this server
+
+🔐 GET SSL CERTIFICATE FINGERPRINT (for Proxmox VE integration)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Get the certificate fingerprint needed for Proxmox VE integration:
+
+  export POD_NAME=$(kubectl get pods -n {{ include "pbs.namespace" . }} -l "app.kubernetes.io/name={{ include "pbs.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl exec -n {{ include "pbs.namespace" . }} $POD_NAME -- proxmox-backup-manager cert info | grep Fingerprint
+
+  Then follow: https://pbs.proxmox.com/docs/pve-integration.html
+
+⚠️  KNOWN LIMITATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  The following features are NOT available in the containerized version:
+  • ZFS support (not installed in container)
+  • Shell access (incompatible with container architecture)
+  • PAM authentication (requires persistent /etc/ configs)
+
+  These limitations are inherent to the container architecture and cannot be resolved.
+  For full feature support, consider a native PBS installation.
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Chart:   https://github.com/codefuturist/helm-charts/tree/main/charts/proxmox-backup-server
+  PBS:     https://pbs.proxmox.com/docs/
+  Support: https://github.com/ayufan/pve-backup-server-dockerfiles
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                Thank you for using Proxmox Backup Server! 🚀
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

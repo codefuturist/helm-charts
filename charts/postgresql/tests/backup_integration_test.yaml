@@ -1,0 +1,129 @@
+suite: test backup and recovery with new features
+templates:
+  - backup.yaml
+  - statefulset.yaml
+  - configmap.yaml
+tests:
+  - it: should use password files in backup cronjob
+    template: backup.yaml
+    set:
+      statefulset.enabled: true
+      backup.enabled: true
+      backup.schedule: "0 2 * * *"
+      backup.storage.type: "local"
+      postgresql.auth.usePasswordFiles: true
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].volumeMounts
+          content:
+            name: postgresql-password
+            mountPath: /opt/bitnami/postgresql/secrets
+            readOnly: true
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD_FILE
+            value: /opt/bitnami/postgresql/secrets/postgresql-password
+
+  - it: should load password from file in backup script
+    template: backup.yaml
+    set:
+      statefulset.enabled: true
+      backup.enabled: true
+      backup.schedule: "0 2 * * *"
+      backup.storage.type: "local"
+      postgresql.auth.usePasswordFiles: true
+    asserts:
+      - matchRegex:
+          path: spec.jobTemplate.spec.template.spec.containers[0].command[2]
+          pattern: 'export PGPASSWORD=\$\(cat "\$\{POSTGRES_PASSWORD_FILE\}"\)'
+
+  - it: should use env var for password when files disabled
+    template: backup.yaml
+    set:
+      statefulset.enabled: true
+      backup.enabled: true
+      backup.schedule: "0 2 * * *"
+      backup.storage.type: "local"
+      postgresql.auth.usePasswordFiles: false
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-postgresql
+                key: postgresql-password
+
+  - it: should support WAL archiving with PVC retention
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      backup.walArchiving.enabled: true
+      backup.walArchiving.method: "local"
+      persistence.retentionPolicy.enabled: true
+      persistence.retentionPolicy.whenDeleted: Retain
+    asserts:
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenDeleted
+          value: Retain
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_ARCHIVE_MODE
+            value: "on"
+
+  - it: should mount WAL archive volume with retention policy
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      backup.walArchiving.enabled: true
+      backup.walArchiving.method: "local"
+      backup.walArchiving.localPath: "/archive"
+      persistence.retentionPolicy.enabled: true
+      persistence.retentionPolicy.whenScaled: Retain
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: wal-archive
+            mountPath: /archive
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenScaled
+          value: Retain
+
+  - it: should configure backup with pre-init scripts
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      postgresql.preInitScripts:
+        backup-setup.sh: "#!/bin/bash\necho 'Setting up backup'"
+      backup.walArchiving.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: pre-init-scripts
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_ARCHIVE_MODE
+            value: "on"
+
+  - it: should support diagnostic mode for backup troubleshooting
+    template: backup.yaml
+    set:
+      statefulset.enabled: true
+      backup.enabled: true
+      backup.schedule: "0 2 * * *"
+      backup.storage.type: "local"
+      diagnosticMode.enabled: true
+      diagnosticMode.command: ["sleep"]
+      diagnosticMode.args: ["infinity"]
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].command
+          value: ["sleep"]
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].args
+          value: ["infinity"]

@@ -1,0 +1,60 @@
+suite: test uptime-kuma common labels and metadata
+templates:
+  - deployment.yaml
+  - service.yaml
+tests:
+  - it: should add common labels to deployment
+    template: deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: uptime-kuma
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
+      - equal:
+          path: metadata.labels["app.kubernetes.io/version"]
+          value: "2.0.0"
+
+  - it: should add additional labels
+    template: deployment.yaml
+    set:
+      additionalLabels:
+        environment: production
+        team: monitoring
+    asserts:
+      - equal:
+          path: metadata.labels.environment
+          value: production
+      - equal:
+          path: metadata.labels.team
+          value: monitoring
+
+  - it: should override namespace
+    template: service.yaml
+    set:
+      namespaceOverride: "custom-namespace"
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: custom-namespace
+
+  - it: should use custom name overrides
+    template: deployment.yaml
+    set:
+      nameOverride: "my-uptime"
+    asserts:
+      - matchRegex:
+          path: metadata.name
+          pattern: "my-uptime$"
+
+  - it: should use fullname override
+    template: deployment.yaml
+    set:
+      fullnameOverride: "custom-uptime-kuma"
+    asserts:
+      - equal:
+          path: metadata.name
+          value: custom-uptime-kuma

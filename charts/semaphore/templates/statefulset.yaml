@@ -1,0 +1,566 @@
+{{- if eq .Values.controller.type "statefulset" }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "semaphore.fullname" . }}
+  namespace: {{ include "semaphore.namespace" . }}
+  labels:
+    {{- include "semaphore.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "semaphore.fullname" . }}
+  replicas: {{ .Values.controller.replicas }}
+  {{- with .Values.controller.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  podManagementPolicy: {{ .Values.controller.podManagementPolicy }}
+  selector:
+    matchLabels:
+      {{- include "semaphore.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "semaphore.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "semaphore.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.runtimeClassName }}
+      runtimeClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsPolicy }}
+      dnsPolicy: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.hostNetwork }}
+      hostNetwork: true
+      {{- end }}
+      {{- if or .Values.initContainers.dbMigration.enabled .Values.initContainers.extra }}
+      initContainers:
+        {{- if .Values.initContainers.dbMigration.enabled }}
+        - name: db-migration
+          image: {{ .Values.initContainers.dbMigration.image.repository }}:{{ .Values.initContainers.dbMigration.image.tag | default .Values.image.tag }}
+          imagePullPolicy: {{ .Values.initContainers.dbMigration.image.pullPolicy }}
+          {{- with .Values.initContainers.dbMigration.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.initContainers.dbMigration.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/semaphore
+              readOnly: true
+        {{- end }}
+        {{- with .Values.initContainers.extra }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.controller.terminationGracePeriodSeconds }}
+      containers:
+        - name: semaphore
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: {{ include "semaphore.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if or .Values.controller.command .Values.diagnosticMode.enabled }}
+          command:
+            {{- if .Values.diagnosticMode.enabled }}
+            {{- toYaml .Values.diagnosticMode.command | nindent 12 }}
+            {{- else }}
+            {{- toYaml .Values.controller.command | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.controller.args .Values.diagnosticMode.enabled }}
+          args:
+            {{- if .Values.diagnosticMode.enabled }}
+            {{- toYaml .Values.diagnosticMode.args | nindent 12 }}
+            {{- else }}
+            {{- toYaml .Values.controller.args | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.controller.workingDir }}
+          workingDir: {{ . }}
+          {{- end }}
+          env:
+            - name: SEMAPHORE_PORT
+              value: {{ .Values.semaphore.port | quote }}
+            {{- if .Values.semaphore.interface }}
+            - name: SEMAPHORE_INTERFACE
+              value: {{ .Values.semaphore.interface | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.tmpPath }}
+            - name: SEMAPHORE_TMP_PATH
+              value: {{ .Values.semaphore.tmpPath | quote }}
+            {{- else }}
+            - name: SEMAPHORE_TMP_PATH
+              value: {{ .Values.persistence.tmp.mountPath | quote }}
+            {{- end }}
+            - name: SEMAPHORE_DB_DIALECT
+              value: {{ .Values.semaphore.database.dialect | quote }}
+            {{- if ne .Values.semaphore.database.dialect "bolt" }}
+            - name: SEMAPHORE_DB_HOST
+              value: {{ .Values.semaphore.database.host | quote }}
+            {{- if .Values.semaphore.database.port }}
+            - name: SEMAPHORE_DB_PORT
+              value: {{ .Values.semaphore.database.port | quote }}
+            {{- end }}
+            - name: SEMAPHORE_DB_USER
+              value: {{ .Values.semaphore.database.user | quote }}
+            - name: SEMAPHORE_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: database-password
+            - name: SEMAPHORE_DB
+              value: {{ .Values.semaphore.database.name | quote }}
+            {{- if .Values.semaphore.database.sslMode }}
+            - name: SEMAPHORE_DB_OPTIONS
+              value: {{ printf "sslmode=%s" .Values.semaphore.database.sslMode | quote }}
+            {{- end }}
+            {{- end }}
+            - name: SEMAPHORE_DB_PATH
+              value: {{ printf "%s/database.boltdb" .Values.persistence.data.mountPath | quote }}
+            - name: SEMAPHORE_ADMIN_USERNAME
+              value: {{ .Values.semaphore.admin.username | quote }}
+            - name: SEMAPHORE_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: admin-password
+            - name: SEMAPHORE_ADMIN_NAME
+              value: {{ .Values.semaphore.admin.name | quote }}
+            - name: SEMAPHORE_ADMIN_EMAIL
+              value: {{ .Values.semaphore.admin.email | quote }}
+            - name: SEMAPHORE_ADMIN
+              value: "{{ .Values.semaphore.admin.username }}"
+            - name: SEMAPHORE_ACCESS_KEY_ENCRYPTION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: access-key-encryption
+            - name: SEMAPHORE_COOKIE_HASH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: cookie-hash
+            {{- if .Values.semaphore.security.cookieEncryption }}
+            - name: SEMAPHORE_COOKIE_ENCRYPTION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: cookie-encryption
+            {{- end }}
+            {{- if .Values.semaphore.gitClient }}
+            - name: SEMAPHORE_GIT_CLIENT
+              value: {{ .Values.semaphore.gitClient | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.webRoot }}
+            - name: SEMAPHORE_WEB_ROOT
+              value: {{ .Values.semaphore.webRoot | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.scheduleTimezone }}
+            - name: SEMAPHORE_SCHEDULE_TIMEZONE
+              value: {{ .Values.semaphore.scheduleTimezone | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.maxTaskDurationSec }}
+            - name: SEMAPHORE_MAX_TASK_DURATION_SEC
+              value: {{ .Values.semaphore.maxTaskDurationSec | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.maxParallelTasks }}
+            - name: SEMAPHORE_MAX_PARALLEL_TASKS
+              value: {{ .Values.semaphore.maxParallelTasks | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.maxTasksPerTemplate }}
+            - name: SEMAPHORE_MAX_TASKS_PER_TEMPLATE
+              value: {{ .Values.semaphore.maxTasksPerTemplate | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.passwordLoginDisabled }}
+            - name: SEMAPHORE_PASSWORD_LOGIN_DISABLE
+              value: "true"
+            {{- end }}
+            {{- if .Values.semaphore.nonAdminCanCreateProject }}
+            - name: SEMAPHORE_NON_ADMIN_CAN_CREATE_PROJECT
+              value: "true"
+            {{- end }}
+            {{- if .Values.semaphore.apps }}
+            - name: SEMAPHORE_APPS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "semaphore.fullname" . }}
+                  key: apps
+            {{- end }}
+            {{- if .Values.semaphore.envVars }}
+            - name: SEMAPHORE_ENV_VARS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "semaphore.fullname" . }}
+                  key: envVars
+            {{- end }}
+            {{- if .Values.semaphore.forwardedEnvVars }}
+            - name: SEMAPHORE_FORWARDED_ENV_VARS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "semaphore.fullname" . }}
+                  key: forwardedEnvVars
+            {{- end }}
+            {{- if .Values.semaphore.runner.enabled }}
+            - name: SEMAPHORE_RUNNER_REGISTRATION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: runner-token
+            {{- end }}
+            {{- if .Values.semaphore.email.enabled }}
+            - name: SEMAPHORE_EMAIL_SENDER
+              value: {{ .Values.semaphore.email.sender | quote }}
+            - name: SEMAPHORE_EMAIL_HOST
+              value: {{ .Values.semaphore.email.host | quote }}
+            {{- if .Values.semaphore.email.port }}
+            - name: SEMAPHORE_EMAIL_PORT
+              value: {{ .Values.semaphore.email.port | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.email.username }}
+            - name: SEMAPHORE_EMAIL_USERNAME
+              value: {{ .Values.semaphore.email.username | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.email.password }}
+            - name: SEMAPHORE_EMAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: email-password
+            {{- end }}
+            {{- if .Values.semaphore.email.secure }}
+            - name: SEMAPHORE_EMAIL_SECURE
+              value: "true"
+            {{- end }}
+            {{- if .Values.semaphore.email.tls }}
+            - name: SEMAPHORE_EMAIL_TLS
+              value: "true"
+            {{- end }}
+            {{- if .Values.semaphore.email.tlsMinVersion }}
+            - name: SEMAPHORE_EMAIL_TLS_MIN_VERSION
+              value: {{ .Values.semaphore.email.tlsMinVersion | quote }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.semaphore.ldap.enabled }}
+            - name: SEMAPHORE_LDAP_BINDDN
+              value: {{ .Values.semaphore.ldap.bindDn | quote }}
+            - name: SEMAPHORE_LDAP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: ldap-password
+            - name: SEMAPHORE_LDAP_SERVER
+              value: {{ .Values.semaphore.ldap.server | quote }}
+            - name: SEMAPHORE_LDAP_SEARCHDN
+              value: {{ .Values.semaphore.ldap.searchDn | quote }}
+            - name: SEMAPHORE_LDAP_SEARCHFILTER
+              value: {{ .Values.semaphore.ldap.searchFilter | quote }}
+            {{- if .Values.semaphore.ldap.needTls }}
+            - name: SEMAPHORE_LDAP_NEEDTLS
+              value: "true"
+            {{- end }}
+            {{- if .Values.semaphore.ldap.mappingDn }}
+            - name: SEMAPHORE_LDAP_MAPPING_DN
+              value: {{ .Values.semaphore.ldap.mappingDn | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.ldap.mappingMail }}
+            - name: SEMAPHORE_LDAP_MAPPING_MAIL
+              value: {{ .Values.semaphore.ldap.mappingMail | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.ldap.mappingUid }}
+            - name: SEMAPHORE_LDAP_MAPPING_UID
+              value: {{ .Values.semaphore.ldap.mappingUid | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.ldap.mappingCn }}
+            - name: SEMAPHORE_LDAP_MAPPING_CN
+              value: {{ .Values.semaphore.ldap.mappingCn | quote }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.semaphore.totp.enabled }}
+            - name: SEMAPHORE_TOTP_ENABLED
+              value: "true"
+            {{- if .Values.semaphore.totp.allowRecovery }}
+            - name: SEMAPHORE_TOTP_ALLOW_RECOVERY
+              value: "true"
+            {{- end }}
+            {{- end }}
+            {{- if .Values.semaphore.tls.enabled }}
+            - name: SEMAPHORE_TLS_ENABLED
+              value: "true"
+            - name: SEMAPHORE_TLS_CERT
+              value: {{ .Values.semaphore.tls.certFile | quote }}
+            - name: SEMAPHORE_TLS_KEY
+              value: {{ .Values.semaphore.tls.keyFile | quote }}
+            {{- if .Values.semaphore.tls.httpRedirectPort }}
+            - name: SEMAPHORE_TLS_HTTP_REDIRECT_PORT
+              value: {{ .Values.semaphore.tls.httpRedirectPort | quote }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.semaphore.messengers.telegram.enabled }}
+            - name: SEMAPHORE_TELEGRAM_CHAT
+              value: {{ .Values.semaphore.messengers.telegram.chat | quote }}
+            - name: SEMAPHORE_TELEGRAM_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: telegram-token
+            {{- end }}
+            {{- if .Values.semaphore.messengers.slack.enabled }}
+            - name: SEMAPHORE_SLACK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: slack-url
+            {{- end }}
+            {{- if .Values.semaphore.messengers.rocketchat.enabled }}
+            - name: SEMAPHORE_ROCKETCHAT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: rocketchat-url
+            {{- end }}
+            {{- if .Values.semaphore.messengers.microsoftTeams.enabled }}
+            - name: SEMAPHORE_MICROSOFT_TEAMS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: microsoft-teams-url
+            {{- end }}
+            {{- if .Values.semaphore.messengers.dingtalk.enabled }}
+            - name: SEMAPHORE_DINGTALK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: dingtalk-url
+            {{- end }}
+            {{- if .Values.semaphore.messengers.gotify.enabled }}
+            - name: SEMAPHORE_GOTIFY_URL
+              value: {{ .Values.semaphore.messengers.gotify.url | quote }}
+            - name: SEMAPHORE_GOTIFY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "semaphore.secretName" . }}
+                  key: gotify-token
+            {{- end }}
+            {{- if .Values.semaphore.tls.enabled }}
+            - name: SEMAPHORE_TLS_ENABLED
+              value: "true"
+            {{- if .Values.semaphore.tls.certFile }}
+            - name: SEMAPHORE_TLS_CERT_FILE
+              value: {{ .Values.semaphore.tls.certFile | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.tls.keyFile }}
+            - name: SEMAPHORE_TLS_KEY_FILE
+              value: {{ .Values.semaphore.tls.keyFile | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.tls.httpRedirectPort }}
+            - name: SEMAPHORE_TLS_HTTP_REDIRECT_PORT
+              value: {{ .Values.semaphore.tls.httpRedirectPort | quote }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.semaphore.process.user }}
+            - name: SEMAPHORE_PROCESS_USER
+              value: {{ .Values.semaphore.process.user | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.process.uid }}
+            - name: SEMAPHORE_PROCESS_UID
+              value: {{ .Values.semaphore.process.uid | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.process.gid }}
+            - name: SEMAPHORE_PROCESS_GID
+              value: {{ .Values.semaphore.process.gid | quote }}
+            {{- end }}
+            {{- if .Values.semaphore.process.chroot }}
+            - name: SEMAPHORE_PROCESS_CHROOT
+              value: {{ .Values.semaphore.process.chroot | quote }}
+            {{- end }}
+            {{- if not .Values.semaphore.ansible.hostKeyChecking }}
+            - name: ANSIBLE_HOST_KEY_CHECKING
+              value: "False"
+            {{- end }}
+            {{- with .Values.semaphore.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.semaphore.envFrom .Values.extraEnvFrom }}
+          envFrom:
+            {{- with .Values.semaphore.envFrom }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.extraEnvFrom }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.semaphore.port }}
+              protocol: TCP
+          {{- if and .Values.livenessProbe.enabled (not .Values.diagnosticMode.enabled) }}
+          livenessProbe:
+            {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if and .Values.readinessProbe.enabled (not .Values.diagnosticMode.enabled) }}
+          readinessProbe:
+            {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if and .Values.startupProbe.enabled (not .Values.diagnosticMode.enabled) }}
+          startupProbe:
+            {{- omit .Values.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.persistence.data.enabled }}
+            - name: data
+              mountPath: {{ .Values.persistence.data.mountPath }}
+            {{- end }}
+            {{- if .Values.persistence.config.enabled }}
+            - name: config
+              mountPath: {{ .Values.persistence.config.mountPath }}
+            {{- end }}
+            {{- if .Values.persistence.tmp.enabled }}
+            - name: tmp
+              mountPath: {{ .Values.persistence.tmp.mountPath }}
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.controller.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- with .Values.extraContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{- if and .Values.persistence.data.enabled (not .Values.persistence.volumeClaimTemplates.enabled) }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "semaphore.dataPvcName" . }}
+        {{- end }}
+        {{- if and .Values.persistence.config.enabled (not .Values.persistence.volumeClaimTemplates.enabled) }}
+        - name: config
+          persistentVolumeClaim:
+            claimName: {{ include "semaphore.configPvcName" . }}
+        {{- end }}
+        {{- if and .Values.persistence.tmp.enabled (not .Values.persistence.volumeClaimTemplates.enabled) }}
+        - name: tmp
+          persistentVolumeClaim:
+            claimName: {{ include "semaphore.tmpPvcName" . }}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+  {{- if .Values.persistence.volumeClaimTemplates.enabled }}
+  volumeClaimTemplates:
+    {{- if .Values.persistence.data.enabled }}
+    - metadata:
+        name: data
+        labels:
+          {{- include "semaphore.labels" . | nindent 10 }}
+        {{- with .Values.persistence.data.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.volumeClaimTemplates.data.accessMode | default .Values.persistence.data.accessMode }}
+        {{- with .Values.persistence.volumeClaimTemplates.data.storageClassName | default .Values.persistence.data.storageClassName }}
+        storageClassName: {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.volumeClaimTemplates.data.size | default .Values.persistence.data.size }}
+    {{- end }}
+    {{- if .Values.persistence.config.enabled }}
+    - metadata:
+        name: config
+        labels:
+          {{- include "semaphore.labels" . | nindent 10 }}
+        {{- with .Values.persistence.config.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.volumeClaimTemplates.config.accessMode | default .Values.persistence.config.accessMode }}
+        {{- with .Values.persistence.volumeClaimTemplates.config.storageClassName | default .Values.persistence.config.storageClassName }}
+        storageClassName: {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.volumeClaimTemplates.config.size | default .Values.persistence.config.size }}
+    {{- end }}
+    {{- if .Values.persistence.tmp.enabled }}
+    - metadata:
+        name: tmp
+        labels:
+          {{- include "semaphore.labels" . | nindent 10 }}
+        {{- with .Values.persistence.tmp.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.volumeClaimTemplates.tmp.accessMode | default .Values.persistence.tmp.accessMode }}
+        {{- with .Values.persistence.volumeClaimTemplates.tmp.storageClassName | default .Values.persistence.tmp.storageClassName }}
+        storageClassName: {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.volumeClaimTemplates.tmp.size | default .Values.persistence.tmp.size }}
+    {{- end }}
+  {{- end }}
+{{- end }}

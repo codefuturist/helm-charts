@@ -1,0 +1,9 @@
+# CI Test: Default configuration with minimal settings
+# Tests basic deployment with all defaults
+
+pbs:
+  username: admin@pbs
+  password: SuperSecurePassword123
+
+persistence:
+  enabled: false

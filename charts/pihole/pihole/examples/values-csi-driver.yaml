@@ -1,0 +1,131 @@
+# Example: Using Secret Store CSI Driver with Pi-hole
+# The Secret Store CSI Driver allows pods to access secrets from external stores
+# as volumes mounted in the pod
+
+# Prerequisites:
+# 1. Install Secrets Store CSI Driver: https://secrets-store-csi-driver.sigs.k8s.io/
+#    helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+#    helm install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver
+#
+# 2. Install provider plugin for your secret backend:
+#    - AWS: aws-secrets-manager-csi-driver
+#    - Azure: azure-keyvault-csi-driver
+#    - GCP: gcp-secret-manager-csi-driver
+#    - Vault: vault-csi-provider
+
+# Example for AWS Secrets Manager
+secretProviderClass:
+  enabled: true
+
+  # Provider name (aws, azure, gcp, vault)
+  provider: aws
+
+  # Provider-specific parameters
+  parameters:
+    # For AWS Secrets Manager
+    objects: |
+      - objectName: "prod/pihole/webpassword"
+        objectType: "secretsmanager"
+        objectAlias: "WEBPASSWORD"
+      - objectName: "prod/pihole/api-password"
+        objectType: "secretsmanager"
+        objectAlias: "FTLCONF_webserver_api_password"
+    region: "us-east-1"
+
+  # Create Kubernetes secrets from the mounted secrets
+  secretObjects:
+    - secretName: pihole-secrets
+      type: Opaque
+      data:
+        - objectName: WEBPASSWORD
+          key: WEBPASSWORD
+        - objectName: FTLCONF_webserver_api_password
+          key: FTLCONF_webserver_api_password
+
+# Don't create a regular secret
+secret:
+  enabled: false
+
+deployment:
+  replicas: 2
+
+  # Add the CSI volume to mount secrets
+  volumes:
+    - name: etc-pihole
+      type: emptyDir
+      mountPath: /etc/pihole
+    - name: etc-dnsmasq-d
+      type: emptyDir
+      mountPath: /etc/dnsmasq.d
+    # CSI secrets volume
+    - name: secrets-store
+      type: csi
+      mountPath: /mnt/secrets-store
+      readOnly: true
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: pihole-test  # Will match chart name
+
+  # Use the synced Kubernetes secret in environment variables
+  env:
+    TZ:
+      value: "America/New_York"
+
+    FTLCONF_webserver_api_password:
+      valueFrom:
+        secretKeyRef:
+          name: pihole-secrets  # Created by secretObjects above
+          key: FTLCONF_webserver_api_password
+
+    FTLCONF_dns_listeningMode:
+      value: all
+
+service:
+  type: ClusterIP
+
+---
+# Provider-specific examples:
+#
+# Azure Key Vault:
+# secretProviderClass:
+#   provider: azure
+#   parameters:
+#     usePodIdentity: "false"
+#     useVMManagedIdentity: "true"
+#     userAssignedIdentityID: "<identity-client-id>"
+#     keyvaultName: "mykeyvault"
+#     objects: |
+#       array:
+#         - |
+#           objectName: pihole-webpassword
+#           objectType: secret
+#           objectAlias: WEBPASSWORD
+#     tenantId: "<tenant-id>"
+#
+# GCP Secret Manager:
+# secretProviderClass:
+#   provider: gcp
+#   parameters:
+#     secrets: |
+#       - resourceName: "projects/123456/secrets/pihole-webpassword/versions/latest"
+#         path: "WEBPASSWORD"
+#
+# HashiCorp Vault:
+# secretProviderClass:
+#   provider: vault
+#   parameters:
+#     vaultAddress: "https://vault.example.com:8200"
+#     roleName: "pihole"
+#     objects: |
+#       - objectName: "WEBPASSWORD"
+#         secretPath: "secret/data/pihole"
+#         secretKey: "webpassword"
+#
+# Benefits of CSI Driver:
+# ✅ Secrets never stored in Kubernetes etcd
+# ✅ Direct integration with enterprise secret managers
+# ✅ Automatic rotation support
+# ✅ Fine-grained access control via cloud IAM
+# ✅ Audit logging in the secret backend

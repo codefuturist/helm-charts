@@ -1,0 +1,52 @@
+# PostgreSQL - Development Configuration
+# Lightweight configuration for development/testing
+
+postgresql:
+  database: "devdb"
+  username: "devuser"
+  password: "devpassword"  # OK for dev, NOT for production
+
+persistence:
+  enabled: false  # Use emptyDir for ephemeral storage
+
+deployment:
+  replicas: 1
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+
+service:
+  enabled: true
+  type: ClusterIP
+
+serviceAccount:
+  create: false
+
+# Disable all optional features for dev
+backup:
+  enabled: false
+
+metrics:
+  enabled: false
+
+monitoring:
+  enabled: false
+
+pdb:
+  enabled: false
+
+networkPolicy:
+  enabled: false

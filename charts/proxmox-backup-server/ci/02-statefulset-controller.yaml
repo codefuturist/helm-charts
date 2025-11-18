@@ -1,0 +1,19 @@
+# CI Test: StatefulSet controller with persistence
+# Tests StatefulSet deployment with volumeClaimTemplates
+
+controller:
+  type: statefulset
+  replicas: 2
+
+pbs:
+  username: admin@pbs
+  password: SuperSecurePassword123
+
+persistence:
+  enabled: true
+  etc:
+    size: 2Gi
+  logs:
+    size: 2Gi
+  lib:
+    size: 2Gi

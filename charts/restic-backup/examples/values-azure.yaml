@@ -1,0 +1,51 @@
+# Azure Blob Storage Backend Configuration
+
+restic:
+  repository: "azure:my-backup-container:/kubernetes/backups"
+  password: "secure-restic-encryption-password"
+
+  backendEnv:
+    AZURE_ACCOUNT_NAME: "mystorageaccount"
+    AZURE_ACCOUNT_KEY: "base64encodedstorageaccountkey=="
+
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"
+
+    tags:
+      - azure
+      - kubernetes
+      - production
+
+    retention:
+      enabled: true
+      keepLast: 7
+      keepDaily: 14
+      keepWeekly: 8
+      keepMonthly: 12
+      keepYearly: 3
+
+  check:
+    enabled: true
+    schedule: "0 3 * * 0"
+
+volumes:
+  - name: app-data
+    claimName: myapp-pvc
+    mountPath: /data
+    readOnly: true
+
+# Azure-specific configuration
+serviceAccount:
+  annotations:
+    azure.workload.identity/client-id: "12345678-1234-1234-1234-123456789012"
+    azure.workload.identity/tenant-id: "87654321-4321-4321-4321-210987654321"
+
+cronjob:
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi

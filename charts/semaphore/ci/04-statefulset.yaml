@@ -1,0 +1,64 @@
+# CI Test: StatefulSet controller
+# Tests StatefulSet with volumeClaimTemplates and persistent identity
+
+semaphore:
+  database:
+    dialect: postgres
+    host: postgresql.database.svc.cluster.local
+    port: 5432
+    user: semaphore
+    password: dbpassword
+    name: semaphore
+  admin:
+    username: admin
+    password: adminpass123
+    email: admin@example.com
+
+controller:
+  type: statefulset
+  replicas: 2
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: RollingUpdate
+
+service:
+  type: ClusterIP
+  sessionAffinity: ClientIP
+
+persistence:
+  volumeClaimTemplates:
+    enabled: true
+    data:
+      storageClassName: ""
+      accessMode: ReadWriteOnce
+      size: 2Gi
+    config:
+      storageClassName: ""
+      accessMode: ReadWriteOnce
+      size: 100Mi
+    tmp:
+      storageClassName: ""
+      accessMode: ReadWriteOnce
+      size: 5Gi
+
+# Affinity for pod distribution
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - semaphore
+          topologyKey: kubernetes.io/hostname
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi

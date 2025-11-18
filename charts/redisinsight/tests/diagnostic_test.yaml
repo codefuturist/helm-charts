@@ -1,0 +1,47 @@
+suite: test redisinsight diagnostic mode
+templates:
+  - deployment.yaml
+tests:
+  - it: should not enable diagnostic mode by default
+    set:
+      redisinsight.email: admin@example.com
+      redisinsight.password: test123
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].command
+          content: sleep
+
+  - it: should enable diagnostic mode when configured
+    set:
+      redisinsight.email: admin@example.com
+      redisinsight.password: test123
+      diagnosticMode.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].command
+          content: sleep
+
+  - it: should override command in diagnostic mode
+    set:
+      redisinsight.email: admin@example.com
+      redisinsight.password: test123
+      diagnosticMode.enabled: true
+      diagnosticMode.command:
+        - /bin/bash
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command[0]
+          value: /bin/bash
+
+  - it: should override args in diagnostic mode
+    set:
+      redisinsight.email: admin@example.com
+      redisinsight.password: test123
+      diagnosticMode.enabled: true
+      diagnosticMode.args:
+        - -c
+        - while true; do sleep 30; done
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: -c

@@ -1,0 +1,253 @@
+# Production Restic Backup Configuration
+# Full-featured setup with security, monitoring, and notifications
+
+# Use external secret for credentials (recommended)
+restic:
+  existingSecret: "restic-credentials"
+
+  backup:
+    enabled: true
+    schedule: "0 2 * * *" # Daily at 2 AM
+
+    # Tag backups for easy identification
+    tags:
+      - kubernetes
+      - production
+      - critical
+
+    # Exclude patterns
+    excludes:
+      - "*.tmp"
+      - "*.cache"
+      - "*.log"
+      - ".DS_Store"
+      - "lost+found"
+
+    # Retention policy
+    retention:
+      enabled: true
+      keepLast: 14 # Keep last 14 snapshots
+      keepDaily: 30 # Daily backups for 30 days
+      keepWeekly: 12 # Weekly backups for 12 weeks
+      keepMonthly: 24 # Monthly backups for 24 months
+      keepYearly: 5 # Yearly backups for 5 years
+
+  # Repository integrity check
+  check:
+    enabled: true
+    schedule: "0 3 * * 0" # Weekly on Sunday at 3 AM
+    readData: false # Set to true for deep verification (slower)
+
+# Volumes to backup
+volumes:
+  - name: app-data
+    claimName: myapp-pvc
+    mountPath: /data
+    readOnly: true # Read-only for safety
+
+  - name: database
+    claimName: postgres-data
+    mountPath: /pgdata
+    readOnly: true
+
+# =============================================================================
+# Scripts Configuration
+# =============================================================================
+scripts:
+  useConfigMap: true # Use ConfigMap for better script management
+
+# =============================================================================
+# Metrics and Monitoring (NEW)
+# =============================================================================
+metrics:
+  enabled: true
+
+  # Metrics exporter resources
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 32Mi
+
+  service:
+    type: ClusterIP
+    port: 9092
+
+  # Node selection
+  nodeSelector:
+    workload: monitoring
+
+# Prometheus ServiceMonitor (requires Prometheus Operator)
+serviceMonitor:
+  enabled: true
+  interval: 60s
+  scrapeTimeout: 30s
+  additionalLabels:
+    release: prometheus-stack
+
+# =============================================================================
+# Notifications (ENHANCED)
+# =============================================================================
+notifications:
+  enabled: true
+
+  # Webhook notifications (e.g., Slack, Discord, Teams)
+  webhook:
+    url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+
+  # Email notifications (NEW)
+  email:
+    enabled: true
+    from: "restic-backup@company.com"
+    to:
+      - "ops-team@company.com"
+      - "sre-alerts@company.com"
+    smtpHost: "smtp.company.com"
+    smtpPort: 587
+    smtpUser: "backup-notifications"
+    # SMTP password should be in the secret with key SMTP_PASSWORD
+
+# =============================================================================
+# Pre/Post Backup Hooks (IMPLEMENTED)
+# =============================================================================
+hooks:
+  # Pre-backup hooks - run before backup starts
+  preBackup:
+    - name: database-dump
+      image: postgres:16-alpine
+      command: ["/bin/sh"]
+      args:
+        - "-c"
+        - |
+          echo "Creating database dump..."
+          pg_dump -h postgres-service -U $POSTGRES_USER -d $POSTGRES_DB -F c -f /backup-staging/db-dump.backup
+          echo "Database dump completed"
+      env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: password
+        - name: POSTGRES_DB
+          value: "production"
+      volumeMounts:
+        - name: backup-staging
+          mountPath: /backup-staging
+
+  # Post-backup hooks - run after backup completes
+  postBackup:
+    - name: cleanup-staging
+      image: busybox:latest
+      command: ["/bin/sh"]
+      args:
+        - "-c"
+        - |
+          echo "Cleaning up staging area..."
+          rm -rf /backup-staging/*
+          echo "Cleanup completed"
+      volumeMounts:
+        - name: backup-staging
+          mountPath: /backup-staging
+
+# Additional volume for hooks staging area
+extraVolumes:
+  - name: backup-staging
+    emptyDir:
+      sizeLimit: 5Gi
+
+# =============================================================================
+# CronJob Configuration
+# =============================================================================
+cronjob:
+  # Resource limits
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+
+  # Backup job timeout - prevent indefinite runs (NEW)
+  activeDeadlineSeconds: 7200 # 2 hours max for backup completion
+
+  # Security context
+  securityContext:
+    runAsUser: 0
+    runAsGroup: 0
+    fsGroup: 0
+    runAsNonRoot: false
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+  # Node selection
+  nodeSelector:
+    workload: system
+
+  tolerations:
+    - key: "system"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  # Anti-affinity to avoid same node as apps
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - myapp
+            topologyKey: kubernetes.io/hostname
+
+# ServiceAccount with AWS IAM role annotation
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/restic-backup-role"
+
+# RBAC
+rbac:
+  create: true
+
+# Network Policy for security
+networkPolicy:
+  enabled: true
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
+    # Allow HTTPS to backup destination
+    - to:
+        - namespaceSelector: {}
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 169.254.169.254/32 # Block AWS metadata
+      ports:
+        - protocol: TCP
+          port: 443
+
+# Priority for backup pods
+priorityClassName: system-cluster-critical

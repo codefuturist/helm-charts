@@ -1,0 +1,114 @@
+suite: test pre-initialization scripts
+templates:
+  - statefulset.yaml
+  - configmap.yaml
+tests:
+  - it: should create pre-init scripts configmap when defined
+    template: configmap.yaml
+    documentIndex: 1
+    set:
+      statefulset.enabled: true
+      postgresql.preInitScripts:
+        setup.sh: |
+          #!/bin/bash
+          echo "Pre-init setup"
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-postgresql-pre-init-scripts
+      - equal:
+          path: kind
+          value: ConfigMap
+      - matchRegex:
+          path: data["setup.sh"]
+          pattern: "Pre-init setup"
+
+  - it: should not create pre-init scripts configmap when not defined
+    template: configmap.yaml
+    documentIndex: 1
+    set:
+      statefulset.enabled: true
+      postgresql.preInitScripts: {}
+    asserts:
+      - hasDocuments:
+          count: 1 # Only main configmap, not pre-init
+
+  - it: should create pre-init container when scripts defined
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      postgresql.preInitScripts:
+        setup.sh: |
+          #!/bin/bash
+          echo "test"
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: pre-init-scripts
+
+  - it: should mount pre-init scripts volume
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      postgresql.preInitScripts:
+        setup.sh: "#!/bin/bash\necho test"
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name=="pre-init-scripts")].volumeMounts
+          content:
+            name: pre-init-scripts
+            mountPath: /pre-init-scripts
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: pre-init-scripts
+            configMap:
+              name: RELEASE-NAME-postgresql-pre-init-scripts
+              defaultMode: 493 # 0755 in decimal
+
+  - it: should run pre-init scripts before other init containers
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      postgresql.preInitScripts:
+        setup.sh: "#!/bin/bash"
+      replication.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: pre-init-scripts
+      - equal:
+          path: spec.template.spec.initContainers[1].name
+          value: setup-replication
+
+  - it: should execute scripts in bash
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      postgresql.preInitScripts:
+        setup.sh: "echo test"
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[?(@.name=="pre-init-scripts")].command
+          content: /bin/bash
+
+  - it: should support multiple pre-init scripts
+    template: configmap.yaml
+    documentIndex: 1
+    set:
+      statefulset.enabled: true
+      postgresql.preInitScripts:
+        00-setup.sh: "#!/bin/bash\necho 'first'"
+        01-config.sh: "#!/bin/bash\necho 'second'"
+        02-permissions.sh: "#!/bin/bash\necho 'third'"
+    asserts:
+      - equal:
+          path: kind
+          value: ConfigMap
+      - isNotEmpty:
+          path: data["00-setup.sh"]
+      - isNotEmpty:
+          path: data["01-config.sh"]
+      - isNotEmpty:
+          path: data["02-permissions.sh"]

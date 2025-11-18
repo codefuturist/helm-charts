@@ -1,0 +1,35 @@
+# CI test configuration: Container configuration options
+# Tests: SCRIPT_NAME, disablePostfix, replaceServersOnStartup, Gunicorn config
+redisinsight:
+  email: ci-test@example.com
+  password: TestPassword123!
+  scriptName: "/redisinsight4"
+  disablePostfix: true
+  replaceServersOnStartup: true
+  gunicorn:
+    threads: 50
+    accessLogfile: "/var/log/gunicorn-access.log"
+    limitRequestLine: 16380
+
+  # Server definitions for testing replaceServersOnStartup
+  serverDefinitions:
+    servers:
+      1:
+        Name: "Test Redis"
+        Group: "Testing"
+        Host: "redis.default.svc.cluster.local"
+        Port: 5432
+        MaintenanceDB: "postgres"
+        Username: "testuser"
+        SSLMode: "prefer"
+
+controller:
+  type: deployment
+  replicas: 1
+
+persistence:
+  enabled: false
+
+service:
+  type: ClusterIP
+  port: 80

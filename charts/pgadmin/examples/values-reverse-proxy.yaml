@@ -1,0 +1,237 @@
+# Example: pgAdmin with Reverse Proxy Configuration
+# This example demonstrates hosting pgAdmin under a subdirectory path
+# with external SMTP and optimized Gunicorn settings
+
+pgadmin:
+  # Authentication
+  email: admin@example.com
+  # Use existing secret in production:
+  # existingSecret: pgadmin-credentials
+  password: SuperSecurePassword123!
+
+  # Reverse proxy configuration
+  # Host pgAdmin at https://example.com/pgadmin4
+  scriptName: "/pgadmin4"
+
+  # Disable internal Postfix (using external SMTP)
+  disablePostfix: true
+
+  # Reload server definitions on every startup
+  # Useful when using dynamically managed ConfigMaps
+  replaceServersOnStartup: true
+
+  # Gunicorn performance tuning
+  gunicorn:
+    # Increase threads for higher concurrency
+    threads: 50
+    # Log access to stdout for centralized logging
+    accessLogfile: "-"
+    # Allow larger HTTP headers (useful for complex auth scenarios)
+    limitRequestLine: 16380
+
+  # External SMTP configuration
+  smtp:
+    enabled: true
+    server: smtp.gmail.com
+    port: 587
+    useTLS: true
+    useSSL: false
+    fromAddress: pgadmin-alerts@example.com
+    # Use existing secret in production
+    existingSecret: pgadmin-smtp-credentials
+    # Or inline (not recommended for production):
+    # username: alerts@example.com
+    # password: YourAppPassword
+
+  # Pre-configured PostgreSQL servers
+  serverDefinitions:
+    servers:
+      1:
+        Name: "Production Database"
+        Group: "Production"
+        Host: "postgresql.production.svc.cluster.local"
+        Port: 5432
+        MaintenanceDB: "postgres"
+        Username: "pgadmin"
+        SSLMode: "require"
+        Comment: "Main production database"
+      2:
+        Name: "Staging Database"
+        Group: "Staging"
+        Host: "postgresql.staging.svc.cluster.local"
+        Port: 5432
+        MaintenanceDB: "postgres"
+        Username: "pgadmin"
+        SSLMode: "prefer"
+        Comment: "Staging environment database"
+
+  # Custom pgAdmin configuration
+  config:
+    PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
+    PGADMIN_CONFIG_SESSION_EXPIRATION_TIME: "604800" # 7 days
+    PGADMIN_CONFIG_CONSOLE_LOG_LEVEL: "20" # INFO level
+
+# Controller configuration
+controller:
+  type: deployment
+  replicas: 1
+
+# Resource limits
+resources:
+  limits:
+    cpu: 2000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Persistence for user data
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClassName: "fast-ssd"
+  accessMode: ReadWriteOnce
+
+# Ingress configuration for reverse proxy
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    # Enable HTTPS redirect
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # Certificate issuer (cert-manager)
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Rewrite target to remove path prefix
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # Important: Set X-Script-Name header for subdirectory hosting
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Script-Name /pgadmin4;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+  hosts:
+    - host: example.com
+      paths:
+        # Host at /pgadmin4/*
+        - path: /pgadmin4(/|$)(.*)
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: example-com-tls
+      hosts:
+        - example.com
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+
+# Security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 5050
+  runAsGroup: 5050
+  fsGroup: 5050
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 5050
+  capabilities:
+    drop:
+      - ALL
+
+# Network policy
+networkPolicy:
+  enabled: true
+  ingress:
+    # Allow traffic from ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 80
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow PostgreSQL connections
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow HTTPS for external services (SMTP, etc.)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 587 # SMTP with TLS
+
+# Monitoring with Prometheus
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    labels:
+      prometheus: kube-prometheus
+  prometheusRule:
+    enabled: true
+    rules:
+      - alert: PgAdminDown
+        expr: up{job="pgadmin"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "pgAdmin is down"
+          description: "pgAdmin has been down for more than 5 minutes"
+
+# Pod disruption budget
+pdb:
+  enabled: true
+  minAvailable: 1
+
+# Health probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+  successThreshold: 1
+
+# Additional labels
+podLabels:
+  app.kubernetes.io/component: database-admin
+  app.kubernetes.io/part-of: database-infrastructure
+
+# Additional annotations
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "80"

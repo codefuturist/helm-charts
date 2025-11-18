@@ -1,0 +1,61 @@
+# Google Cloud Storage (GCS) Backend Configuration
+
+restic:
+  repository: "gs:my-backup-bucket:/kubernetes/backups"
+  password: "secure-restic-encryption-password"
+
+  backendEnv:
+    GOOGLE_PROJECT_ID: "my-gcp-project-id"
+    GOOGLE_APPLICATION_CREDENTIALS: "/credentials/gcp-key.json"
+
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"
+
+    tags:
+      - gcp
+      - kubernetes
+      - production
+
+    retention:
+      enabled: true
+      keepLast: 7
+      keepDaily: 14
+      keepWeekly: 8
+      keepMonthly: 12
+      keepYearly: 3
+
+  check:
+    enabled: true
+    schedule: "0 3 * * 0"
+
+volumes:
+  - name: app-data
+    claimName: myapp-pvc
+    mountPath: /data
+    readOnly: true
+
+# Mount GCP service account key
+extraVolumes:
+  - name: gcp-credentials
+    secret:
+      secretName: gcp-service-account-key
+
+extraVolumeMounts:
+  - name: gcp-credentials
+    mountPath: /credentials
+    readOnly: true
+
+# GCP-specific configuration
+serviceAccount:
+  annotations:
+    iam.gke.io/gcp-service-account: "restic-backup@my-project.iam.gserviceaccount.com"
+
+cronjob:
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi

@@ -1,0 +1,123 @@
+# Multi-Volume Backup Configuration
+# Demonstrates backing up multiple PVCs from different applications
+# Using local backup storage (default)
+
+restic:
+  # Local repository on dedicated backup volume (default)
+  repository: "/backup-repository"
+  password: "secure-password-here"
+
+  backup:
+    schedule: "0 3 * * *" # Daily at 3 AM
+
+    tags:
+      - multi-volume
+      - production
+      - automated
+
+    retention:
+      enabled: true
+      keepLast: 7
+      keepDaily: 14
+      keepWeekly: 8
+      keepMonthly: 12
+
+# Dedicated backup volume with larger size for multiple volumes
+backupVolume:
+  enabled: true
+  type: pvc
+  pvc:
+    size: 50Gi # Larger size for multiple application backups
+    # Optional: Use faster storage class for better performance
+    # storageClassName: fast-ssd
+
+# Multiple volumes from different applications
+volumes:
+  # Application 1: Web application data
+  - name: webapp-data
+    claimName: webapp-storage-pvc
+    mountPath: /volumes/webapp
+    readOnly: true
+
+  # Application 2: PostgreSQL database
+  - name: postgres-data
+    claimName: postgres-data-pvc
+    mountPath: /volumes/postgres
+    readOnly: true
+
+  # Application 3: Redis persistence
+  - name: redis-data
+    claimName: redis-data-pvc
+    mountPath: /volumes/redis
+    readOnly: true
+
+  # Application 4: File uploads
+  - name: uploads
+    claimName: uploads-pvc
+    mountPath: /volumes/uploads
+    readOnly: true
+    subPath: production # Only backup production subfolder
+
+  # Application 5: Configuration files
+  - name: configs
+    claimName: config-pvc
+    mountPath: /volumes/configs
+    readOnly: true
+
+# Additional backup excludes
+excludes:
+  # General excludes
+  - "*.tmp"
+  - "*.cache"
+  - ".DS_Store"
+  - "lost+found"
+  # Database-specific
+  - "/volumes/postgres/*.pid"
+  - "/volumes/postgres/postmaster.opts"
+  # Redis-specific
+  - "/volumes/redis/temp-*"
+  # Upload-specific
+  - "/volumes/uploads/thumbnails/*.cache"
+
+# Resource allocation for multiple volumes
+cronjob:
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  # Longer deadline for multiple volumes
+  startingDeadlineSeconds: 600 # 10 minutes
+
+# Pre-backup hooks for multiple services
+hooks:
+  preBackup:
+    # Dump PostgreSQL database
+    - name: postgres-dump
+      image: postgres:16-alpine
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          pg_dumpall -h postgres-service -U postgres > /volumes/postgres/backup.sql
+      env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: password
+      volumeMounts:
+        - name: postgres-data
+          mountPath: /volumes/postgres
+
+    # Save Redis data
+    - name: redis-save
+      image: redis:7-alpine
+      command: ["redis-cli", "-h", "redis-service", "SAVE"]
+      env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-credentials
+              key: password

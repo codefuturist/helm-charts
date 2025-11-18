@@ -1,0 +1,29 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "mealie.fullname" . }}-test-postgres"
+  namespace: {{ include "mealie.namespace" . }}
+  labels:
+    {{- include "mealie.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+  - name: postgres-test
+    image: postgres:17-alpine
+    command:
+    - sh
+    - -c
+    - |
+      pg_isready -h {{ include "mealie.fullname" . }}-postgres -p 5432 -U {{ .Values.database.user }}
+      if [ $? -eq 0 ]; then
+        echo "PostgreSQL is ready and accepting connections"
+        exit 0
+      else
+        echo "PostgreSQL is not ready"
+        exit 1
+      fi
+{{- end }}

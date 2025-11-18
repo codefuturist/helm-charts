@@ -1,25 +1,28 @@
 apiVersion: v2
 name: homarr
-description: Generic helm chart for all kind of applications
+description: A Helm chart for Homarr - A simple, yet powerful dashboard for your server
 
 type: application
 
 # Helm chart Version
+version: 1.0.0
 
-version: 5.3.0
-
+# Application version
+appVersion: "latest"
 
 keywords:
-  - java
-  - node
-  - dotnet
+  - homarr
+  - dashboard
+  - home-server
   - kubernetes
-  - stakater
-  - application
+  - monitoring
 
-home: https://github.com/codefuturist/application
+home: https://homarr.dev
+sources:
+  - https://github.com/homarr-labs/homarr
+
 maintainers:
 - name: codefuturist
-  email: hello@allcloud.trade
+  email: 58808821+codefuturist@users.noreply.github.com
 
-icon: https://github.com/stakater/ForecastleIcons/blob/master/stakater.png
+icon: https://homarr.dev/img/logo.png

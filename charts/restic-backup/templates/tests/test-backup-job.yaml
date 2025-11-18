@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "restic-backup.name" . }}-test-backup-job
+  namespace: {{ include "restic-backup.namespace" . }}
+  labels:
+    {{- include "restic-backup.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  restartPolicy: Never
+  serviceAccountName: {{ include "restic-backup.serviceAccountName" . }}
+  containers:
+    - name: test-backup-job
+      image: bitnami/kubectl:latest
+      command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Testing backup CronJob configuration..."
+
+          # Test 1: Check if CronJob exists
+          echo "Test 1: Checking if backup CronJob exists..."
+          CRONJOB_NAME="{{ include "restic-backup.name" . }}-backup"
+
+          if kubectl get cronjob ${CRONJOB_NAME} -n {{ include "restic-backup.namespace" . }} > /dev/null 2>&1; then
+            echo "✓ Backup CronJob exists"
+          else
+            echo "✗ Backup CronJob does not exist"
+            exit 1
+          fi
+
+          # Test 2: Verify CronJob schedule
+          echo "Test 2: Verifying CronJob schedule..."
+          SCHEDULE=$(kubectl get cronjob ${CRONJOB_NAME} -n {{ include "restic-backup.namespace" . }} -o jsonpath='{.spec.schedule}')
+          echo "CronJob schedule: $SCHEDULE"
+
+          if [ -n "$SCHEDULE" ]; then
+            echo "✓ CronJob has a valid schedule"
+          else
+            echo "✗ CronJob schedule is empty"
+            exit 1
+          fi
+
+          # Test 3: Check concurrency policy
+          echo "Test 3: Checking concurrency policy..."
+          CONCURRENCY=$(kubectl get cronjob ${CRONJOB_NAME} -n {{ include "restic-backup.namespace" . }} -o jsonpath='{.spec.concurrencyPolicy}')
+          echo "Concurrency policy: $CONCURRENCY"
+
+          if [ "$CONCURRENCY" = "Forbid" ] || [ "$CONCURRENCY" = "Replace" ] || [ "$CONCURRENCY" = "Allow" ]; then
+            echo "✓ Valid concurrency policy: $CONCURRENCY"
+          else
+            echo "✗ Invalid concurrency policy"
+            exit 1
+          fi
+
+          # Test 4: Verify volumes are mounted
+          echo "Test 4: Verifying volumes configuration..."
+          VOLUMES=$(kubectl get cronjob ${CRONJOB_NAME} -n {{ include "restic-backup.namespace" . }} -o jsonpath='{.spec.jobTemplate.spec.template.spec.volumes[*].name}')
+          echo "Configured volumes: $VOLUMES"
+
+          {{- range .Values.volumes }}
+          if echo "$VOLUMES" | grep -q "{{ .name }}"; then
+            echo "✓ Volume '{{ .name }}' is configured"
+          else
+            echo "✗ Volume '{{ .name }}' is missing"
+            exit 1
+          fi
+          {{- end }}
+
+          # Test 5: Check resource limits
+          echo "Test 5: Checking resource configuration..."
+          CPU_LIMIT=$(kubectl get cronjob ${CRONJOB_NAME} -n {{ include "restic-backup.namespace" . }} -o jsonpath='{.spec.jobTemplate.spec.template.spec.containers[0].resources.limits.cpu}')
+          MEM_LIMIT=$(kubectl get cronjob ${CRONJOB_NAME} -n {{ include "restic-backup.namespace" . }} -o jsonpath='{.spec.jobTemplate.spec.template.spec.containers[0].resources.limits.memory}')
+
+          echo "CPU limit: $CPU_LIMIT"
+          echo "Memory limit: $MEM_LIMIT"
+
+          if [ -n "$CPU_LIMIT" ] && [ -n "$MEM_LIMIT" ]; then
+            echo "✓ Resource limits are configured"
+          else
+            echo "⚠ Resource limits not fully configured"
+          fi
+
+          {{- if .Values.cronjob.activeDeadlineSeconds }}
+          # Test 6: Verify activeDeadlineSeconds
+          echo "Test 6: Checking job timeout configuration..."
+          DEADLINE=$(kubectl get cronjob ${CRONJOB_NAME} -n {{ include "restic-backup.namespace" . }} -o jsonpath='{.spec.jobTemplate.spec.activeDeadlineSeconds}')
+          echo "Active deadline: $DEADLINE seconds"
+
+          if [ "$DEADLINE" = "{{ .Values.cronjob.activeDeadlineSeconds }}" ]; then
+            echo "✓ Job timeout is configured correctly"
+          else
+            echo "⚠ Job timeout mismatch"
+          fi
+          {{- end }}
+
+          {{- if .Values.scripts.useConfigMap }}
+          # Test 7: Verify ConfigMap exists
+          echo "Test 7: Checking backup scripts ConfigMap..."
+          CONFIGMAP_NAME="{{ include "restic-backup.name" . }}-scripts"
+
+          if kubectl get configmap ${CONFIGMAP_NAME} -n {{ include "restic-backup.namespace" . }} > /dev/null 2>&1; then
+            echo "✓ Scripts ConfigMap exists"
+
+            # Check if backup script is present
+            if kubectl get configmap ${CONFIGMAP_NAME} -n {{ include "restic-backup.namespace" . }} -o jsonpath='{.data.backup\.sh}' | grep -q "Restic Backup"; then
+              echo "✓ Backup script is present in ConfigMap"
+            else
+              echo "✗ Backup script is missing or invalid"
+              exit 1
+            fi
+          else
+            echo "✗ Scripts ConfigMap does not exist"
+            exit 1
+          fi
+          {{- end }}
+
+          echo "All backup job tests passed successfully!"

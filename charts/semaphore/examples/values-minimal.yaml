@@ -1,0 +1,41 @@
+# Minimal Semaphore Configuration
+#
+# This is the absolute minimum configuration required to run Semaphore.
+# Suitable for development and testing.
+#
+# Usage:
+#   helm install my-semaphore codefuturist/semaphore -f values-minimal.yaml
+
+semaphore:
+  database:
+    dialect: sqlite
+  admin:
+    username: admin
+    password: changeme
+    email: admin@localhost
+
+controller:
+  type: deployment
+  replicas: 1
+
+service:
+  type: ClusterIP
+  port: 3000
+
+persistence:
+  data:
+    enabled: true
+    size: 2Gi
+  config:
+    enabled: false # Optional for SQLite
+  tmp:
+    enabled: true
+    size: 5Gi
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 256Mi

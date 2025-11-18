@@ -1,0 +1,24 @@
+{{- if and .Values.tls.enabled .Values.tls.certificate.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "postgresql.fullname" . }}-tls
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+spec:
+  secretName: {{ default (printf "%s-tls" (include "postgresql.fullname" .)) .Values.tls.certificateSecret }}
+  duration: {{ .Values.tls.certificate.duration }}
+  renewBefore: {{ .Values.tls.certificate.renewBefore }}
+  issuerRef:
+    {{- toYaml .Values.tls.certificate.issuerRef | nindent 4 }}
+  commonName: {{ include "postgresql.fullname" . }}
+  dnsNames:
+    - {{ include "postgresql.fullname" . }}
+    - {{ include "postgresql.fullname" . }}.{{ include "postgresql.namespace" . }}
+    - {{ include "postgresql.fullname" . }}.{{ include "postgresql.namespace" . }}.svc
+    - {{ include "postgresql.fullname" . }}.{{ include "postgresql.namespace" . }}.svc.cluster.local
+    {{- with .Values.tls.certificate.dnsNames }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}

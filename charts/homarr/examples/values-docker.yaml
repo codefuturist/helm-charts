@@ -1,0 +1,65 @@
+# Homarr with Docker integration enabled
+# Allows monitoring and managing Docker containers
+
+deployment:
+  image:
+    repository: ghcr.io/homarr-labs/homarr
+    tag: "latest"
+
+  env:
+    # Security
+    SECRET_ENCRYPTION_KEY:
+      value: "REPLACE_WITH_YOUR_64_CHAR_HEX_STRING"
+
+    # General
+    LOG_LEVEL:
+      value: "info"
+
+    # Docker Integration
+    DOCKER_HOSTNAMES:
+      value: "localhost"
+    DOCKER_PORTS:
+      value: "2375"
+
+  # Mount Docker socket for container management
+  volumes:
+    docker-socket:
+      hostPath:
+        path: /var/run/docker.sock
+        type: Socket
+
+  volumeMounts:
+    docker-socket:
+      mountPath: /var/run/docker.sock
+      readOnly: true
+
+  # Security context - required for Docker socket access
+  containerSecurityContext:
+    readOnlyRootFilesystem: false
+    runAsNonRoot: false
+    runAsUser: 0
+    runAsGroup: 0
+
+  securityContext:
+    fsGroup: 0
+
+persistence:
+  enabled: true
+  storageSize: 2Gi
+
+service:
+  enabled: true
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hosts:
+    - host: homarr.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+rbac:
+  enabled: true
+  serviceAccount:
+    enabled: true

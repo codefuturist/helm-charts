@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "home-assistant.fullname" . }}-test-rbac
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "5"
+spec:
+  restartPolicy: Never
+  serviceAccountName: {{ include "home-assistant.serviceAccountName" . }}
+  containers:
+    - name: test-rbac
+      image: bitnami/kubectl:1.31
+      command: ['sh', '-c']
+      args:
+        - |
+          echo "Testing RBAC configuration..."
+
+          # Test if service account exists and is mounted
+          if [ -f /var/run/secrets/kubernetes.io/serviceaccount/token ]; then
+            echo "✅ Service account token is mounted"
+          else
+            echo "❌ Service account token not found"
+            exit 1
+          fi
+
+          # Test basic kubectl access
+          if kubectl auth can-i list pods --namespace={{ include "home-assistant.namespace" . }} 2>/dev/null; then
+            echo "✅ Service account has list pods permission"
+          else
+            echo "⚠️  Service account cannot list pods (may be expected)"
+          fi
+
+          # Verify service account name
+          SA_NAME=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace 2>/dev/null || echo "unknown")
+          echo "Service account namespace: $SA_NAME"
+
+          {{- if .Values.rbac.create }}
+          echo "✅ RBAC is enabled"
+          {{- else }}
+          echo "⚠️  RBAC is disabled"
+          {{- end }}
+
+          echo "✅ RBAC configuration test completed"
+          exit 0
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 65534
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault

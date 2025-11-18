@@ -1,0 +1,16 @@
+# Minimal pgAdmin Configuration
+#
+# This is the absolute minimum configuration required to run pgAdmin.
+# Suitable for development and testing only - NOT for production use.
+#
+# Usage:
+#   helm install my-pgadmin codefuturist/pgadmin -f values-minimal.yaml
+
+pgadmin:
+  # REQUIRED: Default login email
+  email: "admin@example.com"
+
+  # REQUIRED: Default login password
+  # WARNING: Change this to a secure password!
+  password: "changeme"
+# Note: All other settings use secure defaults

@@ -1,0 +1,130 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║             📧 Mailrise SMTP Gateway Successfully Deployed! 🎉               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+📋 QUICK REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Release Name:    {{ .Release.Name }}
+  Namespace:       {{ include "mailrise.namespace" . }}
+  Chart Version:   {{ .Chart.Version }}
+  App Version:     {{ .Chart.AppVersion }}
+  Controller:      {{ .Values.controller.type }}
+{{- if .Values.mailrise.tls.enabled }}
+  TLS Mode:        {{ .Values.mailrise.config.tls.mode }}
+{{- else }}
+  TLS Mode:        disabled (plaintext)
+{{- end }}
+{{- if .Values.mailrise.auth.enabled }}
+  SMTP Auth:       ✓ Enabled
+{{- else }}
+  SMTP Auth:       ✗ Disabled (open relay)
+{{- end }}
+
+🌐 ACCESS YOUR MAILRISE INSTANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{- if contains "NodePort" .Values.service.type }}
+
+  Run these commands to get the SMTP server address:
+
+  export NODE_PORT=$(kubectl get --namespace {{ include "mailrise.namespace" . }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "mailrise.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ include "mailrise.namespace" . }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "SMTP Server: $NODE_IP:$NODE_PORT"
+{{- else if contains "LoadBalancer" .Values.service.type }}
+
+  ⏳ Waiting for LoadBalancer IP (this may take a few minutes)...
+
+  Watch status: kubectl get --namespace {{ include "mailrise.namespace" . }} svc -w {{ include "mailrise.fullname" . }}
+
+  Get SMTP address:
+  export SERVICE_IP=$(kubectl get svc --namespace {{ include "mailrise.namespace" . }} {{ include "mailrise.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "SMTP Server: $SERVICE_IP:{{ .Values.service.port }}"
+{{- else if contains "ClusterIP" .Values.service.type }}
+
+  Port-forward to access from your local machine:
+
+  export POD_NAME=$(kubectl get pods --namespace {{ include "mailrise.namespace" . }} -l "app.kubernetes.io/name={{ include "mailrise.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ include "mailrise.namespace" . }} port-forward $POD_NAME 8025:8025
+
+  Then configure your SMTP client to use: localhost:8025
+{{- end }}
+
+📬 CONFIGURED EMAIL ADDRESSES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Send emails to these addresses to trigger notifications:
+
+{{- range $name, $config := .Values.mailrise.config.configs }}
+  • {{ $name }}@mailrise.xyz
+{{- end }}
+
+  You can also append notification types to addresses:
+  • address.info@mailrise.xyz      (ℹ️  info)
+  • address.success@mailrise.xyz   (✅ success)
+  • address.warning@mailrise.xyz   (⚠️  warning)
+  • address.failure@mailrise.xyz   (❌ failure)
+
+📧 TEST YOUR SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Using swaks (SMTP test tool):
+
+  swaks --to {{- range $index, $name := keys .Values.mailrise.config.configs }}{{ if eq $index 0 }} {{ $name }}@mailrise.xyz{{ end }}{{ end }} \
+    --from test@example.com \
+    --server <SMTP_ADDRESS>:{{ .Values.service.port }} \
+    --body "Test notification from Mailrise"
+
+  Using standard mail command:
+
+  echo "Test message" | mail -s "Test Subject" \
+    -S smtp=<SMTP_ADDRESS>:{{ .Values.service.port }} \
+    {{- range $index, $name := keys .Values.mailrise.config.configs }}{{ if eq $index 0 }}{{ $name }}@mailrise.xyz{{ end }}{{ end }}
+
+📚 USEFUL COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  View pods:
+  kubectl get pods -n {{ include "mailrise.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+  View logs:
+  kubectl logs -n {{ include "mailrise.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }} -f
+
+  Test SMTP connectivity:
+  kubectl run -it --rm test-smtp --image=nicolaka/netshoot --restart=Never -- \
+    telnet {{ include "mailrise.fullname" . }}.{{ include "mailrise.namespace" . }}.svc.cluster.local {{ .Values.service.port }}
+
+  Delete deployment:
+  helm uninstall {{ .Release.Name }} -n {{ include "mailrise.namespace" . }}
+
+⚠️  IMPORTANT SECURITY NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{- if not .Values.mailrise.tls.enabled }}
+  ⚠️  TLS is DISABLED - connections are not encrypted
+      Enable TLS for production use!
+{{- end }}
+{{- if not .Values.mailrise.auth.enabled }}
+  ⚠️  SMTP authentication is DISABLED - this is an open relay
+      Anyone who can reach this service can send emails through it
+      Enable authentication for production use!
+{{- end }}
+{{- if and (not .Values.mailrise.tls.enabled) (not .Values.mailrise.auth.enabled) }}
+
+  🔐 For production, enable both TLS and authentication:
+     mailrise.config.tls.mode: "starttls"
+     mailrise.tls.enabled: true
+     mailrise.auth.enabled: true
+{{- end }}
+
+📖 NEXT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. Test the SMTP connection
+  2. Send a test email to verify notifications work
+  3. Configure your applications to use this SMTP server
+  4. Add more notification targets as needed
+  5. Enable TLS and authentication for production
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Chart:    https://github.com/codefuturist/helm-charts/tree/main/charts/mailrise
+  Mailrise: https://github.com/YoRyan/mailrise
+  Apprise:  https://github.com/caronc/apprise
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           Thank you for using Mailrise SMTP Gateway! 📧 → 🔔
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

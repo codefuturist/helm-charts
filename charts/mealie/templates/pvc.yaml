@@ -1,0 +1,27 @@
+{{- range $name, $config := .Values.persistence }}
+{{- if $config.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mealie.fullname" $ }}-{{ $name }}
+  namespace: {{ include "mealie.namespace" $ }}
+  labels:
+    {{- include "mealie.labels" $ | nindent 4 }}
+  {{- with $config.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- range $config.accessModes }}
+    - {{ . }}
+    {{- end }}
+  {{- if $config.storageClass }}
+  storageClassName: {{ $config.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $config.size }}
+{{- end }}
+{{- end }}

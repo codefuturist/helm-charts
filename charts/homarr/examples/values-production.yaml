@@ -1,0 +1,124 @@
+# Homarr with external MySQL database and Redis
+# Recommended for production deployments
+
+deployment:
+  image:
+    repository: ghcr.io/homarr-labs/homarr
+    tag: "latest"
+
+  replicas: 2
+
+  env:
+    # Security
+    SECRET_ENCRYPTION_KEY:
+      valueFrom:
+        secretKeyRef:
+          name: homarr-secret
+          key: encryption-key
+
+    # General
+    LOG_LEVEL:
+      value: "info"
+    PUID:
+      value: "1000"
+    PGID:
+      value: "1000"
+
+    # MySQL Database
+    DB_DRIVER:
+      value: "mysql2"
+    DB_DIALECT:
+      value: "mysql"
+    DB_HOST:
+      value: "mysql.database.svc.cluster.local"
+    DB_PORT:
+      value: "3306"
+    DB_NAME:
+      value: "homarr"
+    DB_USER:
+      valueFrom:
+        secretKeyRef:
+          name: homarr-db-secret
+          key: username
+    DB_PASSWORD:
+      valueFrom:
+        secretKeyRef:
+          name: homarr-db-secret
+          key: password
+
+    # External Redis
+    REDIS_IS_EXTERNAL:
+      value: "true"
+    REDIS_HOST:
+      value: "redis.cache.svc.cluster.local"
+    REDIS_PORT:
+      value: "6379"
+    REDIS_PASSWORD:
+      valueFrom:
+        secretKeyRef:
+          name: homarr-redis-secret
+          key: password
+
+  resources:
+    limits:
+      memory: 1Gi
+      cpu: 1000m
+    requests:
+      memory: 512Mi
+      cpu: 200m
+
+persistence:
+  enabled: true
+  storageSize: 5Gi
+  storageClass: fast-ssd
+
+service:
+  enabled: true
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hosts:
+    - host: homarr.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    - secretName: homarr-tls
+      hosts:
+        - homarr.example.com
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+    - from:
+        - podSelector:
+            matchLabels:
+              app: monitoring
+
+rbac:
+  enabled: true
+  serviceAccount:
+    enabled: true

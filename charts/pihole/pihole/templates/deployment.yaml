@@ -1,0 +1,165 @@
+{{- if .Values.deployment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pihole.fullname" . }}
+  namespace: {{ include "pihole.namespace" . }}
+  labels:
+    {{- include "pihole.labels" . | nindent 4 }}
+    {{- with .Values.deployment.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.deployment.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.deployment.autoscaling.enabled }}
+  replicas: {{ .Values.deployment.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "pihole.selectorLabels" . | nindent 6 }}
+      {{- with .Values.deployment.podLabels }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+  {{- with .Values.deployment.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if .Values.deployment.reloadOnChange }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.deployment.additionalPodAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "pihole.selectorLabels" . | nindent 8 }}
+        {{- with .Values.deployment.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.deployment.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.serviceAccount.enabled }}
+      serviceAccountName: {{ include "pihole.serviceAccountName" . }}
+      {{- end }}
+      {{- with .Values.deployment.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.deployment.dnsPolicy }}
+      dnsPolicy: {{ . }}
+      {{- end }}
+      {{- with .Values.deployment.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: pihole
+        image: "{{ .Values.deployment.image.repository }}:{{ .Values.deployment.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.deployment.image.imagePullPolicy }}
+        {{- with .Values.deployment.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.deployment.command }}
+        command:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.deployment.args }}
+        args:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.deployment.ports }}
+        ports:
+        {{- range .Values.deployment.ports }}
+        - name: {{ .name }}
+          containerPort: {{ .containerPort }}
+          protocol: {{ .protocol | default "TCP" }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.deployment.env }}
+        env:
+        {{- range $key, $value := .Values.deployment.env }}
+        - name: {{ $key }}
+          {{- if $value.valueFrom }}
+          valueFrom:
+            {{- toYaml $value.valueFrom | nindent 12 }}
+          {{- else }}
+          value: {{ tpl (toString $value.value) $ | quote }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.deployment.startupProbe }}
+        startupProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.deployment.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.deployment.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.deployment.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.deployment.volumes }}
+        volumeMounts:
+        {{- range .Values.deployment.volumes }}
+        - name: {{ .name }}
+          mountPath: {{ .mountPath }}
+          {{- if .subPath }}
+          subPath: {{ .subPath }}
+          {{- end }}
+          {{- if .readOnly }}
+          readOnly: {{ .readOnly }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.deployment.volumes }}
+      volumes:
+      {{- range .Values.deployment.volumes }}
+      - name: {{ .name }}
+        {{- if eq .type "persistentVolumeClaim" }}
+        persistentVolumeClaim:
+          claimName: {{ include "pihole.fullname" $ }}-{{ .name }}
+        {{- else if eq .type "configMap" }}
+        configMap:
+          name: {{ .configMapName | default (include "pihole.fullname" $) }}
+        {{- else if eq .type "secret" }}
+        secret:
+          secretName: {{ .secretName | default (include "pihole.fullname" $) }}
+        {{- else if eq .type "emptyDir" }}
+        emptyDir: {}
+        {{- else if eq .type "hostPath" }}
+        hostPath:
+          path: {{ .hostPath }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "semaphore.fullname" . }}-test-connection
+  labels:
+    {{- include "semaphore.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: wget
+      image: busybox:latest
+      command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          echo "Testing Semaphore connection..."
+          echo "Service: {{ include "semaphore.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}"
+
+          # Wait for service to be available
+          echo "Waiting for service to respond..."
+          for i in $(seq 1 30); do
+            if wget --spider --timeout=5 "http://{{ include "semaphore.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/" 2>&1 | grep -q "200 OK" || \
+               wget --spider --timeout=5 "http://{{ include "semaphore.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/" 2>&1 | grep -q "302 Found"; then
+              echo "✓ Connection successful!"
+              echo "✓ Semaphore is responding"
+              exit 0
+            fi
+            echo "Attempt $i/30: Service not ready yet, waiting..."
+            sleep 2
+          done
+
+          echo "✗ Failed to connect to Semaphore after 30 attempts"
+          exit 1

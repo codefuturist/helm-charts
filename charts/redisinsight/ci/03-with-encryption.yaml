@@ -1,0 +1,4 @@
+# Test: With encryption key
+redisInsight:
+  port: 5540
+  encryptionKey: "test-encryption-key-for-ci"

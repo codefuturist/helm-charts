@@ -1,0 +1,74 @@
+# CI Test: Runner deployment
+# Tests runner deployment with distributed task execution
+
+semaphore:
+  database:
+    dialect: postgres
+    host: postgresql.database.svc.cluster.local
+    port: 5432
+    user: semaphore
+    password: testpass
+    name: semaphore
+
+  admin:
+    username: admin
+    password: adminpass123
+    email: admin@example.com
+
+  # Enable runner registration
+  runner:
+    enabled: true
+    registrationToken: test-token-12345
+
+controller:
+  type: deployment
+  replicas: 1
+
+persistence:
+  data:
+    enabled: true
+    size: 2Gi
+  config:
+    enabled: false
+  tmp:
+    enabled: true
+    size: 5Gi
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Deploy runner pods
+runnerDeployment:
+  enabled: true
+  replicas: 2
+
+  image:
+    repository: semaphoreui/runner
+    tag: "v2.16.43"
+
+  server:
+    webRoot: "http://semaphore:3000"
+    registrationToken: test-token-12345
+
+  persistence:
+    data:
+      enabled: true
+      size: 2Gi
+    config:
+      enabled: false
+    tmp:
+      enabled: true
+      size: 5Gi
+
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi

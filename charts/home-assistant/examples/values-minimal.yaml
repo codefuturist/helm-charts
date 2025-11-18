@@ -1,0 +1,69 @@
+# Minimal Home Assistant Configuration
+# Quick start with defaults - suitable for testing and home labs
+
+# Basic image configuration
+image:
+  repository: ghcr.io/home-assistant/home-assistant
+  tag: "2024.11.1"
+  pullPolicy: IfNotPresent
+
+# Single replica (Home Assistant is single-instance)
+replicaCount: 1
+
+# Minimal storage
+persistence:
+  enabled: true
+  size: 5Gi
+  # Use default storage class
+  # storageClassName: ""
+
+# ClusterIP service (access via port-forward or ingress)
+service:
+  type: ClusterIP
+  port: 8123
+
+# Minimal resources
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+# SQLite database (default, no external dependencies)
+database:
+  type: sqlite
+
+# Disabled optional features
+codeserver:
+  enabled: false
+
+mqtt:
+  enabled: false
+
+ingress:
+  enabled: false
+
+# Basic probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 10
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  failureThreshold: 30
+# HOWTO: Deploy this configuration
+#
+# helm install home-assistant codefuturist/home-assistant -f values-minimal.yaml
+#
+# Access via port-forward:
+# kubectl port-forward svc/home-assistant 8123:8123
+# Then visit: http://localhost:8123

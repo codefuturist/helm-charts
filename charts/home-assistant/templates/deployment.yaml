@@ -1,0 +1,305 @@
+{{- include "home-assistant.validateController" . }}
+{{- if eq .Values.controller.type "Deployment" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "home-assistant.fullname" . }}
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+{{- with (include "home-assistant.controllerAnnotations" . | fromYaml) }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  {{- with .Values.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "home-assistant.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- if .Values.configuration.enabled }}
+        checksum/init-script: {{ include (print $.Template.BasePath "/configmap-init-script.yaml") . | sha256sum }}
+        checksum/hass-config: {{ include (print $.Template.BasePath "/configmap-hass-config.yaml") . | sha256sum }}
+        {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "home-assistant.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.dnsPolicy }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      {{- else if .Values.hostNetwork.enabled }}
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
+      {{- with .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "home-assistant.serviceAccountName" . }}
+      {{- if .Values.hostNetwork.enabled }}
+      hostNetwork: true
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
+      {{- if or .Values.configuration.enabled .Values.initContainers }}
+      initContainers:
+        {{- if .Values.initContainers }}
+        {{- toYaml .Values.initContainers | nindent 8 }}
+        {{- end }}
+        {{- if .Values.configuration.enabled }}
+        - name: {{ .Values.configuration.initContainer.name }}
+          image: {{ .Values.configuration.initContainer.image }}
+          securityContext:
+            {{- toYaml .Values.configuration.initContainer.securityContext | nindent 12 }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - /bin/sh /mnt/init/init.sh
+          volumeMounts:
+            - name: init-volume
+              mountPath: /mnt/init/init.sh
+              subPath: init.sh
+            - name: config-volume
+              mountPath: /config-templates
+            - name: config
+              mountPath: /config
+            {{- with .Values.configuration.initContainer.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: home-assistant
+          image: {{ include "home-assistant.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: TZ
+              value: {{ .Values.homeassistant.env.TZ | default "UTC" | quote }}
+            {{- if eq .Values.database.type "postgresql" }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.postgresql.existingSecret | default (printf "%s-db-secret" (include "home-assistant.fullname" .)) }}
+                  key: {{ .Values.database.postgresql.passwordKey }}
+            {{- end }}
+            {{- range $key, $value := .Values.homeassistant.env }}
+            {{- if ne $key "TZ" }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+          {{- with .Values.homeassistant.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            {{- omit .Values.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            {{- if .Values.persistence.media.enabled }}
+            - name: media
+              mountPath: /media
+            {{- end }}
+            {{- if .Values.persistence.backup.enabled }}
+            - name: backup
+              mountPath: /backup
+            {{- end }}
+            {{- if .Values.systemVolumes.localtime.enabled }}
+            - name: localtime
+              mountPath: /etc/localtime
+              readOnly: true
+            {{- end }}
+            {{- if .Values.systemVolumes.dbus.enabled }}
+            - name: dbus
+              mountPath: /run/dbus
+              readOnly: true
+            {{- end }}
+            {{- if .Values.homeassistant.configuration }}
+            - name: config-yaml
+              mountPath: /config/configuration.yaml
+              subPath: configuration.yaml
+            {{- end }}
+            {{- if .Values.homeassistant.secrets }}
+            - name: secrets-yaml
+              mountPath: /config/secrets.yaml
+              subPath: secrets.yaml
+            {{- end }}
+            {{- if .Values.devices.enabled }}
+            {{- range .Values.devices.list }}
+            - name: {{ .hostPath | base | replace "." "-" }}
+              mountPath: {{ .containerPath }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- if .Values.codeserver.enabled }}
+        - name: code-server
+          image: {{ .Values.codeserver.image.repository }}:{{ .Values.codeserver.image.tag }}
+          imagePullPolicy: {{ .Values.codeserver.image.pullPolicy }}
+          ports:
+            - name: code
+              containerPort: {{ .Values.codeserver.port }}
+              protocol: TCP
+          env:
+            - name: PASSWORD
+              value: {{ .Values.codeserver.env.PASSWORD | default (randAlphaNum 16) | quote }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+          {{- with .Values.codeserver.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.mqtt.enabled }}
+        - name: mosquitto
+          image: {{ .Values.mqtt.image.repository }}:{{ .Values.mqtt.image.tag }}
+          imagePullPolicy: {{ .Values.mqtt.image.pullPolicy }}
+          ports:
+            - name: mqtt
+              containerPort: {{ .Values.mqtt.port }}
+              protocol: TCP
+          volumeMounts:
+            {{- if .Values.mqtt.persistence.enabled }}
+            - name: mqtt-data
+              mountPath: /mosquitto/data
+            {{- end }}
+            {{- if .Values.mqtt.config }}
+            - name: mqtt-config
+              mountPath: /mosquitto/config/mosquitto.conf
+              subPath: mosquitto.conf
+            {{- end }}
+          {{- with .Values.mqtt.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- with .Values.extraContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: config
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "home-assistant.configPvcName" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- if .Values.persistence.media.enabled }}
+        - name: media
+          persistentVolumeClaim:
+            claimName: {{ include "home-assistant.mediaPvcName" . }}
+        {{- end }}
+        {{- if .Values.persistence.backup.enabled }}
+        - name: backup
+          persistentVolumeClaim:
+            claimName: {{ include "home-assistant.backupPvcName" . }}
+        {{- end }}
+        {{- if .Values.configuration.enabled }}
+        - name: init-volume
+          configMap:
+            name: {{ include "home-assistant.fullname" . }}-init-script
+            defaultMode: 0755
+        - name: config-volume
+          configMap:
+            name: {{ include "home-assistant.fullname" . }}-hass-config
+        {{- end }}
+        {{- if .Values.systemVolumes.localtime.enabled }}
+        - name: localtime
+          hostPath:
+            path: {{ .Values.systemVolumes.localtime.hostPath }}
+            type: File
+        {{- end }}
+        {{- if .Values.systemVolumes.dbus.enabled }}
+        - name: dbus
+          hostPath:
+            path: {{ .Values.systemVolumes.dbus.hostPath }}
+            type: Socket
+        {{- end }}
+        {{- if .Values.homeassistant.configuration }}
+        - name: config-yaml
+          configMap:
+            name: {{ .Values.homeassistant.existingConfigMap | default (printf "%s-config" (include "home-assistant.fullname" .)) }}
+        {{- end }}
+        {{- if .Values.homeassistant.secrets }}
+        - name: secrets-yaml
+          secret:
+            secretName: {{ printf "%s-secrets" (include "home-assistant.fullname" .) }}
+        {{- end }}
+        {{- if .Values.devices.enabled }}
+        {{- range .Values.devices.list }}
+        - name: {{ .hostPath | base | replace "." "-" }}
+          hostPath:
+            path: {{ .hostPath }}
+        {{- end }}
+        {{- end }}
+        {{- if and .Values.mqtt.enabled .Values.mqtt.persistence.enabled }}
+        - name: mqtt-data
+          persistentVolumeClaim:
+            claimName: {{ include "home-assistant.fullname" . }}-mqtt
+        {{- end }}
+        {{- if and .Values.mqtt.enabled .Values.mqtt.config }}
+        - name: mqtt-config
+          configMap:
+            name: {{ include "home-assistant.fullname" . }}-mqtt-config
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+{{- end }}

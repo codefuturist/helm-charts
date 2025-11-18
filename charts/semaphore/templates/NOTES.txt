@@ -1,0 +1,169 @@
+{{- if .Values.diagnosticMode.enabled }}
+================================================================================
+WARNING: Diagnostic Mode Enabled
+================================================================================
+
+The deployment is running in diagnostic mode with sleep infinity.
+This is useful for debugging but should NOT be used in production.
+
+To disable diagnostic mode, set diagnosticMode.enabled=false
+
+{{- else }}
+
+********************************************************************************
+*                            Semaphore UI Installed                            *
+********************************************************************************
+
+Semaphore UI has been successfully deployed!
+
+{{- if .Values.ingress.enabled }}
+
+1. Access Semaphore UI via Ingress:
+
+   {{- range .Values.ingress.hosts }}
+   - https://{{ .host }}{{ (index .paths 0).path }}
+   {{- end }}
+
+{{- else if contains "NodePort" .Values.service.type }}
+
+1. Get the application URL by running:
+
+   export NODE_PORT=$(kubectl get --namespace {{ include "semaphore.namespace" . }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "semaphore.fullname" . }})
+   export NODE_IP=$(kubectl get nodes --namespace {{ include "semaphore.namespace" . }} -o jsonpath="{.items[0].status.addresses[0].address}")
+   echo "http://$NODE_IP:$NODE_PORT"
+
+{{- else if contains "LoadBalancer" .Values.service.type }}
+
+1. Get the application URL by running:
+
+   NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+
+   export SERVICE_IP=$(kubectl get svc --namespace {{ include "semaphore.namespace" . }} {{ include "semaphore.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+   echo "http://$SERVICE_IP:{{ .Values.service.port }}"
+
+{{- else if contains "ClusterIP" .Values.service.type }}
+
+1. Access Semaphore UI by port-forwarding:
+
+   kubectl --namespace {{ include "semaphore.namespace" . }} port-forward svc/{{ include "semaphore.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+
+   Then access the application at: http://127.0.0.1:{{ .Values.service.port }}
+
+{{- end }}
+
+2. Login Credentials:
+
+   Username: {{ .Values.semaphore.admin.username }}
+   {{- if not .Values.semaphore.existingSecret }}
+   Password: (see your values.yaml or retrieve from secret)
+   {{- else }}
+   Password: (stored in existing secret: {{ .Values.semaphore.existingSecret }})
+   {{- end }}
+
+   To get the admin password from the secret:
+
+   kubectl get secret --namespace {{ include "semaphore.namespace" . }} {{ include "semaphore.secretName" . }} -o jsonpath="{.data.admin-password}" | base64 -d
+
+3. Important Configuration:
+
+   {{- if eq .Values.semaphore.database.dialect "sqlite" }}
+   - Database: SQLite (stored in PersistentVolume)
+   {{- else }}
+   - Database: {{ .Values.semaphore.database.dialect }} ({{ .Values.semaphore.database.host }}:{{ .Values.semaphore.database.port }}/{{ .Values.semaphore.database.name }})
+   {{- end }}
+   {{- if .Values.persistence.data.enabled }}
+   - Data Volume: {{ .Values.persistence.data.size }} ({{ .Values.persistence.data.mountPath }})
+   {{- end }}
+   {{- if .Values.persistence.config.enabled }}
+   - Config Volume: {{ .Values.persistence.config.size }} ({{ .Values.persistence.config.mountPath }})
+   {{- end }}
+   {{- if .Values.persistence.tmp.enabled }}
+   - Temp Volume: {{ .Values.persistence.tmp.size }} ({{ .Values.persistence.tmp.mountPath }})
+   {{- end }}
+
+4. Next Steps:
+
+   - Change the default admin password immediately
+   {{- if eq .Values.semaphore.database.dialect "sqlite" }}
+   - Consider migrating to PostgreSQL or MySQL for production use
+   {{- end }}
+   {{- if not .Values.ingress.enabled }}
+   - Set up Ingress for external access
+   {{- end }}
+   {{- if not .Values.semaphore.email.enabled }}
+   - Configure email settings for notifications
+   {{- end }}
+   {{- if not .Values.monitoring.serviceMonitor.enabled }}
+   - Enable ServiceMonitor for Prometheus monitoring
+   {{- end }}
+   - Configure your first project and inventory
+   - Set up SSH keys for accessing target hosts
+   {{- if .Values.semaphore.runner.enabled }}
+   - Deploy Semaphore runners for distributed task execution
+   {{- end }}
+
+5. Documentation:
+
+   - Semaphore Docs: https://docs.semaphoreui.com/
+   - GitHub: https://github.com/semaphoreui/semaphore
+   - Helm Chart: https://github.com/{{ .Chart.Home | default "your-org/helm-charts" }}
+
+{{- if .Values.semaphore.ldap.enabled }}
+
+6. LDAP Authentication:
+
+   LDAP is enabled. Users can authenticate using their LDAP credentials.
+   - Server: {{ .Values.semaphore.ldap.server }}
+   - Search DN: {{ .Values.semaphore.ldap.searchDn }}
+
+{{- end }}
+
+{{- if or .Values.semaphore.messengers.telegram.enabled .Values.semaphore.messengers.slack.enabled .Values.semaphore.messengers.rocketchat.enabled .Values.semaphore.messengers.microsoftTeams.enabled .Values.semaphore.messengers.dingtalk.enabled .Values.semaphore.messengers.gotify.enabled }}
+
+7. Messenger Integrations Configured:
+
+   {{- if .Values.semaphore.messengers.telegram.enabled }}
+   - Telegram (Chat: {{ .Values.semaphore.messengers.telegram.chat }})
+   {{- end }}
+   {{- if .Values.semaphore.messengers.slack.enabled }}
+   - Slack
+   {{- end }}
+   {{- if .Values.semaphore.messengers.rocketchat.enabled }}
+   - RocketChat
+   {{- end }}
+   {{- if .Values.semaphore.messengers.microsoftTeams.enabled }}
+   - Microsoft Teams
+   {{- end }}
+   {{- if .Values.semaphore.messengers.dingtalk.enabled }}
+   - DingTalk
+   {{- end }}
+   {{- if .Values.semaphore.messengers.gotify.enabled }}
+   - Gotify
+   {{- end }}
+
+{{- end }}
+
+********************************************************************************
+
+{{- if .Values.hpa.enabled }}
+
+NOTE: HorizontalPodAutoscaler is enabled. The replica count will be managed
+      automatically between {{ .Values.hpa.minReplicas }} and {{ .Values.hpa.maxReplicas }} replicas.
+
+{{- end }}
+
+{{- if .Values.pdb.enabled }}
+
+NOTE: PodDisruptionBudget is enabled to ensure high availability during
+      cluster maintenance.
+
+{{- end }}
+
+{{- if eq .Values.controller.type "statefulset" }}
+
+NOTE: Using StatefulSet controller for stable persistent storage and identity.
+      This is recommended for production deployments.
+
+{{- end }}
+
+{{- end }}

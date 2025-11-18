@@ -1,0 +1,22 @@
+# Minimal Restic Backup Configuration
+# This is the simplest configuration to get started with local backups
+
+restic:
+  # Local repository on dedicated backup volume (default)
+  # The chart automatically creates a PVC and mounts it at this path
+  repository: "/backup-repository"
+  password: "change-me-to-a-secure-password"
+
+# Dedicated backup volume (enabled by default)
+# The chart automatically creates a 10Gi PVC for storing backups
+backupVolume:
+  enabled: true # Default: true
+  type: pvc # Default: pvc
+  pvc:
+    size: 10Gi # Adjust based on your backup needs
+
+# List of volumes to backup
+volumes:
+  - name: app-data
+    claimName: myapp-pvc # Name of your PVC to backup
+    mountPath: /data # Where to mount the PVC in backup pod

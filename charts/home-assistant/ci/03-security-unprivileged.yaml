@@ -1,0 +1,19 @@
+# CI Test: Unprivileged security context (recommended)
+# Tests secure capabilities-based configuration
+
+securityContext:
+  privileged: false
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+
+podSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 0
+  fsGroup: 0
+  seccompProfile:
+    type: RuntimeDefault

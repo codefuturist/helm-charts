@@ -1,0 +1,142 @@
+# Custom Logging Configuration Example
+# This configuration shows how to set up custom logging with log rotation
+
+mealie:
+  enabled: true
+  replicas: 1
+  env:
+    # Basic configuration
+    TZ:
+      value: America/New_York
+    BASE_URL:
+      value: https://mealie.example.com
+
+  # Custom Logging Configuration
+  # This creates a ConfigMap with Python logging config and mounts it
+  logging:
+    enabled: true
+    configPath: /app/logging-config.yaml
+    config:
+      version: 1
+      disable_existing_loggers: false
+
+      formatters:
+        standard:
+          format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+          datefmt: "%Y-%m-%d %H:%M:%S"
+        detailed:
+          format: "%(asctime)s - [%(levelname)s] - %(name)s - %(funcName)s:%(lineno)d - %(message)s"
+          datefmt: "%Y-%m-%d %H:%M:%S"
+        json:
+          class: pythonjsonlogger.jsonlogger.JsonFormatter
+          format: "%(asctime)s %(name)s %(levelname)s %(message)s"
+
+      handlers:
+        console:
+          class: logging.StreamHandler
+          level: INFO
+          formatter: standard
+          stream: ext://sys.stdout
+
+        file:
+          class: logging.handlers.RotatingFileHandler
+          level: INFO
+          formatter: detailed
+          filename: /app/data/mealie.log
+          maxBytes: 10485760 # 10MB
+          backupCount: 5
+          encoding: utf8
+
+        error_file:
+          class: logging.handlers.RotatingFileHandler
+          level: ERROR
+          formatter: detailed
+          filename: /app/data/mealie-error.log
+          maxBytes: 10485760 # 10MB
+          backupCount: 5
+          encoding: utf8
+
+      loggers:
+        mealie:
+          level: INFO
+          handlers: [console, file, error_file]
+          propagate: false
+
+        sqlalchemy:
+          level: WARNING
+          handlers: [console, file]
+          propagate: false
+
+        uvicorn:
+          level: INFO
+          handlers: [console, file]
+          propagate: false
+
+        uvicorn.access:
+          level: INFO
+          handlers: [console]
+          propagate: false
+
+      root:
+        level: INFO
+        handlers: [console, file]
+
+# Database configuration
+database:
+  engine: postgres
+  name: mealie
+  user: mealie
+  password: changeme
+
+# Enable PostgreSQL
+postgres:
+  enabled: true
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+# Persistent storage
+persistence:
+  mealie-data:
+    enabled: true
+    size: 10Gi
+    # Log files are stored here:
+    # - /app/data/mealie.log (main log with rotation)
+    # - /app/data/mealie-error.log (error-only log)
+  mealie-pgdata:
+    enabled: true
+    size: 20Gi
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: mealie.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          port: 80
+  tls:
+    - secretName: mealie-tls
+      hosts:
+        - mealie.example.com
+# Notes:
+# 1. Log files are written to the mealie-data PVC at /app/data/
+# 2. Logs are rotated when they reach 10MB (keeping 5 backups)
+# 3. Separate error log file for easier troubleshooting
+# 4. Console output (stdout) also available via kubectl logs
+# 5. Access logs from Kubernetes:
+#    kubectl logs -l app.kubernetes.io/name=mealie,app.kubernetes.io/component=mealie
+# 6. Access log files from pod:
+#    kubectl exec -it deployment/mealie-release-mealie -- tail -f /app/data/mealie.log

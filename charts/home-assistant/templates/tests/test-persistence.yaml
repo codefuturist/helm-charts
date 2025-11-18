@@ -1,0 +1,115 @@
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "home-assistant.fullname" . }}-test-persistence
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "2"
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-persistence
+      image: busybox:1.36
+      command: ['sh', '-c']
+      args:
+        - |
+          echo "Testing persistence configuration..."
+
+          # Check if config PVC exists
+          if [ -d "/test-config" ]; then
+            echo "✅ Config volume is mounted"
+
+            # Test write permissions
+            TEST_FILE="/test-config/helm-test-$(date +%s).txt"
+            if echo "test" > "$TEST_FILE" 2>/dev/null; then
+              echo "✅ Config volume is writable"
+              rm -f "$TEST_FILE"
+            else
+              echo "❌ Config volume is not writable"
+              exit 1
+            fi
+          else
+            echo "❌ Config volume is not mounted"
+            exit 1
+          fi
+
+          {{- if .Values.persistence.media.enabled }}
+          if [ -d "/test-media" ]; then
+            echo "✅ Media volume is mounted"
+          else
+            echo "❌ Media volume is not mounted"
+            exit 1
+          fi
+          {{- end }}
+
+          {{- if .Values.persistence.backup.enabled }}
+          if [ -d "/test-backup" ]; then
+            echo "✅ Backup volume is mounted"
+          else
+            echo "❌ Backup volume is not mounted"
+            exit 1
+          fi
+          {{- end }}
+
+          echo "✅ All persistence tests passed"
+          exit 0
+      volumeMounts:
+        {{- if eq .Values.controller.type "Deployment" }}
+        - name: config
+          mountPath: /test-config
+        {{- else }}
+        - name: {{ include "home-assistant.fullname" . }}-config
+          mountPath: /test-config
+        {{- end }}
+        {{- if .Values.persistence.media.enabled }}
+        {{- if eq .Values.controller.type "Deployment" }}
+        - name: media
+          mountPath: /test-media
+        {{- else }}
+        - name: {{ include "home-assistant.fullname" . }}-media
+          mountPath: /test-media
+        {{- end }}
+        {{- end }}
+        {{- if .Values.persistence.backup.enabled }}
+        {{- if eq .Values.controller.type "Deployment" }}
+        - name: backup
+          mountPath: /test-backup
+        {{- else }}
+        - name: {{ include "home-assistant.fullname" . }}-backup
+          mountPath: /test-backup
+        {{- end }}
+        {{- end }}
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 65534
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+  volumes:
+    {{- if eq .Values.controller.type "Deployment" }}
+    - name: config
+      persistentVolumeClaim:
+        claimName: {{ include "home-assistant.configPvcName" . }}
+    {{- if .Values.persistence.media.enabled }}
+    - name: media
+      persistentVolumeClaim:
+        claimName: {{ include "home-assistant.mediaPvcName" . }}
+    {{- end }}
+    {{- if .Values.persistence.backup.enabled }}
+    - name: backup
+      persistentVolumeClaim:
+        claimName: {{ include "home-assistant.backupPvcName" . }}
+    {{- end }}
+    {{- else }}
+    # StatefulSet PVCs are automatically available
+    {{- end }}
+{{- end }}

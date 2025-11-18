@@ -1,0 +1,70 @@
+# Test configuration for MongoDB Compass Web
+# This values file demonstrates a minimal working installation
+
+# MongoDB connection string (required)
+compassWeb:
+  mongoUri: "mongodb://mongodb:27017"
+
+  # Application settings
+  appName: "Compass Web Test"
+
+  # Basic authentication (optional)
+  basicAuth:
+    enabled: false
+    username: "admin"
+    password: "test123"
+
+  # GenAI features (optional - requires OpenAI API key)
+  genAI:
+    enabled: false
+    apiKey: ""
+    model: "gpt-4o-mini"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+# Ingress configuration (optional)
+ingress:
+  enabled: false
+  className: ""
+  hosts: []
+  tls: []
+
+# Persistence (optional - Compass Web is mostly stateless)
+persistence:
+  enabled: false
+
+# Security contexts
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# Resources
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Health probes
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 10

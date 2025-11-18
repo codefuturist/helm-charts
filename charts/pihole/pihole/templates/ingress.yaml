@@ -1,0 +1,42 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: {{ include "pihole.ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ include "pihole.fullname" . }}
+  namespace: {{ include "pihole.namespace" . }}
+  labels:
+    {{- include "pihole.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ include "pihole.fullname" $ }}
+                port:
+                  number: {{ .port | default 80 }}
+          {{- end }}
+    {{- end }}
+{{- end }}

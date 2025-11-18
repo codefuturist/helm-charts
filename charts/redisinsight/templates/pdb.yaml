@@ -1,0 +1,19 @@
+{{- if .Values.pdb.enabled -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "redisinsight.fullname" . }}
+  namespace: {{ include "redisinsight.namespace" . }}
+  labels:
+    {{- include "redisinsight.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "redisinsight.selectorLabels" . | nindent 6 }}
+  {{- if .Values.pdb.minAvailable }}
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}

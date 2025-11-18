@@ -1,0 +1,10 @@
+# CI Test: Configuration management enabled
+# Tests automatic config file initialization
+
+configuration:
+  enabled: true
+  forceInit: false
+
+persistence:
+  enabled: true
+  size: 5Gi

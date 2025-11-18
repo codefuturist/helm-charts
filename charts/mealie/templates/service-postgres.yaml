@@ -1,0 +1,30 @@
+{{- if and .Values.postgres.enabled .Values.postgres.ports }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mealie.fullname" . }}-postgres
+  namespace: {{ include "mealie.namespace" . }}
+  labels:
+    {{- include "mealie.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type | default "ClusterIP" }}
+  {{- if .Values.service.clusterIP }}
+  clusterIP: {{ .Values.service.clusterIP }}
+  {{- end }}
+  ports:
+  {{- range .Values.postgres.ports }}
+  - port: {{ .containerPort }}
+    targetPort: {{ .name }}
+    protocol: {{ .protocol | default "TCP" }}
+    name: {{ .name }}
+  {{- end }}
+  selector:
+    {{- include "mealie.postgres.selectorLabels" . | nindent 4 }}
+    {{- with .Values.postgres.podLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}

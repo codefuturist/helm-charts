@@ -1,0 +1,641 @@
+# =============================================================================
+# Global Parameters
+# @section -- Global Parameters
+# =============================================================================
+
+# -- Override the namespace for all resources
+# @default -- `.Release.Namespace`
+namespaceOverride: ""
+
+# -- Override the name of the chart
+nameOverride: ""
+
+# -- Override the full name of the chart
+fullnameOverride: ""
+
+# -- Additional labels to add to all resources
+additionalLabels: {}
+
+# -- Additional annotations to add to all resources
+additionalAnnotations: {}
+
+# =============================================================================
+# Image Configuration
+# @section -- Image Configuration
+# =============================================================================
+
+image:
+  # -- MongoDB Compass Web Docker image repository
+  repository: haohanyang/compass-web
+  # -- MongoDB Compass Web Docker image tag
+  # @default -- Chart appVersion
+  tag: "0.3.1"
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+  # -- Image digest (overrides tag if set)
+  digest: ""
+
+# -- Image pull secrets for private registries
+imagePullSecrets: []
+
+# =============================================================================
+# Compass Web Configuration
+# @section -- Compass Web Configuration
+# =============================================================================
+
+compassWeb:
+  # -- MongoDB connection string(s) (required)
+  # Can be a single URI or multiple URIs separated by whitespace
+  # Example: "mongodb://localhost:27017"
+  # Example multiple: "mongodb://localhost:27017 mongodb+srv://user:pass@cluster.mongodb.net/"
+  mongoUri: ""
+
+  # -- Name of an existing secret containing MongoDB connection string
+  # The secret must contain a key 'mongoUri' with the connection string(s)
+  existingSecret: ""
+
+  # -- Key in existingSecret that contains the MongoDB URI
+  existingSecretKey: "mongoUri"
+
+  # -- Application name displayed in the UI
+  appName: "Compass Web"
+
+  # -- Organization ID associated with the connection
+  orgId: "default-org-id"
+
+  # -- Project ID associated with the connection
+  projectId: "default-project-id"
+
+  # -- Cluster ID associated with the connection
+  clusterId: "default-cluster-id"
+
+  # -- Basic HTTP authentication configuration
+  basicAuth:
+    # -- Enable basic authentication
+    enabled: false
+    # -- Username for basic auth
+    username: ""
+    # -- Password for basic auth
+    password: ""
+    # -- Name of existing secret containing basic auth credentials
+    existingSecret: ""
+    # -- Key in existingSecret for username
+    existingSecretUsernameKey: "username"
+    # -- Key in existingSecret for password
+    existingSecretPasswordKey: "password"
+
+  # -- GenAI features configuration (requires OpenAI API key)
+  genAI:
+    # -- Enable GenAI features
+    enabled: false
+    # -- OpenAI API key
+    apiKey: ""
+    # -- Name of existing secret containing OpenAI API key
+    existingSecret: ""
+    # -- Key in existingSecret for API key
+    existingSecretKey: "apiKey"
+    # -- OpenAI model to use
+    model: "gpt-4o-mini"
+    # -- Enable uploading sample documents to GenAI service
+    enableSampleDocuments: false
+    # -- Custom system prompt for query generation
+    querySystemPrompt: ""
+    # -- Custom system prompt for aggregation generation
+    aggregationSystemPrompt: ""
+
+  # -- Additional Compass Web configuration as environment variables
+  # All variables are prefixed with CW_ in the container
+  config: {}
+    # CUSTOM_VAR: "value"
+
+# =============================================================================
+# Controller Configuration
+# @section -- Controller Configuration
+# =============================================================================
+
+controller:
+  # -- Controller type (deployment or statefulset)
+  type: deployment
+
+  # -- Number of replicas
+  replicas: 1
+
+  # -- Deployment update strategy
+  strategy:
+    type: Recreate
+
+  # -- StatefulSet update strategy (only used if controller.type is statefulset)
+  updateStrategy:
+    type: RollingUpdate
+
+  # -- Pod management policy (only used if controller.type is statefulset)
+  podManagementPolicy: OrderedReady
+
+  # -- Command override for the main container
+  command: []
+
+  # -- Args override for the main container
+  args: []
+
+  # -- Working directory for the main container
+  workingDir: ""
+
+  # -- Termination grace period in seconds
+  terminationGracePeriodSeconds: 30
+
+  # -- Lifecycle hooks for the main container
+  lifecycle: {}
+    # preStop:
+    #   exec:
+    #     command:
+    #       - /bin/sh
+    #       - -c
+    #       - sleep 15
+
+# =============================================================================
+# Service Configuration
+# @section -- Service Configuration
+# =============================================================================
+
+service:
+  # -- Service type
+  type: ClusterIP
+
+  # -- Service port
+  port: 8080
+
+  # -- Service target port (container port)
+  targetPort: 8080
+
+  # -- Node port (only used if type is NodePort)
+  nodePort: ""
+
+  # -- Load balancer IP (only used if type is LoadBalancer)
+  loadBalancerIP: ""
+
+  # -- Load balancer source ranges (only used if type is LoadBalancer)
+  loadBalancerSourceRanges: []
+
+  # -- External traffic policy (only used if type is LoadBalancer or NodePort)
+  externalTrafficPolicy: ""
+
+  # -- Cluster IP (set to None for headless service)
+  clusterIP: ""
+
+  # -- Session affinity
+  sessionAffinity: None
+
+  # -- Session affinity config
+  sessionAffinityConfig: {}
+
+  # -- Service annotations
+  annotations: {}
+
+  # -- Service labels
+  labels: {}
+
+# =============================================================================
+# Ingress Configuration
+# @section -- Ingress Configuration
+# =============================================================================
+
+ingress:
+  # -- Enable ingress
+  enabled: false
+
+  # -- Ingress class name
+  className: ""
+
+  # -- Ingress annotations
+  # Example for nginx ingress:
+  # annotations:
+  #   cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  #   nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+  annotations: {}
+
+  # -- Ingress hosts configuration
+  # Example:
+  # hosts:
+  #   - host: compass.example.com
+  #     paths:
+  #       - path: /
+  #         pathType: Prefix
+  hosts: []
+
+  # -- Ingress TLS configuration
+  # Example:
+  # tls:
+  #   - secretName: compass-tls
+  #     hosts:
+  #       - compass.example.com
+  tls: []
+
+# =============================================================================
+# Persistence Configuration
+# @section -- Persistence Configuration
+# =============================================================================
+
+persistence:
+  # -- Enable persistent storage for Compass Web data
+  # Note: Compass Web is mostly stateless, persistence is optional
+  enabled: false
+
+  # -- Storage class name
+  # @default -- Default storage class
+  storageClassName: ""
+
+  # -- Access mode for the persistent volume
+  accessMode: ReadWriteOnce
+
+  # -- Size of the persistent volume
+  size: 1Gi
+
+  # -- Name of an existing PVC to use
+  existingClaim: ""
+
+  # -- Annotations for the PVC
+  annotations: {}
+
+# =============================================================================
+# Security Context
+# @section -- Security Context
+# =============================================================================
+
+# -- Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+# -- Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# =============================================================================
+# Resources
+# @section -- Resources
+# =============================================================================
+
+# -- Resource limits and requests
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# =============================================================================
+# Probes
+# @section -- Health Probes
+# =============================================================================
+
+# -- Liveness probe configuration
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+# -- Readiness probe configuration
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+  successThreshold: 1
+
+# -- Startup probe configuration
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 30
+  successThreshold: 1
+
+# =============================================================================
+# Pod Configuration
+# @section -- Pod Configuration
+# =============================================================================
+
+# -- Pod annotations
+podAnnotations: {}
+
+# -- Pod labels
+podLabels: {}
+
+# -- Node selector for pod assignment
+nodeSelector: {}
+
+# -- Tolerations for pod assignment
+tolerations: []
+
+# -- Affinity for pod assignment
+affinity: {}
+
+# -- Priority class name for the pod
+priorityClassName: ""
+
+# -- Topology spread constraints for pod distribution
+topologySpreadConstraints: []
+  # - maxSkew: 1
+  #   topologyKey: topology.kubernetes.io/zone
+  #   whenUnsatisfiable: ScheduleAnyway
+  #   labelSelector:
+  #     matchLabels:
+  #       app.kubernetes.io/name: compass-web
+
+# -- DNS policy
+dnsPolicy: ClusterFirst
+
+# -- DNS config
+dnsConfig: {}
+  # nameservers:
+  #   - 1.1.1.1
+  # searches:
+  #   - my-namespace.svc.cluster.local
+  # options:
+  #   - name: ndots
+  #     value: "2"
+
+# -- Host aliases
+hostAliases: []
+  # - ip: "192.168.1.100"
+  #   hostnames:
+  #     - "mongodb.example.com"
+  #     - "database.local"
+
+# -- Runtime class name
+runtimeClassName: ""
+
+# -- Init containers to run before the main container
+initContainers: []
+  # - name: init-permissions
+  #   image: busybox:latest
+  #   command: ['sh', '-c', 'chown -R 1000:1000 /data']
+  #   volumeMounts:
+  #     - name: data
+  #       mountPath: /data
+
+# -- Extra sidecar containers
+extraContainers: []
+  # - name: backup-agent
+  #   image: backup-tool:latest
+  #   volumeMounts:
+  #     - name: data
+  #       mountPath: /data
+  #       readOnly: true
+
+# -- Extra environment variables
+extraEnv: []
+  # - name: CUSTOM_VAR
+  #   value: "custom-value"
+  # - name: SECRET_VAR
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: my-secret
+  #       key: secret-key
+
+# -- Extra environment variables from ConfigMaps or Secrets
+extraEnvFrom: []
+  # - configMapRef:
+  #     name: my-configmap
+  # - secretRef:
+  #     name: my-secret
+
+# -- Extra volumes
+extraVolumes: []
+  # - name: custom-config
+  #   configMap:
+  #     name: compass-custom-config
+  # - name: certificates
+  #   secret:
+  #     secretName: ssl-certs
+
+# -- Extra volume mounts
+extraVolumeMounts: []
+  # - name: custom-config
+  #   mountPath: /etc/compass/custom
+  #   readOnly: true
+  # - name: certificates
+  #   mountPath: /etc/ssl/certs
+  #   readOnly: true
+
+# =============================================================================
+# Monitoring
+# @section -- Monitoring
+# =============================================================================
+
+monitoring:
+  serviceMonitor:
+    # -- Enable ServiceMonitor for Prometheus Operator
+    enabled: false
+
+    # -- Namespace for the ServiceMonitor (defaults to the release namespace)
+    namespace: ""
+
+    # -- Interval at which metrics should be scraped
+    interval: 30s
+
+    # -- Timeout for scraping metrics
+    scrapeTimeout: 10s
+
+    # -- Additional labels for the ServiceMonitor
+    labels: {}
+
+    # -- Additional annotations for the ServiceMonitor
+    annotations: {}
+
+    # -- Metric relabelings
+    metricRelabelings: []
+      # - sourceLabels: [__name__]
+      #   action: keep
+      #   regex: 'compass_.*'
+
+    # -- Relabelings
+    relabelings: []
+      # - sourceLabels: [__meta_kubernetes_pod_name]
+      #   targetLabel: pod
+
+  prometheusRule:
+    # -- Enable PrometheusRule for alerting
+    enabled: false
+
+    # -- Namespace for the PrometheusRule (defaults to the release namespace)
+    namespace: ""
+
+    # -- Additional labels for the PrometheusRule
+    labels: {}
+
+    # -- Alert rules
+    rules: []
+      # - alert: CompassWebDown
+      #   expr: up{job="compass-web"} == 0
+      #   for: 5m
+      #   labels:
+      #     severity: critical
+      #   annotations:
+      #     summary: "Compass Web is down"
+      #     description: "Compass Web instance {{ $labels.instance }} is down"
+
+# =============================================================================
+# High Availability
+# @section -- High Availability
+# =============================================================================
+
+pdb:
+  # -- Enable PodDisruptionBudget
+  enabled: false
+
+  # -- Minimum number of pods that must be available
+  minAvailable: 1
+
+  # -- Maximum number of pods that can be unavailable
+  maxUnavailable: ""
+
+# -- Horizontal Pod Autoscaler configuration
+hpa:
+  # -- Enable HorizontalPodAutoscaler
+  enabled: false
+
+  # -- Minimum number of replicas
+  minReplicas: 1
+
+  # -- Maximum number of replicas
+  maxReplicas: 3
+
+  # -- Target CPU utilization percentage
+  targetCPUUtilizationPercentage: 80
+
+  # -- Target memory utilization percentage
+  targetMemoryUtilizationPercentage: 80
+
+  # -- Custom metrics for autoscaling
+  customMetrics: []
+    # - type: Pods
+    #   pods:
+    #     metric:
+    #       name: custom_metric
+    #     target:
+    #       type: AverageValue
+    #       averageValue: "100"
+
+# =============================================================================
+# RBAC Configuration
+# @section -- RBAC Configuration
+# =============================================================================
+
+serviceAccount:
+  # -- Create a service account
+  create: true
+
+  # -- Service account name (generated if not set and create is true)
+  name: ""
+
+  # -- Service account annotations
+  annotations: {}
+
+rbac:
+  # -- Create RBAC resources
+  create: true
+
+  # -- Additional RBAC rules
+  rules: []
+
+# =============================================================================
+# Network Policy
+# @section -- Network Policy
+# =============================================================================
+
+networkPolicy:
+  # -- Enable network policy
+  enabled: false
+
+  # -- Policy types
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # -- Ingress rules
+  # Example to allow traffic from specific namespaces:
+  # ingress:
+  #   - from:
+  #     - namespaceSelector:
+  #         matchLabels:
+  #           name: ingress-nginx
+  #     ports:
+  #     - protocol: TCP
+  #       port: 8080
+  ingress: []
+
+  # -- Egress rules
+  # By default, allow egress to MongoDB port and DNS
+  egress:
+    # Allow MongoDB connections
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 27017
+    # Allow MongoDB Atlas (SRV)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 27017
+        - protocol: TCP
+          port: 27018
+        - protocol: TCP
+          port: 27019
+    # Allow DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow HTTPS (for OpenAI API if GenAI enabled)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+
+# =============================================================================
+# Diagnostic Mode
+# @section -- Diagnostic Mode
+# =============================================================================
+
+diagnosticMode:
+  # -- Enable diagnostic mode (disables probes, overrides command)
+  # Useful for debugging container startup issues
+  enabled: false
+
+  # -- Command override for diagnostic mode
+  command:
+    - sleep
+
+  # -- Args override for diagnostic mode
+  args:
+    - infinity

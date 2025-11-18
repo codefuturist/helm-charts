@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Helm Charts Repository for Kubernetes applications">
+    <meta name="keywords" content="helm, kubernetes, charts, k8s, deployment">
+    <title>Helm Charts Repository</title>
+    <link rel="icon" href="https://helm.sh/img/helm.svg" type="image/svg+xml">
+    <style>
+        :root {
+            --primary-color: #0f1689;
+            --secondary-color: #326ce5;
+            --accent-color: #00d4aa;
+            --text-dark: #2c3e50;
+            --text-light: #6c757d;
+            --bg-light: #f8f9fa;
+            --border-color: #dee2e6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--bg-light);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .info-box {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            font-size: 1.3rem;
+            margin: 1.5rem 0 0.75rem;
+            font-weight: 600;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', 'Consolas', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .charts-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .charts-table th {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .charts-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .charts-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .charts-table tr:hover {
+            background: var(--bg-light);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            background: var(--secondary-color);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .badge.type {
+            background: var(--accent-color);
+        }
+
+        a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .link-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .link-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: var(--secondary-color);
+        }
+
+        .link-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>⎈ Helm Charts Repository</h1>
+        <p>Production-ready Kubernetes application charts</p>
+    </header>
+
+    <div class="container">
+        <div class="info-box">
+            <h2>Getting Started</h2>
+            <p>Add this repository to your Helm client:</p>
+            <div class="code-block">helm repo add pandia https://charts.pandia.io/
+helm repo update</div>
+
+            <h3>Search Available Charts</h3>
+            <div class="code-block">helm search repo pandia</div>
+
+            <h3>Install a Chart</h3>
+            <div class="code-block">helm install my-release pandia/&lt;chart-name&gt;</div>
+        </div>
+
+        <div class="info-box">
+            <h2>Available Charts</h2>
+            <table class="charts-table">
+                <thead>
+                    <tr>
+                        <th>Chart</th>
+                        <th>Description</th>
+                        <th>Version</th>
+                        <th>Links</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>application</strong></td>
+                        <td>
+                            <span class="badge">Generic</span>
+                            <span class="badge type">Flexible</span><br>
+                            Generic Helm chart for deploying various application types with extensive customization options
+                        </td>
+                        <td>6.15.0</td>
+                        <td>
+                            <a href="charts/application/">📖 README</a> |
+                            <a href="https://github.com/codefuturist/helm-charts/tree/main/charts/application">GitHub</a> |
+                            <a href="https://artifacthub.io/packages/helm/codefuturist/application">ArtifactHub</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>homarr</strong></td>
+                        <td>
+                            <span class="badge">Dashboard</span><br>
+                            A simple, yet powerful dashboard for your server
+                        </td>
+                        <td>1.0.0</td>
+                        <td>
+                            <a href="charts/homarr/">📖 README</a> |
+                            <a href="https://github.com/codefuturist/helm-charts/tree/main/charts/homarr">GitHub</a> |
+                            <a href="https://artifacthub.io/packages/helm/codefuturist/homarr">ArtifactHub</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="text-align: center; margin-top: 1rem;">
+                <a href="charts/" style="font-weight: bold; color: var(--secondary-color);">📚 Browse all chart documentation →</a>
+            </p>
+        </div>
+
+        <div class="info-box">
+            <h2>Usage Examples</h2>
+
+            <h3>Install Homarr Chart</h3>
+            <div class="code-block">helm install my-homarr codefuturist/homarr</div>
+
+            <h3>Install Application Chart</h3>
+            <div class="code-block">helm install my-app codefuturist/application \
+  --set replicaCount=3 \
+  --set service.type=LoadBalancer</div>
+
+            <h3>Install from Values File</h3>
+            <div class="code-block">helm install my-homarr codefuturist/homarr -f custom-values.yaml</div>
+
+            <h3>Upgrade Release</h3>
+            <div class="code-block">helm upgrade my-homarr codefuturist/homarr --version 1.0.0</div>
+        </div>
+
+        <div class="info-box">
+            <h2>Resources</h2>
+            <div class="links-grid">
+                <div class="link-card">
+                    <h4>📂 GitHub Repository</h4>
+                    <p><a href="https://github.com/codefuturist/helm-charts">View source code and contribute</a></p>
+                </div>
+                <div class="link-card">
+                    <h4>📦 Artifact Hub</h4>
+                    <p><a href="https://artifacthub.io/packages/search?repo=codefuturist">Browse charts on Artifact Hub</a></p>
+                </div>
+                <div class="link-card">
+                    <h4>📋 Repository Index</h4>
+                    <p><a href="index.yaml">View Helm repository index</a></p>
+                </div>
+                <div class="link-card">
+                    <h4>📖 Documentation</h4>
+                    <p><a href="README.md">Read the README</a></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h2>Chart Versions</h2>
+            <p>All charts follow <a href="https://semver.org/">Semantic Versioning</a>. Check the <a href="https://github.com/codefuturist/helm-charts/releases">releases page</a> for full changelog.</p>
+            <div class="code-block"># List all versions of a specific chart
+helm search repo codefuturist/homarr --versions
+
+# Install specific version
+helm install my-homarr codefuturist/homarr --version 1.0.0</div>
+        </div>
+
+        <div class="info-box">
+            <h2>Contributing</h2>
+            <p>Contributions are welcome! Please:</p>
+            <ul style="margin-left: 2rem; margin-top: 1rem;">
+                <li>Fork the <a href="https://github.com/codefuturist/helm-charts">repository</a></li>
+                <li>Create a feature branch</li>
+                <li>Make your changes and test thoroughly</li>
+                <li>Submit a pull request</li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <p>Maintained by <a href="https://github.com/codefuturist">codefuturist</a> | Licensed under Apache 2.0</p>
+        <p>Built with ❤️ for the Kubernetes community</p>
+    </footer>
+</body>
+</html>

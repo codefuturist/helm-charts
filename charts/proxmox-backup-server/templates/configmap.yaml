@@ -1,0 +1,2 @@
+# Proxmox Backup Server does not require config maps for server definitions
+# Configuration is managed through the web interface and persisted volumes

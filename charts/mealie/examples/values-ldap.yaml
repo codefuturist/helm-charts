@@ -1,0 +1,122 @@
+# LDAP Authentication Example
+# This configuration shows how to set up Mealie with LDAP authentication
+
+mealie:
+  enabled: true
+  replicas: 2
+  env:
+    # General Configuration
+    ALLOW_SIGNUP:
+      value: 'false'
+    TZ:
+      value: America/New_York
+    BASE_URL:
+      value: https://mealie.example.com
+
+    # LDAP Authentication
+    LDAP_AUTH_ENABLED:
+      value: 'true'
+    LDAP_SERVER_URL:
+      value: 'ldaps://ldap.example.com:636'  # Use ldaps:// for SSL or ldap:// for plain
+    LDAP_TLS_INSECURE:
+      value: 'false'  # Set to true to skip certificate verification (not recommended)
+    # LDAP_TLS_CACERTFILE:
+    #   value: '/etc/ssl/certs/ca.crt'  # Path to CA certificate if using custom CA
+    # LDAP_ENABLE_STARTTLS:
+    #   value: 'true'  # Use STARTTLS for plain ldap:// connections
+
+    # LDAP Search Configuration
+    LDAP_BASE_DN:
+      value: 'ou=users,dc=example,dc=com'  # Base DN for user searches
+    LDAP_QUERY_BIND:
+      value: 'cn=mealie-readonly,ou=service-accounts,dc=example,dc=com'  # Bind user for searches
+    LDAP_QUERY_PASSWORD:
+      valueFrom:
+        secretKeyRef:
+          name: mealie-ldap-secret
+          key: bind-password
+
+    # User Filtering
+    # LDAP_USER_FILTER:
+    #   value: '(memberOf=cn=mealie-users,ou=groups,dc=example,dc=com)'  # Only allow specific group members
+
+    # Admin Filtering
+    # LDAP_ADMIN_FILTER:
+    #   value: '(memberOf=cn=mealie-admins,ou=groups,dc=example,dc=com)'  # Make specific group members admins
+
+    # Attribute Mapping
+    LDAP_ID_ATTRIBUTE:
+      value: 'uid'  # LDAP attribute for user ID
+    LDAP_NAME_ATTRIBUTE:
+      value: 'cn'  # LDAP attribute for display name
+    LDAP_MAIL_ATTRIBUTE:
+      value: 'mail'  # LDAP attribute for email
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1000Mi
+      cpu: 1000m
+
+# Database configuration - PostgreSQL
+database:
+  engine: postgres
+  name: mealie
+  user: mealie
+  password: changeme
+
+# Enable PostgreSQL
+postgres:
+  enabled: true
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+# Persistent storage
+persistence:
+  mealie-data:
+    enabled: true
+    size: 10Gi
+  mealie-pgdata:
+    enabled: true
+    size: 20Gi
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+  hosts:
+  - host: mealie.example.com
+    paths:
+    - path: /
+      pathType: Prefix
+      port: 80
+  tls:
+  - secretName: mealie-tls
+    hosts:
+    - mealie.example.com
+
+# Prerequisites:
+# 1. Create LDAP secret:
+#    kubectl create secret generic mealie-ldap-secret --from-literal=bind-password='your-bind-password'
+#
+# 2. Ensure your LDAP server has:
+#    - A service account for Mealie to bind with (read-only access is sufficient)
+#    - User entries with uid, cn, and mail attributes
+#    - Optional: Group memberships for user/admin filtering
+#
+# 3. Test LDAP connectivity before deploying:
+#    ldapsearch -x -H ldaps://ldap.example.com:636 -D "cn=mealie-readonly,ou=service-accounts,dc=example,dc=com" \
+#      -W -b "ou=users,dc=example,dc=com" "(uid=testuser)"

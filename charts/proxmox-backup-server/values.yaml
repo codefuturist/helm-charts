@@ -1,0 +1,533 @@
+# =============================================================================
+# Global Parameters
+# @section -- Global Parameters
+# =============================================================================
+
+# -- Override the namespace for all resources
+# @default -- `.Release.Namespace`
+namespaceOverride: ""
+
+# -- Override the name of the chart
+nameOverride: ""
+
+# -- Override the full name of the chart
+fullnameOverride: ""
+
+# -- Additional labels to add to all resources
+additionalLabels: {}
+
+# -- Additional annotations to add to all resources
+additionalAnnotations: {}
+
+# =============================================================================
+# Image Configuration
+# @section -- Image Configuration
+# =============================================================================
+
+image:
+  # -- Proxmox Backup Server Docker image repository
+  repository: ayufan/proxmox-backup-server
+  # -- Proxmox Backup Server Docker image tag
+  # @default -- Chart appVersion (use 'latest' for stable or 'beta' for pre-releases)
+  tag: "latest"
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+  # -- Image digest (overrides tag if set)
+  digest: ""
+
+# -- Image pull secrets for private registries
+imagePullSecrets: []
+
+# =============================================================================
+# Proxmox Backup Server Configuration
+# @section -- Proxmox Backup Server Configuration
+# =============================================================================
+
+pbs:
+  # -- Default PBS login username
+  # Default credentials are admin / pbspbs (change password after first login)
+  username: "admin@pbs"
+
+  # -- Default PBS login password
+  # @default -- pbspbs (MUST be changed after first login)
+  password: "pbspbs"
+
+  # -- Name of an existing secret containing PBS credentials
+  # The secret must contain keys for username and password (see existingSecretUsernameKey and existingSecretPasswordKey)
+  existingSecret: ""
+
+  # -- Key in existingSecret that contains the username
+  existingSecretUsernameKey: "username"
+
+  # -- Key in existingSecret that contains the password
+  existingSecretPasswordKey: "password"
+
+  # -- Timezone configuration
+  # Example: "Europe/Warsaw", "America/New_York", "UTC"
+  timezone: "UTC"
+
+  # -- Enable SMART device access
+  # When enabled, allows PBS to view SMART parameters for attached devices
+  # Requires devices to be exposed and SYS_RAWIO capability
+  smartAccess:
+    enabled: false
+    # -- List of device paths to expose to the container
+    # Example: ["/dev/sda", "/dev/sdb", "/dev/nvme0n1"]
+    devices: []
+
+  # -- Additional backup data volumes
+  # Configure additional volumes for backup storage
+  # Example:
+  # backupVolumes:
+  #   - name: backups-primary
+  #     mountPath: /backups
+  #     storageClassName: fast-ssd
+  #     size: 500Gi
+  #   - name: backups-archive
+  #     mountPath: /archive
+  #     existingClaim: archive-pvc
+  backupVolumes: []
+
+# =============================================================================
+# Controller Configuration
+# @section -- Controller Configuration
+# =============================================================================
+
+controller:
+  # -- Controller type (deployment or statefulset)
+  type: deployment
+
+  # -- Number of PBS replicas
+  replicas: 1
+
+  # -- Deployment update strategy
+  strategy:
+    type: Recreate
+
+  # -- StatefulSet update strategy (only used if controller.type is statefulset)
+  updateStrategy:
+    type: RollingUpdate
+
+  # -- Pod management policy (only used if controller.type is statefulset)
+  podManagementPolicy: OrderedReady
+
+  # -- Command override for the main container
+  command: []
+
+  # -- Args override for the main container
+  args: []
+
+  # -- Working directory for the main container
+  workingDir: ""
+
+  # -- Termination grace period in seconds
+  terminationGracePeriodSeconds: 30
+
+  # -- Lifecycle hooks for the main container
+  lifecycle: {}
+
+# =============================================================================
+# Service Configuration
+# @section -- Service Configuration
+# =============================================================================
+
+service:
+  # -- Service type
+  type: ClusterIP
+
+  # -- Service port (PBS uses HTTPS on 8007)
+  port: 8007
+
+  # -- Service target port (container port)
+  targetPort: 8007
+
+  # -- Node port (only used if type is NodePort)
+  nodePort: ""
+
+  # -- Load balancer IP (only used if type is LoadBalancer)
+  loadBalancerIP: ""
+
+  # -- Load balancer source ranges (only used if type is LoadBalancer)
+  loadBalancerSourceRanges: []
+
+  # -- External traffic policy (only used if type is LoadBalancer or NodePort)
+  externalTrafficPolicy: ""
+
+  # -- Cluster IP (set to None for headless service)
+  clusterIP: ""
+
+  # -- Session affinity
+  sessionAffinity: None
+
+  # -- Session affinity config
+  sessionAffinityConfig: {}
+
+  # -- Service annotations
+  annotations: {}
+
+  # -- Service labels
+  labels: {}
+
+# =============================================================================
+# Ingress Configuration
+# @section -- Ingress Configuration
+# =============================================================================
+
+ingress:
+  # -- Enable ingress
+  enabled: false
+
+  # -- Ingress class name
+  className: ""
+
+  # -- Ingress annotations
+  # Example for nginx ingress with SSL passthrough:
+  # annotations:
+  #   cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  #   nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+  #   nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+  annotations: {}
+
+  # -- Ingress hosts configuration
+  hosts: []
+
+  # -- Ingress TLS configuration
+  tls: []
+
+# =============================================================================
+# Persistence Configuration
+# @section -- Persistence Configuration
+# =============================================================================
+
+persistence:
+  # -- Enable persistent storage for PBS data
+  # Includes configuration, logs, and library files
+  enabled: true
+
+  # -- Persist /etc/proxmox-backup directory (configuration)
+  etc:
+    enabled: true
+    storageClassName: ""
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    existingClaim: ""
+    annotations: {}
+
+  # -- Persist /var/log/proxmox-backup directory (logs)
+  logs:
+    enabled: true
+    storageClassName: ""
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    existingClaim: ""
+    annotations: {}
+
+  # -- Persist /var/lib/proxmox-backup directory (library/state)
+  lib:
+    enabled: true
+    storageClassName: ""
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    existingClaim: ""
+    annotations: {}
+
+# =============================================================================
+# Security Context
+# @section -- Security Context
+# =============================================================================
+
+# -- Pod security context
+# PBS requires privileged access for some operations
+podSecurityContext:
+  runAsNonRoot: false
+  fsGroup: 0
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+# -- Container security context
+securityContext:
+  allowPrivilegeEscalation: true
+  runAsNonRoot: false
+  runAsUser: 0
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+
+# =============================================================================
+# Resources
+# @section -- Resources
+# =============================================================================
+
+# -- Resource limits and requests
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# =============================================================================
+# Probes
+# @section -- Health Probes
+# =============================================================================
+
+# -- Liveness probe configuration
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: https
+    scheme: HTTPS
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 6
+  successThreshold: 1
+
+# -- Readiness probe configuration
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: https
+    scheme: HTTPS
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+# -- Startup probe configuration
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: https
+    scheme: HTTPS
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+  successThreshold: 1
+
+# =============================================================================
+# Pod Configuration
+# @section -- Pod Configuration
+# =============================================================================
+
+# -- Pod annotations
+podAnnotations: {}
+
+# -- Pod labels
+podLabels: {}
+
+# -- Node selector for pod assignment
+nodeSelector: {}
+
+# -- Tolerations for pod assignment
+tolerations: []
+
+# -- Affinity for pod assignment
+affinity: {}
+
+# -- Priority class name for the pod
+priorityClassName: ""
+
+# -- Topology spread constraints for pod distribution
+topologySpreadConstraints: []
+
+# -- DNS policy
+dnsPolicy: ClusterFirst
+
+# -- DNS config
+dnsConfig: {}
+
+# -- Host aliases
+hostAliases: []
+
+# -- Runtime class name
+runtimeClassName: ""
+
+# -- Init containers to run before the main container
+initContainers: []
+
+# -- Extra sidecar containers
+extraContainers: []
+
+# -- Extra environment variables
+extraEnv: []
+
+# -- Extra environment variables from ConfigMaps or Secrets
+extraEnvFrom: []
+
+# -- Extra volumes
+extraVolumes: []
+
+# -- Extra volume mounts
+extraVolumeMounts: []
+
+# =============================================================================
+# Monitoring
+# @section -- Monitoring
+# =============================================================================
+
+monitoring:
+  serviceMonitor:
+    # -- Enable ServiceMonitor for Prometheus Operator
+    enabled: false
+
+    # -- Namespace for the ServiceMonitor (defaults to the release namespace)
+    namespace: ""
+
+    # -- Interval at which metrics should be scraped
+    interval: 30s
+
+    # -- Timeout for scraping metrics
+    scrapeTimeout: 10s
+
+    # -- Additional labels for the ServiceMonitor
+    labels: {}
+
+    # -- Additional annotations for the ServiceMonitor
+    annotations: {}
+
+    # -- Metric relabelings
+    metricRelabelings: []
+
+    # -- Relabelings
+    relabelings: []
+
+  prometheusRule:
+    # -- Enable PrometheusRule for alerting
+    enabled: false
+
+    # -- Namespace for the PrometheusRule (defaults to the release namespace)
+    namespace: ""
+
+    # -- Additional labels for the PrometheusRule
+    labels: {}
+
+    # -- Alert rules
+    rules: []
+      # - alert: ProxmoxBackupServerDown
+      #   expr: up{job="proxmox-backup-server"} == 0
+      #   for: 5m
+      #   labels:
+      #     severity: critical
+      #   annotations:
+      #     summary: "Proxmox Backup Server is down"
+      #     description: "PBS instance {{ $labels.instance }} is down"
+
+# =============================================================================
+# High Availability
+# @section -- High Availability
+# =============================================================================
+
+pdb:
+  # -- Enable PodDisruptionBudget
+  enabled: false
+
+  # -- Minimum number of pods that must be available
+  minAvailable: 1
+
+  # -- Maximum number of pods that can be unavailable
+  maxUnavailable: ""
+
+# -- Horizontal Pod Autoscaler configuration
+# Note: HPA is generally not recommended for PBS as it's typically single-instance
+hpa:
+  # -- Enable HorizontalPodAutoscaler
+  enabled: false
+
+  # -- Minimum number of replicas
+  minReplicas: 1
+
+  # -- Maximum number of replicas
+  maxReplicas: 3
+
+  # -- Target CPU utilization percentage
+  targetCPUUtilizationPercentage: 80
+
+  # -- Target memory utilization percentage
+  targetMemoryUtilizationPercentage: 80
+
+  # -- Custom metrics for autoscaling
+  customMetrics: []
+
+# =============================================================================
+# RBAC Configuration
+# @section -- RBAC Configuration
+# =============================================================================
+
+serviceAccount:
+  # -- Create a service account
+  create: true
+
+  # -- Service account name (generated if not set and create is true)
+  name: ""
+
+  # -- Service account annotations
+  annotations: {}
+
+rbac:
+  # -- Create RBAC resources
+  create: true
+
+  # -- Additional RBAC rules
+  rules: []
+
+# =============================================================================
+# Network Policy
+# @section -- Network Policy
+# =============================================================================
+
+networkPolicy:
+  # -- Enable network policy
+  enabled: false
+
+  # -- Policy types
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # -- Ingress rules
+  ingress: []
+
+  # -- Egress rules
+  # By default, allow all egress for backup operations
+  egress:
+    - to:
+        - namespaceSelector: {}
+    # Allow DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+
+# =============================================================================
+# Diagnostic Mode
+# @section -- Diagnostic Mode
+# =============================================================================
+
+diagnosticMode:
+  # -- Enable diagnostic mode (disables probes, overrides command)
+  # Useful for debugging container startup issues
+  enabled: false
+
+  # -- Command override for diagnostic mode
+  command:
+    - sleep
+
+  # -- Args override for diagnostic mode
+  args:
+    - infinity

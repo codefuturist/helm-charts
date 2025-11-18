@@ -1,0 +1,42 @@
+{{- if or .Values.homeassistant.configuration .Values.mqtt.config }}
+{{- if .Values.homeassistant.configuration }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "home-assistant.fullname" . }}-config
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+data:
+  configuration.yaml: |
+    # Default configuration
+    default_config:
+
+    # Database configuration
+    {{- if eq .Values.database.type "postgresql" }}
+    recorder:
+      db_url: {{ include "home-assistant.databaseUrl" . }}
+      auto_purge: true
+      purge_keep_days: 30
+    {{- end }}
+
+    # User-provided configuration
+    {{- with .Values.homeassistant.configuration }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
+---
+{{- if and .Values.mqtt.enabled .Values.mqtt.config }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "home-assistant.fullname" . }}-mqtt-config
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mqtt
+data:
+  mosquitto.conf: |
+    {{- toYaml .Values.mqtt.config | nindent 4 }}
+{{- end }}
+{{- end }}

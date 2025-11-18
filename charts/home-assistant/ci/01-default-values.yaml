@@ -1,0 +1,6 @@
+# CI Test: Default configuration with all defaults
+# Tests basic deployment with minimal settings
+
+replicaCount: 1
+persistence:
+  enabled: false

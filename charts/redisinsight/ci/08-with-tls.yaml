@@ -1,0 +1,8 @@
+# Test: With TLS enabled
+redisInsight:
+  port: 5540
+  tls:
+    enabled: true
+    # Example/test data only - not real keys
+    key: "-----BEGIN PRIVATE KEY----- (test)\ntest-key\n-----END PRIVATE KEY----- (test)"
+    cert: "-----BEGIN CERTIFICATE----- (test)\ntest-cert\n-----END CERTIFICATE----- (test)"

@@ -1,0 +1,21 @@
+# CI Test: PostgreSQL database
+# Tests external PostgreSQL configuration
+
+database:
+  type: postgresql
+  postgresql:
+    host: postgresql
+    port: 5432
+    database: homeassistant
+    username: hass
+    existingSecret: ha-db-secret
+
+postgresql:
+  enabled: true
+  auth:
+    username: hass
+    database: homeassistant
+
+persistence:
+  enabled: true
+  size: 5Gi

@@ -1,0 +1,18 @@
+{{- if .Values.monitoring.prometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "pbs.fullname" . }}
+  namespace: {{ default (include "pbs.namespace" .) .Values.monitoring.prometheusRule.namespace }}
+  labels:
+    {{- include "pbs.labels" . | nindent 4 }}
+    {{- with .Values.monitoring.prometheusRule.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  groups:
+    - name: pbs
+      interval: 30s
+      rules:
+        {{- toYaml .Values.monitoring.prometheusRule.rules | nindent 8 }}
+{{- end }}

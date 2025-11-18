@@ -1,0 +1,323 @@
+# Production Home Assistant Configuration
+# Full-featured setup with PostgreSQL, backups, monitoring, and security
+
+# =============================================================================
+# Image Configuration
+# =============================================================================
+image:
+  repository: ghcr.io/home-assistant/home-assistant
+  tag: "2024.11.1"
+  pullPolicy: IfNotPresent
+
+# =============================================================================
+# Deployment
+# =============================================================================
+replicaCount: 1
+
+strategy:
+  type: Recreate
+
+# =============================================================================
+# Persistence - Production Storage
+# =============================================================================
+persistence:
+  enabled: true
+  size: 20Gi
+  storageClassName: "fast-ssd" # Use your fast storage class
+  accessMode: ReadWriteOnce
+  retain: true # Keep PVC on chart uninstall
+
+  # Separate media volume
+  media:
+    enabled: true
+    size: 100Gi
+    storageClassName: "standard" # Slower storage okay for media
+    accessMode: ReadWriteOnce
+
+  # Backup volume
+  backup:
+    enabled: true
+    size: 50Gi
+    storageClassName: "backup-class"
+    accessMode: ReadWriteOnce
+
+# =============================================================================
+# Database - PostgreSQL for Production
+# =============================================================================
+database:
+  type: postgresql
+  postgresql:
+    host: home-assistant-postgresql
+    port: 5432
+    database: homeassistant
+    username: homeassistant
+    existingSecret: ha-db-secret
+    passwordKey: password
+    poolSize: "10"
+    sslMode: prefer
+
+# =============================================================================
+# Service - LoadBalancer for External Access
+# =============================================================================
+service:
+  type: LoadBalancer
+  port: 8123
+  annotations:
+    # metallb.universe.tf/loadBalancerIPs: 192.168.1.100
+  loadBalancerSourceRanges:
+    - 192.168.1.0/24 # Restrict to local network
+
+# =============================================================================
+# Ingress - Production with TLS
+# =============================================================================
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/websocket-services: home-assistant
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: SAMEORIGIN";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+  hosts:
+    - host: home.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: home-assistant-tls
+      hosts:
+        - home.example.com
+
+# =============================================================================
+# Home Assistant Configuration
+# =============================================================================
+homeassistant:
+  env:
+    TZ: "America/New_York"
+
+  configuration:
+    # HTTP configuration for reverse proxy
+    http:
+      use_x_forwarded_for: true
+      trusted_proxies:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+
+    # Recorder configuration for PostgreSQL
+    recorder:
+      auto_purge: true
+      purge_keep_days: 90
+      commit_interval: 1
+      db_retry_wait: 15
+
+      # Exclude high-frequency entities
+      exclude:
+        domains:
+          - automation
+          - updater
+        entity_globs:
+          - sensor.weather_*
+          - sensor.time_*
+
+    # Logger configuration
+    logger:
+      default: info
+      logs:
+        homeassistant.core: warning
+        homeassistant.components.mqtt: warning
+
+# =============================================================================
+# Code Server - Configuration Editor
+# =============================================================================
+codeserver:
+  enabled: true
+  image:
+    repository: codercom/code-server
+    tag: "4.19.1"
+    pullPolicy: IfNotPresent
+  port: 8080
+  env:
+    PASSWORD: "" # Set via secret or generate
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    hosts:
+      - host: code.home.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: code-home-assistant-tls
+        hosts:
+          - code.home.example.com
+
+# =============================================================================
+# MQTT Broker
+# =============================================================================
+mqtt:
+  enabled: true
+  image:
+    repository: eclipse-mosquitto
+    tag: "2.0"
+    pullPolicy: IfNotPresent
+  port: 1883
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  persistence:
+    enabled: true
+    size: 5Gi
+
+# =============================================================================
+# Security
+# =============================================================================
+podSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  privileged: false
+
+# =============================================================================
+# Resources - Production Sizing
+# =============================================================================
+resources:
+  limits:
+    cpu: 4000m
+    memory: 4Gi
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+
+# =============================================================================
+# Probes - Production Tuning
+# =============================================================================
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 60 # 10 minutes for large configs
+
+# =============================================================================
+# High Availability Features
+# =============================================================================
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# =============================================================================
+# Monitoring
+# =============================================================================
+serviceMonitor:
+  enabled: true
+  namespace: monitoring
+  labels:
+    prometheus: kube-prometheus
+  interval: 60s
+  scrapeTimeout: 30s
+  path: /api/prometheus
+
+# =============================================================================
+# Service Account & RBAC
+# =============================================================================
+serviceAccount:
+  create: true
+  annotations:
+    # Add annotations for IRSA, Workload Identity, etc.
+
+rbac:
+  create: true
+
+# =============================================================================
+# Additional Configuration
+# =============================================================================
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8123"
+  prometheus.io/path: "/api/prometheus"
+
+# Node affinity for specific hardware
+nodeSelector: {}
+  # kubernetes.io/hostname: production-node
+
+tolerations: []
+
+affinity: {}
+
+# Priority for critical home automation workload
+priorityClassName: "high-priority"
+# =============================================================================
+# Deployment Instructions
+# =============================================================================
+#
+# 1. Create database secret:
+#    kubectl create secret generic ha-db-secret \
+#      --from-literal=password="$(openssl rand -base64 32)"
+#
+# 2. Deploy chart:
+#    helm install home-assistant codefuturist/home-assistant \
+#      -f values-production.yaml \
+#      --namespace home-automation \
+#      --create-namespace
+#
+# 3. Wait for deployment:
+#    kubectl wait --for=condition=available deployment/home-assistant \
+#      --timeout=600s -n home-automation
+#
+# 4. Access via LoadBalancer or Ingress
+#
+# 5. Configure automated backups (see docs/ARCHITECTURE.md)

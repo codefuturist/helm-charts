@@ -1,0 +1,93 @@
+# Test values for installing Uptime Kuma in k3s-development-k3s-testbox cluster
+# This provides a minimal but functional configuration for testing
+
+# Use StatefulSet for persistent identity
+controller:
+  type: statefulset
+  replicas: 1
+  # Lifecycle hook for graceful shutdown
+  lifecycle:
+    preStop:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - sleep 15
+
+# Enable persistence with volumeClaimTemplate (for StatefulSet)
+persistence:
+  enabled: true
+  size: 2Gi
+  volumeClaimTemplate:
+    enabled: true
+    size: 2Gi
+
+# Reduce resource requirements for testing
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Use NodePort for easy local access
+service:
+  type: NodePort
+  port: 3001
+  nodePort: 30301
+
+# Disable ingress for now (can enable later)
+ingress:
+  enabled: false
+
+# Enable monitoring (if Prometheus is available)
+monitoring:
+  serviceMonitor:
+    enabled: false # Set to true if you have Prometheus Operator
+  prometheusRule:
+    enabled: false # Set to true to enable alert rules
+
+# Security contexts
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# Health probes with relaxed timings for slower environments
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 30
+# Optional: Enable Docker socket for container monitoring
+# Uncomment if you want to monitor Docker containers
+# uptimeKuma:
+#   dockerSocket:
+#     enabled: true

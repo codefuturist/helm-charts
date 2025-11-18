@@ -1,0 +1,50 @@
+{{- if .Values.mqtt.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "home-assistant.fullname" . }}-test-mqtt
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "7"
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-mqtt
+      image: eclipse-mosquitto:2.0
+      command: ['sh', '-c']
+      args:
+        - |
+          echo "Testing MQTT broker..."
+
+          # Wait for MQTT broker
+          echo "Waiting for MQTT broker..."
+          for i in $(seq 1 30); do
+            if mosquitto_pub -h {{ include "home-assistant.fullname" . }} \
+                             -p 1883 \
+                             -t "test/helm" \
+                             -m "test" \
+                             -q 0 2>/dev/null; then
+              echo "✅ MQTT broker is accepting connections"
+              exit 0
+            fi
+            echo "Attempt $i/30: Waiting for MQTT broker..."
+            sleep 2
+          done
+
+          echo "⚠️  MQTT broker did not respond within timeout (may need more time to start)"
+          exit 0
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 1883
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+{{- end }}

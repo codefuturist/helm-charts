@@ -1,0 +1,64 @@
+# Test Values for PostgreSQL Chart
+# Used for automated testing and validation
+
+postgresql:
+  database: "testdb"
+  username: "testuser"
+  password: "testpassword"
+
+  initScripts:
+    01-test-init.sql: |
+      CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+      CREATE TABLE test_table (id SERIAL PRIMARY KEY, name TEXT);
+
+persistence:
+  enabled: false  # Use emptyDir for testing
+
+deployment:
+  replicas: 1
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+service:
+  enabled: true
+  type: ClusterIP
+
+serviceAccount:
+  create: true
+
+# Disable optional features for testing
+backup:
+  enabled: false
+
+metrics:
+  enabled: false
+
+monitoring:
+  enabled: false
+
+pdb:
+  enabled: false
+
+networkPolicy:
+  enabled: false
+
+hpa:
+  enabled: false
+
+vpa:
+  enabled: false
+
+tls:
+  enabled: false
+
+replication:
+  enabled: false
+
+statefulset:
+  enabled: false

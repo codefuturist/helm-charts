@@ -1,0 +1,144 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mealie.fullname" . }}-postgres
+  namespace: {{ include "mealie.namespace" . }}
+  labels:
+    {{- include "mealie.labels" . | nindent 4 }}
+    {{- with .Values.postgres.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.postgres.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.postgres.autoscaling.enabled }}
+  replicas: {{ .Values.postgres.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "mealie.postgres.selectorLabels" . | nindent 6 }}
+      {{- with .Values.postgres.podLabels }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+  {{- with .Values.postgres.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if .Values.postgres.reloadOnChange }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.postgres.additionalPodAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "mealie.postgres.selectorLabels" . | nindent 8 }}
+        {{- with .Values.postgres.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.postgres.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: postgres
+        image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.postgres.image.imagePullPolicy }}
+        {{- with .Values.postgres.command }}
+        command:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.postgres.args }}
+        args:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.postgres.ports }}
+        ports:
+        {{- range .Values.postgres.ports }}
+        - name: {{ .name }}
+          containerPort: {{ .containerPort }}
+          protocol: {{ .protocol | default "TCP" }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.postgres.env }}
+        env:
+        {{- range $key, $value := .Values.postgres.env }}
+        - name: {{ $key }}
+          {{- if $value.valueFrom }}
+          valueFrom:
+            {{- toYaml $value.valueFrom | nindent 12 }}
+          {{- else }}
+          value: {{ tpl (toString $value.value) $ | quote }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.postgres.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.postgres.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.postgres.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.postgres.volumes }}
+        volumeMounts:
+        {{- range .Values.postgres.volumes }}
+        - name: {{ .name }}
+          mountPath: {{ .mountPath }}
+          {{- if .subPath }}
+          subPath: {{ .subPath }}
+          {{- end }}
+          {{- if .readOnly }}
+          readOnly: {{ .readOnly }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.postgres.volumes }}
+      volumes:
+      {{- range .Values.postgres.volumes }}
+      - name: {{ .name }}
+        {{- if eq .type "persistentVolumeClaim" }}
+        persistentVolumeClaim:
+          claimName: {{ include "mealie.fullname" $ }}-{{ .name }}
+        {{- else if eq .type "configMap" }}
+        configMap:
+          name: {{ .configMapName | default (include "mealie.fullname" $) }}
+        {{- else if eq .type "secret" }}
+        secret:
+          secretName: {{ .secretName | default (include "mealie.fullname" $) }}
+        {{- else if eq .type "emptyDir" }}
+        emptyDir: {}
+        {{- else if eq .type "hostPath" }}
+        hostPath:
+          path: {{ .hostPath }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.postgres.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

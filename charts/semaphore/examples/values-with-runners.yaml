@@ -1,0 +1,126 @@
+# Semaphore with Distributed Runners Example
+#
+# This configuration shows how to deploy Semaphore with separate runner pods
+# for distributed task execution.
+#
+# Usage:
+#   helm install my-semaphore codefuturist/semaphore -f values-with-runners.yaml
+
+# =============================================================================
+# Semaphore Server Configuration
+# =============================================================================
+semaphore:
+  database:
+    dialect: postgres
+    host: postgresql.database.svc.cluster.local
+    port: 5432
+    user: semaphore
+    password: SecureDBPassword
+    name: semaphore
+    sslMode: require
+
+  admin:
+    username: admin
+    password: SecureAdminPassword
+    email: admin@example.com
+
+  # Enable runner registration on the server
+  runner:
+    enabled: true
+    registrationToken: "your-secure-random-token-here"
+
+controller:
+  type: deployment
+  replicas: 1
+
+service:
+  type: ClusterIP
+  port: 3000
+
+persistence:
+  data:
+    enabled: true
+    size: 5Gi
+  config:
+    enabled: false
+  tmp:
+    enabled: true
+    size: 10Gi
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# =============================================================================
+# Separate Runner Deployment
+# =============================================================================
+runnerDeployment:
+  # Enable runner deployment
+  enabled: true
+
+  # Run 3 runner replicas for parallel task execution
+  replicas: 3
+
+  # Runner image (official runner image)
+  image:
+    repository: semaphoreui/runner
+    tag: "v2.16.43"
+    pullPolicy: IfNotPresent
+
+  # Connect to Semaphore server
+  server:
+    # Must match the service name and port
+    webRoot: "http://semaphore:3000"
+    # Must match the server's runner.registrationToken
+    registrationToken: "your-secure-random-token-here"
+
+  # Runner configuration
+  config:
+    privateKeyFile: "/var/lib/semaphore/runner.key"
+    alreadyRegistered: false
+
+  # Ansible settings
+  ansible:
+    hostKeyChecking: false
+
+  # Persistence for runner data
+  persistence:
+    data:
+      enabled: true
+      size: 5Gi
+    config:
+      enabled: false
+    tmp:
+      enabled: true
+      size: 10Gi
+
+  # Resources for runners (higher for task execution)
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+  # Distribute runners across nodes
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - semaphore
+                - key: app.kubernetes.io/component
+                  operator: In
+                  values:
+                    - runner
+            topologyKey: kubernetes.io/hostname

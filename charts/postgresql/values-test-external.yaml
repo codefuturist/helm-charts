@@ -1,0 +1,33 @@
+# Test values for cross-namespace user management
+postgresql:
+  username: postgres
+  password: "test123"
+
+  config:
+    listen_addresses: "*"
+
+service:
+  type: ClusterIP
+  port: 5432
+
+# Enable user management with external resources
+userManagement:
+  dynamicSync:
+    enabled: true
+    schedule: "*/2 * * * *" # Every 2 minutes for testing
+
+    watchExternalResources:
+      enabled: true
+      configMaps:
+        - name: app-team-users
+          namespace: app-team
+        - name: app-team-databases
+          namespace: app-team
+
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi

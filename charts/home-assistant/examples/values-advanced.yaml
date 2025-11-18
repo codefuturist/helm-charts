@@ -1,0 +1,546 @@
+# Advanced Home Assistant Configuration
+# Full-featured setup with device access, host networking, and all add-ons
+
+# =============================================================================
+# Image Configuration
+# =============================================================================
+image:
+  repository: ghcr.io/home-assistant/home-assistant
+  tag: "2024.11.1"
+  pullPolicy: IfNotPresent
+
+# =============================================================================
+# Deployment
+# =============================================================================
+replicaCount: 1
+
+strategy:
+  type: Recreate
+
+# =============================================================================
+# Host Network & Device Access
+# =============================================================================
+# Enable host network for full device discovery (mDNS, SSDP, UPnP)
+hostNetwork:
+  enabled: true
+
+# USB/Serial device access for Zigbee, Z-Wave controllers
+devices:
+  enabled: true
+  list:
+    # Zigbee USB controller
+    - hostPath: /dev/ttyUSB0
+      containerPath: /dev/ttyUSB0
+    # Z-Wave USB controller
+    - hostPath: /dev/ttyACM0
+      containerPath: /dev/ttyACM0
+    # Additional serial device
+    - hostPath: /dev/ttyUSB1
+      containerPath: /dev/ttyUSB1
+
+# Pin to specific node with USB devices
+nodeSelector:
+  kubernetes.io/hostname: node-with-iot-devices
+  # Or use a label:
+  # iot.devices/present: "true"
+
+# =============================================================================
+# Persistence - Advanced Storage
+# =============================================================================
+persistence:
+  enabled: true
+  size: 50Gi
+  storageClassName: "fast-nvme"
+  accessMode: ReadWriteOnce
+  retain: true
+
+  media:
+    enabled: true
+    size: 500Gi
+    storageClassName: "media-storage"
+    accessMode: ReadWriteOnce
+
+  backup:
+    enabled: true
+    size: 100Gi
+    storageClassName: "backup-storage"
+    accessMode: ReadWriteOnce
+
+# =============================================================================
+# Database - PostgreSQL
+# =============================================================================
+database:
+  type: postgresql
+  postgresql:
+    host: postgresql-ha.database.svc.cluster.local
+    port: 5432
+    database: homeassistant
+    username: homeassistant
+    existingSecret: ha-db-credentials
+    passwordKey: password
+    poolSize: "20"
+    sslMode: require
+
+# =============================================================================
+# Service
+# =============================================================================
+service:
+  type: LoadBalancer
+  port: 8123
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 192.168.1.50
+  loadBalancerSourceRanges:
+    - 192.168.0.0/16
+    - 10.0.0.0/8
+
+# =============================================================================
+# Ingress - Multiple Domains
+# =============================================================================
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/websocket-services: home-assistant
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "7200"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "7200"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://home.example.com"
+    # Rate limiting
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+  hosts:
+    - host: home.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: ha.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: home-assistant-tls
+      hosts:
+        - home.example.com
+        - ha.example.com
+
+# =============================================================================
+# Home Assistant - Advanced Configuration
+# =============================================================================
+homeassistant:
+  env:
+    TZ: "America/New_York"
+    # Enable advanced logging
+    # HA_LOG_LEVEL: debug
+
+  envFrom:
+    - secretRef:
+        name: home-assistant-env-secrets
+
+  configuration:
+    # Default config
+    default_config:
+
+    # HTTP configuration
+    http:
+      use_x_forwarded_for: true
+      trusted_proxies:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+      cors_allowed_origins:
+        - https://home.example.com
+        - https://ha.example.com
+      ip_ban_enabled: true
+      login_attempts_threshold: 5
+
+    # Recorder with advanced filtering
+    recorder:
+      auto_purge: true
+      purge_keep_days: 365  # Keep 1 year
+      commit_interval: 5
+      db_retry_wait: 30
+
+      include:
+        domains:
+          - sensor
+          - binary_sensor
+          - switch
+          - light
+          - climate
+          - cover
+          - lock
+          - device_tracker
+
+      exclude:
+        domains:
+          - automation
+          - updater
+          - weather
+        entity_globs:
+          - sensor.time*
+          - sensor.date*
+          - sensor.uptime*
+        event_types:
+          - call_service
+          - component_loaded
+
+    # History configuration
+    history:
+      include:
+        domains:
+          - sensor
+          - light
+          - switch
+      exclude:
+        entity_globs:
+          - sensor.weather_*
+
+    # Logger
+    logger:
+      default: info
+      logs:
+        homeassistant.core: warning
+        homeassistant.components: warning
+        homeassistant.components.mqtt: info
+        homeassistant.components.zha: info
+        homeassistant.components.recorder: warning
+
+    # Text to speech
+    tts:
+      - platform: google_translate
+        language: en
+
+    # System health
+    system_health:
+
+    # Energy monitoring
+    energy:
+
+    # Mobile app
+    mobile_app:
+
+    # Cloud (optional)
+    # cloud:
+
+    # Frontend
+    frontend:
+      themes: !include_dir_merge_named themes
+
+    # Lovelace UI mode
+    lovelace:
+      mode: storage
+      dashboards:
+        lovelace-mobile:
+          mode: yaml
+          title: Mobile
+          icon: mdi:cellphone
+          show_in_sidebar: true
+          filename: dashboards/mobile.yaml
+
+  # Secrets management
+  secrets:
+    # Reference secrets that will be mounted
+    # http_password: !secret http_password
+    # api_key: !secret api_key
+
+# =============================================================================
+# Code Server - VSCode in Browser
+# =============================================================================
+codeserver:
+  enabled: true
+  image:
+    repository: codercom/code-server
+    tag: "4.19.1"
+    pullPolicy: IfNotPresent
+  port: 8080
+  env:
+    PASSWORD: ""  # Use secret
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      # Additional auth for code-server
+      nginx.ingress.kubernetes.io/auth-type: basic
+      nginx.ingress.kubernetes.io/auth-secret: code-server-auth
+      nginx.ingress.kubernetes.io/auth-realm: "Code Server Authentication"
+    hosts:
+      - host: code.home.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: code-home-assistant-tls
+        hosts:
+          - code.home.example.com
+
+# =============================================================================
+# MQTT Broker - Eclipse Mosquitto
+# =============================================================================
+mqtt:
+  enabled: true
+  image:
+    repository: eclipse-mosquitto
+    tag: "2.0"
+    pullPolicy: IfNotPresent
+  port: 1883
+  config:
+    # Mosquitto configuration
+    listener 1883
+    allow_anonymous false
+    password_file /mosquitto/config/passwd
+
+    # Persistence
+    persistence true
+    persistence_location /mosquitto/data/
+
+    # Logging
+    log_dest stdout
+    log_type all
+
+    # Connection
+    max_connections 100
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+  persistence:
+    enabled: true
+    size: 10Gi
+
+# =============================================================================
+# Security - Advanced
+# =============================================================================
+podSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+    add:
+      # Required for some device access
+      - NET_RAW      # Network scanning, ping
+      - NET_ADMIN    # Network configuration
+      - SYS_RAWIO    # Raw I/O for devices
+  readOnlyRootFilesystem: false
+  privileged: false
+
+# =============================================================================
+# Resources - High Performance
+# =============================================================================
+resources:
+  limits:
+    cpu: 6000m
+    memory: 8Gi
+  requests:
+    cpu: 2000m
+    memory: 4Gi
+
+# =============================================================================
+# Probes - Optimized for Large Deployments
+# =============================================================================
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 120
+  periodSeconds: 15
+  timeoutSeconds: 10
+  failureThreshold: 6
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 15
+  timeoutSeconds: 10
+  failureThreshold: 120  # 30 minutes for very large configs
+
+# =============================================================================
+# High Availability
+# =============================================================================
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# =============================================================================
+# Monitoring - Full Stack
+# =============================================================================
+serviceMonitor:
+  enabled: true
+  namespace: monitoring
+  labels:
+    prometheus: kube-prometheus
+    app: home-assistant
+  interval: 30s
+  scrapeTimeout: 15s
+  path: /api/prometheus
+
+# =============================================================================
+# Service Account & RBAC
+# =============================================================================
+serviceAccount:
+  create: true
+  annotations:
+    # For AWS IRSA
+    # eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT:role/home-assistant
+    # For GCP Workload Identity
+    # iam.gke.io/gcp-service-account: home-assistant@PROJECT.iam.gserviceaccount.com
+
+rbac:
+  create: true
+
+# =============================================================================
+# Additional Configuration
+# =============================================================================
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8123"
+  prometheus.io/path: "/api/prometheus"
+  backup.velero.io/backup-volumes: config,media,backup
+
+# Tolerations for tainted nodes
+tolerations:
+  - key: "iot-devices"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
+# Affinity rules
+affinity:
+  # Node affinity to prefer nodes with fast storage
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: storage-type
+              operator: In
+              values:
+                - nvme
+                - ssd
+
+priorityClassName: "system-cluster-critical"
+
+# =============================================================================
+# Extra Containers - Sidecars
+# =============================================================================
+extraContainers:
+  # Example: Nginx reverse proxy for additional features
+  # - name: nginx-proxy
+  #   image: nginx:alpine
+  #   ports:
+  #     - containerPort: 80
+  #   volumeMounts:
+  #     - name: nginx-config
+  #       mountPath: /etc/nginx/nginx.conf
+  #       subPath: nginx.conf
+
+# =============================================================================
+# Init Containers
+# =============================================================================
+initContainers:
+  # Example: Wait for PostgreSQL
+  - name: wait-for-db
+    image: busybox:1.36
+    command:
+      - sh
+      - -c
+      - |
+        until nc -z postgresql-ha.database.svc.cluster.local 5432; do
+          echo "Waiting for PostgreSQL..."
+          sleep 5
+        done
+        echo "PostgreSQL is ready!"
+
+# =============================================================================
+# Extra Volumes
+# =============================================================================
+extraVolumes:
+  # Example: Additional config volume
+  # - name: custom-components
+  #   configMap:
+  #     name: ha-custom-components
+
+extraVolumeMounts:
+  # - name: custom-components
+  #   mountPath: /config/custom_components
+  #   readOnly: true
+
+# =============================================================================
+# Deployment Instructions
+# =============================================================================
+#
+# Prerequisites:
+# 1. Node with USB devices labeled: iot.devices/present=true
+# 2. USB devices accessible: /dev/ttyUSB0, /dev/ttyACM0
+# 3. PostgreSQL database running
+# 4. Secrets created:
+#    - ha-db-credentials (database password)
+#    - home-assistant-env-secrets (API keys, etc.)
+#    - code-server-auth (basic auth for code-server)
+#
+# Deployment:
+# 1. Create secrets:
+#    kubectl create secret generic ha-db-credentials \
+#      --from-literal=password="$(openssl rand -base64 32)"
+#
+#    kubectl create secret generic home-assistant-env-secrets \
+#      --from-literal=SECRET_KEY="$(openssl rand -hex 32)"
+#
+#    htpasswd -c auth admin
+#    kubectl create secret generic code-server-auth \
+#      --from-file=auth
+#
+# 2. Label node with USB devices:
+#    kubectl label node node-name iot.devices/present=true
+#    kubectl label node node-name kubernetes.io/hostname=node-with-iot-devices
+#
+# 3. Deploy:
+#    helm install home-assistant codefuturist/home-assistant \
+#      -f values-advanced.yaml \
+#      --namespace home-automation \
+#      --create-namespace
+#
+# 4. Verify:
+#    kubectl get pods -n home-automation
+#    kubectl logs -f deployment/home-assistant -n home-automation
+#
+# 5. Access:
+#    - Home Assistant: https://home.example.com
+#    - Code Server: https://code.home.example.com
+#    - Direct IP: http://<LoadBalancer-IP>:8123

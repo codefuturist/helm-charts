@@ -1,0 +1,263 @@
+# Production RedisInsight Configuration
+#
+# This configuration follows best practices for production deployments:
+# - Uses existing secrets for credentials
+# - Enables persistence
+# - Configures resource limits
+# - Enables monitoring and network policies
+# - Includes pre-configured Redis servers
+#
+# Prerequisites:
+#   kubectl create secret generic redisinsight-credentials \
+#     --from-literal=email=admin@example.com \
+#     --from-literal=password=YourSecurePassword123
+#
+# Usage:
+#   helm install my-redisinsight codefuturist/redisinsight -f values-production.yaml
+
+# =============================================================================
+# Security: Use existing secret instead of inline credentials
+# =============================================================================
+redisinsight:
+  existingSecret: "redisinsight-credentials"
+
+  # Pre-configured Redis server connections
+  serverDefinitions:
+    servers:
+      1:
+        Name: "Production Redis"
+        Group: "Production"
+        Host: "redis.database.svc.cluster.local"
+        Port: 5432
+        MaintenanceDB: "postgres"
+        Username: "postgres"
+        SSLMode: "prefer"
+        Comment: "Production database cluster"
+      2:
+        Name: "Staging Redis"
+        Group: "Staging"
+        Host: "redis-staging.database.svc.cluster.local"
+        Port: 5432
+        MaintenanceDB: "postgres"
+        Username: "postgres"
+        SSLMode: "prefer"
+        Comment: "Staging database cluster"
+
+  # Use existing secret for pgpass file
+  existingPgpassSecret: "redisinsight-pgpass"
+
+  # SMTP configuration for email alerts
+  smtp:
+    enabled: true
+    server: "smtp.example.com"
+    port: 587
+    useSSL: false
+    useTLS: true
+    username: "redisinsight@example.com"
+    existingSecret: "redisinsight-smtp"
+
+# =============================================================================
+# Controller: Deployment with lifecycle hooks
+# =============================================================================
+controller:
+  type: deployment
+  terminationGracePeriodSeconds: 60
+
+# =============================================================================
+# Persistence: Enable for production to retain configurations
+# =============================================================================
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClassName: "" # Use default storage class
+  accessMode: ReadWriteOnce
+
+# =============================================================================
+# Resources: Production-appropriate resource allocation
+# =============================================================================
+resources:
+  limits:
+    cpu: 2000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# =============================================================================
+# High Availability: Pod disruption budget and horizontal autoscaling
+# =============================================================================
+pdb:
+  enabled: true
+  minAvailable: 1
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPU: 80
+  targetMemory: 80
+
+# =============================================================================
+# Ingress: Expose RedisInsight securely
+# =============================================================================
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: redisinsight.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: redisinsight-tls
+      hosts:
+        - redisinsight.example.com
+
+# =============================================================================
+# Monitoring: Enable Prometheus ServiceMonitor and alerting rules
+# =============================================================================
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      prometheus: kube-prometheus
+    metricRelabelings:
+      - sourceLabels: [__name__]
+        regex: "go_.*"
+        action: drop
+
+  prometheusRule:
+    enabled: true
+    rules:
+      - alert: PgAdminDown
+        expr: up{job="redisinsight"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "RedisInsight is down"
+          description: "RedisInsight has been down for more than 5 minutes"
+      - alert: PgAdminHighMemory
+        expr: container_memory_usage_bytes{container="redisinsight"} > 900000000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RedisInsight high memory usage"
+          description: "RedisInsight memory usage is above 900MB"
+
+# =============================================================================
+# Network Policy: Restrict network access
+# =============================================================================
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # Allow ingress from nginx ingress controller
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 80
+
+  # Allow egress to Redis and DNS
+  egress:
+    # Redis databases
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: database
+      ports:
+        - protocol: TCP
+          port: 5432
+    # DNS resolution
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+    # HTTPS for potential extensions/updates
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+
+# =============================================================================
+# Security Context: Enhanced security
+# =============================================================================
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 5050
+  fsGroup: 5050
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 5050
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# =============================================================================
+# Pod Configuration: Production scheduling
+# =============================================================================
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - redisinsight
+          topologyKey: kubernetes.io/hostname
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: redisinsight
+
+priorityClassName: "high-priority"
+
+# Extra environment variables for advanced configuration
+extraEnv:
+  - name: REDISINSIGHT_CONFIG_ENHANCED_COOKIE_PROTECTION
+    value: "True"
+  - name: REDISINSIGHT_CONFIG_SESSION_COOKIE_HTTPONLY
+    value: "True"
+  - name: REDISINSIGHT_CONFIG_SESSION_COOKIE_SECURE
+    value: "True"
+  - name: REDISINSIGHT_CONFIG_SESSION_COOKIE_SAMESITE
+    value: "Lax"
+
+# =============================================================================
+# Additional Configuration
+# =============================================================================
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "80"
+
+additionalLabels:
+  environment: production
+  team: database-ops

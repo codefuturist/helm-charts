@@ -1,0 +1,25 @@
+{{- if and .Values.pgadmin.serverDefinitions (not .Values.pgadmin.existingServerDefinitionsConfigMap) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pgadmin.serverDefinitionsConfigMapName" . }}
+  namespace: {{ include "pgadmin.namespace" . }}
+  labels:
+    {{- include "pgadmin.labels" . | nindent 4 }}
+data:
+  servers.json: |
+    {{- .Values.pgadmin.serverDefinitions | toJson | nindent 4 }}
+{{- end }}
+---
+{{- if and .Values.pgadmin.configLocal (not .Values.pgadmin.existingConfigLocalConfigMap) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pgadmin.configLocalConfigMapName" . }}
+  namespace: {{ include "pgadmin.namespace" . }}
+  labels:
+    {{- include "pgadmin.labels" . | nindent 4 }}
+data:
+  config_local.py: |
+    {{- .Values.pgadmin.configLocal | nindent 4 }}
+{{- end }}

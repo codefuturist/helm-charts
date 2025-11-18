@@ -1,0 +1,305 @@
+suite: test container configuration environment variables
+templates:
+  - deployment.yaml
+  - statefulset.yaml
+  - configmap.yaml
+  - secret.yaml
+tests:
+  # Test SCRIPT_NAME environment variable
+  - it: should set SCRIPT_NAME when scriptName is provided (deployment)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        scriptName: "/redisinsight4"
+      controller:
+        type: deployment
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SCRIPT_NAME
+            value: "/redisinsight4"
+
+  - it: should set SCRIPT_NAME when scriptName is provided (statefulset)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        scriptName: "/admin"
+      controller:
+        type: statefulset
+    asserts:
+      - template: statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SCRIPT_NAME
+            value: "/admin"
+
+  - it: should not set SCRIPT_NAME when scriptName is empty
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        scriptName: ""
+      controller:
+        type: deployment
+    asserts:
+      - template: deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SCRIPT_NAME
+
+  # Test REDISINSIGHT_DISABLE_POSTFIX environment variable
+  - it: should set REDISINSIGHT_DISABLE_POSTFIX when disablePostfix is true (deployment)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        disablePostfix: true
+      controller:
+        type: deployment
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDISINSIGHT_DISABLE_POSTFIX
+            value: "1"
+
+  - it: should set REDISINSIGHT_DISABLE_POSTFIX when disablePostfix is true (statefulset)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        disablePostfix: true
+      controller:
+        type: statefulset
+    asserts:
+      - template: statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDISINSIGHT_DISABLE_POSTFIX
+            value: "1"
+
+  - it: should not set REDISINSIGHT_DISABLE_POSTFIX when disablePostfix is false
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        disablePostfix: false
+      controller:
+        type: deployment
+    asserts:
+      - template: deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDISINSIGHT_DISABLE_POSTFIX
+
+  # Test REDISINSIGHT_REPLACE_SERVERS_ON_STARTUP environment variable
+  - it: should set REDISINSIGHT_REPLACE_SERVERS_ON_STARTUP when replaceServersOnStartup is true (deployment)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        replaceServersOnStartup: true
+      controller:
+        type: deployment
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDISINSIGHT_REPLACE_SERVERS_ON_STARTUP
+            value: "True"
+
+  - it: should set REDISINSIGHT_REPLACE_SERVERS_ON_STARTUP when replaceServersOnStartup is true (statefulset)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        replaceServersOnStartup: true
+      controller:
+        type: statefulset
+    asserts:
+      - template: statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDISINSIGHT_REPLACE_SERVERS_ON_STARTUP
+            value: "True"
+
+  - it: should not set REDISINSIGHT_REPLACE_SERVERS_ON_STARTUP when replaceServersOnStartup is false
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        replaceServersOnStartup: false
+      controller:
+        type: deployment
+    asserts:
+      - template: deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDISINSIGHT_REPLACE_SERVERS_ON_STARTUP
+
+  # Test REDISINSIGHT_SERVER_JSON_FILE environment variable
+  - it: should set REDISINSIGHT_SERVER_JSON_FILE when serverDefinitions is provided (deployment)
+    set:
+      redisinsight.email: test@example.com
+      redisinsight.password: TestPassword123
+      redisinsight.serverDefinitions.servers.1.Name: "Test"
+      redisinsight.serverDefinitions.servers.1.Host: "localhost"
+      redisinsight.serverDefinitions.servers.1.Port: 5432
+      controller.type: deployment
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDISINSIGHT_SERVER_JSON_FILE
+            value: "/redisinsight4/servers.json"
+
+  - it: should set REDISINSIGHT_SERVER_JSON_FILE when existingServerDefinitionsConfigMap is provided (statefulset)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        existingServerDefinitionsConfigMap: my-servers
+      controller:
+        type: statefulset
+    asserts:
+      - template: statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDISINSIGHT_SERVER_JSON_FILE
+            value: "/redisinsight4/servers.json"
+
+  # Test PGPASS_FILE environment variable
+  - it: should set PGPASS_FILE when pgpassFile is provided (deployment)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        pgpassFile: "localhost:5432:*:user:pass"
+      controller:
+        type: deployment
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PGPASS_FILE
+            value: "/var/lib/redisinsight/.pgpass"
+
+  - it: should set PGPASS_FILE when existingPgpassSecret is provided (statefulset)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        existingPgpassSecret: my-pgpass-secret
+      controller:
+        type: statefulset
+    asserts:
+      - template: statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PGPASS_FILE
+            value: "/var/lib/redisinsight/.pgpass"
+
+  # Test Gunicorn environment variables
+  - it: should set GUNICORN_THREADS (deployment)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        gunicorn:
+          threads: 50
+      controller:
+        type: deployment
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GUNICORN_THREADS
+            value: "50"
+
+  - it: should set GUNICORN_ACCESS_LOGFILE when provided (deployment)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        gunicorn:
+          accessLogfile: "/var/log/access.log"
+      controller:
+        type: deployment
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GUNICORN_ACCESS_LOGFILE
+            value: "/var/log/access.log"
+
+  - it: should not set GUNICORN_ACCESS_LOGFILE when empty
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        gunicorn:
+          accessLogfile: ""
+      controller:
+        type: deployment
+    asserts:
+      - template: deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GUNICORN_ACCESS_LOGFILE
+
+  - it: should set GUNICORN_LIMIT_REQUEST_LINE (statefulset)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+        gunicorn:
+          limitRequestLine: 16380
+      controller:
+        type: statefulset
+    asserts:
+      - template: statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GUNICORN_LIMIT_REQUEST_LINE
+            value: "16380"
+
+  - it: should use default Gunicorn values when not overridden (deployment)
+    set:
+      redisinsight:
+        email: test@example.com
+        password: TestPassword123
+      controller:
+        type: deployment
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GUNICORN_THREADS
+            value: "25"
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GUNICORN_LIMIT_REQUEST_LINE
+            value: "8190"

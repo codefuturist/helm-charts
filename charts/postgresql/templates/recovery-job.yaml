@@ -1,0 +1,283 @@
+{{- if .Values.recovery.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "postgresql.fullname" . }}-recovery
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    app.kubernetes.io/component: recovery
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        {{- include "postgresql.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: recovery
+    spec:
+      restartPolicy: Never
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+      - name: prepare-recovery
+        image: "{{ .Values.backup.image.repository }}:{{ .Values.backup.image.tag }}"
+        imagePullPolicy: {{ .Values.backup.image.pullPolicy }}
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          echo "============================================"
+          echo "PostgreSQL Recovery Preparation"
+          echo "============================================"
+          echo ""
+          echo "Recovery Mode: {{ .Values.recovery.mode }}"
+          echo "Recovery Source: {{ .Values.recovery.source }}"
+          {{- if eq .Values.recovery.mode "pitr" }}
+          echo "Recovery Target Time: {{ .Values.recovery.targetTime }}"
+          {{- end }}
+          echo ""
+
+          # Create recovery directory
+          mkdir -p /recovery-data/pgdata
+
+          {{- if eq .Values.recovery.source "backup" }}
+          # Restore from full backup
+          echo "Step 1: Restoring from full backup..."
+          {{- if .Values.recovery.backupFile }}
+          BACKUP_FILE="{{ .Values.recovery.backupFile }}"
+          {{- else }}
+          # Find latest backup
+          BACKUP_FILE=$(ls -t /backups/backup-*.sql.gz 2>/dev/null | head -1)
+          {{- end }}
+
+          if [ -z "$BACKUP_FILE" ] || [ ! -f "$BACKUP_FILE" ]; then
+            echo "ERROR: No backup file found!"
+            exit 1
+          fi
+
+          echo "Using backup: $(basename $BACKUP_FILE)"
+          echo "Backup size: $(du -h $BACKUP_FILE | cut -f1)"
+          echo "Extracting backup..."
+
+          gunzip -c "$BACKUP_FILE" > /recovery-data/restore.sql
+          echo "✓ Backup extracted successfully"
+          {{- else if eq .Values.recovery.source "s3" }}
+          # Download from S3
+          echo "Step 1: Downloading backup from S3..."
+          {{- if .Values.recovery.s3.backupFile }}
+          aws s3 cp "s3://{{ .Values.backup.s3.bucket }}/{{ .Values.recovery.s3.backupFile }}" /recovery-data/backup.sql.gz
+          {{- else }}
+          # Download latest
+          LATEST=$(aws s3 ls "s3://{{ .Values.backup.s3.bucket }}/" --recursive | grep backup- | sort | tail -1 | awk '{print $4}')
+          aws s3 cp "s3://{{ .Values.backup.s3.bucket }}/$LATEST" /recovery-data/backup.sql.gz
+          {{- end }}
+          gunzip /recovery-data/backup.sql.gz
+          mv /recovery-data/backup.sql /recovery-data/restore.sql
+          echo "✓ Backup downloaded successfully"
+          {{- end }}
+
+          {{- if and (eq .Values.recovery.mode "pitr") .Values.backup.wal.enabled }}
+          # Prepare WAL recovery
+          echo ""
+          echo "Step 2: Preparing WAL recovery..."
+          echo "WAL archives will be restored from: {{ .Values.backup.wal.persistence.mountPath }}"
+
+          # Count available WAL files
+          WAL_COUNT=$(find {{ .Values.backup.wal.persistence.mountPath }} -type f | wc -l)
+          echo "Available WAL files: $WAL_COUNT"
+
+          if [ "$WAL_COUNT" -eq 0 ]; then
+            echo "WARNING: No WAL files found. PITR may not work."
+          else
+            echo "✓ WAL files available for recovery"
+          fi
+          {{- end }}
+
+          echo ""
+          echo "============================================"
+          echo "Recovery preparation completed successfully"
+          echo "============================================"
+        volumeMounts:
+        - name: recovery-data
+          mountPath: /recovery-data
+        {{- if eq .Values.recovery.source "backup" }}
+        - name: backups
+          mountPath: /backups
+        {{- end }}
+        {{- if and (eq .Values.recovery.mode "pitr") .Values.backup.wal.enabled }}
+        - name: wal-archive
+          mountPath: {{ .Values.backup.wal.persistence.mountPath }}
+        {{- end }}
+        {{- if eq .Values.recovery.source "s3" }}
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ default (printf "%s-backup-s3" (include "postgresql.fullname" .)) .Values.backup.s3.existingSecret }}
+              key: accessKeyId
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ default (printf "%s-backup-s3" (include "postgresql.fullname" .)) .Values.backup.s3.existingSecret }}
+              key: secretAccessKey
+        - name: AWS_DEFAULT_REGION
+          value: {{ .Values.backup.s3.region }}
+        {{- end }}
+      containers:
+      - name: restore-database
+        image: "{{ .Values.backup.image.repository }}:{{ .Values.backup.image.tag }}"
+        imagePullPolicy: {{ .Values.backup.image.pullPolicy }}
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+
+          echo "============================================"
+          echo "Starting PostgreSQL Recovery"
+          echo "============================================"
+          echo ""
+
+          # Initialize PostgreSQL
+          echo "Initializing PostgreSQL data directory..."
+          initdb -D /recovery-data/pgdata -U postgres
+
+          {{- if eq .Values.recovery.mode "pitr" }}
+          # Configure PITR
+          echo ""
+          echo "Configuring Point-in-Time Recovery..."
+
+          # Create recovery signal
+          touch /recovery-data/pgdata/recovery.signal
+
+          # Configure recovery
+          cat >> /recovery-data/pgdata/postgresql.auto.conf <<EOF
+          # Recovery Configuration
+          {{- if .Values.backup.wal.enabled }}
+          {{- if eq .Values.backup.wal.compression "gzip" }}
+          restore_command = 'gunzip < {{ .Values.backup.wal.persistence.mountPath }}/%f.gz > %p'
+          {{- else if eq .Values.backup.wal.compression "lz4" }}
+          restore_command = 'lz4 -d {{ .Values.backup.wal.persistence.mountPath }}/%f.lz4 %p'
+          {{- else if eq .Values.backup.wal.compression "zstd" }}
+          restore_command = 'zstd -d -o %p {{ .Values.backup.wal.persistence.mountPath }}/%f.zst'
+          {{- else }}
+          restore_command = 'cp {{ .Values.backup.wal.persistence.mountPath }}/%f %p'
+          {{- end }}
+          {{- end }}
+          recovery_target_time = '{{ .Values.recovery.targetTime }}'
+          recovery_target_action = 'promote'
+          EOF
+
+          echo "✓ PITR configured for target time: {{ .Values.recovery.targetTime }}"
+          {{- end }}
+
+          # Start temporary PostgreSQL
+          echo ""
+          echo "Starting temporary PostgreSQL instance..."
+          pg_ctl -D /recovery-data/pgdata -l /recovery-data/logfile start
+
+          # Wait for PostgreSQL to start
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..30}; do
+            if pg_isready -h localhost > /dev/null 2>&1; then
+              echo "✓ PostgreSQL is ready"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+
+          # Restore the backup
+          echo ""
+          echo "Restoring database from backup..."
+          echo "This may take several minutes depending on database size..."
+
+          psql -U postgres -d postgres -f /recovery-data/restore.sql 2>&1 | tee /recovery-data/restore.log
+
+          if [ ${PIPESTATUS[0]} -eq 0 ]; then
+            echo "✓ Database restored successfully"
+          else
+            echo "ERROR: Database restore failed"
+            cat /recovery-data/restore.log
+            exit 1
+          fi
+
+          {{- if eq .Values.recovery.mode "pitr" }}
+          # Wait for recovery to complete
+          echo ""
+          echo "Waiting for WAL recovery to complete..."
+
+          # Monitor recovery progress
+          for i in {1..300}; do
+            if ! psql -U postgres -d postgres -tAc "SELECT pg_is_in_recovery();" 2>/dev/null | grep -q 't'; then
+              echo "✓ Recovery completed - database promoted"
+              break
+            fi
+
+            # Show recovery progress every 10 seconds
+            if [ $((i % 5)) -eq 0 ]; then
+              LAST_WAL=$(psql -U postgres -d postgres -tAc "SELECT pg_last_wal_replay_lsn();" 2>/dev/null || echo "N/A")
+              echo "Still recovering... Last WAL position: $LAST_WAL"
+            fi
+            sleep 2
+          done
+          {{- end }}
+
+          # Stop PostgreSQL
+          echo ""
+          echo "Stopping temporary PostgreSQL instance..."
+          pg_ctl -D /recovery-data/pgdata stop
+
+          # Create recovery complete marker
+          echo "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > /recovery-data/RECOVERY_COMPLETE
+
+          echo ""
+          echo "============================================"
+          echo "Recovery completed successfully!"
+          echo "============================================"
+          echo ""
+          echo "Next steps:"
+          echo "1. The recovered data is in /recovery-data/pgdata"
+          echo "2. Copy this to your PostgreSQL data volume"
+          echo "3. Start your PostgreSQL instance"
+          {{- if eq .Values.recovery.mode "pitr" }}
+          echo ""
+          echo "Recovery Details:"
+          echo "- Target Time: {{ .Values.recovery.targetTime }}"
+          echo "- Database recovered to the specified point in time"
+          {{- end }}
+        env:
+        - name: PGDATA
+          value: /recovery-data/pgdata
+        volumeMounts:
+        - name: recovery-data
+          mountPath: /recovery-data
+        {{- if and (eq .Values.recovery.mode "pitr") .Values.backup.wal.enabled }}
+        - name: wal-archive
+          mountPath: {{ .Values.backup.wal.persistence.mountPath }}
+          readOnly: true
+        {{- end }}
+        resources:
+          {{- toYaml .Values.backup.resources | nindent 10 }}
+      volumes:
+      - name: recovery-data
+        emptyDir:
+          sizeLimit: {{ .Values.recovery.tempStorageSize | default "50Gi" }}
+      {{- if eq .Values.recovery.source "backup" }}
+      - name: backups
+        persistentVolumeClaim:
+          claimName: {{ include "postgresql.fullname" . }}-backup
+      {{- end }}
+      {{- if and (eq .Values.recovery.mode "pitr") .Values.backup.wal.enabled }}
+      - name: wal-archive
+        persistentVolumeClaim:
+          claimName: {{ include "postgresql.fullname" . }}-wal-archive
+      {{- end }}
+{{- end }}

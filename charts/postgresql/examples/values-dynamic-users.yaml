@@ -1,0 +1,53 @@
+# Test values for dynamic user management
+
+postgresql:
+  database: "postgres"
+  username: "postgres"
+
+  additionalDatabases: []
+  additionalUsers: []
+
+  config: {}
+  extensions:
+    - pg_stat_statements
+
+deployment:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+persistence:
+  enabled: true
+  size: 1Gi
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 5432
+
+# Enable dynamic user synchronization
+userManagement:
+  dynamicSync:
+    enabled: true
+    # Run every 2 minutes for testing (use longer intervals in production)
+    schedule: "*/2 * * * *"
+    configMapName: "postgres-user-sync-scripts"
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+
+backup:
+  enabled: false
+
+metrics:
+  enabled: false
+
+replication:
+  enabled: false
+
+tls:
+  enabled: false

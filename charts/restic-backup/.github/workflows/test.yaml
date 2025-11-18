@@ -1,0 +1,118 @@
+# GitHub Actions CI Workflow for Restic Backup Chart
+# This workflow runs on every PR and push to ensure code quality
+
+name: Restic Backup Chart Tests
+
+on:
+  push:
+    paths:
+      - "charts/restic-backup/**"
+  pull_request:
+    paths:
+      - "charts/restic-backup/**"
+
+jobs:
+  lint-and-validate:
+    name: Lint and Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.13.0"
+
+      - name: Helm Lint
+        run: |
+          cd charts/restic-backup
+          helm lint .
+
+      - name: Validate YAML Syntax
+        run: |
+          cd charts/restic-backup
+          python3 -c "import yaml; yaml.safe_load(open('Chart.yaml'))"
+          python3 -c "import yaml; yaml.safe_load(open('values.yaml'))"
+          python3 -c "import yaml; yaml.safe_load(open('examples/values-minimal.yaml'))"
+          python3 -c "import yaml; yaml.safe_load(open('examples/values-production.yaml'))"
+
+      - name: Template Rendering Test
+        run: |
+          cd charts/restic-backup
+          helm template test . -f examples/values-minimal.yaml > /dev/null
+          helm template test . -f test-values.yaml > /dev/null
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-validate
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.13.0"
+
+      - name: Make scripts executable
+        run: chmod +x charts/restic-backup/scripts/*.sh
+
+      - name: Run Unit Tests
+        run: |
+          cd charts/restic-backup
+          ./scripts/test-unit.sh
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.13.0"
+
+      - name: Set up Kind
+        uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: test-cluster
+
+      - name: Verify cluster
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Make scripts executable
+        run: chmod +x charts/restic-backup/scripts/*.sh
+
+      - name: Run Integration Tests
+        run: |
+          cd charts/restic-backup
+          ./scripts/test-integration.sh
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: lint-and-validate
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          scan-ref: "charts/restic-backup"
+          format: "sarif"
+          output: "trivy-results.sarif"
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: "trivy-results.sarif"

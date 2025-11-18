@@ -1,0 +1,131 @@
+{{- if .Values.restic.check.enabled -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "restic-backup.name" . }}-check
+  namespace: {{ include "restic-backup.namespace" . }}
+  labels:
+    {{- include "restic-backup.labels" . | nindent 4 }}
+    app.kubernetes.io/component: check-job
+spec:
+  schedule: {{ .Values.restic.check.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "restic-backup.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: check-job
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "restic-backup.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: check-job
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ include "restic-backup.serviceAccountName" . }}
+          {{- with .Values.image.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.cronjob.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: restic-check
+              image: {{ include "restic-backup.image" . }}
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              {{- with .Values.cronjob.containerSecurityContext }}
+              securityContext:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  echo "=== Restic Repository Check Started at $(date) ==="
+                  echo "Repository: ${RESTIC_REPOSITORY}"
+
+                  # Check repository integrity
+                  echo "Checking repository integrity..."
+                  {{- if .Values.restic.check.readData }}
+                  restic check --read-data --verbose
+                  {{- else }}
+                  restic check --verbose
+                  {{- end }}
+
+                  CHECK_EXIT_CODE=$?
+
+                  if [ $CHECK_EXIT_CODE -eq 0 ]; then
+                    echo "Repository check completed successfully."
+                  else
+                    echo "Repository check failed with exit code: $CHECK_EXIT_CODE"
+                    exit $CHECK_EXIT_CODE
+                  fi
+
+                  # Show repository stats
+                  echo "Repository statistics:"
+                  restic stats
+
+                  echo "=== Restic Repository Check Completed at $(date) ==="
+              env:
+                - name: RESTIC_REPOSITORY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "restic-backup.secretName" . }}
+                      key: RESTIC_REPOSITORY
+                - name: RESTIC_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "restic-backup.secretName" . }}
+                      key: RESTIC_PASSWORD
+              envFrom:
+                - secretRef:
+                    name: {{ include "restic-backup.secretName" . }}
+                {{- with .Values.envFrom }}
+                {{- toYaml . | nindent 16 }}
+                {{- end }}
+              {{- with .Values.cronjob.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              volumeMounts:
+                {{- include "restic-backup.backupVolumeMount" . | nindent 16 }}
+                {{- range .Values.volumes }}
+                - name: {{ .name }}
+                  mountPath: {{ .mountPath }}
+                  {{- if .subPath }}
+                  subPath: {{ .subPath }}
+                  {{- end }}
+                  {{- if .readOnly }}
+                  readOnly: {{ .readOnly }}
+                  {{- end }}
+                {{- end }}
+          volumes:
+            {{- include "restic-backup.backupVolume" . | nindent 12 }}
+            {{- range .Values.volumes }}
+            - name: {{ .name }}
+              {{- if eq (.type | default "pvc") "pvc" }}
+              persistentVolumeClaim:
+                claimName: {{ .claimName }}
+              {{- else if eq .type "hostPath" }}
+              hostPath:
+                path: {{ .hostPath.path }}
+                {{- if .hostPath.type }}
+                type: {{ .hostPath.type }}
+                {{- end }}
+              {{- else if eq .type "emptyDir" }}
+              emptyDir: {{- toYaml .emptyDir | nindent 16 }}
+              {{- else if eq .type "configMap" }}
+              configMap: {{- toYaml .configMap | nindent 16 }}
+              {{- else if eq .type "secret" }}
+              secret: {{- toYaml .secret | nindent 16 }}
+              {{- else if eq .type "custom" }}
+              {{- toYaml .volumeSpec | nindent 14 }}
+              {{- end }}
+            {{- end }}
+{{- end }}

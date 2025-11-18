@@ -1,0 +1,58 @@
+# RedisInsight with Persistence Configuration
+#
+# This configuration enables persistent storage for RedisInsight data,
+# which includes user preferences, saved queries, and session data.
+# Suitable for development, staging, and production environments.
+#
+# Usage:
+#   helm install my-redisinsight codefuturist/redisinsight -f values-with-persistence.yaml
+
+redisinsight:
+  email: "admin@example.com"
+  password: "changeme" # Change to a secure password or use existingSecret
+
+# =============================================================================
+# Persistence Configuration
+# =============================================================================
+persistence:
+  # Enable persistent storage
+  enabled: true
+
+  # Storage class (leave empty to use default)
+  storageClassName: ""
+
+  # Access mode
+  accessMode: ReadWriteOnce
+
+  # Storage size
+  size: 2Gi
+
+  # Annotations for the PVC (optional)
+  annotations:
+    backup.velero.io/backup-volumes: "redisinsight-data"
+
+# =============================================================================
+# Optional: Resource Configuration
+# =============================================================================
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+# =============================================================================
+# Optional: Add Redis Server Definitions
+# =============================================================================
+# Uncomment to pre-configure Redis servers
+# redisinsight:
+#   serverDefinitions:
+#     servers:
+#       1:
+#         Name: "My Redis"
+#         Group: "Development"
+#         Host: "redis.default.svc.cluster.local"
+#         Port: 5432
+#         MaintenanceDB: "postgres"
+#         Username: "postgres"
+#         SSLMode: "prefer"

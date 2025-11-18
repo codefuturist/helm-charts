@@ -28,17 +28,10 @@ A generic, highly flexible Helm chart for deploying various types of application
 
 ### 📊 [Homarr](charts/homarr/)
 
-Helm chart for deploying [Homarr](https://github.com/ajnart/homarr) - a modern, customizable dashboard that puts all of your apps and services at your fingertips. Perfect for homelabs and self-hosted environments.
+Helm chart for deploying [Homarr](https://homarr.dev) - A simple, yet powerful dashboard for your server. Perfect for homelabs and self-hosted environments.
 
-**Version:** 5.2.11  
-**App Version:** 0.15.0
-
-### 🌐 [NGINX](charts/nginx/)
-
-Helm chart for deploying NGINX web server with customizable configuration options.
-
-**Version:** 0.1.1  
-**App Version:** 1.27.0
+**Version:** 1.0.0  
+**App Version:** latest
 
 ## Quick Start
 
@@ -89,9 +82,9 @@ Each chart has its own detailed README with:
 - Troubleshooting tips
 
 Visit the individual chart directories for more information:
+
 - [Application Chart Documentation](charts/application/README.md)
 - [Homarr Chart Documentation](charts/homarr/README.md)
-- [NGINX Chart Documentation](charts/nginx/README.md)
 
 ## Development
 
@@ -161,8 +154,7 @@ helm-charts/
 │   └── ct-lint.yaml     # Chart testing linting configuration
 ├── charts/              # All Helm charts
 │   ├── application/     # Generic application chart
-│   ├── homarr/         # Homarr dashboard chart
-│   └── nginx/          # NGINX chart
+│   └── homarr/         # Homarr dashboard chart
 ├── docs/               # Documentation (CHANGELOG, CONTRIBUTING, SECURITY)
 ├── ct.yaml             # Chart testing configuration
 ├── artifacthub-repo.yaml  # Artifact Hub metadata
@@ -174,7 +166,7 @@ helm-charts/
 
 - **Issues**: [GitHub Issues](https://github.com/codefuturist/helm-charts/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/codefuturist/helm-charts/discussions)
-- **Email**: hello@allcloud.trade
+- **Email**: 58808821+codefuturist@users.noreply.github.com
 
 ## License
 

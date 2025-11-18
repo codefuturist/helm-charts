@@ -1,0 +1,44 @@
+# Self-hosted Bitwarden/Vaultwarden configuration
+
+replicaCount: 2
+
+bitwarden:
+  # Your self-hosted Bitwarden URL
+  server: "https://vault.example.com"
+
+  auth:
+    useApiKey: true
+    existingSecret:
+      name: "bitwarden-credentials"
+
+api:
+  existingSecret:
+    name: "bitwarden-api-token"
+
+cache:
+  enabled: true
+  ttl: 60
+
+externalSecretsOperator:
+  createClusterSecretStore: true
+  secretStore:
+    name: "bitwarden"
+
+# Enable network policies for additional security
+networkPolicy:
+  enabled: true
+  egress:
+    # Allow egress to self-hosted Bitwarden
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 443
+    # DNS
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 53
+      - protocol: UDP
+        port: 53

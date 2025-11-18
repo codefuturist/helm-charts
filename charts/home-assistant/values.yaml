@@ -1,0 +1,618 @@
+# Default values for home-assistant.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- (string) Override the namespace for all resources.
+namespaceOverride: ""
+
+# -- (string) Override the name
+nameOverride: ""
+
+# -- (string) Override the full name
+fullnameOverride: ""
+
+# -- (object) Additional labels for all resources
+additionalLabels: {}
+
+# =============================================================================
+# Home Assistant Configuration
+# =============================================================================
+
+image:
+  # -- (string) Home Assistant image repository
+  repository: ghcr.io/home-assistant/home-assistant
+  # -- (string) Image pull policy
+  pullPolicy: IfNotPresent
+  # -- (string) Override the image tag (default is appVersion from Chart.yaml)
+  # Common tags: 'stable' (latest stable), '2024.11.1' (specific version), 'latest' (bleeding edge)
+  tag: ""
+
+# -- (list) Image pull secrets
+imagePullSecrets: []
+
+# -- (int) Number of replicas (Home Assistant is typically single instance due to state)
+replicaCount: 1
+
+# =============================================================================
+# Controller Configuration
+# =============================================================================
+
+controller:
+  # -- (string) Controller type: StatefulSet or Deployment
+  # StatefulSet: Provides stable network identity and ordered deployment/scaling
+  # Deployment: Simpler, better for stateless or when using external storage
+  type: Deployment
+  # -- (object) Annotations for StatefulSet
+  statefulSetAnnotations: {}
+  # -- (object) Annotations for Deployment
+  deploymentAnnotations: {}
+
+strategy:
+  # -- (string) Deployment strategy type (Recreate or RollingUpdate)
+  # Recreate: All old pods are killed before new ones are created (safer for single instance)
+  # RollingUpdate: Gradual replacement (use with replicaCount > 1)
+  type: Recreate
+
+# -- (string) Priority class name for pod scheduling priority
+priorityClassName: ""
+
+# =============================================================================
+# DNS Configuration
+# =============================================================================
+
+# -- (string) DNS policy for the pod
+# Options: ClusterFirst, ClusterFirstWithHostNet, Default, None
+dnsPolicy: ""
+
+# -- (object) Custom DNS configuration
+# Useful for reducing DNS load (set ndots: 0) or custom nameservers
+dnsConfig: {}
+  # nameservers:
+  #   - 1.2.3.4
+  # searches:
+  #   - ns1.svc.cluster-domain.example
+  # options:
+  #   - name: ndots
+  #     value: "0"
+
+# =============================================================================
+# Service Configuration
+# =============================================================================
+
+service:
+  # -- (string) Service type
+  type: ClusterIP
+  # -- (int) Service port
+  port: 8123
+  # -- (int) Target container port
+  targetPort: 8123
+  # -- (string) Node port (if type is NodePort)
+  nodePort: ""
+  # -- (object) Additional annotations for service
+  annotations: {}
+  # -- (object) Additional labels for service
+  labels: {}
+  # -- (string) Load balancer IP (if type is LoadBalancer)
+  loadBalancerIP: ""
+  # -- (list) Load balancer source ranges
+  loadBalancerSourceRanges: []
+  # -- (string) External traffic policy
+  externalTrafficPolicy: ""
+
+# -- (list) Additional services to create
+# Useful for custom integrations that need separate service ports
+additionalServices: []
+  # - name: custom-integration
+  #   type: ClusterIP
+  #   port: 8124
+  #   targetPort: custom
+  #   protocol: TCP
+  #   annotations: {}
+
+# =============================================================================
+# Ingress Configuration
+# =============================================================================
+
+ingress:
+  # -- (bool) Enable ingress
+  enabled: false
+  # -- (string) Ingress class name
+  className: ""
+  # -- (object) Ingress annotations
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/websocket-services: home-assistant
+    # nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  # -- (list) Ingress hosts configuration
+  hosts:
+    - host: home-assistant.local
+      paths:
+        - path: /
+          pathType: Prefix
+  # -- (list) Ingress TLS configuration
+  tls: []
+    # - secretName: home-assistant-tls
+    #   hosts:
+    #     - home-assistant.local
+
+# =============================================================================
+# Persistence Configuration
+# =============================================================================
+
+persistence:
+  # -- (bool) Enable persistence (uses emptyDir if disabled - data lost on restart)
+  enabled: false
+  # -- (string) Storage class name
+  storageClassName: ""
+  # -- (string) Access mode
+  accessMode: ReadWriteOnce
+  # -- (string) Storage size for configuration
+  size: 5Gi
+  # -- (object) Annotations for PVC
+  annotations: {}
+  # -- (string) Existing claim name (if using existing PVC)
+  existingClaim: ""
+  # -- (bool) Retain PVC on uninstall
+  retain: true
+
+  # Additional volumes for media, backups, etc.
+  media:
+    # -- (bool) Enable media persistence
+    enabled: false
+    # -- (string) Storage class
+    storageClassName: ""
+    # -- (string) Access mode
+    accessMode: ReadWriteOnce
+    # -- (string) Storage size
+    size: 10Gi
+    # -- (string) Existing claim
+    existingClaim: ""
+
+  backup:
+    # -- (bool) Enable backup persistence
+    enabled: false
+    # -- (string) Storage class
+    storageClassName: ""
+    # -- (string) Access mode
+    accessMode: ReadWriteOnce
+    # -- (string) Storage size
+    size: 5Gi
+    # -- (string) Existing claim
+    existingClaim: ""
+
+# =============================================================================
+# Database Configuration
+# =============================================================================
+
+# Home Assistant supports SQLite (default) and PostgreSQL
+database:
+  # -- (string) Database type: sqlite or postgresql
+  type: sqlite
+
+  # PostgreSQL configuration (when type is postgresql)
+  postgresql:
+    # -- (string) PostgreSQL host
+    host: ""
+    # -- (int) PostgreSQL port
+    port: 5432
+    # -- (string) Database name
+    database: homeassistant
+    # -- (string) Database username
+    username: homeassistant
+    # -- (string) Existing secret name for database credentials
+    existingSecret: ""
+    # -- (string) Key in existing secret for password
+    passwordKey: password
+    # -- (string) Connection pool size
+    poolSize: "5"
+    # -- (bool) Use SSL for connection
+    sslMode: prefer
+
+# =============================================================================
+# Home Assistant Configuration
+# =============================================================================
+
+homeassistant:
+  # -- (object) Environment variables
+  env: {}
+    # TZ: "America/New_York"
+
+  # -- (object) Environment variables from ConfigMap or Secret
+  envFrom: []
+    # - configMapRef:
+    #     name: home-assistant-config
+    # - secretRef:
+    #     name: home-assistant-secrets
+
+  # -- (object) configuration.yaml content (merged with auto-generated config)
+  configuration: {}
+    # http:
+    #   use_x_forwarded_for: true
+    #   trusted_proxies:
+    #     - 10.0.0.0/8
+    # logger:
+    #   default: info
+
+  # -- (object) secrets.yaml content
+  secrets: {}
+    # http_password: !secret http_password
+    # api_key: !secret api_key
+
+  # -- (bool) Use existing ConfigMap for configuration
+  existingConfigMap: ""
+
+# =============================================================================
+# Add-ons and Integrations
+# =============================================================================
+
+# Code Server (VSCode in browser for editing configs)
+codeserver:
+  # -- (bool) Enable code-server sidecar
+  enabled: false
+  image:
+    repository: codercom/code-server
+    tag: "4.19.1"
+    pullPolicy: IfNotPresent
+  # -- (int) Code server port
+  port: 8080
+  # -- (object) Code server environment variables
+  env:
+    PASSWORD: "" # Leave empty to generate random password
+  # -- (object) Resources for code-server
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  ingress:
+    # -- (bool) Enable separate ingress for code-server
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: code.home-assistant.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
+# MQTT Broker (if not using external)
+mqtt:
+  # -- (bool) Enable MQTT sidecar (Eclipse Mosquitto)
+  enabled: false
+  image:
+    repository: eclipse-mosquitto
+    tag: "2.0"
+    pullPolicy: IfNotPresent
+  # -- (int) MQTT port
+  port: 1883
+  # -- (object) MQTT configuration
+  config: {}
+  # -- (object) Resources for MQTT
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  persistence:
+    # -- (bool) Enable MQTT persistence
+    enabled: false
+    size: 1Gi
+
+# =============================================================================
+# Host Network and Device Access
+# =============================================================================
+
+# Host network access (required for device discovery like HomeKit, mDNS, etc.)
+hostNetwork:
+  # -- (bool) Enable host network mode
+  enabled: false
+
+# System integration volumes
+systemVolumes:
+  # Mount /etc/localtime for timezone synchronization (recommended)
+  localtime:
+    # -- (bool) Mount /etc/localtime from host
+    enabled: false
+    # -- (string) Path to localtime on host
+    hostPath: /etc/localtime
+  # Mount /run/dbus for D-Bus access (Bluetooth, systemd integrations)
+  dbus:
+    # -- (bool) Mount /run/dbus from host
+    enabled: false
+    # -- (string) Path to dbus socket on host
+    hostPath: /run/dbus
+
+# USB/Serial device access
+devices:
+  # -- (list) Host devices to mount (e.g., Zigbee/Z-Wave controllers)
+  # Each device should be an object with hostPath and containerPath
+  enabled: false
+  list: []
+    # - hostPath: /dev/ttyUSB0
+    #   containerPath: /dev/ttyUSB0
+    # - hostPath: /dev/ttyACM0
+    #   containerPath: /dev/ttyACM0
+
+# Node selector for devices (useful if USB devices are on specific nodes)
+nodeSelector: {}
+  # kubernetes.io/hostname: node-with-zigbee
+
+# =============================================================================
+# Security Context
+# =============================================================================
+
+podSecurityContext:
+  # Run as non-root user
+  runAsNonRoot: false # Home Assistant needs root for device access
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+  # -- (object) Seccomp profile
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  # -- (bool) Allow privilege escalation
+  allowPrivilegeEscalation: false
+  # -- (object) Capabilities
+  capabilities:
+    drop:
+      - ALL
+    # Add specific capabilities for Home Assistant features (unprivileged mode)
+    # This is the RECOMMENDED secure configuration for most users
+    add:
+      - NET_ADMIN # For network discovery (SSDP, mDNS, device scanning)
+      - NET_RAW # For ping integration, network scanning
+      - SYS_ADMIN # For some hardware access (use sparingly)
+    # Additional capabilities (uncomment only if needed):
+    # - SYS_RAWIO    # For raw I/O to devices (advanced hardware)
+  # -- (bool) Read-only root filesystem
+  readOnlyRootFilesystem: false
+  # -- (bool) Run as privileged container (grants all capabilities)
+  # WARNING: Only enable if you need Bluetooth or full D-Bus system access
+  # SECURITY: This grants extensive permissions - use specific capabilities instead
+  # To enable privileged mode, set: privileged: true and capabilities.add: []
+  privileged: false
+
+# =============================================================================
+# Resources
+# =============================================================================
+
+resources:
+  # -- (object) Resource limits
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  # -- (object) Resource requests
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# =============================================================================
+# Probes
+# =============================================================================
+
+livenessProbe:
+  # -- (bool) Enable liveness probe
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  # -- (bool) Enable readiness probe
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+startupProbe:
+  # -- (bool) Enable startup probe
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+# =============================================================================
+# Autoscaling (Not recommended for Home Assistant)
+# =============================================================================
+
+autoscaling:
+  # -- (bool) Enable horizontal pod autoscaling
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# =============================================================================
+# Service Account
+# =============================================================================
+
+serviceAccount:
+  # -- (bool) Create service account
+  create: true
+  # -- (object) Annotations for service account
+  annotations: {}
+  # -- (string) Service account name
+  name: ""
+
+# =============================================================================
+# RBAC
+# =============================================================================
+
+rbac:
+  # -- (bool) Create RBAC resources
+  create: true
+
+# =============================================================================
+# Pod Disruption Budget
+# =============================================================================
+
+podDisruptionBudget:
+  # -- (bool) Enable PodDisruptionBudget
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 1
+
+# =============================================================================
+# Monitoring
+# =============================================================================
+
+serviceMonitor:
+  # -- (bool) Enable ServiceMonitor for Prometheus
+  enabled: false
+  # -- (string) Namespace for ServiceMonitor
+  namespace: ""
+  # -- (object) Additional labels
+  labels: {}
+  # -- (string) Scrape interval
+  interval: 30s
+  # -- (string) Scrape timeout
+  scrapeTimeout: 10s
+  # -- (string) Metrics path
+  path: /api/prometheus
+  # -- (object) Bearer token authentication configuration
+  # Requires Home Assistant Prometheus integration: https://www.home-assistant.io/integrations/prometheus/
+  bearerToken:
+    # -- (string) Name of the secret containing the bearer token
+    secretName: ""
+    # -- (string) Key in the secret containing the bearer token
+    secretKey: ""
+
+# =============================================================================
+# Additional Configuration
+# =============================================================================
+
+# -- (object) Pod annotations
+podAnnotations: {}
+
+# -- (list) Tolerations
+tolerations: []
+
+# -- (object) Affinity rules
+affinity: {}
+
+# -- (object) Extra volumes
+extraVolumes: []
+
+# -- (object) Extra volume mounts
+extraVolumeMounts: []
+
+# -- (list) Init containers
+initContainers: []
+
+# -- (list) Sidecar containers
+extraContainers: []
+
+# =============================================================================
+# Configuration Management
+# =============================================================================
+
+configuration:
+  # -- (bool) Enable automated configuration setup
+  # When enabled, creates ConfigMaps and init container to manage HA config files
+  enabled: false
+
+  # -- (bool) Force initialization on every start
+  # Merges default config with existing config.yaml (keeps 10 most recent backups)
+  forceInit: false
+
+  # -- (list) Trusted proxy CIDR ranges for reverse proxy setups
+  # Add your ingress controller or load balancer IP ranges
+  trusted_proxies:
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+    - 192.168.0.0/16
+    - 127.0.0.0/8
+
+  # -- (string) Template for configuration.yaml file
+  # Uses Go templating with access to .Values
+  templateConfig: |-
+    # Loads default set of integrations. Do not remove.
+    default_config:
+
+    {{- if or .Values.ingress.enabled }}
+    http:
+      use_x_forwarded_for: true
+      trusted_proxies:
+        {{- range .Values.configuration.trusted_proxies }}
+        - {{ . }}
+        {{- end }}
+    {{- end }}
+
+    # Load frontend themes from the themes folder
+    frontend:
+      themes: !include_dir_merge_named themes
+
+    automation: !include automations.yaml
+    script: !include scripts.yaml
+    scene: !include scenes.yaml
+
+  # -- (string) Init script for configuration management
+  # Executed before Home Assistant starts
+  initScript: |-
+    #!/bin/bash
+    set -e
+
+    # Create configuration file if it doesn't exist
+    if [ ! -f /config/configuration.yaml ]; then
+      echo \"Configuration file not found, creating from template\"
+      cp /config-templates/configuration.yaml /config/configuration.yaml
+    fi
+
+    # Handle forceInit mode
+    forceInit=\"{{ .Values.configuration.forceInit }}\"
+    if [ \"$forceInit\" = \"true\" ]; then
+      echo \"Force init enabled, merging configuration\"
+      current_time=$(date +%Y%m%d_%H%M%S)
+      echo \"Backing up current config to configuration.yaml.$current_time\"
+      cp /config/configuration.yaml /config/configuration.yaml.$current_time
+
+      echo \"Cleaning up old backups (keeping 10 most recent)\"
+      ls -t /config/configuration.yaml.* 2>/dev/null | tail -n +11 | xargs -r rm
+
+      if [[ ! -s /config/configuration.yaml ]]; then
+        cat /config-templates/configuration.yaml > /config/configuration.yaml
+      else
+        yq eval-all --inplace 'select(fileIndex == 0) *d select(fileIndex == 1)' /config/configuration.yaml /config-templates/configuration.yaml
+      fi
+    fi
+
+    # Create required YAML files if missing
+    for file in automations.yaml scripts.yaml scenes.yaml; do
+      if [ ! -f /config/$file ]; then
+        echo \"Creating $file\"
+        echo \"[]\" > /config/$file
+      fi
+    done
+
+  # -- (object) Init container configuration
+  initContainer:
+    # -- (string) Init container name
+    name: setup-config
+    # -- (string) Init container image (needs yq tool)
+    image: mikefarah/yq:4
+    # -- (object) Init container security context
+    securityContext:
+      runAsUser: 0
+    # -- (list) Additional volume mounts for init container
+    volumeMounts: []

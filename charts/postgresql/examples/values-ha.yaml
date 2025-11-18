@@ -1,0 +1,84 @@
+# PostgreSQL - High Availability Configuration with Replication
+# Configuration for PostgreSQL with streaming replication
+
+postgresql:
+  database: "hadb"
+  username: "hauser"
+  existingSecret: "postgresql-ha-credentials"
+
+  config:
+    max_connections: "300"
+    shared_buffers: "1GB"
+    effective_cache_size: "3GB"
+    # Replication settings
+    wal_level: "replica"
+    max_wal_senders: "10"
+    max_replication_slots: "10"
+    hot_standby: "on"
+    hot_standby_feedback: "on"
+    wal_keep_size: "1GB"
+
+# Use StatefulSet for replication
+statefulset:
+  enabled: true
+  serviceName: postgresql
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+
+replication:
+  enabled: true
+  readReplicas: 2
+  user: "replicator"
+  existingSecret: "postgresql-ha-credentials"
+  synchronousCommit: true
+  numSynchronousReplicas: 1
+
+deployment:
+  replicas: 1
+
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - postgresql
+          topologyKey: kubernetes.io/hostname
+
+persistence:
+  enabled: true
+  storageClass: "premium-ssd"
+  size: 500Gi
+
+pdb:
+  enabled: true
+  minAvailable: 2
+
+metrics:
+  enabled: true
+
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+  prometheusRule:
+    enabled: true
+
+backup:
+  enabled: true
+  schedule: "0 */6 * * *"  # Every 6 hours
+  retentionDays: 14
+  persistence:
+    enabled: true
+    size: 1Ti

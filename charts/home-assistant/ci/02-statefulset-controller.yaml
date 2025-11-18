@@ -1,0 +1,9 @@
+# CI Test: StatefulSet controller with persistence
+# Tests StatefulSet deployment with volumeClaimTemplates
+
+controller:
+  type: StatefulSet
+
+persistence:
+  enabled: true
+  size: 5Gi

@@ -1,0 +1,31 @@
+# CI Test: Backup volumes and SMART access
+# Tests backup data volume configuration
+
+pbs:
+  username: admin@pbs
+  password: SuperSecurePassword123
+  timezone: "America/New_York"
+
+  smartAccess:
+    enabled: true
+    devices:
+      - /dev/sda
+
+  backupVolumes:
+    - name: backups-primary
+      mountPath: /backups
+      size: 100Gi
+      storageClassName: standard
+
+controller:
+  type: deployment
+  replicas: 1
+
+persistence:
+  enabled: true
+  etc:
+    size: 1Gi
+  logs:
+    size: 5Gi
+  lib:
+    size: 10Gi

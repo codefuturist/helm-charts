@@ -1,0 +1,112 @@
+{{- if .Values.restic.init.enabled -}}
+{{- $_ := include "restic-backup.validateValues" . -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "restic-backup.name" . }}-init
+  namespace: {{ include "restic-backup.namespace" . }}
+  labels:
+    {{- include "restic-backup.labels" . | nindent 4 }}
+    app.kubernetes.io/component: init-job
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "restic-backup.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: init-job
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ include "restic-backup.serviceAccountName" . }}
+      {{- with .Values.image.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.cronjob.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: restic-init
+          image: {{ include "restic-backup.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.cronjob.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "=== Restic Repository Initialization ==="
+              echo "Repository: ${RESTIC_REPOSITORY}"
+
+              if restic snapshots --quiet > /dev/null 2>&1; then
+                echo "Repository already initialized."
+                restic snapshots
+              else
+                echo "Initializing new repository..."
+                restic init
+                echo "Repository initialized successfully."
+              fi
+          env:
+            - name: RESTIC_REPOSITORY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "restic-backup.secretName" . }}
+                  key: RESTIC_REPOSITORY
+            - name: RESTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "restic-backup.secretName" . }}
+                  key: RESTIC_PASSWORD
+          envFrom:
+            - secretRef:
+                name: {{ include "restic-backup.secretName" . }}
+            {{- with .Values.envFrom }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.cronjob.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- include "restic-backup.backupVolumeMount" . | nindent 12 }}
+            {{- range .Values.volumes }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+              {{- if .readOnly }}
+              readOnly: {{ .readOnly }}
+              {{- end }}
+            {{- end }}
+      volumes:
+        {{- include "restic-backup.backupVolume" . | nindent 8 }}
+        {{- range .Values.volumes }}
+        - name: {{ .name }}
+          {{- if eq (.type | default "pvc") "pvc" }}
+          persistentVolumeClaim:
+            claimName: {{ .claimName }}
+          {{- else if eq .type "hostPath" }}
+          hostPath:
+            path: {{ .hostPath.path }}
+            {{- if .hostPath.type }}
+            type: {{ .hostPath.type }}
+            {{- end }}
+          {{- else if eq .type "emptyDir" }}
+          emptyDir: {{- toYaml .emptyDir | nindent 12 }}
+          {{- else if eq .type "configMap" }}
+          configMap: {{- toYaml .configMap | nindent 12 }}
+          {{- else if eq .type "secret" }}
+          secret: {{- toYaml .secret | nindent 12 }}
+          {{- else if eq .type "custom" }}
+          {{- toYaml .volumeSpec | nindent 10 }}
+          {{- end }}
+        {{- end }}
+{{- end }}

@@ -1,0 +1,102 @@
+Restic Backup Chart has been installed!
+
+Chart Name: {{ .Chart.Name }}
+Chart Version: {{ .Chart.Version }}
+Release Name: {{ .Release.Name }}
+Namespace: {{ include "restic-backup.namespace" . }}
+
+{{- if .Values.restic.backup.enabled }}
+
+📦 BACKUP CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Repository: {{ .Values.restic.repository }}
+Schedule: {{ .Values.restic.backup.schedule }}
+Volumes to backup:
+{{- range .Values.volumes }}
+  • {{ .name }} ({{ .claimName }})
+{{- end }}
+
+{{- if .Values.restic.backup.retention.enabled }}
+Retention Policy:
+  • Last {{ .Values.restic.backup.retention.keepLast }} snapshots
+  • Daily for {{ .Values.restic.backup.retention.keepDaily }} days
+  • Weekly for {{ .Values.restic.backup.retention.keepWeekly }} weeks
+  • Monthly for {{ .Values.restic.backup.retention.keepMonthly }} months
+  • Yearly for {{ .Values.restic.backup.retention.keepYearly }} years
+{{- end }}
+{{- end }}
+
+{{- if .Values.restic.check.enabled }}
+
+🔍 REPOSITORY CHECK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Schedule: {{ .Values.restic.check.schedule }}
+Read Data: {{ .Values.restic.check.readData }}
+{{- end }}
+
+📋 USEFUL COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# View backup jobs
+kubectl get cronjobs -n {{ include "restic-backup.namespace" . }}
+
+# View recent backup job runs
+kubectl get jobs -n {{ include "restic-backup.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+# Check backup logs
+kubectl logs -n {{ include "restic-backup.namespace" . }} -l app.kubernetes.io/component=backup-job --tail=100
+
+# Trigger manual backup
+kubectl create job -n {{ include "restic-backup.namespace" . }} \
+  --from=cronjob/{{ include "restic-backup.name" . }}-backup \
+  manual-backup-$(date +%s)
+
+# List snapshots (exec into a pod)
+kubectl run -n {{ include "restic-backup.namespace" . }} restic-shell -it --rm \
+  --image={{ include "restic-backup.image" . }} \
+  --env=RESTIC_REPOSITORY={{ .Values.restic.repository }} \
+  --env=RESTIC_PASSWORD={{ .Values.restic.password }} \
+  -- restic snapshots
+
+{{- if not .Values.restic.existingSecret }}
+{{- if or (not .Values.restic.repository) (not .Values.restic.password) }}
+
+⚠️  WARNING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Repository credentials are not properly configured!
+
+Please set:
+  • restic.repository (backup destination)
+  • restic.password (encryption password)
+
+Or use an existing secret:
+  • restic.existingSecret
+
+{{- end }}
+{{- end }}
+
+{{- if not .Values.volumes }}
+
+⚠️  WARNING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+No volumes configured for backup!
+
+Please add volumes to backup in values.yaml:
+  volumes:
+    - name: my-data
+      claimName: my-pvc
+      mountPath: /data
+
+{{- end }}
+
+🔐 SECURITY RECOMMENDATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Use external secret management (e.g., External Secrets Operator)
+✓ Enable network policies for additional security
+✓ Store restic password in a secure vault
+✓ Test restore procedures regularly
+✓ Monitor backup job success/failure metrics
+
+📚 For more information, see:
+   • Chart README: https://github.com/codefuturist/helm-charts
+   • Restic Documentation: https://restic.readthedocs.io/

@@ -1,0 +1,155 @@
+{{- include "compass-web.validateValues" . -}}
+{{- if eq .Values.controller.type "statefulset" }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "compass-web.fullname" . }}
+  namespace: {{ include "compass-web.namespace" . }}
+  labels:
+    {{- include "compass-web.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "compass-web.fullname" . }}
+  replicas: {{ .Values.controller.replicas }}
+  {{- with .Values.controller.podManagementPolicy }}
+  podManagementPolicy: {{ . }}
+  {{- end }}
+  {{- with .Values.controller.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "compass-web.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if not .Values.compassWeb.existingSecret }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "compass-web.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "compass-web.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: compass-web
+          image: {{ include "compass-web.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: CW_MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "compass-web.secretName" . }}
+                  key: {{ .Values.compassWeb.existingSecretKey }}
+            - name: CW_PORT
+              value: {{ .Values.service.targetPort | quote }}
+            - name: CW_HOST
+              value: "0.0.0.0"
+            - name: CW_APP_NAME
+              value: {{ .Values.compassWeb.appName | quote }}
+            - name: CW_ORG_ID
+              value: {{ .Values.compassWeb.orgId | quote }}
+            - name: CW_PROJECT_ID
+              value: {{ .Values.compassWeb.projectId | quote }}
+            - name: CW_CLUSTER_ID
+              value: {{ .Values.compassWeb.clusterId | quote }}
+            {{- if .Values.compassWeb.basicAuth.enabled }}
+            {{- if or .Values.compassWeb.basicAuth.username .Values.compassWeb.basicAuth.existingSecret }}
+            - name: CW_BASIC_AUTH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "compass-web.basicAuthSecretName" . }}
+                  key: {{ .Values.compassWeb.basicAuth.existingSecretUsernameKey }}
+            {{- end }}
+            {{- if or .Values.compassWeb.basicAuth.password .Values.compassWeb.basicAuth.existingSecret }}
+            - name: CW_BASIC_AUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "compass-web.basicAuthSecretName" . }}
+                  key: {{ .Values.compassWeb.basicAuth.existingSecretPasswordKey }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.compassWeb.genAI.enabled }}
+            - name: CW_ENABLE_GEN_AI_FEATURES
+              value: "true"
+            {{- if or .Values.compassWeb.genAI.apiKey .Values.compassWeb.genAI.existingSecret }}
+            - name: CW_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "compass-web.genAISecretName" . }}
+                  key: {{ .Values.compassWeb.genAI.existingSecretKey }}
+            {{- end }}
+            - name: CW_OPENAI_MODEL
+              value: {{ .Values.compassWeb.genAI.model | quote }}
+            - name: CW_ENABLE_GEN_AI_SAMPLE_DOCUMENTS
+              value: {{ .Values.compassWeb.genAI.enableSampleDocuments | quote }}
+            {{- if .Values.compassWeb.genAI.querySystemPrompt }}
+            - name: CW_QUERY_SYSTEM_PROMPT
+              value: {{ .Values.compassWeb.genAI.querySystemPrompt | quote }}
+            {{- end }}
+            {{- if .Values.compassWeb.genAI.aggregationSystemPrompt }}
+            - name: CW_AGGREGATION_SYSTEM_PROMPT
+              value: {{ .Values.compassWeb.genAI.aggregationSystemPrompt | quote }}
+            {{- end }}
+            {{- end }}
+            {{- range $key, $value := .Values.compassWeb.config }}
+            - name: CW_{{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: compass-web-data
+              mountPath: /var/lib/compass-web
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+  {{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
+  volumeClaimTemplates:
+    - metadata:
+        name: compass-web-data
+        labels:
+          {{- include "compass-web.labels" . | nindent 10 }}
+        {{- with .Values.persistence.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.accessMode }}
+        {{- if .Values.persistence.storageClassName }}
+        storageClassName: {{ .Values.persistence.storageClassName }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,189 @@
+# Test values for installing Semaphore in k3s-development-k3s-testbox cluster
+# This provides a minimal but functional configuration for testing
+
+# Semaphore configuration
+semaphore:
+  # Use BoltDB (embedded SQLite-like database) for testing
+  database:
+    dialect: bolt
+    name: semaphore
+
+  # Admin user credentials (change in production!)
+  admin:
+    username: admin
+    password: testpassword123
+    name: "Test Admin"
+    email: admin@test.local
+
+# Use Deployment for testing
+controller:
+  type: deployment
+  replicas: 1
+  # Use Recreate strategy for BoltDB (no concurrent access)
+  updateStrategy:
+    type: Recreate
+  # Lifecycle hook for graceful shutdown
+  lifecycle:
+    preStop:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - sleep 15
+
+# Enable persistence with smaller sizes for testing
+persistence:
+  data:
+    enabled: true
+    size: 1Gi
+  config:
+    enabled: true
+    size: 100Mi
+  tmp:
+    enabled: true
+    size: 2Gi
+
+# Reduce resource requirements for testing
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Use NodePort for easy local access
+service:
+  type: NodePort
+  port: 3000
+  nodePort: 30300
+
+# Disable ingress for now (can enable later)
+ingress:
+  enabled: false
+
+# Enable monitoring (if Prometheus is available)
+monitoring:
+  serviceMonitor:
+    enabled: false # Set to true if you have Prometheus Operator
+  prometheusRule:
+    enabled: false # Set to true to enable alert rules
+
+# Security contexts
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# Disable service links to prevent Kubernetes service env var conflicts
+enableServiceLinks: false
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# Health probes with relaxed timings for slower environments
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 0
+  periodSeconds: 10
+
+# Init container to run Semaphore setup
+initContainers:
+  extra:
+    - name: setup
+      image: semaphoreui/semaphore:v2.10.32
+      env:
+        - name: SEMAPHORE_COOKIE_HASH
+          valueFrom:
+            secretKeyRef:
+              name: semaphore
+              key: cookie-hash
+        - name: SEMAPHORE_COOKIE_ENCRYPTION
+          valueFrom:
+            secretKeyRef:
+              name: semaphore
+              key: cookie-encryption
+        - name: SEMAPHORE_ACCESS_KEY_ENCRYPTION
+          valueFrom:
+            secretKeyRef:
+              name: semaphore
+              key: access-key-encryption
+      command:
+        - sh
+        - -c
+        - |
+          # Explicitly set SEMAPHORE_PORT to avoid Kubernetes service variable conflicts
+          export SEMAPHORE_PORT=3000
+
+          # Unset Kubernetes service environment variables that conflict with Semaphore
+          unset SEMAPHORE_SERVICE_HOST SEMAPHORE_SERVICE_PORT
+          unset SEMAPHORE_PORT_3000_TCP SEMAPHORE_PORT_3000_TCP_ADDR
+          unset SEMAPHORE_PORT_3000_TCP_PORT SEMAPHORE_PORT_3000_TCP_PROTO
+          unset SEMAPHORE_SERVICE_PORT_HTTP
+
+          if [ ! -f /var/lib/semaphore/.setup_complete ]; then
+            echo "Initializing Semaphore database and admin user..."
+
+            # Debug: Print environment variables
+            echo "DEBUG: SEMAPHORE_COOKIE_HASH=$SEMAPHORE_COOKIE_HASH"
+            echo "DEBUG: SEMAPHORE_COOKIE_ENCRYPTION=$SEMAPHORE_COOKIE_ENCRYPTION"
+            echo "DEBUG: SEMAPHORE_ACCESS_KEY_ENCRYPTION=$SEMAPHORE_ACCESS_KEY_ENCRYPTION"
+
+            # Create config file with encryption keys from environment
+            printf '{\n  "bolt": {\n    "host": "/var/lib/semaphore/database.boltdb"\n  },\n  "dialect": "bolt",\n  "tmp_path": "/tmp/semaphore",\n  "cookie_hash": "%s",\n  "cookie_encryption": "%s",\n  "access_key_encryption": "%s"\n}\n' \
+              "$SEMAPHORE_COOKIE_HASH" "$SEMAPHORE_COOKIE_ENCRYPTION" "$SEMAPHORE_ACCESS_KEY_ENCRYPTION" \
+              > /etc/semaphore/config.json
+
+            echo "DEBUG: Config file created"
+            cat /etc/semaphore/config.json
+
+            # Run migrations (creates database)
+            echo "Running database migrations..."
+            semaphore migrate --config /etc/semaphore/config.json
+
+            # Add admin user
+            echo "Creating admin user..."
+            semaphore user add --admin --login admin --name "Admin User" --email admin@test.local --password testpassword123 --config /etc/semaphore/config.json
+
+            # Mark setup as complete
+            touch /var/lib/semaphore/.setup_complete
+            echo "Setup complete"
+          else
+            echo "Setup already completed, skipping"
+          fi
+      volumeMounts:
+        - name: data
+          mountPath: /var/lib/semaphore
+        - name: config
+          mountPath: /etc/semaphore
+        - name: tmp
+          mountPath: /tmp/semaphore
+  timeoutSeconds: 3
+  failureThreshold: 30
+# Optional: Enable Docker socket for container monitoring
+# Uncomment if you want to monitor Docker containers
+# uptimeKuma:
+#   dockerSocket:
+#     enabled: true

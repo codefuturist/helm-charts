@@ -1,0 +1,42 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: {{ include "mealie.ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ include "mealie.fullname" . }}
+  namespace: {{ include "mealie.namespace" . }}
+  labels:
+    {{- include "mealie.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if or .Values.ingress.ingressClassName .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.ingressClassName | default .Values.ingress.className }}
+  {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ include "mealie.fullname" $ }}
+                port:
+                  number: {{ .port | default 80 }}
+          {{- end }}
+    {{- end }}
+{{- end }}

@@ -1,0 +1,163 @@
+# Full production configuration with all features enabled
+
+replicaCount: 3
+
+image:
+  repository: ghcr.io/codefuturist/bitwarden-eso-provider
+  pullPolicy: IfNotPresent
+  tag: ""
+
+bitwarden:
+  server: "https://vault.bitwarden.com"
+  sessionTTL: 3600
+  syncInterval: 300
+
+  auth:
+    useApiKey: true
+    existingSecret:
+      name: "bitwarden-credentials"
+      clientIdKey: "clientId"
+      clientSecretKey: "clientSecret"
+
+api:
+  port: 8080
+  existingSecret:
+    name: "bitwarden-api-token"
+    key: "token"
+
+cache:
+  enabled: true
+  ttl: 120
+  maxSize: 2000
+
+logging:
+  level: "info"
+  format: "json"
+
+service:
+  type: ClusterIP
+  port: 8080
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/metrics"
+
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/bitwarden-eso-provider"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+nodeSelector:
+  kubernetes.io/os: linux
+
+tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "bitwarden"
+    effect: "NoSchedule"
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchExpressions:
+        - key: app.kubernetes.io/name
+          operator: In
+          values:
+          - bitwarden-eso-provider
+      topologyKey: kubernetes.io/hostname
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      preference:
+        matchExpressions:
+        - key: node-role.kubernetes.io/worker
+          operator: In
+          values:
+          - "true"
+
+externalSecretsOperator:
+  createClusterSecretStore: true
+  namespaced: false
+  secretStore:
+    name: "bitwarden"
+    annotations:
+      argocd.argoproj.io/sync-wave: "0"
+    labels:
+      environment: "production"
+
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: external-secrets-operator
+      - namespaceSelector:
+          matchLabels:
+            environment: production
+  egress:
+    # Bitwarden API
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 443
+    # DNS
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 53
+      - protocol: UDP
+        port: 53
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    labels:
+      prometheus: kube-prometheus
+    annotations:
+      prometheus.io/scrape: "true"

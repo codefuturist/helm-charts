@@ -1,0 +1,331 @@
+# Production Semaphore Configuration
+#
+# This configuration follows best practices for production deployments:
+# - Uses PostgreSQL for multi-user support
+# - Uses existing secrets for credentials
+# - Enables persistence with appropriate sizes
+# - Configures resource limits
+# - Enables monitoring and network policies
+# - Configures LDAP authentication
+# - Enables email notifications
+#
+# Prerequisites:
+#   kubectl create secret generic semaphore-credentials \
+#     --from-literal=database-password=YourDBPassword123 \
+#     --from-literal=admin-password=YourAdminPassword123 \
+#     --from-literal=cookie-hash=GenerateRandomString32Chars \
+#     --from-literal=cookie-encryption=GenerateRandomString32Chars \
+#     --from-literal=access-key-encryption=GenerateRandomString32Chars
+#
+# Usage:
+#   helm install my-semaphore codefuturist/semaphore -f values-production.yaml
+
+# =============================================================================
+# Semaphore Configuration
+# =============================================================================
+semaphore:
+  # PostgreSQL database (recommended for production)
+  database:
+    dialect: postgres
+    host: postgresql.database.svc.cluster.local
+    port: 5432
+    user: semaphore
+    name: semaphore
+    sslMode: require
+
+  # Use existing secret for sensitive data
+  existingSecret: semaphore-credentials
+
+  # LDAP authentication for enterprise environments
+  ldap:
+    enabled: true
+    server: ldap.example.com:636
+    bindDn: cn=semaphore,ou=services,dc=example,dc=com
+    searchDn: ou=users,dc=example,dc=com
+    searchFilter: (&(objectClass=user)(sAMAccountName=%s))
+    needTls: true
+    mappingDn: distinguishedName
+    mappingMail: mail
+    mappingUid: sAMAccountName
+    mappingCn: cn
+
+  # Email notifications
+  email:
+    enabled: true
+    sender: semaphore@example.com
+    host: smtp.example.com
+    port: 587
+    username: semaphore@example.com
+    secure: true
+    tls: true
+
+  # Two-factor authentication
+  totp:
+    enabled: true
+    allowRecovery: true
+
+  # Runner support for distributed task execution
+  runner:
+    enabled: true
+
+  # Security settings
+  passwordLoginDisabled: false
+  nonAdminCanCreateProject: false
+
+  # Messenger integrations
+  messengers:
+    slack:
+      enabled: true
+      url: https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+
+# =============================================================================
+# Controller: StatefulSet for persistent identity
+# =============================================================================
+controller:
+  type: statefulset
+  replicas: 2
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: RollingUpdate
+  terminationGracePeriodSeconds: 60
+
+# =============================================================================
+# Service Configuration
+# =============================================================================
+service:
+  type: ClusterIP
+  port: 3000
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+
+# =============================================================================
+# Persistence: Use volumeClaimTemplates for StatefulSet
+# =============================================================================
+persistence:
+  volumeClaimTemplates:
+    enabled: true
+    data:
+      storageClassName: "" # Use default storage class
+      accessMode: ReadWriteOnce
+      size: 10Gi
+    config:
+      storageClassName: ""
+      accessMode: ReadWriteOnce
+      size: 100Mi
+    tmp:
+      storageClassName: ""
+      accessMode: ReadWriteOnce
+      size: 20Gi
+
+# =============================================================================
+# Ingress: Expose Semaphore securely
+# =============================================================================
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+  hosts:
+    - host: semaphore.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: semaphore-tls
+      hosts:
+        - semaphore.example.com
+
+# =============================================================================
+# Resources: Production-appropriate allocation
+# =============================================================================
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# =============================================================================
+# High Availability
+# =============================================================================
+pdb:
+  enabled: true
+  minAvailable: 1
+
+hpa:
+  enabled: false # Usually not needed for Semaphore, but available
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# =============================================================================
+# Monitoring: Prometheus integration
+# =============================================================================
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 60s
+    scrapeTimeout: 30s
+    labels:
+      prometheus: kube-prometheus
+
+  prometheusRule:
+    enabled: true
+    labels:
+      prometheus: kube-prometheus
+    rules:
+      - alert: SemaphoreDown
+        expr: up{job="semaphore"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Semaphore is down"
+          description: "Semaphore has been down for more than 5 minutes"
+
+      - alert: SemaphoreHighMemory
+        expr: |
+          container_memory_working_set_bytes{pod=~"semaphore-.*"} /
+          container_spec_memory_limit_bytes{pod=~"semaphore-.*"} > 0.85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Semaphore high memory usage"
+          description: "Memory usage is above 85% for 10 minutes"
+
+      - alert: SemaphorePVAlmostFull
+        expr: |
+          kubelet_volume_stats_available_bytes{persistentvolumeclaim=~".*semaphore.*"} /
+          kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=~".*semaphore.*"} < 0.15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Semaphore PV almost full"
+          description: "Less than 15% space remaining. Consider increasing volume size."
+
+# =============================================================================
+# Network Policy: Restrict network access
+# =============================================================================
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000
+
+  egress:
+    # PostgreSQL database
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: database
+      ports:
+        - protocol: TCP
+          port: 5432
+    # DNS resolution
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+    # HTTPS for git operations
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+    # SSH for git operations
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 22
+    # LDAP
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 636
+    # SMTP
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 587
+
+# =============================================================================
+# Security Context: Enhanced security
+# =============================================================================
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# =============================================================================
+# Scheduling: Pod distribution
+# =============================================================================
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - semaphore
+          topologyKey: kubernetes.io/hostname
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: semaphore
+
+priorityClassName: high-priority
+
+# =============================================================================
+# Additional Configuration
+# =============================================================================
+podAnnotations:
+  backup.velero.io/backup-volumes: data,config,tmp
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "3000"
+
+additionalLabels:
+  environment: production
+  team: devops

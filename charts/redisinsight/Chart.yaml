@@ -1,0 +1,70 @@
+apiVersion: v2
+name: redisinsight
+description: A production-ready Helm chart for Redis Insight - Redis database management and administration tool
+type: application
+version: 1.0.0
+appVersion: "latest"
+
+keywords:
+  - redisinsight
+  - redis
+  - database
+  - admin
+  - management
+  - gui
+  - kubernetes
+
+home: https://redis.io/insight/
+sources:
+  - https://github.com/RedisInsight/RedisInsight
+  - https://github.com/codefuturist/helm-charts
+
+maintainers:
+  - name: codefuturist
+    email: 58808821+codefuturist@users.noreply.github.com
+
+icon: https://redis.io/wp-content/uploads/2024/04/Logotype.svg
+
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release of Redis Insight Helm chart v1.0.0
+    - kind: added
+      description: Support for Deployment and StatefulSet controller types
+    - kind: added
+      description: Redis connection pre-configuration with environment variables
+    - kind: added
+      description: Comprehensive security with pod security contexts, RBAC, and network policies
+    - kind: added
+      description: Monitoring support with ServiceMonitor and PrometheusRule
+    - kind: added
+      description: All official Redis Insight environment variables
+    - kind: added
+      description: TLS/SSL configuration support
+    - kind: added
+      description: Encryption key support for sensitive data
+    - kind: added
+      description: Reverse proxy configuration with proxy path support
+    - kind: added
+      description: High availability features (HPA, PDB, anti-affinity)
+    - kind: added
+      description: Comprehensive test suite with multiple CI configurations
+  artifacthub.io/category: "database"
+  artifacthub.io/kubeVersion: ">=1.21.0-0"
+  artifacthub.io/operator: "false"
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/license: "Apache-2.0"
+  artifacthub.io/links: |
+    - name: Chart Repository
+      url: https://github.com/codefuturist/helm-charts/tree/main/charts/redisinsight
+    - name: Redis Insight Official Docs
+      url: https://redis.io/docs/latest/operate/redisinsight/
+    - name: Container Image
+      url: https://hub.docker.com/r/redis/redisinsight
+  artifacthub.io/maintainers: |
+    - name: codefuturist
+      email: 58808821+codefuturist@users.noreply.github.com
+  artifacthub.io/recommendations: |
+    - url: https://artifacthub.io/packages/helm/bitnami/redis
+    - url: https://artifacthub.io/packages/helm/bitnami/redis-cluster

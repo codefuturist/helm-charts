@@ -1,0 +1,37 @@
+# Example: Using Existing Persistent Volume Claims
+# This configuration uses pre-existing PVCs for persistence
+
+pbs:
+  username: "admin@pbs"
+  password: "ChangeThisPassword123!"
+  timezone: "America/New_York"
+
+# Use existing PVCs instead of creating new ones
+persistence:
+  enabled: true
+
+  etc:
+    enabled: true
+    existingClaim: "my-existing-pbs-etc-pvc"
+
+  logs:
+    enabled: true
+    existingClaim: "my-existing-pbs-logs-pvc"
+
+  lib:
+    enabled: true
+    existingClaim: "my-existing-pbs-lib-pvc"
+
+# Example of using an existing PVC for backup storage
+pbs:
+  backupVolumes:
+    - name: backups-main
+      mountPath: /backups
+      existingClaim: "my-existing-backups-pvc"
+
+# This is useful when:
+# - Migrating from another PBS installation
+# - You have pre-created PVCs with specific storage classes
+# - You want to preserve data across Helm releases
+#
+# Note: The PVCs must already exist in the same namespace

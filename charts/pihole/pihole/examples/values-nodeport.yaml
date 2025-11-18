@@ -1,0 +1,92 @@
+# NodePort configuration example for Pi-hole
+# This exposes Pi-hole on each node's IP at static ports
+
+# ServiceAccount for proper RBAC
+serviceAccount:
+  enabled: true
+
+deployment:
+  replicas: 1
+
+  # Production resource limits
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+  # Use emptyDir or PVCs for storage
+  volumes:
+  - name: etc-pihole
+    type: emptyDir
+    mountPath: /etc/pihole
+    readOnly: false
+  - name: etc-dnsmasq-d
+    type: emptyDir
+    mountPath: /etc/dnsmasq.d
+    readOnly: false
+
+# NodePort service configuration
+service:
+  type: NodePort
+  port: 80
+  annotations: {}
+
+  # Optional: Specify custom NodePort numbers
+  # If not specified, Kubernetes will auto-assign ports from 30000-32767
+  nodePorts:
+    http: 30080      # Access web UI at http://<NODE_IP>:30080/admin
+    https: 30443     # Access web UI at https://<NODE_IP>:30443/admin
+    dns-tcp: 30053   # DNS TCP queries at <NODE_IP>:30053
+    dns-udp: 30053   # DNS UDP queries at <NODE_IP>:30053
+    dhcp: 30067      # DHCP server (if needed)
+
+  # Use Local to preserve source IP and reduce latency
+  # Use Cluster for better load distribution across nodes
+  externalTrafficPolicy: Local
+
+# Optional: Enable persistence for production
+persistence:
+  etc-pihole:
+    enabled: false
+    size: 2Gi
+  etc-dnsmasq:
+    enabled: false
+    size: 500Mi
+
+# Environment configuration
+# deployment:
+#   env:
+#     TZ:
+#       value: "America/New_York"
+#     FTLCONF_webserver_api_password:
+#       value: "your-secure-password-here"  # Change this!
+
+---
+# How to use this configuration:
+#
+# 1. Install the chart with NodePort:
+#    helm install pihole ./pihole -f examples/values-nodeport.yaml
+#
+# 2. Get the node IP address:
+#    kubectl get nodes -o wide
+#
+# 3. Access Pi-hole web interface:
+#    http://<NODE_IP>:30080/admin
+#
+# 4. Configure DNS clients to use:
+#    DNS Server: <NODE_IP>:30053
+#
+# 5. Test DNS resolution:
+#    nslookup google.com <NODE_IP> -port=30053
+#    dig @<NODE_IP> -p 30053 google.com
+#
+# Notes:
+# - NodePort exposes the service on ALL nodes in the cluster
+# - You can access the service using ANY node's IP address
+# - Ports must be in the range 30000-32767 (default Kubernetes range)
+# - externalTrafficPolicy: Local preserves client source IP
+# - For production, consider using LoadBalancer or Ingress instead
+# - Make sure firewall rules allow traffic to the NodePort range

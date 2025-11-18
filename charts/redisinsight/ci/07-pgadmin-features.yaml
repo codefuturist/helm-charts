@@ -1,0 +1,25 @@
+# CI Test: RedisInsight-specific features
+# Tests SMTP, pgpass, and config_local.py
+
+redisinsight:
+  email: admin@example.com
+  password: SuperSecurePassword123
+
+  smtp:
+    enabled: true
+    server: smtp.example.com
+    port: 587
+    useTLS: true
+    username: alerts@example.com
+    password: smtp-password
+
+  pgpassFile: |
+    localhost:5432:*:postgres:password123
+    db.example.com:5432:mydb:user:secret
+
+  configLocal: |
+    MASTER_PASSWORD_REQUIRED = False
+    SESSION_EXPIRATION_TIME = 1
+
+persistence:
+  enabled: false

@@ -1,0 +1,38 @@
+{{- if .Values.persistence }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "mealie.fullname" . }}-test-pvc"
+  namespace: {{ include "mealie.namespace" . }}
+  labels:
+    {{- include "mealie.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+  - name: volume-test
+    image: busybox:1.36
+    command:
+    - sh
+    - -c
+    - |
+      echo "Testing volume mounts..."
+      if [ -d /mealie-data ]; then
+        echo "mealie-data volume is mounted"
+        touch /mealie-data/test-file && rm /mealie-data/test-file
+        echo "mealie-data volume is writable"
+      else
+        echo "ERROR: mealie-data volume is NOT mounted"
+        exit 1
+      fi
+      echo "All volume tests passed!"
+    volumeMounts:
+    - name: mealie-data
+      mountPath: /mealie-data
+  volumes:
+  - name: mealie-data
+    persistentVolumeClaim:
+      claimName: {{ include "mealie.fullname" . }}-mealie-data
+{{- end }}

@@ -1,0 +1,27 @@
+# CI Test: Server definitions and secrets management
+# Tests pre-configured Redis servers and existing secrets
+
+redisinsight:
+  existingSecret: redisinsight-credentials
+
+  serverDefinitions:
+    servers:
+      1:
+        Name: "Test Redis"
+        Group: "Development"
+        Host: "redis.default.svc.cluster.local"
+        Port: 5432
+        MaintenanceDB: "postgres"
+        Username: "postgres"
+        SSLMode: "prefer"
+      2:
+        Name: "Staging Redis"
+        Group: "Staging"
+        Host: "redis-staging.default.svc.cluster.local"
+        Port: 5432
+        MaintenanceDB: "postgres"
+        Username: "postgres"
+        SSLMode: "require"
+
+persistence:
+  enabled: false

@@ -1,0 +1,102 @@
+name: Auto-update Home Assistant version
+
+on:
+    schedule:
+        # Run daily at 10:00 UTC
+        - cron: "0 10 * * *"
+    workflow_dispatch: # Allow manual trigger
+
+jobs:
+    check-and-update:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  fetch-depth: 0
+
+            - name: Configure git
+              run: |
+                  git config user.name "GitHub Actions Bot"
+                  git config user.email "actions@github.com"
+
+            - name: Fetch latest Home Assistant version
+              id: ha-version
+              run: |
+                  # Get latest release from Home Assistant GitHub
+                  HA_VERSION=$(curl -sL https://api.github.com/repos/home-assistant/core/releases/latest | jq -r ".tag_name")
+
+                  # Validate version format
+                  if [[ -z "$HA_VERSION" || "$HA_VERSION" == "null" ]]; then
+                    echo "❌ Failed to fetch Home Assistant version"
+                    exit 1
+                  fi
+
+                  if ! [[ "$HA_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+                    echo "❌ Invalid version format: $HA_VERSION"
+                    exit 1
+                  fi
+
+                  echo "✅ Found Home Assistant version: $HA_VERSION"
+                  echo "version=$HA_VERSION" >> $GITHUB_OUTPUT
+
+                  # Get current version from Chart.yaml
+                  CURRENT_VERSION=$(grep '^appVersion:' charts/home-assistant/Chart.yaml | awk '{print $2}' | tr -d '"')
+                  echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+                  if [ "$HA_VERSION" = "$CURRENT_VERSION" ]; then
+                    echo "📌 Already up to date ($CURRENT_VERSION)"
+                    echo "changed=false" >> $GITHUB_OUTPUT
+                  else
+                    echo "🔄 Update available: $CURRENT_VERSION → $HA_VERSION"
+                    echo "changed=true" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Update Chart.yaml
+              if: steps.ha-version.outputs.changed == 'true'
+              run: |
+                  HA_VERSION="${{ steps.ha-version.outputs.version }}"
+                  echo "📝 Updating Chart.yaml with version $HA_VERSION"
+
+                  # Update appVersion in Chart.yaml
+                  sed -i "s/^appVersion:.*/appVersion: $HA_VERSION/" charts/home-assistant/Chart.yaml
+
+                  # Show the change
+                  git diff charts/home-assistant/Chart.yaml
+
+            - name: Create Pull Request
+              if: steps.ha-version.outputs.changed == 'true'
+              uses: peter-evans/create-pull-request@v6
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  commit-message: "chore: update Home Assistant to ${{ steps.ha-version.outputs.version }}"
+                  title: "⬆️ Update Home Assistant to ${{ steps.ha-version.outputs.version }}"
+                  body: |
+                      ## 🏠 Home Assistant Version Update
+
+                      This PR updates the Home Assistant version from `${{ steps.ha-version.outputs.current }}` to `${{ steps.ha-version.outputs.version }}`.
+
+                      ### Changes
+                      - Updated `appVersion` in `charts/home-assistant/Chart.yaml`
+
+                      ### Release Notes
+                      See [Home Assistant Release Notes](https://github.com/home-assistant/core/releases/tag/${{ steps.ha-version.outputs.version }})
+
+                      ---
+                      🤖 This PR was automatically created by GitHub Actions
+                  branch: auto-update-ha-${{ steps.ha-version.outputs.version }}
+                  delete-branch: true
+                  labels: |
+                      automation
+                      dependencies
+                      home-assistant
+
+            - name: Summary
+              if: always()
+              run: |
+                  if [ "${{ steps.ha-version.outputs.changed }}" = "true" ]; then
+                    echo "✅ Created PR for Home Assistant ${{ steps.ha-version.outputs.version }}"
+                  else
+                    echo "📌 No update needed - already at ${{ steps.ha-version.outputs.current }}"
+                  fi

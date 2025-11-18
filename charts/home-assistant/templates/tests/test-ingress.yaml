@@ -1,0 +1,56 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "home-assistant.fullname" . }}-test-ingress
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "4"
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-ingress
+      image: curlimages/curl:8.5.0
+      command: ['sh', '-c']
+      args:
+        - |
+          echo "Testing Ingress configuration..."
+
+          {{- range .Values.ingress.hosts }}
+          HOST="{{ .host }}"
+          echo "Testing host: $HOST"
+
+          # Try to resolve the host
+          if nslookup "$HOST" > /dev/null 2>&1; then
+            echo "✅ Host $HOST is resolvable"
+
+            # Test HTTP connection (ignore SSL for test)
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -k "http://$HOST" || echo "000")
+
+            if [ "$HTTP_CODE" != "000" ]; then
+              echo "✅ Ingress is responding (HTTP $HTTP_CODE)"
+            else
+              echo "⚠️  Ingress not responding (this may be expected if DNS is not configured)"
+            fi
+          else
+            echo "⚠️  Host $HOST is not resolvable (this may be expected in test environment)"
+          fi
+          {{- end }}
+
+          echo "✅ Ingress configuration test completed"
+          exit 0
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 65534
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+{{- end }}

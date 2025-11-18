@@ -1,0 +1,39 @@
+# Minimal configuration example - SQLite mode
+# This configuration runs Mealie with SQLite database (no PostgreSQL)
+
+mealie:
+  enabled: true
+  replicas: 1
+  env:
+    ALLOW_SIGNUP:
+      value: 'true'
+    TZ:
+      value: America/Anchorage
+    BASE_URL:
+      value: http://mealie.local
+    LOG_LEVEL:
+      value: 'info'
+
+# Database configuration - SQLite mode
+database:
+  engine: sqlite
+  # Enable WAL mode for better concurrent access (optional)
+  sqliteWalMode: false
+
+# Disable PostgreSQL - use SQLite instead
+postgres:
+  enabled: false
+
+# Single volume for SQLite database and app data
+persistence:
+  mealie-data:
+    enabled: true
+    size: 5Gi
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Optional: Enable ingress for external access
+ingress:
+  enabled: false

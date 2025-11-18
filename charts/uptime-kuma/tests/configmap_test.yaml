@@ -1,0 +1,17 @@
+suite: test uptime-kuma configmaps
+templates:
+  - configmap.yaml
+tests:
+  - it: should not create configmap by default (config in database)
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not create configmap even with custom settings (internal storage)
+    set:
+      config.enabled: true
+      config.data:
+        custom.conf: "test config"
+    asserts:
+      - hasDocuments:
+          count: 0

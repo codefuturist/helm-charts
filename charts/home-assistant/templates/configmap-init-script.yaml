@@ -1,0 +1,12 @@
+{{- if .Values.configuration.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "home-assistant.fullname" . }}-init-script
+  namespace: {{ .Values.namespaceOverride | default .Release.Namespace }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+data:
+  init.sh: |
+    {{- tpl .Values.configuration.initScript . | nindent 4 }}
+{{- end }}

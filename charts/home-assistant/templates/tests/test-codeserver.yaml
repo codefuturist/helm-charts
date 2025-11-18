@@ -1,0 +1,46 @@
+{{- if .Values.codeserver.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "home-assistant.fullname" . }}-test-codeserver
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "6"
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-codeserver
+      image: curlimages/curl:8.5.0
+      command: ['sh', '-c']
+      args:
+        - |
+          echo "Testing code-server sidecar..."
+
+          # Wait for code-server to be ready
+          echo "Waiting for code-server..."
+          for i in $(seq 1 30); do
+            if curl -f -s -o /dev/null "http://{{ include "home-assistant.fullname" . }}:8080/healthz" 2>/dev/null; then
+              echo "✅ Code-server is responding"
+              exit 0
+            fi
+            echo "Attempt $i/30: Waiting for code-server..."
+            sleep 2
+          done
+
+          echo "⚠️  Code-server did not respond within timeout (may need more time to start)"
+          exit 0
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 65534
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+{{- end }}

@@ -1,0 +1,449 @@
+{{- if .Values.scripts.useConfigMap -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "restic-backup.name" . }}-scripts
+  namespace: {{ include "restic-backup.namespace" . }}
+  labels:
+    {{- include "restic-backup.labels" . | nindent 4 }}
+    app.kubernetes.io/component: scripts
+data:
+  backup.sh: |
+    #!/bin/sh
+    set -e
+
+    echo "=== Restic Backup Job Started at $(date) ==="
+    echo "Repository: ${RESTIC_REPOSITORY}"
+    echo "Hostname: $(hostname)"
+
+    # Function to send webhook notification
+    send_webhook_notification() {
+      STATUS=$1
+      MESSAGE=$2
+      {{- if .Values.notifications.enabled }}
+      {{- if .Values.notifications.webhook.url }}
+      curl -X POST "{{ .Values.notifications.webhook.url }}" \
+        -H "Content-Type: application/json" \
+        -d "{\"status\": \"${STATUS}\", \"message\": \"${MESSAGE}\", \"hostname\": \"$(hostname)\", \"timestamp\": \"$(date -Iseconds)\"}" || true
+      {{- end }}
+      {{- end }}
+    }
+
+    # Function to send email notification
+    send_email_notification() {
+      STATUS=$1
+      MESSAGE=$2
+      {{- if .Values.notifications.enabled }}
+      {{- if .Values.notifications.email.enabled }}
+      SUBJECT="[Restic Backup] ${STATUS}: $(hostname)"
+      BODY="Status: ${STATUS}\nMessage: ${MESSAGE}\nHostname: $(hostname)\nTimestamp: $(date -Iseconds)\nNamespace: ${NAMESPACE}\nRepository: ${RESTIC_REPOSITORY}"
+
+      # Create email content
+      EMAIL_CONTENT=$(cat <<EOF
+    From: {{ .Values.notifications.email.from }}
+    To: {{ join "," .Values.notifications.email.to }}
+    Subject: ${SUBJECT}
+
+    ${BODY}
+    EOF
+    )
+
+      # Send email using sendmail or SMTP
+      {{- if .Values.notifications.email.smtpHost }}
+      # Use curl to send via SMTP
+      echo "${EMAIL_CONTENT}" | curl --url "smtp://{{ .Values.notifications.email.smtpHost }}:{{ .Values.notifications.email.smtpPort }}" \
+        --ssl-reqd \
+        --mail-from "{{ .Values.notifications.email.from }}" \
+        {{- range .Values.notifications.email.to }}
+        --mail-rcpt "{{ . }}" \
+        {{- end }}
+        {{- if .Values.notifications.email.smtpUser }}
+        --user "{{ .Values.notifications.email.smtpUser }}:${SMTP_PASSWORD}" \
+        {{- end }}
+        --upload-file - || echo "Failed to send email notification"
+      {{- else }}
+      # Fallback to sendmail if available
+      if command -v sendmail >/dev/null 2>&1; then
+        echo "${EMAIL_CONTENT}" | sendmail -t || echo "Failed to send email via sendmail"
+      fi
+      {{- end }}
+      {{- end }}
+      {{- end }}
+    }
+
+    # Function to send all notifications
+    send_notification() {
+      send_webhook_notification "$@"
+      send_email_notification "$@"
+    }
+
+    # Initialize repository if needed
+    if ! restic snapshots --quiet > /dev/null 2>&1; then
+      echo "Repository not initialized. Initializing..."
+      restic init
+      echo "Repository initialized successfully."
+    fi
+
+    # Perform backup
+    echo "Starting backup..."
+    START_TIME=$(date +%s)
+    {{- range .Values.volumes }}
+    echo "Backing up volume: {{ .name }} from {{ .mountPath }}"
+    {{- end }}
+
+    restic backup \
+      {{- range .Values.volumes }}
+      {{ .mountPath }}{{ if .subPath }}/{{ .subPath }}{{ end }} \
+      {{- end }}
+      {{- range .Values.restic.backup.tags }}
+      --tag {{ . }} \
+      {{- end }}
+      {{- range .Values.restic.backup.excludes }}
+      --exclude {{ . | quote }} \
+      {{- end }}
+      {{- with .Values.restic.backup.options }}
+      {{- range $key, $value := . }}
+      --{{ $key }}={{ $value }} \
+      {{- end }}
+      {{- end }}
+      --json --verbose > /tmp/backup-output.json
+
+    BACKUP_EXIT_CODE=$?
+    END_TIME=$(date +%s)
+    DURATION=$((END_TIME - START_TIME))
+
+    if [ $BACKUP_EXIT_CODE -eq 0 ]; then
+      echo "Backup completed successfully in ${DURATION} seconds."
+
+      # Parse backup stats from JSON output
+      if [ -f /tmp/backup-output.json ]; then
+        BACKUP_SIZE=$(tail -1 /tmp/backup-output.json | grep -o '"data_added":[0-9]*' | cut -d':' -f2 || echo "0")
+        FILES_NEW=$(tail -1 /tmp/backup-output.json | grep -o '"files_new":[0-9]*' | cut -d':' -f2 || echo "0")
+        echo "Backup stats: Size added: ${BACKUP_SIZE} bytes, New files: ${FILES_NEW}"
+      fi
+
+      send_notification "success" "Backup completed successfully in ${DURATION}s"
+
+      # Show latest snapshot
+      echo "Latest snapshot:"
+      restic snapshots --latest 1
+
+      {{- if .Values.restic.backup.retention.enabled }}
+      # Apply retention policy
+      echo "Applying retention policy..."
+      restic forget \
+        {{- with .Values.restic.backup.retention.keepLast }}
+        --keep-last {{ . }} \
+        {{- end }}
+        {{- with .Values.restic.backup.retention.keepDaily }}
+        --keep-daily {{ . }} \
+        {{- end }}
+        {{- with .Values.restic.backup.retention.keepWeekly }}
+        --keep-weekly {{ . }} \
+        {{- end }}
+        {{- with .Values.restic.backup.retention.keepMonthly }}
+        --keep-monthly {{ . }} \
+        {{- end }}
+        {{- with .Values.restic.backup.retention.keepYearly }}
+        --keep-yearly {{ . }} \
+        {{- end }}
+        --prune \
+        --verbose
+
+      echo "Retention policy applied successfully."
+      {{- end }}
+
+      # Export metrics to file for metrics exporter to pick up
+      if [ -n "${METRICS_DIR}" ] && [ -d "${METRICS_DIR}" ]; then
+        cat > "${METRICS_DIR}/backup_metrics.prom" <<METRICS
+    # HELP restic_backup_duration_seconds Duration of the last backup in seconds
+    # TYPE restic_backup_duration_seconds gauge
+    restic_backup_duration_seconds ${DURATION}
+    # HELP restic_backup_timestamp_seconds Timestamp of the last backup
+    # TYPE restic_backup_timestamp_seconds gauge
+    restic_backup_timestamp_seconds ${END_TIME}
+    # HELP restic_backup_success Whether the last backup was successful (1 = success, 0 = failure)
+    # TYPE restic_backup_success gauge
+    restic_backup_success 1
+    METRICS
+      fi
+    else
+      echo "Backup failed with exit code: $BACKUP_EXIT_CODE in ${DURATION} seconds."
+      send_notification "failure" "Backup failed with exit code: $BACKUP_EXIT_CODE after ${DURATION}s"
+
+      # Export failure metrics
+      if [ -n "${METRICS_DIR}" ] && [ -d "${METRICS_DIR}" ]; then
+        cat > "${METRICS_DIR}/backup_metrics.prom" <<METRICS
+    # HELP restic_backup_success Whether the last backup was successful (1 = success, 0 = failure)
+    # TYPE restic_backup_success gauge
+    restic_backup_success 0
+    # HELP restic_backup_timestamp_seconds Timestamp of the last backup
+    # TYPE restic_backup_timestamp_seconds gauge
+    restic_backup_timestamp_seconds ${END_TIME}
+    METRICS
+      fi
+
+      exit $BACKUP_EXIT_CODE
+    fi
+
+    echo "=== Restic Backup Job Completed at $(date) ==="
+
+  metrics-exporter.py: |
+    #!/usr/bin/env python3
+    """
+    Restic Backup Metrics Exporter for Prometheus
+
+    This exporter collects metrics from restic repository and Kubernetes jobs
+    and exposes them in Prometheus format.
+    """
+    import os
+    import sys
+    import time
+    import json
+    import subprocess
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+    from datetime import datetime
+    import logging
+
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    logger = logging.getLogger('restic-metrics-exporter')
+
+    # Configuration from environment
+    METRICS_PORT = int(os.getenv('METRICS_PORT', '9092'))
+    SCRAPE_INTERVAL = int(os.getenv('SCRAPE_INTERVAL', '60'))
+    NAMESPACE = os.getenv('NAMESPACE', 'default')
+    BACKUP_JOB_NAME = os.getenv('BACKUP_JOB_NAME', 'restic-backup-backup')
+
+    # Global metrics cache
+    metrics_cache = {
+        'last_update': 0,
+        'metrics': ''
+    }
+
+    def run_restic_command(args):
+        """Execute a restic command and return the output."""
+        try:
+            result = subprocess.run(
+                ['restic'] + args,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            if result.returncode == 0:
+                return result.stdout
+            else:
+                logger.error(f"Restic command failed: {result.stderr}")
+                return None
+        except subprocess.TimeoutExpired:
+            logger.error("Restic command timed out")
+            return None
+        except Exception as e:
+            logger.error(f"Error running restic command: {e}")
+            return None
+
+    def get_repository_stats():
+        """Get repository statistics from restic."""
+        stats = {}
+
+        # Get repository stats
+        output = run_restic_command(['stats', '--json'])
+        if output:
+            try:
+                data = json.loads(output)
+                stats['total_size'] = data.get('total_size', 0)
+                stats['total_file_count'] = data.get('total_file_count', 0)
+            except json.JSONDecodeError:
+                logger.error("Failed to parse restic stats JSON")
+
+        # Get snapshot count
+        output = run_restic_command(['snapshots', '--json'])
+        if output:
+            try:
+                snapshots = json.loads(output)
+                stats['snapshot_count'] = len(snapshots)
+                if snapshots:
+                    latest = snapshots[-1]
+                    timestamp = datetime.fromisoformat(latest['time'].replace('Z', '+00:00'))
+                    stats['last_snapshot_timestamp'] = int(timestamp.timestamp())
+            except (json.JSONDecodeError, IndexError, KeyError):
+                logger.error("Failed to parse restic snapshots JSON")
+
+        return stats
+
+    def get_kubernetes_job_metrics():
+        """Get metrics from Kubernetes backup job."""
+        metrics = {}
+        try:
+            # Use kubectl to get job status
+            result = subprocess.run(
+                ['kubectl', 'get', 'jobs', '-n', NAMESPACE,
+                 '-l', f'app.kubernetes.io/name={BACKUP_JOB_NAME.rsplit("-backup", 1)[0]}',
+                 '-l', 'app.kubernetes.io/component=backup-job',
+                 '--sort-by=.metadata.creationTimestamp',
+                 '-o', 'json'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                items = data.get('items', [])
+
+                if items:
+                    latest_job = items[-1]
+                    status = latest_job.get('status', {})
+
+                    metrics['job_succeeded'] = status.get('succeeded', 0)
+                    metrics['job_failed'] = status.get('failed', 0)
+                    metrics['job_active'] = status.get('active', 0)
+
+                    # Calculate success rate
+                    total = metrics['job_succeeded'] + metrics['job_failed']
+                    if total > 0:
+                        metrics['job_success_rate'] = metrics['job_succeeded'] / total
+                    else:
+                        metrics['job_success_rate'] = 1.0
+
+                    # Get completion time
+                    completion_time = status.get('completionTime')
+                    if completion_time:
+                        dt = datetime.fromisoformat(completion_time.replace('Z', '+00:00'))
+                        metrics['job_last_completion_timestamp'] = int(dt.timestamp())
+
+        except Exception as e:
+            logger.error(f"Error getting Kubernetes job metrics: {e}")
+
+        return metrics
+
+    def collect_metrics():
+        """Collect all metrics and format for Prometheus."""
+        logger.info("Collecting metrics...")
+
+        lines = []
+
+        # Repository metrics
+        repo_stats = get_repository_stats()
+
+        if 'total_size' in repo_stats:
+            lines.append('# HELP restic_repository_size_bytes Total size of repository in bytes')
+            lines.append('# TYPE restic_repository_size_bytes gauge')
+            lines.append(f'restic_repository_size_bytes {repo_stats["total_size"]}')
+
+        if 'total_file_count' in repo_stats:
+            lines.append('# HELP restic_repository_file_count Total number of files in repository')
+            lines.append('# TYPE restic_repository_file_count gauge')
+            lines.append(f'restic_repository_file_count {repo_stats["total_file_count"]}')
+
+        if 'snapshot_count' in repo_stats:
+            lines.append('# HELP restic_snapshots_total Total number of snapshots')
+            lines.append('# TYPE restic_snapshots_total gauge')
+            lines.append(f'restic_snapshots_total {repo_stats["snapshot_count"]}')
+
+        if 'last_snapshot_timestamp' in repo_stats:
+            lines.append('# HELP restic_last_snapshot_timestamp Timestamp of the last snapshot')
+            lines.append('# TYPE restic_last_snapshot_timestamp gauge')
+            lines.append(f'restic_last_snapshot_timestamp {repo_stats["last_snapshot_timestamp"]}')
+
+        # Kubernetes job metrics
+        job_metrics = get_kubernetes_job_metrics()
+
+        if 'job_succeeded' in job_metrics:
+            lines.append('# HELP restic_backup_job_succeeded_total Total number of succeeded backup jobs')
+            lines.append('# TYPE restic_backup_job_succeeded_total counter')
+            lines.append(f'restic_backup_job_succeeded_total {job_metrics["job_succeeded"]}')
+
+        if 'job_failed' in job_metrics:
+            lines.append('# HELP restic_backup_job_failed_total Total number of failed backup jobs')
+            lines.append('# TYPE restic_backup_job_failed_total counter')
+            lines.append(f'restic_backup_job_failed_total {job_metrics["job_failed"]}')
+
+        if 'job_success_rate' in job_metrics:
+            lines.append('# HELP restic_backup_job_success_rate Success rate of backup jobs (0-1)')
+            lines.append('# TYPE restic_backup_job_success_rate gauge')
+            lines.append(f'restic_backup_job_success_rate {job_metrics["job_success_rate"]:.2f}')
+
+        if 'job_last_completion_timestamp' in job_metrics:
+            lines.append('# HELP restic_backup_job_last_completion_timestamp Timestamp of last completed backup job')
+            lines.append('# TYPE restic_backup_job_last_completion_timestamp gauge')
+            lines.append(f'restic_backup_job_last_completion_timestamp {job_metrics["job_last_completion_timestamp"]}')
+
+        # Exporter health metric
+        lines.append('# HELP restic_exporter_up Exporter is running')
+        lines.append('# TYPE restic_exporter_up gauge')
+        lines.append('restic_exporter_up 1')
+
+        return '\n'.join(lines) + '\n'
+
+    def update_metrics_cache():
+        """Update the metrics cache."""
+        current_time = time.time()
+
+        # Only update if cache is stale
+        if current_time - metrics_cache['last_update'] > SCRAPE_INTERVAL:
+            try:
+                metrics_cache['metrics'] = collect_metrics()
+                metrics_cache['last_update'] = current_time
+                logger.info("Metrics cache updated successfully")
+            except Exception as e:
+                logger.error(f"Error updating metrics cache: {e}")
+
+    class MetricsHandler(BaseHTTPRequestHandler):
+        """HTTP handler for metrics endpoint."""
+
+        def log_message(self, format, *args):
+            """Override to use logger."""
+            logger.debug(f"{self.address_string()} - {format % args}")
+
+        def do_GET(self):
+            """Handle GET requests."""
+            if self.path == '/metrics':
+                update_metrics_cache()
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/plain; version=0.0.4')
+                self.end_headers()
+                self.wfile.write(metrics_cache['metrics'].encode('utf-8'))
+
+            elif self.path == '/health':
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                health = json.dumps({'status': 'healthy', 'timestamp': time.time()})
+                self.wfile.write(health.encode('utf-8'))
+
+            else:
+                self.send_response(404)
+                self.end_headers()
+                self.wfile.write(b'Not Found')
+
+    def main():
+        """Main entry point."""
+        logger.info(f"Starting Restic Metrics Exporter on port {METRICS_PORT}")
+        logger.info(f"Scrape interval: {SCRAPE_INTERVAL}s")
+        logger.info(f"Monitoring namespace: {NAMESPACE}")
+        logger.info(f"Backup job name: {BACKUP_JOB_NAME}")
+
+        # Initial metrics collection
+        update_metrics_cache()
+
+        # Start HTTP server
+        server = HTTPServer(('', METRICS_PORT), MetricsHandler)
+
+        try:
+            logger.info(f"Metrics server ready at http://0.0.0.0:{METRICS_PORT}/metrics")
+            server.serve_forever()
+        except KeyboardInterrupt:
+            logger.info("Shutting down metrics server...")
+            server.shutdown()
+        except Exception as e:
+            logger.error(f"Server error: {e}")
+            sys.exit(1)
+
+    if __name__ == '__main__':
+        main()
+{{- end }}

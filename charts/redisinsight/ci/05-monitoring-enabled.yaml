@@ -1,0 +1,14 @@
+# Test: With monitoring enabled
+redisInsight:
+  port: 5540
+monitoring:
+  serviceMonitor:
+    enabled: true
+  prometheusRule:
+    enabled: true
+    rules:
+      - alert: RedisInsightDown
+        expr: up{job="redisinsight"} == 0
+        for: 5m
+        labels:
+          severity: critical

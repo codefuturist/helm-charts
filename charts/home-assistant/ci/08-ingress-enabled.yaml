@@ -1,0 +1,14 @@
+# CI Test: Ingress configuration
+# Tests ingress with TLS
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: home-assistant.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+persistence:
+  enabled: false

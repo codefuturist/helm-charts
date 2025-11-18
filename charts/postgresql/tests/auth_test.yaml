@@ -1,0 +1,114 @@
+suite: test password file authentication
+templates:
+  - statefulset.yaml
+  - secret.yaml
+tests:
+  - it: should use password files when enabled
+    template: statefulset.yaml
+    set:
+      postgresql.auth.usePasswordFiles: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD_FILE
+            value: /opt/bitnami/postgresql/secrets/postgresql-password
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: postgresql-password
+            mountPath: /opt/bitnami/postgresql/secrets
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: postgresql-password
+            secret:
+              secretName: RELEASE-NAME-postgresql
+              defaultMode: 0400
+
+  - it: should use environment variables when password files disabled
+    template: statefulset.yaml
+    set:
+      postgresql.auth.usePasswordFiles: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-postgresql
+                key: postgresql-password
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD_FILE
+
+  - it: should mount replication password file when replication enabled
+    template: statefulset.yaml
+    set:
+      postgresql.auth.usePasswordFiles: true
+      replication.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_REPLICATION_PASSWORD_FILE
+            value: /opt/bitnami/postgresql/secrets/replication-password
+      - contains:
+          path: spec.template.spec.volumes[?(@.name=="postgresql-password")].secret.items
+          content:
+            key: replication-password
+            path: replication-password
+
+  - it: should use custom password files path
+    template: statefulset.yaml
+    set:
+      postgresql.auth.usePasswordFiles: true
+      postgresql.auth.passwordFilesPath: /custom/path/secrets
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD_FILE
+            value: /custom/path/secrets/postgresql-password
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: postgresql-password
+            mountPath: /custom/path/secrets
+            readOnly: true
+
+  - it: should create secret with password keys
+    template: secret.yaml
+    set:
+      postgresql.password: "testpassword"
+      postgresql.postgresPassword: "adminpassword"
+    asserts:
+      - isNotNull:
+          path: data["postgresql-password"]
+      - isNotNull:
+          path: data["postgresql-postgres-password"]
+
+  - it: should include replication password in secret when enabled
+    template: secret.yaml
+    set:
+      replication.enabled: true
+      replication.password: "replpassword"
+    asserts:
+      - isNotNull:
+          path: data["replication-password"]
+
+  - it: should use restrictive file permissions for password files
+    template: statefulset.yaml
+    set:
+      postgresql.auth.usePasswordFiles: true
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[?(@.name=="postgresql-password")].secret.defaultMode
+          value: 256 # 0400 in decimal

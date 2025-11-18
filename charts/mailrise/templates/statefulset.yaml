@@ -1,0 +1,185 @@
+{{- if eq .Values.controller.type "statefulset" }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mailrise.fullname" . }}
+  namespace: {{ include "mailrise.namespace" . }}
+  labels:
+    {{- include "mailrise.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "mailrise.fullname" . }}
+  replicas: {{ .Values.controller.replicas }}
+  {{- with .Values.controller.podManagementPolicy }}
+  podManagementPolicy: {{ . }}
+  {{- end }}
+  {{- with .Values.controller.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "mailrise.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if not .Values.mailrise.existingSecret }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "mailrise.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "mailrise.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: mailrise
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: PGADMIN_DEFAULT_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mailrise.secretName" . }}
+                  key: {{ .Values.mailrise.existingSecretEmailKey }}
+            - name: PGADMIN_DEFAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mailrise.secretName" . }}
+                  key: {{ .Values.mailrise.existingSecretPasswordKey }}
+            {{- if .Values.mailrise.disablePostfix }}
+            - name: PGADMIN_DISABLE_POSTFIX
+              value: "1"
+            {{- end }}
+            {{- if .Values.mailrise.replaceServersOnStartup }}
+            - name: PGADMIN_REPLACE_SERVERS_ON_STARTUP
+              value: "True"
+            {{- end }}
+            {{- if .Values.mailrise.scriptName }}
+            - name: SCRIPT_NAME
+              value: {{ .Values.mailrise.scriptName | quote }}
+            {{- end }}
+            {{- if or .Values.mailrise.serverDefinitions .Values.mailrise.existingServerDefinitionsConfigMap }}
+            - name: PGADMIN_SERVER_JSON_FILE
+              value: "/mailrise4/servers.json"
+            {{- end }}
+            {{- if or .Values.mailrise.pgpassFile .Values.mailrise.existingPgpassSecret }}
+            - name: PGPASS_FILE
+              value: "/var/lib/mailrise/.pgpass"
+            {{- end }}
+            - name: GUNICORN_THREADS
+              value: {{ .Values.mailrise.gunicorn.threads | quote }}
+            {{- if .Values.mailrise.gunicorn.accessLogfile }}
+            - name: GUNICORN_ACCESS_LOGFILE
+              value: {{ .Values.mailrise.gunicorn.accessLogfile | quote }}
+            {{- end }}
+            - name: GUNICORN_LIMIT_REQUEST_LINE
+              value: {{ .Values.mailrise.gunicorn.limitRequestLine | quote }}
+            {{- if .Values.mailrise.smtp.enabled }}
+            {{- if .Values.mailrise.smtp.server }}
+            - name: PGADMIN_CONFIG_MAIL_SERVER
+              value: {{ .Values.mailrise.smtp.server | quote }}
+            {{- end }}
+            {{- if .Values.mailrise.smtp.port }}
+            - name: PGADMIN_CONFIG_MAIL_PORT
+              value: {{ .Values.mailrise.smtp.port | quote }}
+            {{- end }}
+            - name: PGADMIN_CONFIG_MAIL_USE_TLS
+              value: {{ .Values.mailrise.smtp.useTLS | quote }}
+            - name: PGADMIN_CONFIG_MAIL_USE_SSL
+              value: {{ .Values.mailrise.smtp.useSSL | quote }}
+            {{- if or .Values.mailrise.smtp.username .Values.mailrise.smtp.existingSecret }}
+            - name: PGADMIN_CONFIG_MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mailrise.smtpSecretName" . }}
+                  key: {{ .Values.mailrise.smtp.existingSecretUsernameKey }}
+            {{- end }}
+            {{- if or .Values.mailrise.smtp.password .Values.mailrise.smtp.existingSecret }}
+            - name: PGADMIN_CONFIG_MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mailrise.smtpSecretName" . }}
+                  key: {{ .Values.mailrise.smtp.existingSecretPasswordKey }}
+            {{- end }}
+            {{- if .Values.mailrise.smtp.fromAddress }}
+            - name: PGADMIN_CONFIG_MAIL_FROM
+              value: {{ .Values.mailrise.smtp.fromAddress | quote }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.mailrise.ldap.enabled }}
+            {{- if .Values.mailrise.ldap.server }}
+            - name: PGADMIN_CONFIG_LDAP_SERVER_URI
+              value: {{ .Values.mailrise.ldap.server | quote }}
+            {{- end }}
+            {{- if .Values.mailrise.ldap.bindDN }}
+            - name: PGADMIN_CONFIG_LDAP_BIND_DN
+              value: {{ .Values.mailrise.ldap.bindDN | quote }}
+            {{- end }}
+            {{- if or .Values.mailrise.ldap.bindPassword .Values.mailrise.ldap.existingSecret }}
+            - name: PGADMIN_CONFIG_LDAP_BIND_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mailrise.ldapSecretName" . }}
+                  key: {{ .Values.mailrise.ldap.existingSecretPasswordKey }}
+            {{- end }}
+            {{- end }}
+            {{- range $key, $value := .Values.mailrise.config }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: mailrise-data
+              mountPath: /var/lib/mailrise
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+  {{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
+  volumeClaimTemplates:
+    - metadata:
+        name: mailrise-data
+        labels:
+          {{- include "mailrise.labels" . | nindent 10 }}
+        {{- with .Values.persistence.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.accessMode }}
+        {{- if .Values.persistence.storageClassName }}
+        storageClassName: {{ .Values.persistence.storageClassName }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+  {{- end }}
+{{- end }}

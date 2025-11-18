@@ -1,0 +1,29 @@
+# Minimal Homarr configuration for quick deployment
+# Generate encryption key with: openssl rand -hex 32
+
+deployment:
+  image:
+    repository: ghcr.io/homarr-labs/homarr
+    tag: "latest"
+
+  env:
+    # REQUIRED: Generate with `openssl rand -hex 32`
+    SECRET_ENCRYPTION_KEY:
+      value: "REPLACE_WITH_YOUR_64_CHAR_HEX_STRING"
+
+    # Optional: Basic configuration
+    LOG_LEVEL:
+      value: "info"
+
+persistence:
+  enabled: true
+  storageSize: 1Gi
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hosts:
+    - host: homarr.local
+      paths:
+        - path: /
+          pathType: Prefix

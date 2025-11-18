@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "home-assistant.fullname" . }}-test-security
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "8"
+spec:
+  restartPolicy: Never
+  serviceAccountName: {{ include "home-assistant.serviceAccountName" . }}
+  containers:
+    - name: test-security
+      image: bitnami/kubectl:1.31
+      command: ['sh', '-c']
+      args:
+        - |
+          echo "Testing security configuration..."
+
+          # Get the deployment or statefulset
+          CONTROLLER_TYPE="{{ .Values.controller.type }}"
+          RESOURCE_NAME="{{ include "home-assistant.fullname" . }}"
+
+          if [ "$CONTROLLER_TYPE" = "StatefulSet" ]; then
+            RESOURCE_TYPE="statefulset"
+          else
+            RESOURCE_TYPE="deployment"
+          fi
+
+          echo "Checking $RESOURCE_TYPE/$RESOURCE_NAME..."
+
+          # Check if resource exists
+          if kubectl get $RESOURCE_TYPE "$RESOURCE_NAME" -n {{ include "home-assistant.namespace" . }} > /dev/null 2>&1; then
+            echo "✅ $CONTROLLER_TYPE exists"
+
+            # Check security context
+            {{- if .Values.securityContext.privileged }}
+            echo "⚠️  Running in privileged mode"
+            {{- else }}
+            echo "✅ Not running in privileged mode"
+            {{- end }}
+
+            {{- if .Values.securityContext.capabilities.add }}
+            echo "ℹ️  Capabilities added: {{ join ", " .Values.securityContext.capabilities.add }}"
+            {{- end }}
+
+            {{- if .Values.podSecurityContext.runAsNonRoot }}
+            echo "✅ runAsNonRoot is enabled"
+            {{- else }}
+            echo "⚠️  runAsNonRoot is disabled (may be required for Home Assistant)"
+            {{- end }}
+
+            {{- if .Values.podSecurityContext.seccompProfile }}
+            echo "✅ Seccomp profile is configured"
+            {{- end }}
+
+          else
+            echo "❌ $CONTROLLER_TYPE not found"
+            exit 1
+          fi
+
+          echo "✅ Security configuration test completed"
+          exit 0
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 65534
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault

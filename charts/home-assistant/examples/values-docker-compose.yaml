@@ -1,0 +1,230 @@
+# Docker Compose Equivalent Configuration
+# This configuration replicates the original Docker Compose setup
+# File: homeassistant-priv-docker.yml
+
+# =============================================================================
+# This example replicates Docker Compose privileged mode setup:
+# - privileged: true (full device access)
+# - network_mode: host (host networking)
+# - /etc/localtime mount (timezone sync)
+# - /run/dbus mount (D-Bus for Bluetooth, systemd)
+# - TZ environment variable
+# =============================================================================
+
+# Image configuration - using stable tag like Docker Compose
+image:
+  repository: ghcr.io/home-assistant/home-assistant
+  tag: "stable" # Matches Docker Compose ":stable" tag
+  pullPolicy: IfNotPresent
+
+# Single replica (like Docker Compose single container)
+replicaCount: 1
+
+# Recreate strategy (like Docker restart)
+strategy:
+  type: Recreate
+
+# =============================================================================
+# Persistence - Matches /PATH_TO_YOUR_CONFIG volume
+# =============================================================================
+persistence:
+  enabled: true
+  size: 20Gi
+  storageClassName: ""
+  retain: true
+
+# =============================================================================
+# Host Network - Matches network_mode: host
+# =============================================================================
+hostNetwork:
+  enabled: true # Equivalent to Docker's network_mode: host
+
+# =============================================================================
+# System Volumes - Matches Docker volume mounts
+# =============================================================================
+systemVolumes:
+  # Mount /etc/localtime for timezone synchronization
+  localtime:
+    enabled: true # Matches: - /etc/localtime:/etc/localtime:ro
+    hostPath: /etc/localtime
+
+  # Mount /run/dbus for D-Bus access (Bluetooth, systemd, etc.)
+  dbus:
+    enabled: true # Matches: - /run/dbus:/run/dbus:ro
+    hostPath: /run/dbus
+
+# =============================================================================
+# Home Assistant Configuration
+# =============================================================================
+homeassistant:
+  env:
+    TZ: "Europe/Zurich" # Matches Docker Compose TZ env var
+
+# =============================================================================
+# Security Context - Matches privileged: true
+# =============================================================================
+podSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  # IMPORTANT: Matches Docker Compose 'privileged: true'
+  # This grants all capabilities and full device access
+  privileged: true # Equivalent to Docker's privileged: true
+
+# =============================================================================
+# Resources - Conservative for Docker Compose migration
+# =============================================================================
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# =============================================================================
+# Service - Use LoadBalancer or NodePort for external access
+# =============================================================================
+service:
+  type: LoadBalancer # For external access like Docker host port
+  port: 8123
+
+# =============================================================================
+# Optional: Add your specific USB devices if needed
+# =============================================================================
+devices:
+  enabled: false # Enable if you have specific USB devices
+  list: []
+    # - hostPath: /dev/ttyUSB0
+    #   containerPath: /dev/ttyUSB0
+    # - hostPath: /dev/ttyACM0
+    #   containerPath: /dev/ttyACM0
+
+# =============================================================================
+# Database - SQLite (like Docker Compose default)
+# =============================================================================
+database:
+  type: sqlite
+
+# =============================================================================
+# Probes - Standard for privileged mode
+# =============================================================================
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+# =============================================================================
+# Disabled Features (not in Docker Compose)
+# =============================================================================
+codeserver:
+  enabled: false
+
+mqtt:
+  enabled: false
+
+ingress:
+  enabled: false
+
+serviceMonitor:
+  enabled: false
+# =============================================================================
+# Deployment Instructions
+# =============================================================================
+#
+# 1. This configuration replicates the Docker Compose setup with:
+#    - Privileged mode (full device access)
+#    - Host networking (for mDNS, SSDP discovery)
+#    - System volume mounts (timezone, D-Bus)
+#    - Stable image tag
+#
+# 2. Deploy:
+#    helm install home-assistant codefuturist/home-assistant \
+#      -f examples/values-docker-compose.yaml \
+#      --namespace home-automation \
+#      --create-namespace
+#
+# 3. Access:
+#    - If LoadBalancer: Get external IP with 'kubectl get svc'
+#    - If NodePort: Access via any node IP on port 30123
+#    - Direct: http://<LoadBalancer-IP>:8123
+#
+# 4. Migration from Docker Compose:
+#    a. Backup your Docker config:
+#       docker cp homeassistant:/config ./ha-config-backup
+#
+#    b. Deploy this chart
+#
+#    c. Copy config to pod:
+#       kubectl cp ./ha-config-backup home-assistant-pod:/config
+#
+#    d. Restart:
+#       kubectl rollout restart deployment/home-assistant
+#
+# 5. Security Note:
+#    Privileged mode grants extensive permissions. Consider:
+#    - Using specific capabilities instead of full privileged mode
+#    - Limiting to specific USB devices
+#    - Adding network policies
+#    - See values-production.yaml for more secure alternatives
+#
+# =============================================================================
+# Differences from Docker Compose:
+# =============================================================================
+#
+# ✅ Same:
+# - Image: ghcr.io/home-assistant/home-assistant:stable
+# - Privileged mode
+# - Host networking
+# - /etc/localtime mount
+# - /run/dbus mount
+# - TZ environment variable
+#
+# ⚠️ Different:
+# - Restart policy: Kubernetes handles this via ReplicaSet
+# - Storage: PersistentVolumeClaim instead of host bind mount
+# - Networking: Kubernetes Service provides access
+# - Orchestration: Kubernetes manages container lifecycle
+#
+# ✨ Additional Kubernetes Benefits:
+# - Automatic restart on failure
+# - Rolling updates
+# - Resource management
+# - Health checks
+# - Service discovery
+# - Integration with other Kubernetes services

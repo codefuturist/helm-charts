@@ -1,0 +1,27 @@
+# Minimal Uptime Kuma Configuration
+#
+# This is the absolute minimum configuration required to run Uptime Kuma.
+# Suitable for development and testing.
+#
+# Usage:
+#   helm install my-uptime-kuma codefuturist/uptime-kuma -f values-minimal.yaml
+
+controller:
+  type: deployment
+  replicas: 1
+
+service:
+  type: ClusterIP
+  port: 3001
+
+persistence:
+  enabled: true
+  size: 4Gi
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi

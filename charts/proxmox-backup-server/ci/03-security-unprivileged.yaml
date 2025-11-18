@@ -1,0 +1,36 @@
+# CI Test: Enhanced security configuration
+# Tests security contexts, network policies, and RBAC
+
+pbs:
+  email: admin@example.com
+  password: SuperSecurePassword123
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 5050
+  fsGroup: 5050
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 5050
+  capabilities:
+    drop:
+      - ALL
+
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+
+serviceAccount:
+  create: true
+
+rbac:
+  create: true
+
+persistence:
+  enabled: false

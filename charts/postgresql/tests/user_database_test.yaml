@@ -1,0 +1,190 @@
+suite: test user and database management
+templates:
+  - configmap.yaml
+  - secret.yaml
+tests:
+  - it: should create init scripts configmap with additional databases
+    set:
+      postgresql:
+        additionalDatabases:
+          - name: myapp_db
+            owner: myapp_user
+            encoding: UTF8
+          - name: analytics_db
+            owner: postgres
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 1
+        isKind:
+          of: ConfigMap
+      - documentIndex: 1
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-postgresql-init-scripts
+      - documentIndex: 1
+        matchRegex:
+          path: data["01-databases.sql"]
+          pattern: "CREATE DATABASE myapp_db"
+      - documentIndex: 1
+        matchRegex:
+          path: data["01-databases.sql"]
+          pattern: "CREATE DATABASE analytics_db"
+
+  - it: should create init scripts configmap with additional users
+    set:
+      postgresql:
+        additionalUsers:
+          - username: myapp_user
+            password: testpass123
+            databases:
+              - myapp_db
+            privileges: ALL
+            superuser: false
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 1
+        isKind:
+          of: ConfigMap
+      - documentIndex: 1
+        matchRegex:
+          path: data["02-users.sql"]
+          pattern: "CREATE USER myapp_user"
+      - documentIndex: 1
+        matchRegex:
+          path: data["02-users.sql"]
+          pattern: "GRANT ALL"
+
+  - it: should create init scripts configmap with both databases and users
+    set:
+      postgresql:
+        additionalDatabases:
+          - name: myapp_db
+            owner: myapp_user
+        additionalUsers:
+          - username: myapp_user
+            password: testpass123
+            databases:
+              - myapp_db
+            privileges: ALL
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 1
+        isKind:
+          of: ConfigMap
+      - documentIndex: 1
+        matchRegex:
+          path: data["01-databases.sql"]
+          pattern: "CREATE DATABASE myapp_db"
+      - documentIndex: 1
+        matchRegex:
+          path: data["02-users.sql"]
+          pattern: "CREATE USER myapp_user"
+
+  - it: should not create init scripts configmap when no databases or users
+    set:
+      postgresql:
+        extensions: []
+    asserts:
+      - hasDocuments:
+          count: 1
+      - documentIndex: 0
+        isKind:
+          of: ConfigMap
+      - documentIndex: 0
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-postgresql-config
+
+  - it: should support user with existing secret reference
+    set:
+      postgresql:
+        additionalUsers:
+          - username: secure_user
+            existingSecret: secure-user-secret
+            existingSecretKey: password
+            databases:
+              - myapp_db
+            privileges: SELECT
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 1
+        matchRegex:
+          path: data["02-users.sql"]
+          pattern: "CREATE USER secure_user"
+      - documentIndex: 1
+        matchRegex:
+          path: data["02-users.sql"]
+          pattern: "SELECT"
+
+  - it: should support multiple privileges for user
+    set:
+      postgresql:
+        additionalUsers:
+          - username: limited_user
+            password: test123
+            databases:
+              - db1
+              - db2
+            privileges: "SELECT, INSERT, UPDATE"
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 1
+        matchRegex:
+          path: data["02-users.sql"]
+          pattern: "GRANT SELECT, INSERT, UPDATE"
+
+  - it: should support superuser attribute
+    set:
+      postgresql:
+        additionalUsers:
+          - username: admin_user
+            password: admin123
+            superuser: true
+            createdb: true
+            createrole: true
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 1
+        matchRegex:
+          path: data["02-users.sql"]
+          pattern: "SUPERUSER"
+      - documentIndex: 1
+        matchRegex:
+          path: data["02-users.sql"]
+          pattern: "CREATEDB"
+      - documentIndex: 1
+        matchRegex:
+          path: data["02-users.sql"]
+          pattern: "CREATEROLE"
+
+  - it: should create databases with encoding and locale settings
+    set:
+      postgresql:
+        additionalDatabases:
+          - name: utf8_db
+            owner: postgres
+            encoding: UTF8
+            lc_collate: en_US.UTF-8
+            lc_ctype: en_US.UTF-8
+            template: template0
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 1
+        matchRegex:
+          path: data["01-databases.sql"]
+          pattern: "ENCODING"
+      - documentIndex: 1
+        matchRegex:
+          path: data["01-databases.sql"]
+          pattern: "LC_COLLATE"
+      - documentIndex: 1
+        matchRegex:
+          path: data["01-databases.sql"]
+          pattern: "TEMPLATE"

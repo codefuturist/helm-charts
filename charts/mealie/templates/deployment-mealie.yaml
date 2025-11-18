@@ -1,0 +1,196 @@
+{{- if .Values.mealie.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mealie.fullname" . }}-mealie
+  namespace: {{ include "mealie.namespace" . }}
+  labels:
+    {{- include "mealie.labels" . | nindent 4 }}
+    {{- with .Values.mealie.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.mealie.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.mealie.autoscaling.enabled }}
+  replicas: {{ .Values.mealie.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "mealie.mealie.selectorLabels" . | nindent 6 }}
+      {{- with .Values.mealie.podLabels }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+  {{- with .Values.mealie.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if .Values.mealie.reloadOnChange }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.mealie.additionalPodAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "mealie.mealie.selectorLabels" . | nindent 8 }}
+        {{- with .Values.mealie.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.mealie.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mealie.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.postgres.enabled }}
+      initContainers:
+      - name: wait-for-postgres
+        image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+        imagePullPolicy: IfNotPresent
+        command:
+        - sh
+        - -c
+        - |
+          until pg_isready -h {{ include "mealie.fullname" . }}-postgres -p 5432 -U {{ .Values.postgres.env.POSTGRES_USER.value }}; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+      {{- end }}
+      containers:
+      - name: mealie
+        image: "{{ .Values.mealie.image.repository }}:{{ .Values.mealie.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.mealie.image.imagePullPolicy }}
+        {{- with .Values.mealie.command }}
+        command:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.mealie.args }}
+        args:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.mealie.ports }}
+        ports:
+        {{- range .Values.mealie.ports }}
+        - name: {{ .name }}
+          containerPort: {{ .containerPort }}
+          protocol: {{ .protocol | default "TCP" }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.mealie.env }}
+        env:
+        {{- range $key, $value := .Values.mealie.env }}
+        - name: {{ $key }}
+          {{- if $value.valueFrom }}
+          valueFrom:
+            {{- toYaml $value.valueFrom | nindent 12 }}
+          {{- else }}
+          value: {{ tpl (toString $value.value) $ | quote }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.postgres.enabled }}
+        - name: DB_ENGINE
+          value: {{ .Values.database.engine | quote }}
+        {{- if .Values.database.urlOverride }}
+        - name: POSTGRES_URL_OVERRIDE
+          value: {{ .Values.database.urlOverride | quote }}
+        {{- else }}
+        - name: POSTGRES_USER
+          value: {{ .Values.database.user | quote }}
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.database.password | quote }}
+        - name: POSTGRES_SERVER
+          value: {{ .Values.database.host | default (printf "%s-postgres" (include "mealie.fullname" .)) | quote }}
+        - name: POSTGRES_PORT
+          value: {{ .Values.database.port | quote }}
+        - name: POSTGRES_DB
+          value: {{ .Values.database.name | quote }}
+        {{- end }}
+        {{- else if .Values.database.sqliteWalMode }}
+        - name: SQLITE_MIGRATE_JOURNAL_WAL
+          value: "true"
+        {{- end }}
+        {{- if .Values.mealie.logging.enabled }}
+        - name: LOG_CONFIG_OVERRIDE
+          value: {{ .Values.mealie.logging.configPath | quote }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.mealie.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.mealie.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.mealie.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.mealie.volumes }}
+        volumeMounts:
+        {{- range .Values.mealie.volumes }}
+        - name: {{ .name }}
+          mountPath: {{ .mountPath }}
+          {{- if .subPath }}
+          subPath: {{ .subPath }}
+          {{- end }}
+          {{- if .readOnly }}
+          readOnly: {{ .readOnly }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.mealie.logging.enabled }}
+        - name: logging-config
+          mountPath: {{ .Values.mealie.logging.configPath }}
+          subPath: logging-config.yaml
+          readOnly: true
+        {{- end }}
+        {{- end }}
+      {{- if .Values.mealie.volumes }}
+      volumes:
+      {{- range .Values.mealie.volumes }}
+      - name: {{ .name }}
+        {{- if eq .type "persistentVolumeClaim" }}
+        persistentVolumeClaim:
+          claimName: {{ include "mealie.fullname" $ }}-{{ .name }}
+        {{- else if eq .type "configMap" }}
+        configMap:
+          name: {{ .configMapName | default (include "mealie.fullname" $) }}
+        {{- else if eq .type "secret" }}
+        secret:
+          secretName: {{ .secretName | default (include "mealie.fullname" $) }}
+        {{- else if eq .type "emptyDir" }}
+        emptyDir: {}
+        {{- else if eq .type "hostPath" }}
+        hostPath:
+          path: {{ .hostPath }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.mealie.logging.enabled }}
+      - name: logging-config
+        configMap:
+          name: {{ include "mealie.fullname" . }}-logging
+      {{- end }}
+      {{- end }}
+      {{- with .Values.mealie.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mealie.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mealie.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

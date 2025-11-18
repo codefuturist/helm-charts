@@ -1,0 +1,78 @@
+# CI Test: With authentication and security features
+# Tests LDAP, email, security keys, and existing secrets
+
+semaphore:
+  database:
+    dialect: postgres
+    host: postgresql.database.svc.cluster.local
+    port: 5432
+    user: semaphore
+    name: semaphore
+    sslMode: require
+
+  # Use existing secret for sensitive data
+  existingSecret: semaphore-credentials
+
+  ldap:
+    enabled: true
+    server: ldap.example.com:389
+    bindDn: cn=admin,dc=example,dc=com
+    searchDn: ou=users,dc=example,dc=com
+    searchFilter: (&(objectClass=user)(uid=%s))
+    needTls: true
+    mappingDn: dn
+    mappingMail: mail
+    mappingUid: uid
+    mappingCn: cn
+
+  email:
+    enabled: true
+    sender: semaphore@example.com
+    host: smtp.example.com
+    port: 587
+    secure: true
+    tls: true
+
+  totp:
+    enabled: true
+    allowRecovery: true
+
+  runner:
+    enabled: true
+
+controller:
+  type: deployment
+  replicas: 1
+
+service:
+  type: ClusterIP
+
+persistence:
+  data:
+    enabled: true
+    size: 2Gi
+  config:
+    enabled: true
+    size: 512Mi
+  tmp:
+    enabled: true
+    size: 5Gi
+
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi

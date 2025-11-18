@@ -1,0 +1,28 @@
+{{- define "application.defaultExtraObject" -}}
+metadata:
+  labels: {{- include "application.labels" $ | nindent 4 }}
+{{- end }}
+{{- $defaultExtraObject := fromYaml (include "application.defaultExtraObject" .) -}}
+
+{{- $extraObjects := .Values.extraObjects | default (list) -}}
+
+{{- if kindIs "map" $extraObjects -}}
+  {{- $extraObjects = values $extraObjects -}}
+{{- end -}}
+
+{{- $extraObject := dict -}}
+{{- range $extraObjects }}
+  {{- if kindIs "map" . }}
+    {{- $extraObject = tpl (toYaml .) $ | nindent 0 }}
+  {{- else if kindIs "string" . }}
+    {{- $extraObject = tpl . $ | nindent 0 }}
+  {{- end }}
+  {{- $documents := regexSplit "(?m)^---[ \t]*\r?\n" $extraObject -1 }}
+  {{- range $documents }}
+    {{- $parsedObject := fromYaml . }}
+    {{- if and $parsedObject (hasKey $parsedObject "kind") }}
+---
+{{- toYaml (merge $parsedObject $defaultExtraObject) | nindent 0 -}}
+    {{- end }}
+  {{- end }}
+{{- end }}

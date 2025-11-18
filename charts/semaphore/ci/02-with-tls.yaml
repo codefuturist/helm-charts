@@ -1,0 +1,56 @@
+# CI Test: With TLS/HTTPS configuration
+# Tests TLS certificate mounting and ingress with TLS
+
+semaphore:
+  database:
+    dialect: sqlite
+  admin:
+    username: admin
+    password: testpass123
+    email: admin@example.com
+  tls:
+    enabled: true
+    certFile: /etc/semaphore/certs/tls.crt
+    keyFile: /etc/semaphore/certs/tls.key
+
+controller:
+  type: deployment
+  replicas: 1
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: semaphore.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: semaphore-tls
+      hosts:
+        - semaphore.example.com
+
+persistence:
+  data:
+    enabled: true
+    size: 1Gi
+  config:
+    enabled: true
+    size: 512Mi
+  tmp:
+    enabled: true
+    size: 2Gi
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi

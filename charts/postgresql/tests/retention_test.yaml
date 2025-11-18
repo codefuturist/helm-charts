@@ -1,0 +1,110 @@
+suite: test pvc retention policy
+templates:
+  - statefulset.yaml
+  - configmap.yaml
+tests:
+  - it: should set retention policy when enabled
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      persistence.enabled: true
+      persistence.retentionPolicy.enabled: true
+      persistence.retentionPolicy.whenScaled: Retain
+      persistence.retentionPolicy.whenDeleted: Delete
+    asserts:
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenScaled
+          value: Retain
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenDeleted
+          value: Delete
+
+  - it: should not set retention policy when disabled
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      persistence.enabled: true
+      persistence.retentionPolicy.enabled: false
+    asserts:
+      - notExists:
+          path: spec.persistentVolumeClaimRetentionPolicy
+
+  - it: should not set retention policy when persistence disabled
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      persistence.enabled: false
+      persistence.retentionPolicy.enabled: true
+    asserts:
+      - notExists:
+          path: spec.volumeClaimTemplates
+
+  - it: should support Retain/Retain policy
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      persistence.enabled: true
+      persistence.retentionPolicy.enabled: true
+      persistence.retentionPolicy.whenScaled: Retain
+      persistence.retentionPolicy.whenDeleted: Retain
+    asserts:
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenScaled
+          value: Retain
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenDeleted
+          value: Retain
+
+  - it: should support Delete/Delete policy
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      persistence.enabled: true
+      persistence.retentionPolicy.enabled: true
+      persistence.retentionPolicy.whenScaled: Delete
+      persistence.retentionPolicy.whenDeleted: Delete
+    asserts:
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenScaled
+          value: Delete
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenDeleted
+          value: Delete
+
+  - it: should support mixed Retain/Delete policy
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      persistence.enabled: true
+      persistence.retentionPolicy.enabled: true
+      persistence.retentionPolicy.whenScaled: Retain
+      persistence.retentionPolicy.whenDeleted: Delete
+    asserts:
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenScaled
+          value: Retain
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy.whenDeleted
+          value: Delete
+
+  - it: should default to disabled retention policy
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      persistence.enabled: true
+    asserts:
+      - notExists:
+          path: spec.persistentVolumeClaimRetentionPolicy
+
+  - it: should have volumeClaimTemplates when persistence enabled
+    template: statefulset.yaml
+    set:
+      statefulset.enabled: true
+      persistence.enabled: true
+      persistence.size: 10Gi
+    asserts:
+      - isNotEmpty:
+          path: spec.volumeClaimTemplates
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 10Gi

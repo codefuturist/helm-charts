@@ -1,0 +1,228 @@
+{{- include "pbs.validateValues" . -}}
+{{- if eq .Values.controller.type "deployment" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pbs.fullname" . }}
+  namespace: {{ include "pbs.namespace" . }}
+  labels:
+    {{- include "pbs.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.controller.replicas }}
+  {{- with .Values.controller.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "pbs.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if not .Values.pbs.existingSecret }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "pbs.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "pbs.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.runtimeClassName }}
+      runtimeClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.controller.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsPolicy }}
+      dnsPolicy: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hostAliases }}
+      hostAliases:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.initContainers }}
+      initContainers:
+        {{- toYaml .Values.initContainers | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: pbs
+          image: {{ include "pbs.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- if $.Values.pbs.smartAccess.enabled }}
+            {{- $secCtx := . | deepCopy }}
+            {{- if not $secCtx.capabilities }}
+            {{- $_ := set $secCtx "capabilities" dict }}
+            {{- end }}
+            {{- $drops := default (list "ALL") $secCtx.capabilities.drop }}
+            {{- $adds := default list $secCtx.capabilities.add }}
+            {{- $adds = append $adds "SYS_RAWIO" | uniq }}
+            {{- $_ := set $secCtx.capabilities "drop" $drops }}
+            {{- $_ := set $secCtx.capabilities "add" $adds }}
+            {{- toYaml $secCtx | nindent 12 }}
+            {{- else }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.controller.command .Values.diagnosticMode.enabled }}
+          command:
+            {{- if .Values.diagnosticMode.enabled }}
+            {{- toYaml .Values.diagnosticMode.command | nindent 12 }}
+            {{- else }}
+            {{- toYaml .Values.controller.command | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.controller.args .Values.diagnosticMode.enabled }}
+          args:
+            {{- if .Values.diagnosticMode.enabled }}
+            {{- toYaml .Values.diagnosticMode.args | nindent 12 }}
+            {{- else }}
+            {{- toYaml .Values.controller.args | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.controller.workingDir }}
+          workingDir: {{ . }}
+          {{- end }}
+          env:
+            {{- if .Values.pbs.timezone }}
+            - name: TZ
+              value: {{ .Values.pbs.timezone | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: https
+              containerPort: 8007
+              protocol: TCP
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            {{- omit .Values.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.controller.lifecycle }}
+          lifecycle:
+            {{- toYaml .Values.controller.lifecycle | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: run
+              mountPath: /run
+            {{- if .Values.persistence.enabled }}
+            {{- if .Values.persistence.etc.enabled }}
+            - name: pbs-etc
+              mountPath: /etc/proxmox-backup
+            {{- end }}
+            {{- if .Values.persistence.logs.enabled }}
+            - name: pbs-logs
+              mountPath: /var/log/proxmox-backup
+            {{- end }}
+            {{- if .Values.persistence.lib.enabled }}
+            - name: pbs-lib
+              mountPath: /var/lib/proxmox-backup
+            {{- end }}
+            {{- end }}
+            {{- range .Values.pbs.backupVolumes }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- if .Values.extraContainers }}
+        {{- toYaml .Values.extraContainers | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: run
+          emptyDir:
+            medium: Memory
+            sizeLimit: 100Mi
+        {{- if .Values.persistence.enabled }}
+        {{- if .Values.persistence.etc.enabled }}
+        - name: pbs-etc
+          persistentVolumeClaim:
+            claimName: {{ include "pbs.pvcEtcName" . }}
+        {{- end }}
+        {{- if .Values.persistence.logs.enabled }}
+        - name: pbs-logs
+          persistentVolumeClaim:
+            claimName: {{ include "pbs.pvcLogsName" . }}
+        {{- end }}
+        {{- if .Values.persistence.lib.enabled }}
+        - name: pbs-lib
+          persistentVolumeClaim:
+            claimName: {{ include "pbs.pvcLibName" . }}
+        {{- end }}
+        {{- end }}
+        {{- range .Values.pbs.backupVolumes }}
+        - name: {{ .name }}
+          {{- if .existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .existingClaim }}
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ include "pbs.fullname" $ }}-{{ .name }}
+          {{- end }}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

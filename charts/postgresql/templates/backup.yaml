@@ -1,0 +1,106 @@
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "postgresql.fullname" . }}-backup
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  successfulJobsHistoryLimit: {{ .Values.backup.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.backup.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "postgresql.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: backup
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ include "postgresql.serviceAccountName" . }}
+          containers:
+            - name: backup
+              image: {{ .Values.backup.image.repository }}:{{ .Values.backup.image.tag }}
+              imagePullPolicy: {{ .Values.backup.image.pullPolicy }}
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  set -o pipefail
+
+                  BACKUP_FILE="/backups/postgresql-$(date +%Y%m%d-%H%M%S).sql.gz"
+                  echo "Starting backup to $BACKUP_FILE"
+                  echo "Database: ${POSTGRES_DB}, User: ${POSTGRES_USER}"
+
+                  # Test database connection first
+                  if ! pg_isready -h {{ include "postgresql.fullname" . }} -U ${POSTGRES_USER} -d ${POSTGRES_DB} -q; then
+                    echo "ERROR: PostgreSQL is not ready"
+                    exit 1
+                  fi
+
+                  # Perform backup
+                  if ! pg_dump -h {{ include "postgresql.fullname" . }} \
+                    -U ${POSTGRES_USER} \
+                    -d ${POSTGRES_DB} \
+                    --verbose \
+                    2>&1 | tee /tmp/backup.log | gzip > $BACKUP_FILE; then
+                    echo "ERROR: pg_dump failed with exit code $?"
+                    cat /tmp/backup.log
+                    exit 1
+                  fi
+
+                  # Verify backup file was created and is not empty
+                  if [ ! -s "$BACKUP_FILE" ]; then
+                    echo "ERROR: Backup file is empty or does not exist"
+                    exit 1
+                  fi
+
+                  BACKUP_SIZE=$(du -h $BACKUP_FILE | cut -f1)
+                  echo "Backup completed successfully: $BACKUP_FILE ($BACKUP_SIZE)"
+
+                  {{- if .Values.backup.s3.enabled }}
+                  echo "Uploading to S3..."
+                  # Add S3 upload logic here using aws-cli or similar
+                  # aws s3 cp $BACKUP_FILE s3://{{ .Values.backup.s3.bucket }}/
+                  {{- end }}
+
+                  # Clean up old backups
+                  echo "Cleaning up backups older than {{ .Values.backup.retentionDays }} days..."
+                  DELETED=$(find /backups -name "postgresql-*.sql.gz" -mtime +{{ .Values.backup.retentionDays }} -delete -print | wc -l)
+                  echo "Deleted $DELETED old backup(s)"
+
+                  # List remaining backups
+                  echo "Current backups:"
+                  ls -lh /backups/postgresql-*.sql.gz 2>/dev/null || echo "No backups found"
+
+                  echo "Backup job completed successfully"
+              env:
+                - name: POSTGRES_USER
+                  value: {{ .Values.postgresql.username | quote }}
+                - name: POSTGRES_DB
+                  value: {{ .Values.postgresql.database | quote }}
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "postgresql.secretName" . }}
+                      key: {{ include "postgresql.passwordKey" . }}
+              {{- with .Values.backup.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              volumeMounts:
+                - name: backup
+                  mountPath: /backups
+          volumes:
+            - name: backup
+              {{- if .Values.backup.persistence.enabled }}
+              persistentVolumeClaim:
+                claimName: {{ include "postgresql.fullname" . }}-backup
+              {{- else }}
+              emptyDir: {}
+              {{- end }}
+{{- end }}

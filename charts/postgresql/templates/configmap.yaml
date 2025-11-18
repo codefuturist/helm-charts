@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "postgresql.fullname" . }}-config
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+data:
+  postgresql.conf: |
+    # PostgreSQL Configuration
+    {{- range $key, $value := .Values.postgresql.config }}
+    {{ $key }} = '{{ $value }}'
+    {{- end }}
+    {{- if .Values.backup.wal.enabled }}
+    # WAL Archiving Configuration
+    archive_mode = 'on'
+    {{- if .Values.backup.wal.archiveCommand }}
+    archive_command = '{{ .Values.backup.wal.archiveCommand }}'
+    {{- else if eq .Values.backup.wal.method "simple" }}
+    {{- if eq .Values.backup.wal.compression "gzip" }}
+    archive_command = 'gzip < %p > {{ .Values.backup.wal.persistence.mountPath }}/%f.gz'
+    {{- else if eq .Values.backup.wal.compression "lz4" }}
+    archive_command = 'lz4 -q -z %p {{ .Values.backup.wal.persistence.mountPath }}/%f.lz4'
+    {{- else if eq .Values.backup.wal.compression "zstd" }}
+    archive_command = 'zstd -q -z -o {{ .Values.backup.wal.persistence.mountPath }}/%f.zst %p'
+    {{- else }}
+    archive_command = 'cp %p {{ .Values.backup.wal.persistence.mountPath }}/%f'
+    {{- end }}
+    {{- else if eq .Values.backup.wal.method "wal-g" }}
+    archive_command = '/usr/local/bin/wal-g wal-push %p'
+    {{- else if eq .Values.backup.wal.method "wal-e" }}
+    archive_command = 'envdir /etc/wal-e.d/env wal-e wal-push %p'
+    {{- else if eq .Values.backup.wal.method "pgbackrest" }}
+    archive_command = 'pgbackrest --stanza={{ include "postgresql.fullname" . }} archive-push %p'
+    {{- end }}
+    archive_timeout = '300'
+    {{- end }}
+    {{- if .Values.replication.enabled }}
+    # Replication Configuration
+    max_wal_senders = {{ .Values.replication.advanced.maxWalSenders }}
+    max_replication_slots = {{ .Values.replication.advanced.maxReplicationSlots }}
+    wal_keep_size = {{ .Values.replication.advanced.walKeepSize }}
+    hot_standby = on
+    hot_standby_feedback = {{ if .Values.replication.replica.hotStandbyFeedback }}on{{ else }}off{{ end }}
+    max_standby_streaming_delay = {{ .Values.replication.replica.maxStandbyStreamingDelay }}
+    wal_receiver_status_interval = {{ .Values.replication.replica.walReceiverStatusInterval }}
+    {{- if .Values.replication.synchronousCommit }}
+    synchronous_commit = {{ .Values.replication.synchronousCommit }}
+    {{- if gt (int .Values.replication.numSynchronousReplicas) 0 }}
+    synchronous_standby_names = 'FIRST {{ .Values.replication.numSynchronousReplicas }} (*)'
+    {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.postgresql.customConfig }}
+    {{ .Values.postgresql.customConfig | nindent 4 }}
+    {{- end }}
+
+  {{- if .Values.postgresql.customPgHba }}
+  pg_hba.conf: |
+    {{ .Values.postgresql.customPgHba | nindent 4 }}
+  {{- else if .Values.replication.enabled }}
+  pg_hba.conf: |
+    # TYPE  DATABASE        USER            ADDRESS                 METHOD
+    # "local" is for Unix domain socket connections only
+    local   all             all                                     {{ .Values.postgresql.hostAuthMethod }}
+    # IPv4 local connections:
+    host    all             all             127.0.0.1/32            {{ .Values.postgresql.hostAuthMethod }}
+    # IPv6 local connections:
+    host    all             all             ::1/128                 {{ .Values.postgresql.hostAuthMethod }}
+    # Allow replication connections
+    host    replication     {{ .Values.replication.user }}     0.0.0.0/0               {{ .Values.postgresql.hostAuthMethod }}
+    host    replication     {{ .Values.replication.user }}     ::/0                    {{ .Values.postgresql.hostAuthMethod }}
+    # Allow all other connections
+    host    all             all             0.0.0.0/0               {{ .Values.postgresql.hostAuthMethod }}
+    host    all             all             ::/0                    {{ .Values.postgresql.hostAuthMethod }}
+  {{- end }}
+
+{{- if .Values.postgresql.preInitScripts }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "postgresql.fullname" . }}-pre-init-scripts
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.postgresql.preInitScripts }}
+  {{ $key }}: |
+    {{ $value | nindent 4 }}
+  {{- end }}
+{{- end }}
+
+{{- if or .Values.postgresql.initScripts .Values.postgresql.extensions .Values.postgresql.additionalDatabases .Values.postgresql.additionalUsers (and .Values.postgresql.externalResources.enabled (or .Values.postgresql.externalResources.databasesConfigMap.name .Values.postgresql.externalResources.usersConfigMap.name)) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "postgresql.fullname" . }}-init-scripts
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+data:
+  {{- if .Values.postgresql.extensions }}
+  00-extensions.sql: |
+    -- Enable PostgreSQL extensions
+    {{- range .Values.postgresql.extensions }}
+    CREATE EXTENSION IF NOT EXISTS {{ . }};
+    {{- end }}
+  {{- end }}
+  {{- if or .Values.postgresql.additionalDatabases (and .Values.postgresql.externalResources.enabled .Values.postgresql.externalResources.databasesConfigMap.name) }}
+  01-databases.sql: |
+    -- Create additional databases
+    {{- include "postgresql.databaseSQL" . | nindent 4 }}
+  {{- end }}
+  {{- if or .Values.postgresql.additionalUsers (and .Values.postgresql.externalResources.enabled .Values.postgresql.externalResources.usersConfigMap.name) }}
+  02-users.sql: |
+    -- Create additional users and grant privileges
+    {{- include "postgresql.userSQL" . | nindent 4 }}
+  {{- end }}
+  {{- range $key, $value := .Values.postgresql.initScripts }}
+  {{ $key }}: |
+    {{ $value | nindent 4 }}
+  {{- end }}
+{{- end }}

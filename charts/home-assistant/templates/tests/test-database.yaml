@@ -1,0 +1,63 @@
+{{- if eq .Values.database.type "postgresql" }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "home-assistant.fullname" . }}-test-database
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "3"
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-database
+      image: postgres:16-alpine
+      command: ['sh', '-c']
+      args:
+        - |
+          echo "Testing PostgreSQL database connectivity..."
+
+          # Test connection
+          export PGPASSWORD="$DB_PASSWORD"
+
+          if psql -h {{ .Values.database.postgresql.host }} \
+                  -p {{ .Values.database.postgresql.port }} \
+                  -U {{ .Values.database.postgresql.username }} \
+                  -d {{ .Values.database.postgresql.database }} \
+                  -c "SELECT 1;" > /dev/null 2>&1; then
+            echo "✅ PostgreSQL connection successful"
+
+            # Test if database is accessible
+            RESULT=$(psql -h {{ .Values.database.postgresql.host }} \
+                          -p {{ .Values.database.postgresql.port }} \
+                          -U {{ .Values.database.postgresql.username }} \
+                          -d {{ .Values.database.postgresql.database }} \
+                          -t -c "SELECT current_database();")
+
+            echo "Connected to database: $RESULT"
+            echo "✅ Database test passed"
+            exit 0
+          else
+            echo "❌ PostgreSQL connection failed"
+            exit 1
+          fi
+      env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.database.postgresql.existingSecret | default (printf "%s-db" (include "home-assistant.fullname" .)) }}
+              key: {{ .Values.database.postgresql.existingSecretKey | default "password" }}
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 70
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+{{- end }}
