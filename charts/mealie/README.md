@@ -1,133 +1,156 @@
-# Mealie Helm Chart
+# mealie
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
 
-## Introduction
-
-This chart bootstraps a [Mealie](https://mealie.io/) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
-
-Mealie is a self-hosted recipe manager and meal planner with a REST API and a reactive frontend application built in Vue.
-
-## Features
-
-- **Recipe Management**: Store and organize your recipes
-- **Meal Planning**: Plan your meals for the week
-- **Shopping Lists**: Generate shopping lists from recipes
-- **REST API**: Full-featured API for integrations
-- **Multi-user Support**: Family-friendly with user management
-- **Recipe Import**: Import from various sources
-- **Mobile Responsive**: Works great on mobile devices
-
-## Quick Start
-
-To deploy Mealie using this Helm chart, follow these steps:
-
-```console
-$ helm repo add codefuturist https://codefuturist.github.io/helm-charts
-$ helm repo update
-$ helm install mealie codefuturist/mealie
-```
-
-This will deploy Mealie with the default configuration. See the [Configuration](#configuration) section for details on customizing the deployment.
-
-> **Tip**: List all releases using `helm list`
-
-## Uninstalling the Chart
-
-To uninstall/delete the `mealie` deployment:
-
-```console
-$ helm delete mealie
-```
-
-The command removes all the Kubernetes components associated with the chart and deletes the release.
-
-## Prerequisites
-
-- Kubernetes 1.19+
-- Helm 3.0+
-- PersistentVolume support (optional, for data persistence)
-
-## Configuration
-
-The following table lists the configurable parameters and their default values.
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `namespaceOverride` | Override namespace | `""` |
-| `deployment.enabled` | Enable deployment | `true` |
-| `deployment.replicas` | Number of replicas | `1` |
-| `service.type` | Service type | `ClusterIP` |
-| `ingress.enabled` | Enable ingress | `false` |
-
-## Examples
-
-### Minimal Configuration
-
-```yaml
-deployment:
-  enabled: true
-  replicas: 1
-```
-
-### Production Configuration
-
-```yaml
-deployment:
-  enabled: true
-  replicas: 3
-  resources:
-    requests:
-      memory: "256Mi"
-      cpu: "100m"
-    limits:
-      memory: "512Mi"
-      cpu: "500m"
-
-ingress:
-  enabled: true
-  hosts:
-    - host: example.com
-      paths:
-        - path: /
-          pathType: Prefix
-```
-
-## Upgrading
-
-To upgrade to a new version:
-
-```bash
-helm repo update
-helm upgrade mealie codefuturist/mealie
-```
-
-## Documentation
-
-- [Mealie Official Documentation](https://mealie.io/)
-- [Examples](examples/) - Ready-to-use configuration files
-
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](../../docs/CONTRIBUTING.md) for details.
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/codefuturist/helm-charts/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/codefuturist/helm-charts/discussions)
-
-## License
-
-This Helm chart is licensed under the Apache License 2.0. See [LICENSE](../../LICENSE) for details.
+A Helm chart for mealie
 
 ## Maintainers
 
-| Name | Email |
-| ---- | ------ |
-| codefuturist | <58808821+codefuturist@users.noreply.github.com> |
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Your Name | <your.email@example.com> |  |
 
-## Source Code
+## Values
 
-- **Chart Repository**: <https://github.com/codefuturist/helm-charts>
-- **Mealie Repository**: <https://github.com/mealie-recipes/mealie>
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| additionalLabels | object | `{}` |  |
+| applicationName | string | `""` |  |
+| componentOverride | string | `""` |  |
+| configMap.data | object | `{}` |  |
+| configMap.enabled | bool | `false` |  |
+| database.engine | string | `"postgres"` |  |
+| database.host | string | `""` |  |
+| database.name | string | `"mealie"` |  |
+| database.password | string | `"mealie"` |  |
+| database.port | string | `"5432"` |  |
+| database.sqliteWalMode | bool | `false` |  |
+| database.user | string | `"mealie"` |  |
+| ingress.annotations | object | `{}` |  |
+| ingress.className | string | `""` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.hosts | list | `[]` |  |
+| ingress.tls | list | `[]` |  |
+| mealie.additionalLabels | object | `{}` |  |
+| mealie.additionalPodAnnotations | object | `{}` |  |
+| mealie.affinity | object | `{}` |  |
+| mealie.annotations | object | `{}` |  |
+| mealie.autoscaling.enabled | bool | `false` |  |
+| mealie.autoscaling.maxReplicas | int | `10` |  |
+| mealie.autoscaling.minReplicas | int | `1` |  |
+| mealie.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| mealie.enabled | bool | `true` |  |
+| mealie.env.ALLOW_SIGNUP.value | string | `"false"` |  |
+| mealie.env.BASE_URL.value | string | `"https://mealie.yourdomain.com"` |  |
+| mealie.env.PGID.value | string | `"1000"` |  |
+| mealie.env.PUID.value | string | `"1000"` |  |
+| mealie.env.TZ.value | string | `"America/Anchorage"` |  |
+| mealie.image.digest | string | `""` |  |
+| mealie.image.imagePullPolicy | string | `"IfNotPresent"` |  |
+| mealie.image.repository | string | `"ghcr.io/mealie-recipes/mealie"` |  |
+| mealie.image.tag | string | `"v3.4.0"` |  |
+| mealie.imagePullSecrets | list | `[]` |  |
+| mealie.livenessProbe.failureThreshold | int | `3` |  |
+| mealie.livenessProbe.httpGet.path | string | `"/api/app/about"` |  |
+| mealie.livenessProbe.httpGet.port | int | `9000` |  |
+| mealie.livenessProbe.initialDelaySeconds | int | `30` |  |
+| mealie.livenessProbe.periodSeconds | int | `10` |  |
+| mealie.livenessProbe.timeoutSeconds | int | `5` |  |
+| mealie.logging.config | object | `{}` |  |
+| mealie.logging.configPath | string | `"/app/logging-config.yaml"` |  |
+| mealie.logging.enabled | bool | `false` |  |
+| mealie.nodeSelector | object | `{}` |  |
+| mealie.podLabels | object | `{}` |  |
+| mealie.ports[0].containerPort | int | `9000` |  |
+| mealie.ports[0].name | string | `"port-9000"` |  |
+| mealie.ports[0].protocol | string | `"TCP"` |  |
+| mealie.readinessProbe.failureThreshold | int | `3` |  |
+| mealie.readinessProbe.httpGet.path | string | `"/api/app/about"` |  |
+| mealie.readinessProbe.httpGet.port | int | `9000` |  |
+| mealie.readinessProbe.initialDelaySeconds | int | `10` |  |
+| mealie.readinessProbe.periodSeconds | int | `5` |  |
+| mealie.readinessProbe.timeoutSeconds | int | `3` |  |
+| mealie.reloadOnChange | bool | `true` |  |
+| mealie.replicas | int | `1` |  |
+| mealie.resources.limits.cpu | string | `"1000m"` |  |
+| mealie.resources.limits.memory | string | `"1000Mi"` |  |
+| mealie.resources.requests.cpu | string | `"100m"` |  |
+| mealie.resources.requests.memory | string | `"256Mi"` |  |
+| mealie.strategy.type | string | `"RollingUpdate"` |  |
+| mealie.tolerations | list | `[]` |  |
+| mealie.topologySpreadConstraints | list | `[]` |  |
+| mealie.volumes[0].mountPath | string | `"/app/data/"` |  |
+| mealie.volumes[0].name | string | `"mealie-data"` |  |
+| mealie.volumes[0].readOnly | bool | `false` |  |
+| mealie.volumes[0].type | string | `"persistentVolumeClaim"` |  |
+| namespaceOverride | string | `""` |  |
+| partOfOverride | string | `""` |  |
+| persistence.mealie-data.accessModes[0] | string | `"ReadWriteOnce"` |  |
+| persistence.mealie-data.annotations | object | `{}` |  |
+| persistence.mealie-data.enabled | bool | `true` |  |
+| persistence.mealie-data.size | string | `"10Gi"` |  |
+| persistence.mealie-data.storageClass | string | `""` |  |
+| persistence.mealie-pgdata.accessModes[0] | string | `"ReadWriteOnce"` |  |
+| persistence.mealie-pgdata.annotations | object | `{}` |  |
+| persistence.mealie-pgdata.enabled | bool | `false` |  |
+| persistence.mealie-pgdata.size | string | `"10Gi"` |  |
+| persistence.mealie-pgdata.storageClass | string | `""` |  |
+| postgres.additionalLabels | object | `{}` |  |
+| postgres.additionalPodAnnotations | object | `{}` |  |
+| postgres.affinity | object | `{}` |  |
+| postgres.annotations | object | `{}` |  |
+| postgres.autoscaling.enabled | bool | `false` |  |
+| postgres.autoscaling.maxReplicas | int | `10` |  |
+| postgres.autoscaling.minReplicas | int | `1` |  |
+| postgres.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| postgres.enabled | bool | `false` |  |
+| postgres.env.PGUSER.value | string | `"mealie"` |  |
+| postgres.env.POSTGRES_DB.value | string | `"mealie"` |  |
+| postgres.env.POSTGRES_PASSWORD.value | string | `"mealie"` |  |
+| postgres.env.POSTGRES_USER.value | string | `"mealie"` |  |
+| postgres.image.digest | string | `""` |  |
+| postgres.image.imagePullPolicy | string | `"IfNotPresent"` |  |
+| postgres.image.repository | string | `"postgres"` |  |
+| postgres.image.tag | string | `"17"` |  |
+| postgres.imagePullSecrets | list | `[]` |  |
+| postgres.livenessProbe.exec.command[0] | string | `"pg_isready"` |  |
+| postgres.livenessProbe.exec.command[1] | string | `"-U"` |  |
+| postgres.livenessProbe.exec.command[2] | string | `"mealie"` |  |
+| postgres.livenessProbe.failureThreshold | int | `3` |  |
+| postgres.livenessProbe.initialDelaySeconds | int | `30` |  |
+| postgres.livenessProbe.periodSeconds | int | `30` |  |
+| postgres.livenessProbe.timeoutSeconds | int | `20` |  |
+| postgres.nodeSelector | object | `{}` |  |
+| postgres.podLabels | object | `{}` |  |
+| postgres.ports[0].containerPort | int | `5432` |  |
+| postgres.ports[0].name | string | `"postgresql"` |  |
+| postgres.ports[0].protocol | string | `"TCP"` |  |
+| postgres.readinessProbe.exec.command[0] | string | `"pg_isready"` |  |
+| postgres.readinessProbe.exec.command[1] | string | `"-U"` |  |
+| postgres.readinessProbe.exec.command[2] | string | `"mealie"` |  |
+| postgres.readinessProbe.failureThreshold | int | `3` |  |
+| postgres.readinessProbe.initialDelaySeconds | int | `5` |  |
+| postgres.readinessProbe.periodSeconds | int | `10` |  |
+| postgres.readinessProbe.timeoutSeconds | int | `5` |  |
+| postgres.reloadOnChange | bool | `true` |  |
+| postgres.replicas | int | `1` |  |
+| postgres.resources.limits.cpu | string | `"500m"` |  |
+| postgres.resources.limits.memory | string | `"512Mi"` |  |
+| postgres.resources.requests.cpu | string | `"100m"` |  |
+| postgres.resources.requests.memory | string | `"256Mi"` |  |
+| postgres.strategy.type | string | `"RollingUpdate"` |  |
+| postgres.tolerations | list | `[]` |  |
+| postgres.topologySpreadConstraints | list | `[]` |  |
+| postgres.volumes[0].mountPath | string | `"/var/lib/postgresql/data"` |  |
+| postgres.volumes[0].name | string | `"mealie-pgdata"` |  |
+| postgres.volumes[0].readOnly | bool | `false` |  |
+| postgres.volumes[0].subPath | string | `"pgdata"` |  |
+| postgres.volumes[0].type | string | `"persistentVolumeClaim"` |  |
+| secret.data | object | `{}` |  |
+| secret.enabled | bool | `false` |  |
+| service.annotations | object | `{}` |  |
+| service.port | int | `80` |  |
+| service.type | string | `"ClusterIP"` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

@@ -1,617 +1,164 @@
-# pgAdmin Helm Chart
+# pgadmin
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
-![AppVersion: 9.10.0](https://img.shields.io/badge/AppVersion-9.10.0-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 9.10.0](https://img.shields.io/badge/AppVersion-9.10.0-informational?style=flat-square)
 
-## Introduction
+A production-ready Helm chart for pgAdmin 4 - PostgreSQL management and administration tool
 
-This chart bootstraps a [pgAdmin 4](https://www.pgadmin.org/) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
-
-pgAdmin is the most popular and feature-rich Open Source administration and development platform for PostgreSQL, the most advanced Open Source database in the world.
-
-## Features
-
-- **Easy Installation**: Get started with minimal configuration
-- **Security First**: Hardened security contexts, network policies, and RBAC
-- **Production Ready**: Persistent storage, resource limits, health probes
-- **Flexible Configuration**: Support for both inline and existing secrets
-- **Pre-configured Servers**: Define PostgreSQL connections via values
-- **Ingress Support**: Expose via any ingress controller with TLS
-- **Monitoring Ready**: ServiceMonitor and PrometheusRule for Prometheus Operator
-- **High Availability**: Pod disruption budgets, HPA, and anti-affinity
-- **Advanced Features**: SMTP, LDAP, pgpass, config_local.py support
-- **Flexible Deployment**: Deployment or StatefulSet controller options
-- **Extensibility**: Extra containers, init containers, volumes, and environment variables
-- **Comprehensive Examples**: Ready-to-use configurations for common scenarios
-
-## Quick Start
-
-To deploy pgAdmin using this Helm chart, follow these steps:
-
-```console
-$ helm repo add codefuturist https://codefuturist.github.io/helm-charts
-$ helm repo update
-$ helm install my-pgadmin codefuturist/pgadmin \
-  --set pgadmin.email=admin@example.com \
-  --set pgadmin.password=SuperSecurePassword123
-```
-
-This will deploy pgAdmin with the default configuration. See the [Configuration](#configuration) section for details on customizing the deployment.
-
-> **Tip**: List all releases using `helm list`
-
-## Uninstalling the Chart
-
-To uninstall/delete the `my-pgadmin` deployment:
-
-```console
-$ helm delete my-pgadmin
-```
-
-The command removes all the Kubernetes components associated with the chart and deletes the release.
-
-If persistence was enabled, you may need to manually delete the PVC:
-
-```console
-$ kubectl delete pvc my-pgadmin
-```
-
-## Prerequisites
-
-- Kubernetes 1.21+
-- Helm 3.x
-- PersistentVolume support (optional, for data persistence)
-
-## Configuration
-
-The following table lists the configurable parameters of the pgAdmin chart and their default values.
-
-| Parameter | Description | Default |
-| --------- | ----------- | ------- |
-| `pgadmin.email` | Default login email address | `admin@example.com` |
-| `pgadmin.password` | Default login password | `""` (required) |
-| `pgadmin.existingSecret` | Name of existing secret with credentials | `""` |
-| `pgadmin.existingSecretEmailKey` | Key in existing secret for email | `email` |
-| `pgadmin.existingSecretPasswordKey` | Key in existing secret for password | `password` |
-| `pgadmin.config` | pgAdmin configuration environment variables | See values.yaml |
-| `pgadmin.disablePostfix` | Disable internal Postfix server | `false` |
-| `pgadmin.replaceServersOnStartup` | Replace server definitions on every startup | `false` |
-| `pgadmin.scriptName` | Script name for reverse proxy subdirectory hosting | `""` |
-| `pgadmin.serverDefinitions` | Pre-configured PostgreSQL server definitions | `{}` |
-| `pgadmin.existingServerDefinitionsConfigMap` | ConfigMap with server definitions JSON | `""` |
-| `pgadmin.pgpassFile` | pgpass file content for automatic authentication | `""` |
-| `pgadmin.existingPgpassSecret` | Secret containing pgpass file | `""` |
-| `pgadmin.configLocalPy` | Custom config_local.py content | `""` |
-| `pgadmin.existingConfigLocalPyConfigMap` | ConfigMap with config_local.py | `""` |
-| `pgadmin.smtp.enabled` | Enable SMTP configuration | `false` |
-| `pgadmin.smtp.server` | SMTP server address | `""` |
-| `pgadmin.smtp.port` | SMTP server port | `587` |
-| `pgadmin.smtp.useTLS` | Use TLS for SMTP | `true` |
-| `pgadmin.smtp.useSSL` | Use SSL for SMTP | `false` |
-| `pgadmin.smtp.username` | SMTP username | `""` |
-| `pgadmin.smtp.password` | SMTP password | `""` |
-| `pgadmin.smtp.fromAddress` | SMTP from address | `""` |
-| `pgadmin.smtp.existingSecret` | Existing secret with SMTP credentials | `""` |
-| `pgadmin.ldap.enabled` | Enable LDAP configuration | `false` |
-| `pgadmin.ldap.server` | LDAP server URI | `""` |
-| `pgadmin.ldap.bindDN` | LDAP bind DN | `""` |
-| `pgadmin.ldap.bindPassword` | LDAP bind password | `""` |
-| `pgadmin.ldap.existingSecret` | Existing secret with LDAP credentials | `""` |
-| `pgadmin.gunicorn.threads` | Number of threads per Gunicorn worker | `25` |
-| `pgadmin.gunicorn.accessLogfile` | Access log file path | `"-"` |
-| `pgadmin.gunicorn.limitRequestLine` | Maximum HTTP request line size | `8190` |
-| `controller.type` | Controller type: `deployment` or `statefulset` | `deployment` |
-| `controller.replicas` | Number of replicas | `1` |
-| `controller.updateStrategy` | Update strategy for the controller | `{}` |
-| `image.repository` | pgAdmin image repository | `dpage/pgadmin4` |
-| `image.tag` | pgAdmin image tag | `""` (chart appVersion) |
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `imagePullSecrets` | Image pull secrets | `[]` |
-| `service.type` | Service type | `ClusterIP` |
-| `service.port` | Service port | `80` |
-| `service.nodePort` | NodePort (if service.type is NodePort) | `""` |
-| `service.annotations` | Service annotations | `{}` |
-| `ingress.enabled` | Enable ingress | `false` |
-| `ingress.className` | Ingress class name | `""` |
-| `ingress.annotations` | Ingress annotations | `{}` |
-| `ingress.hosts` | Ingress hosts configuration | `[]` |
-| `ingress.tls` | Ingress TLS configuration | `[]` |
-| `persistence.enabled` | Enable persistent storage | `false` |
-| `persistence.storageClassName` | Storage class name | `""` |
-| `persistence.accessMode` | Access mode | `ReadWriteOnce` |
-| `persistence.size` | Storage size | `1Gi` |
-| `persistence.existingClaim` | Use existing PVC (Deployment only) | `""` |
-| `persistence.annotations` | PVC annotations | `{}` |
-| `resources.limits.cpu` | CPU limit | `1000m` |
-| `resources.limits.memory` | Memory limit | `512Mi` |
-| `resources.requests.cpu` | CPU request | `100m` |
-| `resources.requests.memory` | Memory request | `256Mi` |
-| `podSecurityContext` | Pod security context | See values.yaml |
-| `securityContext` | Container security context | See values.yaml |
-| `networkPolicy.enabled` | Enable network policy | `false` |
-| `networkPolicy.ingress` | Ingress rules | `[]` |
-| `networkPolicy.egress` | Egress rules | `[]` |
-| `serviceAccount.create` | Create service account | `true` |
-| `serviceAccount.annotations` | Service account annotations | `{}` |
-| `serviceAccount.name` | Service account name | `""` |
-| `rbac.create` | Create RBAC resources | `true` |
-| `rbac.rules` | Additional RBAC rules | `[]` |
-| `pdb.enabled` | Enable pod disruption budget | `false` |
-| `pdb.minAvailable` | Minimum available pods | `1` |
-| `hpa.enabled` | Enable horizontal pod autoscaler | `false` |
-| `hpa.minReplicas` | Minimum replicas | `1` |
-| `hpa.maxReplicas` | Maximum replicas | `10` |
-| `hpa.targetCPU` | Target CPU utilization percentage | `80` |
-| `hpa.targetMemory` | Target memory utilization percentage | `80` |
-| `monitoring.serviceMonitor.enabled` | Enable Prometheus ServiceMonitor | `false` |
-| `monitoring.prometheusRule.enabled` | Enable Prometheus rules | `false` |
-| `livenessProbe.enabled` | Enable liveness probe | `true` |
-| `readinessProbe.enabled` | Enable readiness probe | `true` |
-| `startupProbe.enabled` | Enable startup probe | `true` |
-| `nodeSelector` | Node selector | `{}` |
-| `tolerations` | Tolerations | `[]` |
-| `affinity` | Affinity rules | `{}` |
-| `extraEnv` | Additional environment variables | `[]` |
-| `extraVolumes` | Additional volumes | `[]` |
-| `extraVolumeMounts` | Additional volume mounts | `[]` |
-| `initContainers` | Init containers | `[]` |
-| `extraContainers` | Additional sidecar containers | `[]` |
-
-For complete configuration options with detailed comments, see [values.yaml](values.yaml).
-
-## Controller Type
-
-This chart supports two types of controllers for deploying pgAdmin:
-
-1. `Deployment` (default): Standard Kubernetes deployment, suitable for most use cases.
-
-2. `StatefulSet`: Provides stable network identities and ordered deployment/scaling. Recommended when using StatefulSet-specific features.
-
-To specify the controller type:
-
-```yaml
-controller:
-  type: deployment  # or statefulset
-```
-
-## Persistence
-
-By default, this chart uses an `emptyDir` volume, which means data is lost when the pod is removed. To enable persistent storage:
-
-```yaml
-persistence:
-  enabled: true
-  size: 5Gi
-  storageClassName: ""  # Use default storage class
-```
-
-### Using an Existing PVC
-
-When using a Deployment, you can specify an existing PVC:
-
-```yaml
-controller:
-  type: deployment
-persistence:
-  enabled: true
-  existingClaim: "my-existing-pvc"
-```
-
-## Pre-configured PostgreSQL Servers
-
-Define PostgreSQL server connections that appear automatically in pgAdmin:
-
-```yaml
-pgadmin:
-  serverDefinitions:
-    servers:
-      1:
-        Name: "Production PostgreSQL"
-        Group: "Production"
-        Host: "postgresql.default.svc.cluster.local"
-        Port: 5432
-        MaintenanceDB: "postgres"
-        Username: "postgres"
-        SSLMode: "prefer"
-      2:
-        Name: "Development PostgreSQL"
-        Group: "Development"
-        Host: "postgresql-dev.default.svc.cluster.local"
-        Port: 5432
-        MaintenanceDB: "postgres"
-        Username: "postgres"
-        SSLMode: "disable"
-```
-
-## Using Existing Secrets
-
-For production deployments, use Kubernetes secrets instead of inline credentials:
-
-```bash
-# Create secret for pgAdmin credentials
-kubectl create secret generic pgadmin-creds \
-  --from-literal=email=admin@example.com \
-  --from-literal=password=SecurePassword123
-
-# Install using secret
-helm install my-pgadmin codefuturist/pgadmin \
-  --set pgadmin.existingSecret=pgadmin-creds
-```
-
-## Examples
-
-Pre-configured example files are available in the [examples/](examples/) directory:
-
-- **values-minimal.yaml**: Quick development setup
-- **values-with-persistence.yaml**: Basic setup with persistent storage
-- **values-production.yaml**: Full production configuration with security
-- **values-multiple-servers.yaml**: Multiple PostgreSQL connections
-- **values-reverse-proxy.yaml**: Reverse proxy configuration with subdirectory hosting
-
-Deploy using an example configuration:
-
-```bash
-helm install my-pgadmin codefuturist/pgadmin -f examples/values-production.yaml
-```
-
-## Advanced Configuration
-
-### SMTP Configuration
-
-Configure SMTP for email alerts and password recovery:
-
-```yaml
-pgadmin:
-  smtp:
-    enabled: true
-    server: smtp.gmail.com
-    port: 587
-    useTLS: true
-    fromAddress: pgadmin@example.com
-    existingSecret: pgadmin-smtp-credentials
-```
-
-The secret should contain `username` and `password` keys.
-
-### LDAP Authentication
-
-Enable LDAP authentication for enterprise environments:
-
-```yaml
-pgadmin:
-  ldap:
-    enabled: true
-    server: "ldap://ldap.example.com"
-    bindDN: "cn=admin,dc=example,dc=com"
-    existingSecret: pgadmin-ldap-credentials
-```
-
-### pgpass File Support
-
-Automatically authenticate to PostgreSQL servers without storing passwords in pgAdmin:
-
-```yaml
-pgadmin:
-  pgpassFile: "postgresql.example.com:5432:*:myuser:mypassword"
-  # Or use existing secret
-  existingPgpassSecret: pgadmin-pgpass
-```
-
-The pgpass format is: `hostname:port:database:username:password`
-
-### Container Configuration
-
-#### Reverse Proxy Support
-
-Host pgAdmin under a subdirectory (e.g., `/pgadmin4`):
-
-```yaml
-pgadmin:
-  scriptName: "/pgadmin4"  # Sets SCRIPT_NAME environment variable
-```
-
-Configure your reverse proxy to set the `X-Script-Name` header:
-
-```nginx
-# Nginx
-location /pgadmin4 {
-    proxy_pass http://pgadmin-service;
-    proxy_set_header X-Script-Name /pgadmin4;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-}
-```
-
-#### Gunicorn Configuration
-
-Tune the WSGI server performance:
-
-```yaml
-pgadmin:
-  gunicorn:
-    threads: 25              # Threads per worker (default: 25)
-    accessLogfile: "-"       # Access log to stdout
-    limitRequestLine: 8190   # Max HTTP request line size
-```
-
-#### Postfix Control
-
-Disable internal Postfix (useful when using external SMTP or in restricted environments):
-
-```yaml
-pgadmin:
-  disablePostfix: true  # Sets PGADMIN_DISABLE_POSTFIX=1
-```
-
-#### Server Definition Reloading
-
-Replace server definitions on every startup (not just first launch):
-
-```yaml
-pgadmin:
-  replaceServersOnStartup: true  # Sets PGADMIN_REPLACE_SERVERS_ON_STARTUP=True
-```
-
-This is useful for dynamic server definitions managed via ConfigMaps.
-
-#### Additional Configuration Variables
-
-Pass any pgAdmin configuration variable as environment variables:
-
-```yaml
-pgadmin:
-  config:
-    PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
-    PGADMIN_CONFIG_SESSION_COOKIE_NAME: "pgadmin4_session"
-    PGADMIN_CONFIG_CONSOLE_LOG_LEVEL: "10"
-    PGADMIN_CONFIG_SESSION_EXPIRATION_TIME: "604800"  # 7 days in seconds
-```
-
-See [pgAdmin Container Deployment](https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html) for all available configuration options.
-
-### Init Containers
-
-Use init containers to perform tasks before starting pgAdmin, such as waiting for a database or initializing configuration:
-
-```yaml
-initContainers:
-  - name: wait-for-db
-    image: busybox:latest
-    command: ['sh', '-c', 'until nslookup postgresql; do echo waiting for postgresql; sleep 2; done;']
-```
-
-### Additional Volumes and Mounts
-
-Add custom volumes and mounts for extensions, plugins, or custom configurations:
-
-```yaml
-extraVolumes:
-  - name: custom-plugins
-    configMap:
-      name: pgadmin-plugins
-  - name: custom-certs
-    secret:
-      secretName: pgadmin-certificates
-
-extraVolumeMounts:
-  - name: custom-plugins
-    mountPath: /var/lib/pgadmin/plugins
-  - name: custom-certs
-    mountPath: /certs
-    readOnly: true
-```
-
-### Sidecar Containers
-
-Add sidecar containers for logging, monitoring, or other auxiliary services:
-
-```yaml
-extraContainers:
-  - name: log-shipper
-    image: fluent/fluent-bit:latest
-    volumeMounts:
-      - name: pgadmin-data
-        mountPath: /var/lib/pgadmin
-        readOnly: true
-```
-
-### Horizontal Pod Autoscaling
-
-Enable HPA for automatic scaling based on resource usage:
-
-```yaml
-hpa:
-  enabled: true
-  minReplicas: 2
-  maxReplicas: 10
-  targetCPU: 80
-  targetMemory: 80
-```
-
-## Security
-
-### Pod Security Context
-
-The chart implements security best practices:
-
-- Runs as non-root user (UID 5050)
-- Drops all capabilities
-- Uses RuntimeDefault seccomp profile
-- Read-only root filesystem where possible
-
-### Network Policies
-
-When enabled, network policies restrict traffic:
-
-```yaml
-networkPolicy:
-  enabled: true
-  egress:
-    - to:
-      - namespaceSelector: {}
-      ports:
-      - protocol: TCP
-        port: 5432  # PostgreSQL only
-```
-
-### RBAC
-
-Service accounts and RBAC rules can be customized:
-
-```yaml
-serviceAccount:
-  create: true
-  annotations: {}
-
-rbac:
-  create: true
-  rules: []
-```
-
-## Ingress
-
-The chart supports standard Kubernetes ingress configuration for exposing pgAdmin externally:
-
-```yaml
-ingress:
-  enabled: true
-  className: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  hosts:
-    - host: pgadmin.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: pgadmin-tls
-      hosts:
-        - pgadmin.example.com
-```
-
-Alternatively, set `service.type` to `NodePort` or `LoadBalancer` when ingress is not available.
-
-## Monitoring with Prometheus
-
-Enable monitoring with Prometheus Operator:
-
-```yaml
-monitoring:
-  serviceMonitor:
-    enabled: true
-    interval: 30s
-    labels:
-      prometheus: kube-prometheus
-```
-
-## High Availability
-
-### Pod Disruption Budget
-
-```yaml
-pdb:
-  enabled: true
-  minAvailable: 1
-```
-
-### Multiple Replicas
-
-Note: pgAdmin uses SQLite for session storage by default, which doesn't support multiple replicas well. For HA deployments, consider:
-
-1. Using a single replica with PVC
-2. Implementing external session storage (requires custom configuration)
-
-## Upgrading
-
-### To New Chart Version
-
-```bash
-helm repo update
-helm upgrade my-pgadmin codefuturist/pgadmin
-```
-
-### With New Configuration
-
-```bash
-helm upgrade my-pgadmin codefuturist/pgadmin -f my-values.yaml
-```
-
-## Uninstalling
-
-```bash
-helm uninstall my-pgadmin
-
-# If persistence was enabled, manually delete PVC
-kubectl delete pvc my-pgadmin
-```
-
-## Troubleshooting
-
-### Connection Test
-
-Run Helm test to verify deployment:
-
-```bash
-helm test my-pgadmin
-```
-
-### Check Logs
-
-```bash
-kubectl logs -l app.kubernetes.io/name=pgadmin
-```
-
-### Access via Port Forward
-
-```bash
-kubectl port-forward svc/my-pgadmin 8080:80
-# Open http://localhost:8080
-```
-
-### Common Issues
-
-**Issue**: Can't log in  
-**Solution**: Verify password is set correctly, check pod logs for authentication errors
-
-**Issue**: PostgreSQL connection fails  
-**Solution**: Verify network policies allow egress to PostgreSQL port, check host/port configuration
-
-**Issue**: Data lost after restart  
-**Solution**: Enable persistence with `persistence.enabled=true`
-
-## Documentation
-
-- [Quick Start Guide](docs/QUICKSTART.md) - Detailed installation scenarios
-- [Examples](examples/) - Ready-to-use configuration files
-- [pgAdmin Official Documentation](https://www.pgadmin.org/docs/)
-
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](../../docs/CONTRIBUTING.md) for details.
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/codefuturist/helm-charts/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/codefuturist/helm-charts/discussions)
-
-## License
-
-This Helm chart is licensed under the Apache License 2.0. See [LICENSE](../../LICENSE) for details.
-
-pgAdmin 4 is licensed under [The PostgreSQL License](https://www.pgadmin.org/licence/).
+**Homepage:** <https://www.pgadmin.org/>
 
 ## Maintainers
 
-| Name | Email |
-| ---- | ------ |
-| codefuturist | <58808821+codefuturist@users.noreply.github.com> |
+| Name | Email | Url |
+| ---- | ------ | --- |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
 
 ## Source Code
 
-- **Chart Repository**: <https://github.com/codefuturist/helm-charts>
-- **pgAdmin Repository**: <https://github.com/pgadmin-org/pgadmin4>
+* <https://github.com/pgadmin-org/pgadmin4>
+* <https://github.com/codefuturist/helm-charts>
 
----
+## Values
 
-*Made with care for the PostgreSQL community*
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| additionalAnnotations | object | `{}` | Additional annotations to add to all resources |
+| additionalLabels | object | `{}` | Additional labels to add to all resources |
+| affinity | object | `{}` | Affinity for pod assignment |
+| controller.args | list | `[]` | Args override for the main container |
+| controller.command | list | `[]` | Command override for the main container |
+| controller.lifecycle | object | `{}` | Lifecycle hooks for the main container |
+| controller.podManagementPolicy | string | `"OrderedReady"` | Pod management policy (only used if controller.type is statefulset) |
+| controller.replicas | int | `1` | Number of pgAdmin replicas |
+| controller.strategy | object | `{"type":"Recreate"}` | Deployment update strategy |
+| controller.terminationGracePeriodSeconds | int | `30` | Termination grace period in seconds |
+| controller.type | string | `"deployment"` | Controller type (deployment or statefulset) |
+| controller.updateStrategy | object | `{"type":"RollingUpdate"}` | StatefulSet update strategy (only used if controller.type is statefulset) |
+| controller.workingDir | string | `""` | Working directory for the main container |
+| diagnosticMode.args | list | `["infinity"]` | Args override for diagnostic mode |
+| diagnosticMode.command | list | `["sleep"]` | Command override for diagnostic mode |
+| diagnosticMode.enabled | bool | `false` | Enable diagnostic mode (disables probes, overrides command) Useful for debugging container startup issues |
+| dnsConfig | object | `{}` | DNS config |
+| dnsPolicy | string | `"ClusterFirst"` | DNS policy |
+| extraContainers | list | `[]` | Extra sidecar containers |
+| extraEnv | list | `[]` | Extra environment variables |
+| extraEnvFrom | list | `[]` | Extra environment variables from ConfigMaps or Secrets |
+| extraVolumeMounts | list | `[]` | Extra volume mounts |
+| extraVolumes | list | `[]` | Extra volumes |
+| fullnameOverride | string | `""` | Override the full name of the chart |
+| hostAliases | list | `[]` | Host aliases |
+| hpa | object | `{"customMetrics":[],"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80,"targetMemoryUtilizationPercentage":80}` | Horizontal Pod Autoscaler configuration Note: HPA is generally not recommended for pgAdmin as it's typically single-instance |
+| hpa.customMetrics | list | `[]` | Custom metrics for autoscaling |
+| hpa.enabled | bool | `false` | Enable HorizontalPodAutoscaler |
+| hpa.maxReplicas | int | `3` | Maximum number of replicas |
+| hpa.minReplicas | int | `1` | Minimum number of replicas |
+| hpa.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization percentage |
+| hpa.targetMemoryUtilizationPercentage | int | `80` | Target memory utilization percentage |
+| image.digest | string | `""` | Image digest (overrides tag if set) |
+| image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
+| image.repository | string | `"dpage/pgadmin4"` | pgAdmin 4 Docker image repository |
+| image.tag | string | Chart appVersion | pgAdmin 4 Docker image tag |
+| imagePullSecrets | list | `[]` | Image pull secrets for private registries |
+| ingress.annotations | object | `{}` | Ingress annotations Example for nginx ingress: annotations:   cert-manager.io/cluster-issuer: "letsencrypt-prod"   nginx.ingress.kubernetes.io/backend-protocol: "HTTP" |
+| ingress.className | string | `""` | Ingress class name |
+| ingress.enabled | bool | `false` | Enable ingress |
+| ingress.hosts | list | `[]` | Ingress hosts configuration Example: hosts:   - host: pgadmin.example.com     paths:       - path: /         pathType: Prefix |
+| ingress.tls | list | `[]` | Ingress TLS configuration Example: tls:   - secretName: pgadmin-tls     hosts:       - pgadmin.example.com |
+| initContainers | list | `[]` | Init containers to run before the main container |
+| livenessProbe | object | `{"enabled":true,"failureThreshold":6,"httpGet":{"path":"/misc/ping","port":"http"},"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Liveness probe configuration |
+| monitoring.prometheusRule.enabled | bool | `false` | Enable PrometheusRule for alerting |
+| monitoring.prometheusRule.labels | object | `{}` | Additional labels for the PrometheusRule |
+| monitoring.prometheusRule.namespace | string | `""` | Namespace for the PrometheusRule (defaults to the release namespace) |
+| monitoring.prometheusRule.rules | list | `[]` | Alert rules |
+| monitoring.serviceMonitor.annotations | object | `{}` | Additional annotations for the ServiceMonitor |
+| monitoring.serviceMonitor.enabled | bool | `false` | Enable ServiceMonitor for Prometheus Operator |
+| monitoring.serviceMonitor.interval | string | `"30s"` | Interval at which metrics should be scraped |
+| monitoring.serviceMonitor.labels | object | `{}` | Additional labels for the ServiceMonitor |
+| monitoring.serviceMonitor.metricRelabelings | list | `[]` | Metric relabelings |
+| monitoring.serviceMonitor.namespace | string | `""` | Namespace for the ServiceMonitor (defaults to the release namespace) |
+| monitoring.serviceMonitor.relabelings | list | `[]` | Relabelings |
+| monitoring.serviceMonitor.scrapeTimeout | string | `"10s"` | Timeout for scraping metrics |
+| nameOverride | string | `""` | Override the name of the chart |
+| namespaceOverride | string | `.Release.Namespace` | Override the namespace for all resources |
+| networkPolicy.egress | list | `[{"ports":[{"port":5432,"protocol":"TCP"}],"to":[{"namespaceSelector":{}}]},{"ports":[{"port":53,"protocol":"UDP"}],"to":[{"namespaceSelector":{}}]}]` | Egress rules By default, allow egress to PostgreSQL port |
+| networkPolicy.enabled | bool | `false` | Enable network policy |
+| networkPolicy.ingress | list | `[]` | Ingress rules Example to allow traffic from specific namespaces: ingress:   - from:     - namespaceSelector:         matchLabels:           name: ingress-nginx     ports:     - protocol: TCP       port: 80 |
+| networkPolicy.policyTypes | list | `["Ingress","Egress"]` | Policy types |
+| nodeSelector | object | `{}` | Node selector for pod assignment |
+| pdb.enabled | bool | `false` | Enable PodDisruptionBudget |
+| pdb.maxUnavailable | string | `""` | Maximum number of pods that can be unavailable |
+| pdb.minAvailable | int | `1` | Minimum number of pods that must be available |
+| persistence.accessMode | string | `"ReadWriteOnce"` | Access mode for the persistent volume |
+| persistence.annotations | object | `{}` | Annotations for the PVC |
+| persistence.enabled | bool | `false` | Enable persistent storage for pgAdmin data Data includes user preferences, sessions, and saved queries |
+| persistence.existingClaim | string | `""` | Name of an existing PVC to use |
+| persistence.size | string | `"1Gi"` | Size of the persistent volume |
+| persistence.storageClassName | string | Default storage class | Storage class name |
+| pgadmin.config | object | `{"PGADMIN_CONFIG_CONSOLE_LOG_LEVEL":"10","PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION":"True","PGADMIN_CONFIG_SESSION_COOKIE_NAME":"pgadmin4_session","PGADMIN_LISTEN_PORT":"80"}` | pgAdmin configuration settings as environment variables See https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html |
+| pgadmin.configLocal | string | `""` | Custom config_local.py content for advanced pgAdmin configuration This Python file is loaded after config.py and can override any settings Example: configLocal: |   MASTER_PASSWORD_REQUIRED = False   SESSION_EXPIRATION_TIME = 1   ENHANCED_COOKIE_PROTECTION = True |
+| pgadmin.disablePostfix | bool | `false` | Disable internal Postfix server (set to any value to disable) Useful when using external SMTP server or in environments that prevent sudo |
+| pgadmin.email | string | `"admin@example.com"` | Default pgAdmin login email address (required if existingSecret is not set) |
+| pgadmin.existingConfigLocalConfigMap | string | `""` | Name of an existing ConfigMap containing config_local.py |
+| pgadmin.existingPgpassSecret | string | `""` | Name of an existing Secret containing pgpass file The secret must contain a key 'pgpass' with the pgpass file content |
+| pgadmin.existingSecret | string | `""` | Name of an existing secret containing pgAdmin credentials The secret must contain keys for email and password (see existingSecretEmailKey and existingSecretPasswordKey) |
+| pgadmin.existingSecretEmailKey | string | `"email"` | Key in existingSecret that contains the email address |
+| pgadmin.existingSecretPasswordKey | string | `"password"` | Key in existingSecret that contains the password |
+| pgadmin.existingServerDefinitionsConfigMap | string | `""` | Name of an existing ConfigMap containing server definitions (servers.json) If set, this takes precedence over serverDefinitions |
+| pgadmin.gunicorn | object | `{"accessLogfile":"-","limitRequestLine":8190,"threads":25}` | Gunicorn configuration |
+| pgadmin.gunicorn.accessLogfile | string | `"-"` | Access log file path (- for stdout, empty to disable) |
+| pgadmin.gunicorn.limitRequestLine | int | `8190` | Maximum size of HTTP request line in bytes (0 for unlimited, not recommended) |
+| pgadmin.gunicorn.threads | int | `25` | Number of threads per Gunicorn worker |
+| pgadmin.ldap | object | `{"bindDN":"","bindPassword":"","enabled":false,"groupBaseDN":"","server":"","userBaseDN":""}` | LDAP/OAuth integration configuration |
+| pgadmin.ldap.bindDN | string | `""` | LDAP bind DN |
+| pgadmin.ldap.bindPassword | string | `""` | LDAP bind password |
+| pgadmin.ldap.enabled | bool | `false` | Enable LDAP authentication |
+| pgadmin.ldap.groupBaseDN | string | `""` | LDAP group base DN |
+| pgadmin.ldap.server | string | `""` | LDAP server URI |
+| pgadmin.ldap.userBaseDN | string | `""` | LDAP user base DN |
+| pgadmin.password | string | (must be set or use existingSecret) | Default pgAdmin login password (required if existingSecret is not set) |
+| pgadmin.pgpassFile | string | `""` | pgpass file content for automatic PostgreSQL authentication Format: hostname:port:database:username:password (one entry per line) Example: pgpassFile: |   postgresql.default.svc.cluster.local:5432:*:postgres:password123   postgresql-prod.database.svc:5432:production:dbuser:secret |
+| pgadmin.replaceServersOnStartup | bool | `false` | Replace server definitions on every startup (not just first launch) When true, server definitions from serverDefinitions or existingServerDefinitionsConfigMap are reloaded on each start |
+| pgadmin.scriptName | string | `""` | Script name for reverse proxy subdirectory hosting Set this when hosting pgAdmin under a subdirectory (e.g., /pgadmin4) This sets the SCRIPT_NAME environment variable |
+| pgadmin.serverDefinitions | object | `{}` | Pre-configured PostgreSQL server definitions This will create a servers.json file mounted into pgAdmin Example: serverDefinitions:   servers:     1:       Name: "Production PostgreSQL"       Group: "Production"       Host: "postgresql.default.svc.cluster.local"       Port: 5432       MaintenanceDB: "postgres"       Username: "postgres"       SSLMode: "prefer" |
+| pgadmin.smtp | object | `{"enabled":false,"existingSecret":"","existingSecretPasswordKey":"smtp-password","existingSecretUsernameKey":"smtp-username","fromAddress":"pgadmin@example.com","password":"","port":587,"server":"","useSSL":false,"useTLS":true,"username":""}` | SMTP/Email configuration for notifications and user management |
+| pgadmin.smtp.enabled | bool | `false` | Enable SMTP configuration |
+| pgadmin.smtp.existingSecret | string | `""` | Name of existing secret containing SMTP credentials |
+| pgadmin.smtp.existingSecretPasswordKey | string | `"smtp-password"` | Key in existingSecret for SMTP password |
+| pgadmin.smtp.existingSecretUsernameKey | string | `"smtp-username"` | Key in existingSecret for SMTP username |
+| pgadmin.smtp.fromAddress | string | `"pgadmin@example.com"` | Email sender address |
+| pgadmin.smtp.password | string | `""` | SMTP password |
+| pgadmin.smtp.port | int | `587` | SMTP server port |
+| pgadmin.smtp.server | string | `""` | SMTP server host |
+| pgadmin.smtp.useSSL | bool | `false` | Use SSL for SMTP |
+| pgadmin.smtp.useTLS | bool | `true` | Use TLS for SMTP |
+| pgadmin.smtp.username | string | `""` | SMTP username |
+| podAnnotations | object | `{}` | Pod annotations |
+| podLabels | object | `{}` | Pod labels |
+| podSecurityContext | object | `{"fsGroup":5050,"fsGroupChangePolicy":"OnRootMismatch","runAsNonRoot":true,"runAsUser":5050,"seccompProfile":{"type":"RuntimeDefault"}}` | Pod security context pgAdmin runs as user 5050 by default |
+| priorityClassName | string | `""` | Priority class name for the pod |
+| rbac.create | bool | `true` | Create RBAC resources |
+| rbac.rules | list | `[]` | Additional RBAC rules |
+| readinessProbe | object | `{"enabled":true,"failureThreshold":3,"httpGet":{"path":"/misc/ping","port":"http"},"initialDelaySeconds":15,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Readiness probe configuration |
+| resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource limits and requests |
+| runtimeClassName | string | `""` | Runtime class name |
+| securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsNonRoot":true,"runAsUser":5050}` | Container security context |
+| service.annotations | object | `{}` | Service annotations |
+| service.clusterIP | string | `""` | Cluster IP (set to None for headless service) |
+| service.externalTrafficPolicy | string | `""` | External traffic policy (only used if type is LoadBalancer or NodePort) |
+| service.labels | object | `{}` | Service labels |
+| service.loadBalancerIP | string | `""` | Load balancer IP (only used if type is LoadBalancer) |
+| service.loadBalancerSourceRanges | list | `[]` | Load balancer source ranges (only used if type is LoadBalancer) |
+| service.nodePort | string | `""` | Node port (only used if type is NodePort) |
+| service.port | int | `80` | Service port |
+| service.sessionAffinity | string | `"None"` | Session affinity |
+| service.sessionAffinityConfig | object | `{}` | Session affinity config |
+| service.targetPort | int | `80` | Service target port (container port) |
+| service.type | string | `"ClusterIP"` | Service type |
+| serviceAccount.annotations | object | `{}` | Service account annotations |
+| serviceAccount.create | bool | `true` | Create a service account |
+| serviceAccount.name | string | `""` | Service account name (generated if not set and create is true) |
+| startupProbe | object | `{"enabled":true,"failureThreshold":30,"httpGet":{"path":"/misc/ping","port":"http"},"initialDelaySeconds":10,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Startup probe configuration |
+| tolerations | list | `[]` | Tolerations for pod assignment |
+| topologySpreadConstraints | list | `[]` | Topology spread constraints for pod distribution |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

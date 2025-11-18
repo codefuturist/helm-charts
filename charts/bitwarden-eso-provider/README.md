@@ -1,428 +1,125 @@
-# Bitwarden ESO Provider Helm Chart
+# bitwarden-eso-provider
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
 
-## Introduction
+A Bitwarden webhook provider for External Secrets Operator that works with personal/organizational vaults using the Bitwarden CLI
 
-This chart bootstraps a Bitwarden webhook provider for [External Secrets Operator](https://external-secrets.io/) on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
-
-The Bitwarden ESO Provider enables integration with personal and organizational Bitwarden vaults using the **Bitwarden CLI**. This is a **free alternative** to Bitwarden Secrets Manager.
-
-## Features
-
-### Why CLI-based?
-
-- **Full Vault Access**: Works with personal and organizational vaults
-- **No Subscription Required**: Works with free Bitwarden accounts
-- **Industry Standard**: Same approach used by Raycast and other popular tools
-- **Battle-tested**: Bitwarden CLI is mature and widely used
-- **Lightweight**: 295MB image size
-
-### Key Features
-
-- **Free Solution**: Works with personal/organizational Bitwarden vaults (no paid Secrets Manager needed)
-- **Kubernetes-native**: Integrates seamlessly with External Secrets Operator
-- **Secure**: API key or password authentication, encrypted sessions
-- **Performant**: Built-in caching with configurable TTL, efficient session management
-- **Production-ready**: Health checks, metrics, logging, and auto-retry
-- **Self-hosted Compatible**: Works with self-hosted Bitwarden/Vaultwarden instances
-
-## Architecture
-
-```text
-┌─────────────────┐
-│  Your App Pod   │
-│   ┌─────────┐   │
-│   │  App    │   │◄──── Reads from
-│   └─────────┘   │
-└────────┬────────┘
-         │ mounts
-         ▼
-┌─────────────────┐
-│ Kubernetes      │
-│ Secret          │◄──── Synced by
-└────────┬────────┘
-         │
-         ▼
-┌──────────────────────┐
-│ ExternalSecret (CRD) │
-└──────────┬───────────┘
-           │ webhook call
-           ▼
-┌──────────────────────┐
-│ Bitwarden ESO        │
-│ Provider (this)      │◄──── Uses
-└──────────┬───────────┘
-           │ bw CLI
-           ▼
-┌──────────────────────┐
-│ Bitwarden Vault      │
-│ (cloud/self-hosted)  │
-└──────────────────────┘
-```
-
-## Prerequisites
-
-1. **Kubernetes cluster** (1.19+)
-2. **External Secrets Operator** installed ([installation guide](https://external-secrets.io/latest/introduction/getting-started/))
-3. **Bitwarden account** (free or paid)
-4. **API credentials** from Bitwarden
-
-### Get Bitwarden API Credentials
-
-#### Method 1: API Key (Recommended)
-
-1. Log in to your Bitwarden web vault
-2. Go to **Settings** → **Security** → **Keys**
-3. Under "API Key", view your `client_id` and `client_secret`
-4. Save these securely
-
-#### Method 2: Master Password (Less Secure)
-
-Use your Bitwarden email and master password. **Not recommended for production.**
-
-## Installation
-
-### Quick Start
-
-```bash
-# Add the helm repository
-helm repo add codefuturist https://codefuturist.github.io/helm-charts
-helm repo update
-
-# Create namespace
-kubectl create namespace bitwarden-eso-provider
-
-# Create secret with Bitwarden credentials (API Key method)
-kubectl create secret generic bitwarden-credentials \
-  --namespace bitwarden-eso-provider \
-  --from-literal=clientId='your-client-id' \
-  --from-literal=clientSecret='your-client-secret'
-
-# Install the chart
-helm install bitwarden-eso-provider codefuturist/bitwarden-eso-provider \
-  --namespace bitwarden-eso-provider \
-  --set bitwarden.auth.useApiKey=true \
-  --set bitwarden.auth.existingSecret.name=bitwarden-credentials \
-  --set externalSecretsOperator.createClusterSecretStore=true
-```
-
-### Configuration
-
-See [values.yaml](values.yaml) for all configuration options.
-
-#### Essential Configuration
-
-```yaml
-# values.yaml
-bitwarden:
-  # Bitwarden server (use your self-hosted URL if applicable)
-  server: "https://vault.bitwarden.com"
-
-  # Authentication
-  auth:
-    useApiKey: true  # or usePassword: true
-    existingSecret:
-      name: "bitwarden-credentials"
-      clientIdKey: "clientId"
-      clientSecretKey: "clientSecret"
-
-# External Secrets Operator integration
-externalSecretsOperator:
-  createClusterSecretStore: true
-  secretStore:
-    name: "bitwarden"
-```
-
-#### Self-Hosted Bitwarden/Vaultwarden
-
-```yaml
-bitwarden:
-  server: "https://vault.example.com"
-```
-
-## Usage
-
-### 1. Create an ExternalSecret
-
-```yaml
-apiVersion: external-secrets.io/v1beta1
-kind: ExternalSecret
-metadata:
-  name: my-app-secrets
-spec:
-  refreshInterval: 5m
-  secretStoreRef:
-    name: bitwarden
-    kind: ClusterSecretStore
-  target:
-    name: my-app-secrets
-    creationPolicy: Owner
-  data:
-    # Fetch password field
-    - secretKey: db-password
-      remoteRef:
-        key: "database-credentials"  # Bitwarden item name or UUID
-        property: "password"
-
-    # Fetch username field
-    - secretKey: db-username
-      remoteRef:
-        key: "database-credentials"
-        property: "username"
-
-    # Fetch custom field
-    - secretKey: api-token
-      remoteRef:
-        key: "api-credentials"
-        property: "field:API_TOKEN"
-```
-
-### 2. Use the Secret in Your Pod
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: my-app
-spec:
-  containers:
-  - name: app
-    image: myapp:latest
-    envFrom:
-    - secretRef:
-        name: my-app-secrets
-```
-
-## Supported Field Types
-
-| Property Value | Description | Example |
-|----------------|-------------|---------|
-| `password` | Login password | `property: "password"` |
-| `username` | Login username | `property: "username"` |
-| `totp` | TOTP secret | `property: "totp"` |
-| `uri` | First URI | `property: "uri"` |
-| `notes` | Secure notes | `property: "notes"` |
-| `field:<name>` | Custom field | `property: "field:API_KEY"` |
-
-## Integration with Your Helm Charts
-
-Use this with your existing charts (like `homarr`):
-
-```yaml
-# charts/homarr/values.yaml
-externalSecret:
-  enabled: true
-  secretStore:
-    name: bitwarden
-    kind: ClusterSecretStore
-  refreshInterval: "5m"
-  files:
-    main:
-      data:
-        SECRET_ENCRYPTION_KEY:
-          remoteRef:
-            key: "homarr-config"
-            property: "field:encryption_key"
-        DB_PASSWORD:
-          remoteRef:
-            key: "homarr-database"
-            property: "password"
-```
-
-## Security Best Practices
-
-### 1. Use API Keys
-
-Prefer API key authentication over master password.
-
-### 2. Rotate Credentials
-
-```bash
-# Update credentials
-kubectl create secret generic bitwarden-credentials \
-  --namespace bitwarden-eso-provider \
-  --from-literal=clientId='new-client-id' \
-  --from-literal=clientSecret='new-client-secret' \
-  --dry-run=client -o yaml | kubectl apply -f -
-
-# Restart provider
-kubectl rollout restart deployment/bitwarden-eso-provider -n bitwarden-eso-provider
-```
-
-### 3. Enable Network Policies
-
-```yaml
-networkPolicy:
-  enabled: true
-```
-
-### 4. Use RBAC
-
-Restrict which namespaces can access the ClusterSecretStore:
-
-```yaml
-externalSecretsOperator:
-  namespaced: true  # Create per-namespace SecretStores instead
-```
-
-## Monitoring
-
-### Prometheus Metrics
-
-```yaml
-metrics:
-  enabled: true
-  serviceMonitor:
-    enabled: true
-```
-
-Metrics exposed at `/metrics`:
-- Request counts
-- Latency
-- Cache hit rate
-- Session health
-
-### Health Checks
-
-- **Liveness**: `GET /healthz`
-- **Readiness**: `GET /readyz`
-
-## Troubleshooting
-
-### Check Provider Logs
-
-```bash
-kubectl logs -n bitwarden-eso-provider -l app.kubernetes.io/name=bitwarden-eso-provider
-```
-
-### Check ExternalSecret Status
-
-```bash
-kubectl describe externalsecret my-app-secrets
-```
-
-### Test Webhook Manually
-
-```bash
-# Port-forward to provider
-kubectl port-forward -n bitwarden-eso-provider svc/bitwarden-eso-provider 8080:8080
-
-# Get API token
-API_TOKEN=$(kubectl get secret -n bitwarden-eso-provider bitwarden-eso-provider-api-token -o jsonpath='{.data.token}' | base64 -d)
-
-# Test request
-curl -X POST http://localhost:8080/api/v1/secret \
-  -H "Authorization: Bearer $API_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"itemId": "your-item-name", "field": "password"}'
-```
-
-### Common Issues
-
-#### "Session expired" errors
-
-Increase session TTL:
-
-```yaml
-bitwarden:
-  sessionTTL: 7200  # 2 hours
-```
-
-#### "Field not found" errors
-
-Check the field name in Bitwarden vault. Use `field:FieldName` for custom fields.
-
-#### Rate limiting
-
-Adjust sync interval:
-
-```yaml
-bitwarden:
-  syncInterval: 600  # 10 minutes
-```
-
-## Performance Tuning
-
-### Caching
-
-```yaml
-cache:
-  enabled: true
-  ttl: 60  # seconds
-  maxSize: 1000  # items
-```
-
-### Scaling
-
-```yaml
-replicaCount: 3
-
-affinity:
-  podAntiAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 100
-      podAffinityTerm:
-        labelSelector:
-          matchExpressions:
-          - key: app.kubernetes.io/name
-            operator: In
-            values:
-            - bitwarden-eso-provider
-        topologyKey: kubernetes.io/hostname
-```
-
-## Development
-
-### Build Docker Image
-
-```bash
-cd charts/bitwarden-eso-provider
-docker build -t ghcr.io/codefuturist/bitwarden-eso-provider:latest .
-```
-
-### Run Locally
-
-```bash
-export BW_CLIENTID="your-client-id"
-export BW_CLIENTSECRET="your-client-secret"
-export API_TOKEN="test-token"
-export BW_AUTH_METHOD="apikey"
-
-cd app
-pip install -r requirements.txt
-python app.py
-```
-
-## Contributing
-
-Contributions welcome! Please see [CONTRIBUTING.md](../../docs/CONTRIBUTING.md).
-
-## Support
-
-For bug reports, feature requests, and general questions:
-
-- **GitHub Issues**: [Report a bug or request a feature](https://github.com/codefuturist/helm-charts/issues)
-- **GitHub Discussions**: [Ask questions and discuss ideas](https://github.com/codefuturist/helm-charts/discussions)
-
-## License
-
-This Helm chart is licensed under the [Apache License 2.0](../../LICENSE).
+**Homepage:** <https://github.com/codefuturist/helm-charts>
 
 ## Maintainers
 
-| Name | Email | GitHub |
-|------|-------|--------|
-| codefuturist | - | [@codefuturist](https://github.com/codefuturist) |
+| Name | Email | Url |
+| ---- | ------ | --- |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
 
 ## Source Code
 
-- **Chart Repository**: <https://github.com/codefuturist/helm-charts/tree/main/charts/bitwarden-eso-provider>
-- **Application Repository**: <https://github.com/codefuturist/helm-charts/tree/main/apps/bitwarden-eso-provider-app>
+* <https://github.com/codefuturist/helm-charts>
+* <https://github.com/codefuturist/helm-charts/tree/main/apps/bitwarden-eso-provider-app>
 
-## Acknowledgments
+## Values
 
-- [External Secrets Operator](https://external-secrets.io/)
-- [Bitwarden](https://bitwarden.com/)
-- [Bitwarden CLI](https://bitwarden.com/help/cli/)
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| affinity | object | `{"podAntiAffinity":{"preferredDuringSchedulingIgnoredDuringExecution":[{"podAffinityTerm":{"labelSelector":{"matchExpressions":[{"key":"app.kubernetes.io/name","operator":"In","values":["bitwarden-eso-provider"]}]},"topologyKey":"kubernetes.io/hostname"},"weight":100}]}}` | Affinity rules |
+| api.existingSecret.key | string | `"token"` | Key in secret containing API token |
+| api.existingSecret.name | string | `""` | Name of existing secret with API token |
+| api.port | int | `8080` | API server port |
+| api.token | string | `""` | API token for webhook authentication If empty, a random token will be generated |
+| api.tokenFile.enabled | bool | `false` | Enable reading token from file |
+| api.tokenFile.path | string | `"/etc/secrets/api-token"` | Path to token file (will be mounted at /etc/secrets/api-token) |
+| api.tokenFile.secretKey | string | `"token"` | Key in secret containing the token |
+| api.tokenFile.secretName | string | `""` | Name of secret containing the token file |
+| autoscaling.behavior | object | `{}` | HPA scaling behavior |
+| autoscaling.enabled | bool | `false` | Enable HorizontalPodAutoscaler |
+| autoscaling.maxReplicas | int | `10` | Maximum replicas |
+| autoscaling.minReplicas | int | `2` | Minimum replicas |
+| autoscaling.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization percentage |
+| autoscaling.targetMemoryUtilizationPercentage | int | `nil` | Target memory utilization percentage |
+| bitwarden.auth.credentials.clientId | string | `""` | Bitwarden client ID (API key auth) |
+| bitwarden.auth.credentials.clientSecret | string | `""` | Bitwarden client secret (API key auth) |
+| bitwarden.auth.credentials.email | string | `""` | Bitwarden email (password auth) |
+| bitwarden.auth.credentials.password | string | `""` | Bitwarden master password (password auth) |
+| bitwarden.auth.existingSecret.clientIdKey | string | `"clientId"` | Key in secret containing client ID (for API key auth) |
+| bitwarden.auth.existingSecret.clientSecretKey | string | `"clientSecret"` | Key in secret containing client secret (for API key auth) |
+| bitwarden.auth.existingSecret.emailKey | string | `"email"` | Key in secret containing email (for password auth) |
+| bitwarden.auth.existingSecret.name | string | `""` | Name of existing secret with Bitwarden credentials |
+| bitwarden.auth.existingSecret.passwordKey | string | `"password"` | Key in secret containing master password (for password auth) |
+| bitwarden.auth.useApiKey | bool | `true` | Use API key authentication (recommended) |
+| bitwarden.auth.usePassword | bool | `false` | Use password authentication (less secure, for testing) |
+| bitwarden.server | string | `https://vault.bitwarden.com` | Bitwarden server URL |
+| bitwarden.sessionTTL | int | `3600` | Session TTL in seconds |
+| bitwarden.syncInterval | int | `300` | Vault sync interval in seconds |
+| cache.enabled | bool | `true` | Enable secret caching |
+| cache.maxSize | int | `1000` | Maximum cache size (number of items) |
+| cache.ttl | int | `60` | Cache TTL in seconds |
+| externalSecretsOperator.createClusterSecretStore | bool | `true` | Create ClusterSecretStore resource |
+| externalSecretsOperator.namespaced | bool | `false` | Create namespaced SecretStore (if false, creates ClusterSecretStore) |
+| externalSecretsOperator.secretStore.annotations | object | `{}` | Additional annotations |
+| externalSecretsOperator.secretStore.labels | object | `{}` | Additional labels |
+| externalSecretsOperator.secretStore.name | string | `"bitwarden"` | SecretStore/ClusterSecretStore name |
+| fullnameOverride | string | `""` | Override full release name |
+| image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
+| image.repository | string | `"ghcr.io/codefuturist/bitwarden-eso-provider"` | Container image repository |
+| image.tag | string | `"1.0.0"` | Image tag (defaults to chart appVersion) |
+| imagePullSecrets | list | `[]` | Image pull secrets |
+| livenessProbe.httpGet.path | string | `"/healthz"` |  |
+| livenessProbe.httpGet.port | string | `"http"` |  |
+| livenessProbe.initialDelaySeconds | int | `10` |  |
+| livenessProbe.periodSeconds | int | `30` |  |
+| livenessProbe.timeoutSeconds | int | `5` |  |
+| logging.format | string | `"json"` | Log format (json, text) |
+| logging.level | string | `"info"` | Log level (debug, info, warning, error) |
+| metrics.enabled | bool | `false` | Enable Prometheus metrics endpoint |
+| metrics.serviceMonitor.annotations | object | `{}` | ServiceMonitor annotations |
+| metrics.serviceMonitor.enabled | bool | `false` | Create ServiceMonitor resource (requires Prometheus Operator) |
+| metrics.serviceMonitor.interval | string | `"30s"` | Scrape interval |
+| metrics.serviceMonitor.labels | object | `{}` | Additional ServiceMonitor labels |
+| metrics.serviceMonitor.metricRelabelings | list | `[]` | Metric relabelings for ServiceMonitor |
+| metrics.serviceMonitor.relabelings | list | `[]` | Relabelings for ServiceMonitor |
+| metrics.serviceMonitor.scrapeTimeout | string | `nil` | Scrape timeout |
+| nameOverride | string | `""` | Override release name |
+| networkPolicy.egress | list | `[{"ports":[{"port":443,"protocol":"TCP"}],"to":[{"namespaceSelector":{}}]},{"ports":[{"port":53,"protocol":"TCP"},{"port":53,"protocol":"UDP"}],"to":[{"namespaceSelector":{}}]}]` | Egress rules (allow Bitwarden API) |
+| networkPolicy.enabled | bool | `false` | Enable network policy |
+| networkPolicy.ingress | list | `[{"from":[{"namespaceSelector":{}}]}]` | Ingress rules |
+| nodeSelector | object | `{}` | Node selector |
+| podAnnotations | object | `{}` |  |
+| podDisruptionBudget.enabled | bool | `false` | Enable PodDisruptionBudget |
+| podDisruptionBudget.maxUnavailable | int | `nil` | Maximum unavailable pods (use this OR minAvailable) |
+| podDisruptionBudget.minAvailable | int | `1` | Minimum available pods (use this OR maxUnavailable) |
+| podDisruptionBudget.unhealthyPodEvictionPolicy | string | `nil` | Unhealthy pod eviction policy (IfHealthyBudget, AlwaysAllow) |
+| podSecurityContext.fsGroup | int | `1000` |  |
+| podSecurityContext.runAsNonRoot | bool | `true` |  |
+| podSecurityContext.runAsUser | int | `1000` |  |
+| podSecurityContext.seccompProfile.type | string | `"RuntimeDefault"` |  |
+| priorityClassName | string | `""` | Priority class name for pod scheduling |
+| readinessProbe.httpGet.path | string | `"/readyz"` |  |
+| readinessProbe.httpGet.port | string | `"http"` |  |
+| readinessProbe.initialDelaySeconds | int | `5` |  |
+| readinessProbe.periodSeconds | int | `10` |  |
+| readinessProbe.timeoutSeconds | int | `5` |  |
+| replicaCount | int | `2` |  |
+| resources.limits.cpu | string | `"200m"` |  |
+| resources.limits.memory | string | `"256Mi"` |  |
+| resources.requests.cpu | string | `"100m"` |  |
+| resources.requests.memory | string | `"128Mi"` |  |
+| securityContext.allowPrivilegeEscalation | bool | `false` |  |
+| securityContext.capabilities.drop[0] | string | `"ALL"` |  |
+| securityContext.readOnlyRootFilesystem | bool | `true` |  |
+| service.annotations | object | `{}` | Service annotations |
+| service.port | int | `8080` | Service port |
+| service.type | string | `"ClusterIP"` | Service type |
+| serviceAccount.annotations | object | `{}` | Service account annotations |
+| serviceAccount.create | bool | `true` | Create service account |
+| serviceAccount.name | string | `""` | Service account name |
+| startupProbe.failureThreshold | int | `30` |  |
+| startupProbe.httpGet.path | string | `"/healthz"` |  |
+| startupProbe.httpGet.port | string | `"http"` |  |
+| startupProbe.initialDelaySeconds | int | `0` |  |
+| startupProbe.periodSeconds | int | `5` |  |
+| startupProbe.timeoutSeconds | int | `3` |  |
+| tolerations | list | `[]` | Tolerations |
+| topologySpreadConstraints | list | `[]` | Topology spread constraints for better pod distribution |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

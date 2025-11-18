@@ -1,457 +1,368 @@
-# Homarr Helm Chart
+# homarr
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
-![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
-## Introduction
+A Helm chart for Homarr - A simple, yet powerful dashboard for your server
 
-This chart bootstraps a [Homarr](https://homarr.dev) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
-
-Homarr is a sleek, modern dashboard that brings all of your services together in one place. It integrates with the services you use to display useful information or control them.
-
-## Features
-
-- **Quick Setup**: Get started in minutes
-- **Service Integration**: Connect to your favorite services
-- **Customizable Layout**: Arrange widgets and tiles to your liking
-- **Search Functionality**: Quickly find what you need
-- **Mobile Responsive**: Works seamlessly on mobile devices
-- **Dark Mode**: Built-in dark theme support
-- **Authentication**: Secure access with user management
-- **Docker Widgets**: Monitor Docker containers
-- **System Monitoring**: Keep track of system resources
-
-## Quick Start
-
-To deploy Homarr using this Helm chart, follow these steps:
-
-```console
-$ helm repo add codefuturist https://codefuturist.github.io/helm-charts
-$ helm repo update
-$ helm install homarr codefuturist/homarr
-```
-
-This will deploy Homarr with the default configuration. See the [Configuration](#configuration) section for details on customizing the deployment.
-
-> **Tip**: List all releases using `helm list`
-
-## Uninstalling the Chart
-
-To uninstall/delete the `homarr` deployment:
-
-```console
-$ helm delete homarr
-```
-
-The command removes all the Kubernetes components associated with the chart and deletes the release.
-
-## Prerequisites
-
-- Kubernetes 1.19+
-- Helm 3.2.0+
-- PersistentVolume support (optional, for data persistence)
-
-## Configuration
-
-The following table lists the configurable parameters of the Homarr chart and their default values.
-
-See [values.yaml](values.yaml) for the full list of parameters.
-
-### Basic Configuration Example
-
-```yaml
-deployment:
-  image:
-    repository: ghcr.io/homarr-labs/homarr
-    tag: "latest"
-  env:
-    SECRET_ENCRYPTION_KEY:
-      value: "YOUR_64_CHAR_HEX_STRING_HERE"
-    LOG_LEVEL:
-      value: "info"
-    DB_DRIVER:
-      value: "better-sqlite3"
-    DB_DIALECT:
-      value: "sqlite"
-    DB_URL:
-      value: "/appdata/db/db.sqlite"
-
-persistence:
-  enabled: true
-  storageSize: 2Gi
-
-ingress:
-  enabled: true
-  ingressClassName: nginx
-  hosts:
-    - host: homarr.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: homarr-tls
-      hosts:
-        - homarr.example.com
-```
-
-### Advanced Configuration Example
-
-```yaml
-deployment:
-  image:
-    repository: ghcr.io/homarr-labs/homarr
-    tag: "latest"
-  replicas: 2
-  env:
-    # Security (REQUIRED)
-    SECRET_ENCRYPTION_KEY:
-      valueFrom:
-        secretKeyRef:
-          name: homarr-secret
-          key: encryption-key
-    # General
-    LOG_LEVEL:
-      value: "info"
-    PUID:
-      value: "1000"
-    PGID:
-      value: "1000"
-    # Docker Integration
-    DOCKER_HOSTNAMES:
-      value: "localhost"
-    DOCKER_PORTS:
-      value: "2375"
-    # Database (MySQL example)
-    DB_DRIVER:
-      value: "mysql2"
-    DB_DIALECT:
-      value: "mysql"
-    DB_HOST:
-      value: "mysql.database.svc.cluster.local"
-    DB_PORT:
-      value: "3306"
-    DB_NAME:
-      value: "homarr"
-    DB_USER:
-      valueFrom:
-        secretKeyRef:
-          name: homarr-db-secret
-          key: username
-    DB_PASSWORD:
-      valueFrom:
-        secretKeyRef:
-          name: homarr-db-secret
-          key: password
-    # External Redis
-    REDIS_IS_EXTERNAL:
-      value: "true"
-    REDIS_HOST:
-      value: "redis.cache.svc.cluster.local"
-    REDIS_PORT:
-      value: "6379"
-    REDIS_PASSWORD:
-      valueFrom:
-        secretKeyRef:
-          name: homarr-redis-secret
-          key: password
-  # Docker socket integration
-  volumes:
-    docker-socket:
-      hostPath:
-        path: /var/run/docker.sock
-        type: Socket
-  volumeMounts:
-    docker-socket:
-      mountPath: /var/run/docker.sock
-      readOnly: true
-  resources:
-    limits:
-      memory: 1Gi
-      cpu: 1000m
-    requests:
-      memory: 512Mi
-      cpu: 200m
-
-persistence:
-  enabled: true
-  storageSize: 5Gi
-  storageClass: fast-ssd
-
-ingress:
-  enabled: true
-  ingressClassName: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-  hosts:
-    - host: homarr.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: homarr-tls
-      hosts:
-        - homarr.example.com
-
-autoscaling:
-  enabled: true
-  minReplicas: 2
-  maxReplicas: 5
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 70
-
-networkPolicy:
-  enabled: true
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              name: ingress-nginx
-```
-
-## Parameters
-
-### Global Parameters
-
-| Name | Description | Value |
-| ---- | ----------- | ----- |
-| `namespaceOverride` | Override the namespace for all resources | `""` |
-| `applicationName` | Application name | `""` (defaults to chart name) |
-| `additionalLabels` | Additional labels for all resources | `{}` |
-
-### Deployment Parameters
-
-| Name | Description | Value |
-| ---- | ----------- | ----- |
-| `deployment.enabled` | Enable Deployment | `true` |
-| `deployment.replicas` | Number of replicas | `1` |
-| `deployment.image.repository` | Image repository | `ghcr.io/homarr-labs/homarr` |
-| `deployment.image.tag` | Image tag | `latest` |
-| `deployment.image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `deployment.resources.limits.memory` | Memory limit | `512Mi` |
-| `deployment.resources.limits.cpu` | CPU limit | `500m` |
-| `deployment.resources.requests.memory` | Memory request | `256Mi` |
-| `deployment.resources.requests.cpu` | CPU request | `100m` |
-| `deployment.readinessProbe.enabled` | Enable readiness probe | `true` |
-| `deployment.livenessProbe.enabled` | Enable liveness probe | `true` |
-
-### Persistence Parameters
-
-| Name | Description | Value |
-| ---- | ----------- | ----- |
-| `persistence.enabled` | Enable persistence | `true` |
-| `persistence.mountPVC` | Mount PVC to deployment | `true` |
-| `persistence.mountPath` | Mount path for volume | `/appdata` |
-| `persistence.storageSize` | Size of persistent volume | `1Gi` |
-| `persistence.storageClass` | Storage class for volume | `nil` |
-| `persistence.accessMode` | Access mode for volume | `ReadWriteOnce` |
-
-### Service Parameters
-
-| Name | Description | Value |
-| ---- | ----------- | ----- |
-| `service.enabled` | Enable Service | `true` |
-| `service.type` | Service type | `ClusterIP` |
-| `service.ports[0].port` | Service port | `7575` |
-| `service.ports[0].name` | Port name | `http` |
-
-### Ingress Parameters
-
-| Name | Description | Value |
-| ---- | ----------- | ----- |
-| `ingress.enabled` | Enable Ingress | `false` |
-| `ingress.ingressClassName` | Ingress class name | `""` |
-| `ingress.hosts[0].host` | Hostname | `homarr.local` |
-| `ingress.hosts[0].paths[0].path` | Path | `/` |
-| `ingress.hosts[0].paths[0].pathType` | Path type | `Prefix` |
-| `ingress.tls` | TLS configuration | `[]` |
-
-### Autoscaling Parameters
-
-| Name | Description | Value |
-| ---- | ----------- | ----- |
-| `autoscaling.enabled` | Enable HPA | `false` |
-| `autoscaling.minReplicas` | Minimum replicas | `1` |
-| `autoscaling.maxReplicas` | Maximum replicas | `10` |
-
-### RBAC Parameters
-
-| Name | Description | Value |
-| ---- | ----------- | ----- |
-| `rbac.enabled` | Enable RBAC | `true` |
-| `rbac.serviceAccount.enabled` | Create ServiceAccount | `true` |
-| `rbac.serviceAccount.name` | ServiceAccount name | `""` (auto-generated) |
-
-## Persistence
-
-Homarr requires persistent storage for its configuration and data. By default, the chart creates a PersistentVolumeClaim with 1Gi of storage.
-
-The data is mounted at `/appdata` in the container, which stores:
-* Database files (SQLite by default)
-* Configuration files
-* Icons and assets
-* User data
-
-### Using Existing PersistentVolumeClaim
-
-If you want to use an existing PVC:
-
-```yaml
-persistence:
-  enabled: true
-  name: my-existing-pvc
-```
-
-## Environment Variables
-
-Homarr can be configured using environment variables. See the [official documentation](https://homarr.dev/docs/getting-started/installation) for more details.
-
-### Security (Required)
-
-* `SECRET_ENCRYPTION_KEY`: 64-character hex string used to encrypt secrets in database (required)
-  * Generate with: `openssl rand -hex 32`
-  * **Must be set before first startup**
-
-### General Configuration
-
-* `PUID`: User ID to run the container as (default: 0)
-* `PGID`: Group ID to run the container as (default: 0)
-* `LOG_LEVEL`: Log level (debug/info/warn/error, default: info)
-* `NO_EXTERNAL_CONNECTION`: Disable requests requiring internet (true/false, default: false)
-* `ENABLE_DNS_CACHING`: Enable DNS caching (true/false, default: false)
-
-### Docker Integration
-
-* `DOCKER_HOSTNAMES`: Comma-separated list of Docker hostnames
-* `DOCKER_PORTS`: Comma-separated list of Docker ports
-
-To enable Docker integration, mount the Docker socket:
-
-```yaml
-deployment:
-  volumes:
-    docker-socket:
-      hostPath:
-        path: /var/run/docker.sock
-        type: Socket
-  volumeMounts:
-    docker-socket:
-      mountPath: /var/run/docker.sock
-      readOnly: true
-```
-
-### Database Configuration
-
-* `DB_DRIVER`: Database driver (better-sqlite3/mysql2/node-postgres, default: better-sqlite3)
-* `DB_DIALECT`: Database dialect (sqlite/mysql/postgresql, default: sqlite)
-* `DB_URL`: Database connection URL
-* `DB_HOST`: Database host
-* `DB_PORT`: Database port
-* `DB_NAME`: Database name
-* `DB_USER`: Database username
-* `DB_PASSWORD`: Database password
-
-### Redis Configuration
-
-* `REDIS_IS_EXTERNAL`: Use external Redis (true/false, default: false)
-* `REDIS_HOST`: Redis hostname
-* `REDIS_PORT`: Redis port (default: 6379)
-* `REDIS_USERNAME`: Redis username
-* `REDIS_PASSWORD`: Redis password
-* `REDIS_DATABASE_INDEX`: Redis database index
-* `REDIS_TLS_CA`: CA certificate for Redis TLS connections
-
-Example:
-
-```yaml
-deployment:
-  env:
-    SECRET_ENCRYPTION_KEY:
-      valueFrom:
-        secretKeyRef:
-          name: homarr-secret
-          key: encryption-key
-    LOG_LEVEL:
-      value: "info"
-    DB_DRIVER:
-      value: "mysql2"
-    DB_DIALECT:
-      value: "mysql"
-    DB_HOST:
-      value: "mysql-host"
-    DB_NAME:
-      value: "homarr"
-    DB_USER:
-      valueFrom:
-        secretKeyRef:
-          name: homarr-db-secret
-          key: username
-    DB_PASSWORD:
-      valueFrom:
-        secretKeyRef:
-          name: homarr-db-secret
-          key: password
-```
-
-## Upgrading
-
-### To 1.0.0
-
-Initial release of the Homarr Helm chart.
-
-## Troubleshooting
-
-### Pod fails to start
-
-Check the logs:
-
-```bash
-kubectl logs -l app.kubernetes.io/name=homarr
-```
-
-### Persistence issues
-
-Verify the PVC is bound:
-
-```bash
-kubectl get pvc
-```
-
-### Ingress not working
-
-Verify the ingress controller is installed and the ingress resource is created:
-
-```bash
-kubectl get ingress
-kubectl describe ingress homarr
-```
-
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](../../docs/CONTRIBUTING.md) for details.
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/codefuturist/helm-charts/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/codefuturist/helm-charts/discussions)
-- **Homarr Documentation**: [homarr.dev](https://homarr.dev)
-
-## License
-
-This Helm chart is licensed under the Apache License 2.0. See [LICENSE](../../LICENSE) for details.
+**Homepage:** <https://homarr.dev>
 
 ## Maintainers
 
-| Name | Email |
-| ---- | ------ |
-| codefuturist | <58808821+codefuturist@users.noreply.github.com> |
+| Name | Email | Url |
+| ---- | ------ | --- |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
 
 ## Source Code
 
-- **Chart Repository**: <https://github.com/codefuturist/helm-charts>
-- **Homarr Repository**: <https://github.com/homarr-labs/homarr>
+* <https://github.com/homarr-labs/homarr>
+
+## Values
+
+### Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| additionalLabels | tpl/object | `{}` | Additional labels for all resources. |
+| applicationName | string | `{{ .Chart.Name }}` | Application name. |
+| componentOverride | string | `""` | Override the component label for all resources. |
+| extraObjects | list | `[]` | Extra K8s manifests to deploy. |
+| namespaceOverride | string | `""` | Override the namespace for all resources. |
+| partOfOverride | string | `""` | Override the partOf label for all resources. |
+
+### AlertmanagerConfig Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| alertmanagerConfig.enabled | bool | `false` | Deploy an AlertmanagerConfig resource. |
+| alertmanagerConfig.selectionLabels | object | `{"alertmanagerConfig":"workload"}` | Labels to be picked up by Alertmanager. |
+| alertmanagerConfig.spec | object | `{"inhibitRules":[],"receivers":[],"route":null}` | AlertmanagerConfig spec. |
+
+### Autoscaling Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| autoscaling.additionalLabels | object | `{}` | Additional labels for HPA. |
+| autoscaling.annotations | object | `{}` | Annotations for HPA. |
+| autoscaling.enabled | bool | `false` | Enable Horizontal Pod Autoscaling. |
+| autoscaling.maxReplicas | int | `10` | Maximum number of replicas. |
+| autoscaling.metrics | list | `[{"resource":{"name":"cpu","target":{"averageUtilization":60,"type":"Utilization"}},"type":"Resource"},{"resource":{"name":"memory","target":{"averageUtilization":60,"type":"Utilization"}},"type":"Resource"}]` | Metrics used for autoscaling. |
+| autoscaling.minReplicas | int | `1` | Minimum number of replicas. |
+
+### Backup Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| backup.additionalLabels | object | `{}` | Additional labels for Backup. |
+| backup.annotations | object | `{}` | Annotations for Backup. |
+| backup.defaultVolumesToRestic | bool | `true` | Use Restic for backups. |
+| backup.enabled | bool | `false` | Deploy a Backup resource. |
+| backup.excludedResources | list | `[]` | Excluded resources. |
+| backup.includedNamespaces | list | `[]` | Included namespaces. |
+| backup.includedResources | list | `[]` | Included resources. |
+| backup.namespace | string | `""` | Namespace for Backup. |
+| backup.snapshotVolumes | bool | `true` | Snapshot volumes. |
+| backup.storageLocation | string | `""` | Storage location. |
+| backup.ttl | string | `"1h0m0s"` | TTL for backup. |
+
+### Certificate Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| certificate.additionalLabels | object | `{}` | Additional labels for Certificate. |
+| certificate.annotations | object | `{}` | Annotations for Certificate. |
+| certificate.dnsNames | tpl/list | `["homarr.local"]` | DNS names for the certificate. |
+| certificate.duration | string | `"8760h0m0s"` | Duration of the certificate. |
+| certificate.enabled | bool | `false` | Deploy a cert-manager Certificate resource. |
+| certificate.issuerRef.group | string | `"cert-manager.io"` | Group of the issuer. |
+| certificate.issuerRef.kind | string | `"ClusterIssuer"` | Kind of the issuer. |
+| certificate.issuerRef.name | string | `"ca-issuer"` | Name of the issuer. |
+| certificate.renewBefore | string | `"720h0m0s"` | Renew before duration. |
+| certificate.secretName | tpl/string | `"homarr-tls"` | Secret name for the certificate. |
+
+### ConfigMap Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| configMap.additionalLabels | object | `{}` | Additional labels for ConfigMaps. |
+| configMap.annotations | object | `{}` | Annotations for ConfigMaps. |
+| configMap.enabled | bool | `false` | Deploy additional ConfigMaps. |
+| configMap.files | object | `{}` | Map of ConfigMaps. |
+
+### CronJob Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| cronJob.enabled | bool | `false` | Deploy CronJob resources. |
+| cronJob.jobs | object | `{}` | Map of CronJob resources. |
+
+### Deployment Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| deployment.additionalContainers | list | `[]` | Additional containers. |
+| deployment.additionalLabels | object | `{}` | Additional labels for Deployment. |
+| deployment.additionalPodAnnotations | object | `{}` | Additional pod annotations. |
+| deployment.affinity | object | `{}` | Affinity for the pods. |
+| deployment.annotations | object | `{}` | Annotations for Deployment. |
+| deployment.args | list | `[]` | Args for the app container. |
+| deployment.command | list | `[]` | Command for the app container. |
+| deployment.containerSecurityContext | object | `{"readOnlyRootFilesystem":false,"runAsGroup":0,"runAsNonRoot":false,"runAsUser":0}` | Security Context at Container Level. |
+| deployment.dnsConfig | object | `{}` | DNS config for the pods. |
+| deployment.dnsPolicy | object | `""` | DNS Policy. |
+| deployment.enabled | bool | `true` | Enable Deployment. |
+| deployment.env | object | `nil` | Environment variables to be added to the pod. |
+| deployment.envFrom | object | `{}` | Mount environment variables from ConfigMap or Secret to the pod. |
+| deployment.fluentdConfigAnnotations | object | `{}` | Fluentd configuration annotations. |
+| deployment.hostAliases | list | `[]` | Host aliases. |
+| deployment.image.digest | tpl/string | `""` | Image digest. If resolved to a non-empty value, digest takes precedence on the tag. |
+| deployment.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy. |
+| deployment.image.repository | tpl/string | `"ghcr.io/homarr-labs/homarr"` | Repository. |
+| deployment.image.tag | tpl/string | `"latest"` | Tag. |
+| deployment.imagePullSecrets | list | `[]` | List of secrets to be used for pulling the images. |
+| deployment.initContainers | object | `{}` | Init containers. |
+| deployment.livenessProbe | object | `{"enabled":true,"exec":{},"failureThreshold":3,"httpGet":{"path":"/","port":"http"},"periodSeconds":10,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":1}` | Liveness probe. |
+| deployment.livenessProbe.enabled | bool | `true` | Enable Liveness probe. |
+| deployment.livenessProbe.exec | object | `{}` | Exec probe. |
+| deployment.livenessProbe.failureThreshold | int | `3` | Number of retries before marking the pod as failed. |
+| deployment.livenessProbe.httpGet | object | `{"path":"/","port":"http"}` | HTTP Get probe. |
+| deployment.livenessProbe.periodSeconds | int | `10` | Time between retries. |
+| deployment.livenessProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
+| deployment.livenessProbe.tcpSocket | object | `{}` | TCP Socket probe. |
+| deployment.livenessProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
+| deployment.nodeSelector | object | `{}` | Select the node where the pods should be scheduled. |
+| deployment.openshiftOAuthProxy | object | `{"disableTLSArg":false,"enabled":false,"image":"openshift/oauth-proxy:latest","port":7575,"secretName":"openshift-oauth-proxy-tls"}` | OpenShift OAuth Proxy configuration. |
+| deployment.podLabels | object | `{}` | Additional pod labels which are used in Service's Label Selector. |
+| deployment.ports | list | `[{"containerPort":7575,"name":"http","protocol":"TCP"}]` | List of ports for the app container. |
+| deployment.priorityClassName | string | `""` | Define the priority class for the pod. |
+| deployment.readinessProbe | object | `{"enabled":true,"exec":{},"failureThreshold":3,"httpGet":{"path":"/","port":"http"},"periodSeconds":10,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":1}` | Readiness probe. |
+| deployment.readinessProbe.enabled | bool | `true` | Enable Readiness probe. |
+| deployment.readinessProbe.exec | object | `{}` | Exec probe. |
+| deployment.readinessProbe.failureThreshold | int | `3` | Number of retries before marking the pod as failed. |
+| deployment.readinessProbe.httpGet | object | `{"path":"/","port":"http"}` | HTTP Get probe. |
+| deployment.readinessProbe.periodSeconds | int | `10` | Time between retries. |
+| deployment.readinessProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
+| deployment.readinessProbe.tcpSocket | object | `{}` | TCP Socket probe. |
+| deployment.readinessProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
+| deployment.reloadOnChange | bool | `true` | Reload deployment if attached Secret/ConfigMap changes. |
+| deployment.replicas | int | `1` | Number of replicas. |
+| deployment.resources | object | `{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource limits and requests for the pod. |
+| deployment.revisionHistoryLimit | int | `2` | Number of ReplicaSet revisions to retain. |
+| deployment.securityContext | object | `{"fsGroup":0}` | Security Context for the pod. |
+| deployment.startupProbe | object | `{"enabled":false,"exec":{},"failureThreshold":30,"httpGet":{},"periodSeconds":10,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":1}` | Startup probe. |
+| deployment.startupProbe.enabled | bool | `false` | Enable Startup probe. |
+| deployment.startupProbe.exec | object | `{}` | Exec probe. |
+| deployment.startupProbe.failureThreshold | int | `30` | Number of retries before marking the pod as failed. |
+| deployment.startupProbe.httpGet | object | `{}` | HTTP Get probe. |
+| deployment.startupProbe.periodSeconds | int | `10` | Time between retries. |
+| deployment.startupProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
+| deployment.startupProbe.tcpSocket | object | `{}` | TCP Socket probe. |
+| deployment.startupProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
+| deployment.strategy.type | string | `"RollingUpdate"` | Type of deployment strategy. |
+| deployment.tolerations | list | `[]` | Taint tolerations for the pods. |
+| deployment.topologySpreadConstraints | list | `[]` | Topology spread constraints for the pods. |
+| deployment.volumeMounts | object | `nil` | Mount path for Volumes. |
+| deployment.volumes | object | `nil` | Volumes to be added to the pod. |
+
+### EndpointMonitor Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| endpointMonitor.additionalLabels | object | `{}` | Additional labels for EndpointMonitor. |
+| endpointMonitor.annotations | object | `{}` | Annotations for EndpointMonitor. |
+| endpointMonitor.enabled | bool | `false` | Deploy an EndpointMonitor resource. |
+
+### ExternalSecret Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| externalSecret.additionalLabels | object | `{}` | Additional labels for ExternalSecret. |
+| externalSecret.annotations | object | `{}` | Annotations for ExternalSecret. |
+| externalSecret.enabled | bool | `false` | Deploy ExternalSecret resources. |
+| externalSecret.files | object | `{}` | List of ExternalSecret entries. |
+| externalSecret.refreshInterval | string | `"1m"` | RefreshInterval for ExternalSecret. |
+| externalSecret.secretStore | object | `{"kind":"SecretStore","name":"tenant-vault-secret-store"}` | Default values for the SecretStore. |
+
+### ForecastleApp Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| forecastle.additionalLabels | object | `{}` | Additional labels for ForecastleApp. |
+| forecastle.displayName | string | `"Homarr"` | Application Name. |
+| forecastle.enabled | bool | `false` | Deploy a ForecastleApp resource. |
+| forecastle.group | string | `{{ .Release.Namespace }}` | Application Group. |
+| forecastle.icon | string | `"https://homarr.dev/img/logo.png"` | Icon URL. |
+| forecastle.networkRestricted | bool | `false` | Is application network restricted?. |
+| forecastle.properties | object | `{}` | Custom properties. |
+
+### GrafanaDashboard Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| grafanaDashboard.additionalLabels | object | `{}` | Additional labels for GrafanaDashboard. |
+| grafanaDashboard.annotations | object | `{}` | Annotations for GrafanaDashboard. |
+| grafanaDashboard.contents | object | `{}` | List of GrafanaDashboard entries. |
+| grafanaDashboard.enabled | bool | `false` | Deploy GrafanaDashboard resources. |
+
+### HTTPRoute Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| httpRoute.additionalLabels | object | `{}` | Additional labels for HTTPRoute. |
+| httpRoute.annotations | object | `{}` | Annotations for HTTPRoute. |
+| httpRoute.enabled | bool | `false` | Enable HTTPRoute (Gateway API). |
+| httpRoute.gatewayNamespace | string | `""` | Gateway namespace. |
+| httpRoute.hostnames | list | `[]` | Hostnames for the HTTPRoute. |
+| httpRoute.parentRefs | list | `[]` | Parent references for the HTTPRoute. |
+| httpRoute.rules | list | `[]` | Rules for HTTPRoute. |
+| httpRoute.useDefaultGateways | string | `""` | Gateway scope. |
+
+### Ingress Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| ingress.additionalLabels | object | `{}` | Additional labels for ingress. |
+| ingress.annotations | object | `{}` | Annotations for ingress. |
+| ingress.enabled | bool | `false` | Enable Ingress. |
+| ingress.hosts[0].host | tpl/string | `"homarr.local"` | Hostname. |
+| ingress.hosts[0].paths[0].path | string | `"/"` | Path. |
+| ingress.hosts[0].paths[0].pathType | string | `"Prefix"` | Path type. |
+| ingress.ingressClassName | string | `""` | Name of the ingress class. |
+| ingress.tls | list | `[]` | TLS configuration for ingress. |
+
+### Job Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| job.enabled | bool | `false` | Deploy Job resources. |
+| job.jobs | object | `{}` | Map of Job resources. |
+
+### NetworkPolicy Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| networkPolicy.additionalLabels | object | `{}` | Additional labels for NetworkPolicy. |
+| networkPolicy.annotations | object | `{}` | Annotations for NetworkPolicy. |
+| networkPolicy.egress | list | `[]` | Egress rules for NetworkPolicy. |
+| networkPolicy.enabled | bool | `false` | Deploy NetworkPolicy resource. |
+| networkPolicy.ingress | list | `[]` | Ingress rules for NetworkPolicy. |
+| networkPolicy.podSelector | list | `{"matchLabels":{}}` | Pod Selector for NetworkPolicy. |
+
+### PDB Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| pdb.additionalLabels | object | `{}` | Additional labels for PDB. |
+| pdb.annotations | object | `{}` | Annotations for PDB. |
+| pdb.enabled | bool | `false` | Enable Pod Disruption Budget. |
+| pdb.maxUnavailable | int | `nil` | Maximum unavailable pods. |
+| pdb.minAvailable | int | `1` | Minimum available pods. |
+
+### Persistence Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| persistence.accessMode | string | `"ReadWriteOnce"` | Access mode for volume. |
+| persistence.additionalLabels | object | `{}` | Additional labels for persistent volume. |
+| persistence.annotations | object | `{}` | Annotations for persistent volume. |
+| persistence.enabled | bool | `true` | Enable persistence. |
+| persistence.mountPVC | bool | `true` | Whether to mount the created PVC to the deployment. |
+| persistence.mountPath | string | `"/appdata"` | Where to mount the volume in the containers. |
+| persistence.name | string | `{{ include "application.name" $ }}-data` | Name of the PVC. |
+| persistence.storageClass | string | `nil` | Storage class for volume. |
+| persistence.storageSize | string | `"1Gi"` | Size of the persistent volume. |
+
+### PrometheusRule Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| prometheusRule.additionalLabels | object | `{}` | Additional labels for PrometheusRule. |
+| prometheusRule.enabled | bool | `false` | Deploy a PrometheusRule resource. |
+| prometheusRule.groups | list | `[]` | Groups with alerting rules. |
+
+### RBAC Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| rbac.enabled | bool | `true` | Enable RBAC. |
+| rbac.roles | list | `[]` | Namespaced Roles. |
+| rbac.serviceAccount.additionalLabels | object | `{}` | Additional labels for Service Account. |
+| rbac.serviceAccount.annotations | object | `{}` | Annotations for Service Account. |
+| rbac.serviceAccount.enabled | bool | `true` | Deploy Service Account. |
+| rbac.serviceAccount.name | string | `{{ include "application.name" $ }}` | Service Account Name. |
+
+### Route Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| route.additionalLabels | object | `{}` | Additional labels for Route. |
+| route.annotations | object | `{}` | Annotations for Route. |
+| route.enabled | bool | `false` | Deploy a Route (OpenShift) resource. |
+| route.host | string | `""` | Explicit host. |
+| route.path | string | `""` | Path. |
+| route.port | object | `{"targetPort":"http"}` | Service port. |
+| route.tls.insecureEdgeTerminationPolicy | string | `"Redirect"` | TLS insecure termination policy. |
+| route.tls.termination | string | `"edge"` | TLS termination strategy. |
+| route.to.weight | int | `100` | Service weight. |
+| route.wildcardPolicy | string | `"None"` | Wildcard policy. |
+
+### SealedSecret Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| sealedSecret.additionalLabels | object | `{}` | Additional labels for SealedSecret. |
+| sealedSecret.annotations | object | `{}` | Annotations for SealedSecret. |
+| sealedSecret.enabled | bool | `false` | Deploy SealedSecret resources. |
+| sealedSecret.files | object | `{}` | List of SealedSecret entries. |
+
+### Secret Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| secret.additionalLabels | object | `{}` | Additional labels for Secrets. |
+| secret.annotations | object | `{}` | Annotations for Secrets. |
+| secret.enabled | bool | `false` | Deploy additional Secrets. |
+| secret.files | object | `{}` | Map of Secrets. |
+
+### SecretProviderClass Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| secretProviderClass.enabled | bool | `false` | Deploy a SecretProviderClass resource. |
+| secretProviderClass.name | string | `""` | Name of the SecretProviderClass. |
+| secretProviderClass.objects | list | `[]` | Objects definitions. |
+| secretProviderClass.provider | string | `""` | Name of the provider. |
+| secretProviderClass.roleName | string | `""` | Vault Role Name. |
+| secretProviderClass.secretObjects | list | `[]` | Objects mapping. |
+| secretProviderClass.vaultAddress | string | `""` | Vault Address. |
+
+### Service Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| service.additionalLabels | object | `{}` | Additional labels for service. |
+| service.annotations | object | `{}` | Annotations for service. |
+| service.enabled | bool | `true` | Enable Service. |
+| service.ports | list | `[{"name":"http","port":7575,"protocol":"TCP","targetPort":7575}]` | Ports for applications service. |
+| service.type | string | `"ClusterIP"` | Type of service. |
+
+### ServiceMonitor Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| servicemonitor.additionalLabels | object | `{}` | Additional labels for ServiceMonitor. |
+| servicemonitor.annotations | object | `{}` | Annotations for ServiceMonitor. |
+| servicemonitor.enabled | bool | `false` | Deploy ServiceMonitor (Prometheus Operator) resource. |
+| servicemonitor.endpoints | list | `[{"interval":"30s","path":"/metrics","port":"http"}]` | Endpoints for ServiceMonitor. |
+
+### VPA Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| vpa.additionalLabels | object | `{}` | Additional labels for VPA. |
+| vpa.annotations | object | `{}` | Annotations for VPA. |
+| vpa.containerPolicies | list | `[]` | Container policies for individual containers. |
+| vpa.enabled | bool | `false` | Enable Vertical Pod Autoscaling. |
+| vpa.updatePolicy | object | `{"updateMode":"Auto"}` | Update policy. |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

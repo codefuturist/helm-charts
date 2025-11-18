@@ -1,1082 +1,392 @@
-# PostgreSQL Helm Chart
+# postgresql
 
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/codefuturist)](https://artifacthub.io/packages/helm/codefuturist/postgresql)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![Version: 1.7.0](https://img.shields.io/badge/Version-1.7.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 16.4](https://img.shields.io/badge/AppVersion-16.4-informational?style=flat-square)
 
-A production-ready Helm chart for deploying PostgreSQL on Kubernetes with advanced features including replication, automated backups, monitoring, and security best practices.
+A production-ready Helm chart for PostgreSQL database with advanced features including replication, backups, monitoring, and security
 
-## Features
-
-### Core Features
-- ✅ **PostgreSQL 16** - Latest stable version with Alpine Linux base
-- ✅ **High Availability** - StatefulSet with streaming replication and automatic setup
-- ✅ **Read Scaling** - Load-balanced read-only service for replicas
-- ✅ **Automated Backups** - Full backups + WAL archiving for point-in-time recovery
-- ✅ **Monitoring** - Built-in Prometheus metrics with replication lag alerts
-- ✅ **Security** - Pod security contexts, network policies, RBAC
-- ✅ **TLS/SSL** - cert-manager integration for certificate management
-- ✅ **Connection Pooling** - PgBouncer support (optional)
-- ✅ **Persistence** - PVC support with configurable storage classes
-- ✅ **Init Scripts** - SQL scripts for database initialization
-- ✅ **Custom Configuration** - Full postgresql.conf and pg_hba.conf customization
-
-### Advanced Features
-- 🔄 **Streaming Replication** - Automated primary/replica setup with physical replication slots
-- 💾 **WAL Archiving** - 4 methods (simple, wal-g, wal-e, pgbackrest) with compression
-- 🔙 **Easy Recovery** - Interactive script and Helm-based recovery from backups
-- 📊 **ServiceMonitor** - Prometheus Operator integration with replication metrics
-- 📈 **PrometheusRule** - Pre-configured alerting rules for replication lag and failures
-- 🎯 **Pod Disruption Budget** - High availability guarantees
-- 🔄 **Horizontal/Vertical Pod Autoscaling** - Resource optimization
-- 🔐 **External Secrets** - Integration with external secret managers
-- 🌐 **Network Policies** - Network isolation and security
-- 📦 **Resource Management** - CPU and memory limits/requests
-- 🚀 **Multiple Deployment Options** - Deployment or StatefulSet
-
-## Prerequisites
-
-- Kubernetes 1.21+
-- Helm 3.8+
-- PV provisioner support in the underlying infrastructure (optional)
-- cert-manager (optional, for TLS)
-- Prometheus Operator (optional, for monitoring)
-
-## Installation
-
-### Add Helm Repository
-
-```bash
-helm repo add codefuturist https://codefuturist.github.io/helm-charts
-helm repo update
-```
-
-### Install Chart
-
-```bash
-# Basic installation
-helm install my-postgresql codefuturist/postgresql
-
-# With custom values
-helm install my-postgresql codefuturist/postgresql -f values.yaml
-
-# With inline values
-helm install my-postgresql codefuturist/postgresql \
-  --set postgresql.database=mydb \
-  --set postgresql.username=myuser \
-  --set postgresql.password=mypassword
-```
-
-## Quick Start Examples
-
-### Minimal Installation
-
-```bash
-helm install my-postgresql codefuturist/postgresql \
-  --set postgresql.database=mydb \
-  --set postgresql.username=myuser \
-  --set postgresql.password=changeme \
-  --set persistence.size=10Gi
-```
-
-### Production Installation
-
-```bash
-helm install my-postgresql codefuturist/postgresql \
-  -f examples/values-production.yaml \
-  --set postgresql.existingSecret=my-postgres-secret
-```
-
-### Development Installation
-
-```bash
-helm install my-postgresql codefuturist/postgresql \
-  -f examples/values-dev.yaml
-```
-
-## Configuration
-
-### Global Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `namespaceOverride` | Override namespace for all resources | `""` |
-| `componentOverride` | Override component label | `""` |
-| `partOfOverride` | Override partOf label | `""` |
-| `applicationName` | Application name | `{{ .Chart.Name }}` |
-| `additionalLabels` | Additional labels for all resources | `{}` |
-| `additionalAnnotations` | Additional annotations for all resources | `{}` |
-
-### PostgreSQL Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `postgresql.version` | PostgreSQL version | `"16.4"` |
-| `postgresql.image.repository` | PostgreSQL image repository | `postgres` |
-| `postgresql.image.tag` | PostgreSQL image tag | `"16.4-alpine"` |
-| `postgresql.image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `postgresql.database` | Database name | `"postgres"` |
-| `postgresql.username` | Database username | `"postgres"` |
-| `postgresql.password` | Database password | `""` |
-| `postgresql.existingSecret` | Existing secret with password | `""` |
-| `postgresql.config` | PostgreSQL configuration parameters | See values.yaml |
-| `postgresql.customConfig` | Custom postgresql.conf content | `""` |
-| `postgresql.customPgHba` | Custom pg_hba.conf content | `""` |
-| `postgresql.initScripts` | Init SQL scripts | `{}` |
-| `postgresql.extensions` | PostgreSQL extensions to enable | `[pg_stat_statements, pgcrypto]` |
-| `postgresql.additionalDatabases` | Additional databases to create | `[]` |
-| `postgresql.additionalUsers` | Additional users to create | `[]` |
-| `postgresql.externalResources.enabled` | Read databases/users from external resources | `false` |
-| `postgresql.externalResources.databasesConfigMap.name` | ConfigMap with database definitions | `""` |
-| `postgresql.externalResources.usersConfigMap.name` | ConfigMap with user definitions | `""` |
-| `postgresql.externalResources.usersSecret.name` | Secret with user passwords | `""` |
-
-### Deployment Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `deployment.replicas` | Number of replicas | `1` |
-| `deployment.strategy` | Deployment strategy | `Recreate` |
-| `deployment.resources` | Resource limits/requests | See values.yaml |
-| `deployment.securityContext` | Container security context | See values.yaml |
-| `deployment.livenessProbe` | Liveness probe configuration | See values.yaml |
-| `deployment.readinessProbe` | Readiness probe configuration | See values.yaml |
-| `deployment.startupProbe` | Startup probe configuration | See values.yaml |
-
-### Persistence Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `persistence.enabled` | Enable persistent storage | `true` |
-| `persistence.existingClaim` | Use existing PVC | `""` |
-| `persistence.storageClass` | Storage class name | `""` |
-| `persistence.accessModes` | Access modes | `[ReadWriteOnce]` |
-| `persistence.size` | Volume size | `8Gi` |
-
-### Service Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `service.enabled` | Enable service | `true` |
-| `service.type` | Service type | `ClusterIP` |
-| `service.port` | PostgreSQL service port | `5432` |
-| `service.annotations` | Service annotations | `{}` |
-
-### Backup Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `backup.enabled` | Enable automated backups | `false` |
-| `backup.schedule` | Backup schedule (cron) | `"0 2 * * *"` |
-| `backup.retentionDays` | Backup retention in days | `7` |
-| `backup.persistence.enabled` | Enable backup PVC | `true` |
-| `backup.persistence.size` | Backup volume size | `10Gi` |
-
-### Monitoring Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `metrics.enabled` | Enable metrics exporter | `false` |
-| `metrics.port` | Metrics port | `9187` |
-| `monitoring.serviceMonitor.enabled` | Enable ServiceMonitor | `false` |
-| `monitoring.prometheusRule.enabled` | Enable PrometheusRule | `false` |
-| `monitoring.grafanaDashboard.enabled` | Enable Grafana dashboard | `false` |
-
-### Replication Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `replication.enabled` | Enable replication | `false` |
-| `replication.readReplicas` | Number of read replicas | `1` |
-| `replication.user` | Replication user | `"replicator"` |
-| `replication.synchronousCommit` | Enable synchronous commit | `false` |
-| `statefulset.enabled` | Use StatefulSet (required for replication) | `false` |
-
-### Security Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `serviceAccount.create` | Create service account | `true` |
-| `rbac.create` | Create RBAC resources | `false` |
-| `networkPolicy.enabled` | Enable network policy | `false` |
-| `pdb.enabled` | Enable Pod Disruption Budget | `false` |
-| `tls.enabled` | Enable TLS | `false` |
-
-## Usage Examples
-
-### Connecting to PostgreSQL
-
-After installation, get the connection details:
-
-```bash
-# Get PostgreSQL password
-export POSTGRES_PASSWORD=$(kubectl get secret --namespace default my-postgresql -o jsonpath="{.data.postgresql-password}" | base64 -d)
-
-# Connect using kubectl run
-kubectl run my-postgresql-client --rm --tty -i --restart='Never' \
-  --namespace default \
-  --image postgres:16.4-alpine \
-  --env="PGPASSWORD=$POSTGRES_PASSWORD" \
-  --command -- psql --host my-postgresql -U postgres -d postgres -p 5432
-
-# Port forward to local machine
-kubectl port-forward --namespace default svc/my-postgresql 5432:5432 &
-PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 --port 5432 -U postgres -d postgres
-```
-
-### Using Existing Secrets
-
-Create a secret with your PostgreSQL passwords:
-
-```bash
-kubectl create secret generic my-postgres-secret \
-  --from-literal=postgresql-password=mypassword \
-  --from-literal=postgresql-postgres-password=postgrespassword
-```
-
-Install with existing secret:
-
-```yaml
-postgresql:
-  existingSecret: my-postgres-secret
-  existingSecretPasswordKey: postgresql-password
-  existingPostgresSecret: my-postgres-secret
-  existingPostgresPasswordKey: postgresql-postgres-password
-```
-
-### Custom PostgreSQL Configuration
-
-```yaml
-postgresql:
-  config:
-    max_connections: "200"
-    shared_buffers: "512MB"
-    effective_cache_size: "2GB"
-
-  customConfig: |
-    # Additional custom configuration
-    listen_addresses = '*'
-
-  customPgHba: |
-    # Custom pg_hba.conf
-    host all all 0.0.0.0/0 scram-sha-256
-```
-
-### Creating Additional Databases and Users
-
-The chart supports creating additional databases and users during initialization, either through configuration or by reading from external Kubernetes resources.
-
-**Key Feature:** Database ownership is **automatically assigned** to the first user with `ALL` privileges on that database. This follows PostgreSQL best practices for application database ownership.
-
-#### Method 1: Direct Configuration
-
-Define databases and users directly in your values.yaml:
-
-```yaml
-postgresql:
-  # Create additional databases
-  additionalDatabases:
-    - name: myapp_db
-      # owner automatically set to myapp_user (first user with ALL privileges)
-      encoding: UTF8
-      lc_collate: en_US.UTF-8
-      lc_ctype: en_US.UTF-8
-      template: template0
-    - name: analytics_db
-      owner: postgres  # Explicitly set owner (optional override)
-      encoding: UTF8
-    - name: shared_db
-      # owner automatically set to myapp_user
-
-  # Create additional users with privileges
-  additionalUsers:
-    - username: myapp_user
-      existingSecret: myapp-user-secret  # Recommended: store password in secret
-      databases:
-        - myapp_db
-        - shared_db
-      privileges: ALL  # Gets ownership of myapp_db and shared_db
-      superuser: false
-      createdb: false
-      createrole: false
-
-    - username: readonly_user
-      existingSecret: readonly-secret
-      databases:
-        - myapp_db
-        - analytics_db
-        - shared_db
-      privileges: SELECT  # Read-only, does NOT get ownership
-      superuser: false
-```
-
-**Important:** Always use `existingSecret` for production. If you must specify passwords directly, use:
-
-```yaml
-additionalUsers:
-  - username: myapp_user
-    password: "changeme"  # Not recommended for production
-    databases:
-      - myapp_db
-    privileges: ALL
-```
-
-#### Method 2: External Kubernetes Resources
-
-Read database and user definitions from ConfigMaps and Secrets. This approach is ideal for GitOps workflows and separation of concerns.
-
-**Step 1:** Create a ConfigMap with database definitions:
-
-```yaml
-# databases-config.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: postgresql-databases
-data:
-  databases.yaml: |
-    - name: myapp_db
-      owner: myapp_user
-      encoding: UTF8
-    - name: analytics_db
-      owner: postgres
-```
-
-**Step 2:** Create a ConfigMap with user definitions:
-
-```yaml
-# users-config.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: postgresql-users
-data:
-  users.yaml: |
-    - username: myapp_user
-      databases:
-        - myapp_db
-      privileges: ALL
-      superuser: false
-    - username: readonly_user
-      databases:
-        - myapp_db
-        - analytics_db
-      privileges: SELECT
-```
-
-**Step 3:** Create a Secret with user passwords:
-
-```yaml
-# users-secret.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: postgresql-user-passwords
-type: Opaque
-stringData:
-  myapp-password: "strong_password_123"
-  readonly-password: "readonly_pass_456"
-```
-
-**Step 4:** Configure the chart to use external resources:
-
-```yaml
-postgresql:
-  externalResources:
-    enabled: true
-
-    databasesConfigMap:
-      name: postgresql-databases
-      key: databases.yaml
-
-    usersConfigMap:
-      name: postgresql-users
-      key: users.yaml
-
-    usersSecret:
-      name: postgresql-user-passwords
-      passwordKeys:
-        myapp_user: myapp-password
-        readonly_user: readonly-password
-```
-
-**Step 5:** Apply and install:
-
-```bash
-kubectl apply -f databases-config.yaml
-kubectl apply -f users-config.yaml
-kubectl apply -f users-secret.yaml
-helm install my-postgresql . -f values.yaml
-```
-
-#### User Privileges
-
-The `privileges` field supports:
-
-- `ALL` - Full access to the database
-- `SELECT` - Read-only access
-- `INSERT` - Insert permission
-- `UPDATE` - Update permission
-- `DELETE` - Delete permission
-- `TRUNCATE` - Truncate permission
-- `REFERENCES` - References permission
-- `TRIGGER` - Trigger permission
-- `CREATE` - Create permission
-- `CONNECT` - Connection permission
-- `TEMPORARY` - Temporary objects permission
-- `EXECUTE` - Execute permission
-
-You can combine multiple privileges: `privileges: "SELECT, INSERT, UPDATE"`
-
-#### User Attributes
-
-Available user attributes:
-
-- `superuser` - PostgreSQL superuser (default: false)
-- `createdb` - Can create databases (default: false)
-- `createrole` - Can create roles (default: false)
-- `replication` - Can perform replication (default: false)
-
-#### Multi-Tenant Example
-
-See `examples/values-multitenant.yaml` for a complete multi-tenant setup with multiple databases and users.
-
-#### Security Best Practices
-
-1. **Never commit passwords** to version control
-2. **Use Kubernetes Secrets** for password storage
-3. **Use existingSecret** parameter for user passwords
-4. **Grant minimal privileges** required for each user
-5. **Use separate users** for different applications/services
-6. **Enable audit logging** with pgaudit extension
-7. **Use scram-sha-256** authentication method (default)
-
-### Init Scripts
-
-```yaml
-postgresql:
-  initScripts:
-    01-create-extensions.sql: |
-      CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
-      CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
-    02-create-schema.sql: |
-      CREATE SCHEMA IF NOT EXISTS myapp;
-      CREATE TABLE IF NOT EXISTS myapp.users (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(50) UNIQUE NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-```
-
-### High Availability with Replication
-
-The chart provides enterprise-grade streaming replication with automated setup and monitoring.
-
-#### Quick Start - Async Replication
-
-```yaml
-replication:
-  enabled: true
-  readReplicas: 2              # Creates 2 read replicas (3 total pods)
-  user: replicator
-  password: "changeme-replication"
-
-  # Automatic replication setup
-  slots:
-    enabled: true
-    autoCreate: true           # Auto-creates physical replication slots
-
-  # Load-balanced read service
-  replicaService:
-    enabled: true
-    type: ClusterIP           # Or LoadBalancer for external access
-    sessionAffinity: true      # Sticky sessions
-
-# Highly recommended
-persistence:
-  enabled: true
-  size: 20Gi
-```
-
-**Access pattern:**
-- **Writes**: `postgresql.default.svc.cluster.local:5432` → Primary (pod-0)
-- **Reads**: `postgresql-read.default.svc.cluster.local:5432` → Replicas (pods 1-N)
-
-#### Synchronous Replication (Zero Data Loss)
-
-For critical workloads requiring zero data loss:
-
-```yaml
-replication:
-  enabled: true
-  readReplicas: 2
-  user: replicator
-  password: "changeme-replication"
-
-  # Synchronous mode
-  synchronousCommit: "on"      # Options: off, on, remote_write, remote_apply
-  numSynchronousReplicas: 1    # Wait for 1 replica to confirm writes
-
-  slots:
-    enabled: true
-    autoCreate: true
-
-  monitoring:
-    enabled: true
-    lagThresholdSeconds: 10    # Alert if >10s lag
-
-pdb:
-  enabled: true
-  minAvailable: 2              # Keep at least 2 pods available
-```
-
-#### Full HA Configuration
-
-Production-ready setup with monitoring and backups:
-
-```yaml
-replication:
-  enabled: true
-  readReplicas: 3
-  user: replicator
-  password: "changeme-replication"
-  synchronousCommit: "remote_write"  # Balance safety & performance
-  numSynchronousReplicas: 1
-
-  slots:
-    enabled: true
-    autoCreate: true
-
-  replicaService:
-    enabled: true
-    type: LoadBalancer
-    sessionAffinity: true
-
-  monitoring:
-    enabled: true
-    lagThresholdSeconds: 30
-    lagThresholdBytes: 100
-
-  advanced:
-    maxWalSenders: 10
-    maxReplicationSlots: 10
-    walKeepSize: "2GB"
-
-monitoring:
-  serviceMonitor:
-    enabled: true
-  prometheusRule:
-    enabled: true              # Replication lag alerts
-
-persistence:
-  enabled: true
-  size: 100Gi
-  storageClass: fast-ssd
-
-pdb:
-  enabled: true
-  minAvailable: 2
-```
-
-**Features:**
-- 🔄 **Automated Setup**: Replicas automatically clone from primary and configure streaming
-- 📊 **Built-in Monitoring**: Replication lag metrics and alerts
-- 🎯 **Read Load Balancing**: Dedicated service for read-only queries
-- 💪 **Physical Replication Slots**: Prevents WAL deletion while replicas catch up
-- ⚡ **Sync/Async Modes**: Choose between performance and data safety
-
-**See also:**
-- [Complete Replication Guide](REPLICATION.md) - Architecture, monitoring, failover procedures
-- [Examples](examples/):
-  - `values-replication-async.yaml` - Async replication for best performance
-  - `values-replication-sync.yaml` - Sync replication for zero data loss
-  - `values-replication-ha.yaml` - Full HA setup with monitoring and backups
-
-### Backup Configuration
-
-Enable automated backups with S3 support:
-
-```yaml
-backup:
-  enabled: true
-  schedule: "0 2 * * *"  # Daily at 2 AM
-  retentionDays: 30
-
-  persistence:
-    enabled: true
-    size: 100Gi
-
-  s3:
-    enabled: true
-    bucket: my-postgres-backups
-    region: us-east-1
-    existingSecret: aws-credentials
-```
-
-#### WAL Archiving (Incremental Backups)
-
-Enable WAL archiving for continuous incremental backups and point-in-time recovery (PITR):
-
-```yaml
-backup:
-  enabled: true
-
-  # WAL archiving for incremental backups
-  wal:
-    enabled: true
-    method: "simple"        # Options: simple, wal-g, wal-e, pgbackrest
-    compression: "gzip"     # Options: none, gzip, lz4, zstd
-    retentionDays: 14       # Keep WAL archives for 14 days
-
-    persistence:
-      enabled: true
-      size: 100Gi
-
-    cleanup:
-      enabled: true
-      schedule: "0 3 * * *"  # Daily cleanup at 3 AM
-```
-
-**Key Features**:
-- 🔄 **Continuous Backup**: Captures all database changes in real-time
-- ⏱️ **Point-in-Time Recovery**: Restore to any specific moment
-- 💾 **Space Efficient**: Only stores changes, not full database copies
-- 🛠️ **Multiple Methods**: Simple file-based, WAL-G, WAL-E, or pgBackRest
-
-**Learn More**: See [WAL_ARCHIVING.md](./WAL_ARCHIVING.md) for detailed documentation.
-
-### Easy Database Recovery
-
-Restore your database from backups in minutes with user-friendly tools:
-
-```bash
-# Interactive recovery wizard (easiest)
-./scripts/recover.sh recover my-postgres
-
-# Quick full restore from latest backup
-./scripts/recover.sh recover-full my-postgres
-
-# Point-in-time recovery to specific moment
-./scripts/recover.sh recover-pitr my-postgres "2024-11-12 14:30:00"
-```
-
-**Or use Helm for declarative recovery:**
-
-```yaml
-recovery:
-  enabled: true
-  mode: "pitr"                    # 'full' or 'pitr'
-  source: "backup"                # 'backup' or 's3'
-  targetTime: "2024-11-12 14:30:00"  # For PITR
-  backupFile: ""                  # Optional: specific backup
-  tempStorageSize: "50Gi"
-```
-
-**Key Features**:
-- 🎯 **One-Command Recovery**: Interactive script guides you through the process
-- ⏱️ **PITR Support**: Restore to any point in time (with WAL archiving)
-- 📋 **List Backups**: View available backups before recovery
-- 📊 **Progress Monitoring**: Real-time recovery status and logs
-- ✅ **Verification**: Built-in data integrity checks
-
-**Learn More**: See [RECOVERY_GUIDE.md](./RECOVERY_GUIDE.md) for complete recovery documentation.
-
-### Monitoring Setup
-
-Enable Prometheus monitoring:
-
-```yaml
-metrics:
-  enabled: true
-
-monitoring:
-  enabled: true
-
-  serviceMonitor:
-    enabled: true
-    interval: 30s
-    labels:
-      prometheus: kube-prometheus
-
-  prometheusRule:
-    enabled: true
-    labels:
-      prometheus: kube-prometheus
-```
-
-### TLS/SSL Configuration
-
-Enable TLS with cert-manager:
-
-```yaml
-tls:
-  enabled: true
-
-  certificate:
-    enabled: true
-    issuerRef:
-      name: letsencrypt-prod
-      kind: ClusterIssuer
-    dnsNames:
-      - postgresql.example.com
-
-postgresql:
-  config:
-    ssl: "on"
-```
-
-## Best Practices
-
-### Production Checklist
-
-- ✅ Use external secrets (never hardcode passwords)
-- ✅ Enable persistence with appropriate storage class
-- ✅ Configure resource limits and requests
-- ✅ Enable automated backups
-- ✅ Set up monitoring and alerting
-- ✅ Use Pod Disruption Budgets
-- ✅ Configure network policies
-- ✅ Enable security contexts
-- ✅ Use affinity rules for HA
-- ✅ Enable TLS/SSL for connections
-
-### Performance Tuning
-
-Adjust PostgreSQL configuration based on your workload:
-
-```yaml
-postgresql:
-  config:
-    # For OLTP workloads
-    max_connections: "200"
-    shared_buffers: "25% of RAM"
-    effective_cache_size: "75% of RAM"
-    maintenance_work_mem: "2GB"
-    checkpoint_completion_target: "0.9"
-    wal_buffers: "16MB"
-    random_page_cost: "1.1"  # For SSD
-    effective_io_concurrency: "200"
-    work_mem: "5MB"
-```
-
-### Security Hardening
-
-```yaml
-deployment:
-  podSecurityContext:
-    fsGroup: 999
-    runAsNonRoot: true
-
-  securityContext:
-    runAsUser: 999
-    runAsNonRoot: true
-    allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: false
-    capabilities:
-      drop:
-        - ALL
-
-networkPolicy:
-  enabled: true
-  ingress:
-    - from:
-      - namespaceSelector:
-          matchLabels:
-            name: production
-      ports:
-      - protocol: TCP
-        port: 5432
-```
-
-## Security Best Practices
-
-### Security Checklist
-
-- [ ] **Use External Secrets**: Never store passwords in `values.yaml`
-- [ ] **Enable TLS**: Always use TLS for production deployments
-- [ ] **Network Policies**: Restrict network access to PostgreSQL pods
-- [ ] **RBAC**: Use minimal RBAC permissions
-- [ ] **Pod Security**: Run as non-root user with dropped capabilities
-- [ ] **Regular Updates**: Keep PostgreSQL and chart versions up to date
-- [ ] **Backup Encryption**: Encrypt backups at rest and in transit
-- [ ] **Audit Logging**: Enable pgAudit extension for compliance
-- [ ] **Connection Limits**: Set appropriate `max_connections`
-- [ ] **Strong Authentication**: Use `scram-sha-256` authentication
-
-### Authentication Methods
-
-Configure authentication method via `postgresql.hostAuthMethod`:
-
-```yaml
-postgresql:
-  hostAuthMethod: "scram-sha-256"  # Recommended for production
-  # Options: scram-sha-256, md5, password, trust
-```
-
-### pgAudit Extension
-
-Enable audit logging for compliance:
-
-```yaml
-postgresql:
-  extensions:
-    - pgaudit
-  config:
-    shared_preload_libraries: "pgaudit"
-    pgaudit.log: "all"
-    pgaudit.log_catalog: "off"
-```
-
-## Performance Tuning
-
-### Workload-Specific Configurations
-
-#### OLTP (Transactional) Workload
-
-```yaml
-postgresql:
-  config:
-    max_connections: "200"
-    shared_buffers: "2GB"
-    effective_cache_size: "6GB"
-    work_mem: "10MB"
-    maintenance_work_mem: "512MB"
-    random_page_cost: "1.1"
-    effective_io_concurrency: "200"
-```
-
-#### OLAP (Analytical) Workload
-
-```yaml
-postgresql:
-  config:
-    max_connections: "50"
-    shared_buffers: "8GB"
-    effective_cache_size: "24GB"
-    work_mem: "50MB"
-    maintenance_work_mem: "2GB"
-    max_parallel_workers_per_gather: "4"
-    max_parallel_workers: "8"
-```
-
-#### Mixed Workload
-
-```yaml
-postgresql:
-  config:
-    max_connections: "100"
-    shared_buffers: "4GB"
-    effective_cache_size: "12GB"
-    work_mem: "20MB"
-    maintenance_work_mem: "1GB"
-```
-
-## Disaster Recovery
-
-### Backup Strategy
-
-1. **Automated Backups**: Enable daily backups with retention
-2. **Pre-Upgrade Backups**: Automatic backups before helm upgrades
-3. **Point-in-Time Recovery**: Configure WAL archiving
-4. **Off-site Backups**: Store backups in S3 or similar
-
-### Manual Backup
-
-```bash
-# Create manual backup
-kubectl exec -n default my-postgresql-0 -- \
-  pg_dump -U postgres -d mydb | gzip > backup-$(date +%Y%m%d).sql.gz
-
-# Backup all databases
-kubectl exec -n default my-postgresql-0 -- \
-  pg_dumpall -U postgres | gzip > full-backup-$(date +%Y%m%d).sql.gz
-```
-
-### Restore from Backup
-
-```bash
-# Restore single database
-gunzip < backup.sql.gz | kubectl exec -i -n default my-postgresql-0 -- \
-  psql -U postgres -d mydb
-
-# Restore all databases
-gunzip < full-backup.sql.gz | kubectl exec -i -n default my-postgresql-0 -- \
-  psql -U postgres
-```
-
-### Recovery Procedures
-
-1. **Pod Failure**: Kubernetes automatically restarts the pod
-2. **Node Failure**: Pod reschedules to healthy node (data preserved via PVC)
-3. **Data Corruption**: Restore from latest backup
-4. **Region Failure**: Restore from off-site backup in different region
-
-## Troubleshooting
-
-### Common Issues
-
-#### Pod Not Starting
-
-Check pod logs:
-```bash
-kubectl logs -n default my-postgresql-0
-kubectl describe pod -n default my-postgresql-0
-```
-
-Check PVC status:
-```bash
-kubectl get pvc -n default
-```
-
-#### Connection Issues
-
-Verify service:
-```bash
-kubectl get svc -n default my-postgresql
-```
-
-Test connection from within cluster:
-```bash
-kubectl run -it --rm debug --image=postgres:16.4-alpine --restart=Never -- \
-  psql -h my-postgresql -U postgres -d postgres
-```
-
-#### Backup Failures
-
-Check CronJob status:
-```bash
-kubectl get cronjobs -n default
-kubectl get jobs -n default
-kubectl logs -n default job/my-postgresql-backup-xxxxx
-```
-
-## Upgrading
-
-### Chart Upgrades
-
-The chart includes automatic pre-upgrade backup hooks to protect your data:
-
-```bash
-# Standard upgrade
-helm upgrade my-postgresql codefuturist/postgresql -f values.yaml
-
-# Upgrade with specific version
-helm upgrade my-postgresql codefuturist/postgresql --version 1.1.0 -f values.yaml
-
-# Dry-run to test upgrade
-helm upgrade my-postgresql codefuturist/postgresql -f values.yaml --dry-run --debug
-```
-
-### Zero-Downtime Upgrades
-
-For minimal disruption:
-
-1. **Enable PDB**: Ensure Pod Disruption Budget is configured
-2. **Use StatefulSet**: For rolling updates with replicas
-3. **Test in Staging**: Always test upgrades in non-production first
-4. **Monitor**: Watch pod status during upgrade
-
-```yaml
-pdb:
-  enabled: true
-  minAvailable: 1
-
-statefulset:
-  enabled: true
-  updateStrategy:
-    type: RollingUpdate
-```
-
-### Breaking Changes
-
-#### From 0.x to 1.x
-
-- Secret management now uses `lookup` function to preserve passwords
-- StatefulSet now uses volumeClaimTemplates instead of shared PVC
-- New `hostAuthMethod` parameter (defaults to `scram-sha-256`)
-- Extensions must be explicitly listed in `postgresql.extensions`
-
-### Migration Guide
-
-#### From Bitnami PostgreSQL Chart
-
-1. Export data from existing installation
-2. Create new installation with this chart
-3. Import data into new installation
-4. Update application connection strings
-5. Verify functionality
-6. Remove old installation
-
-### Major Version Upgrade
-
-For PostgreSQL major version upgrades:
-
-1. Back up your database
-2. Create a logical dump:
-```bash
-kubectl exec -it my-postgresql-0 -- pg_dumpall -U postgres > backup.sql
-```
-3. Update the chart with new version
-4. Restore the dump if needed
-
-## Uninstallation
-
-```bash
-# Uninstall the release
-helm uninstall my-postgresql
-
-# Delete PVCs (if you want to remove data)
-kubectl delete pvc -l app.kubernetes.io/instance=my-postgresql
-```
-
-## Development
-
-### Testing
-
-```bash
-# Lint the chart
-helm lint charts/postgresql
-
-# Render templates
-helm template my-postgresql charts/postgresql -f values.yaml
-
-# Install with dry-run
-helm install my-postgresql charts/postgresql --dry-run --debug
-```
-
-## Contributing
-
-Contributions welcome! Please see [CONTRIBUTING.md](../../docs/CONTRIBUTING.md).
-
-## Support
-
-For bug reports, feature requests, and general questions:
-
-- **GitHub Issues**: [Report a bug or request a feature](https://github.com/codefuturist/helm-charts/issues)
-- **GitHub Discussions**: [Ask questions and discuss ideas](https://github.com/codefuturist/helm-charts/discussions)
-- **PostgreSQL Documentation**: [Official PostgreSQL Documentation](https://www.postgresql.org/docs/)
-
-## License
-
-This Helm chart is licensed under the [Apache License 2.0](../../LICENSE).
+**Homepage:** <https://www.postgresql.org/>
 
 ## Maintainers
 
-| Name | Email | GitHub |
-|------|-------|--------|
-| codefuturist | - | [@codefuturist](https://github.com/codefuturist) |
+| Name | Email | Url |
+| ---- | ------ | --- |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
 
 ## Source Code
 
-- **Chart Repository**: <https://github.com/codefuturist/helm-charts/tree/main/charts/postgresql>
+* <https://github.com/postgres/postgres>
+* <https://github.com/codefuturist/helm-charts>
 
-## Credits
+## Values
 
-This chart was inspired by and follows best practices from:
-- [Bitnami PostgreSQL Chart](https://github.com/bitnami/charts/tree/main/bitnami/postgresql)
-- [PostgreSQL Official Documentation](https://www.postgresql.org/docs/)
-- [Kubernetes Best Practices](https://kubernetes.io/docs/concepts/configuration/overview/)
+### Global Parameters
 
-## Changelog
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| additionalAnnotations | tpl/object | `{}` | Additional annotations for all resources. |
+| additionalLabels | tpl/object | `{}` | Additional labels for all resources. |
+| applicationName | string | `{{ .Chart.Name }}` | Application name. |
+| componentOverride | string | `""` | Override the component label for all resources. |
+| diagnosticMode | object | `{"args":["infinity"],"command":["sleep"],"enabled":false}` | Diagnostic mode configuration |
+| namespaceOverride | string | `""` | Override the namespace for all resources. |
+| partOfOverride | string | `""` | Override the partOf label for all resources. |
 
-See [CHANGELOG.md](../../docs/CHANGELOG.md) for version history and changes.
+### Backup Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| backup.enabled | bool | `false` | Enable automated backups |
+| backup.failedJobsHistoryLimit | int | `1` | Number of failed backups to keep |
+| backup.image | object | `{"pullPolicy":"IfNotPresent","repository":"postgres","tag":"16.4-alpine"}` | Backup image configuration |
+| backup.persistence | object | `{"accessModes":["ReadWriteOnce"],"annotations":{},"enabled":true,"mountPath":"/backups","size":"10Gi","storageClass":""}` | Backup persistence configuration |
+| backup.resources | object | `{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}` | Backup resources |
+| backup.retentionDays | string | `7` | Backup retention (days) |
+| backup.s3 | object | `{"accessKeyId":"","bucket":"","enabled":false,"endpoint":"","existingSecret":"","region":"us-east-1","secretAccessKey":""}` | S3 backup configuration |
+| backup.schedule | string | `"0 2 * * *"` | Backup schedule (cron format) |
+| backup.successfulJobsHistoryLimit | int | `3` | Number of successful backups to keep |
+| backup.wal | object | `{"archiveCommand":"","cleanup":{"enabled":true,"failedJobsHistoryLimit":1,"schedule":"0 3 * * *","successfulJobsHistoryLimit":1},"compression":"gzip","enabled":false,"method":"simple","persistence":{"accessModes":["ReadWriteOnce"],"annotations":{},"enabled":true,"mountPath":"/wal-archive","size":"20Gi","storageClass":""},"pgbackrest":{"config":{},"image":{"pullPolicy":"IfNotPresent","repository":"pgbackrest/pgbackrest","tag":"2.49"},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}},"restoreCommand":"","retentionDays":14,"storage":{"azure":{"container":"","existingSecret":"","prefix":"wal-archive","storageAccount":""},"gcs":{"bucket":"","credentialsSecret":"","prefix":"wal-archive"},"s3":{"accessKeyId":"","bucket":"","endpoint":"","existingSecret":"","prefix":"wal-archive","region":"us-east-1","secretAccessKey":""},"type":"s3"},"walg":{"env":{},"image":{"pullPolicy":"IfNotPresent","repository":"wal-g/wal-g","tag":"v3.0.0"},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}}}` | WAL (Write-Ahead Log) archiving for incremental backups |
+
+### Deployment Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| deployment.affinity | object | `{}` | Affinity rules |
+| deployment.dnsConfig | object | `{}` | DNS config |
+| deployment.dnsPolicy | string | `"ClusterFirst"` | DNS policy |
+| deployment.hostAliases | array | `[]` | Host aliases |
+| deployment.initContainers | array | `[]` | Init containers |
+| deployment.lifecycle | object | `{"preStop":{"exec":{"command":["/bin/sh","-c","# Wait for active connections to close gracefully\npg_ctl stop -D ${PGDATA} -m smart -t 60 || pg_ctl stop -D ${PGDATA} -m fast -t 30\n"]}}}` | Lifecycle hooks for graceful shutdown |
+| deployment.livenessProbe | object | `{"enabled":true,"exec":{"command":["/bin/sh","-c","exec pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -q"]},"failureThreshold":6,"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Liveness probe configuration |
+| deployment.nodeSelector | object | `{}` | Node selector |
+| deployment.podAnnotations | object | `{"configmap.reloader.stakater.com/reload":"postgresql-config","prometheus.io/path":"/metrics","prometheus.io/port":"9187","prometheus.io/scrape":"false","secret.reloader.stakater.com/reload":"postgresql"}` | Pod annotations |
+| deployment.podLabels | object | `{"app.kubernetes.io/component":"database","app.kubernetes.io/part-of":"postgresql"}` | Pod labels |
+| deployment.podSecurityContext | object | `{"fsGroup":999,"fsGroupChangePolicy":"OnRootMismatch"}` | Security context for the pod |
+| deployment.priorityClassName | string | `""` | Priority class name |
+| deployment.readinessProbe | object | `{"enabled":true,"exec":{"command":["/bin/sh","-c","exec pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -q"]},"failureThreshold":6,"initialDelaySeconds":5,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Readiness probe configuration |
+| deployment.replicas | int | `1` | Number of PostgreSQL replicas |
+| deployment.resources | object | `{"limits":{"cpu":"1000m","memory":"1Gi"},"requests":{"cpu":"250m","memory":"256Mi"}}` | Resource limits and requests |
+| deployment.securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsGroup":999,"runAsNonRoot":true,"runAsUser":999}` | Security context for the container |
+| deployment.serviceAccountName | string | `""` | Service account name |
+| deployment.sidecarContainers | array | `[]` | Sidecar containers |
+| deployment.startupProbe | object | `{"enabled":true,"exec":{"command":["/bin/sh","-c","exec pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -q"]},"failureThreshold":30,"initialDelaySeconds":0,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Startup probe configuration |
+| deployment.strategy | string | `{"type":"Recreate"}` | Deployment strategy |
+| deployment.terminationGracePeriodSeconds | int | `30` | Termination grace period |
+| deployment.tolerations | array | `[]` | Tolerations |
+| deployment.topologySpreadConstraints | array | `[]` | Topology spread constraints |
+
+### Extra Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| extraObjects.objects | array | `[]` | Extra Kubernetes objects to create |
+
+### HPA Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| hpa.enabled | bool | `false` | Enable HPA (not recommended for databases) |
+| hpa.maxReplicas | int | `3` | Maximum replicas |
+| hpa.minReplicas | int | `1` | Minimum replicas |
+| hpa.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization percentage |
+| hpa.targetMemoryUtilizationPercentage | int | `80` | Target memory utilization percentage |
+
+### Kubernetes Integration Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| kubernetesIntegration.autoReload | bool | `{"enabled":false}` | Enable automatic config reload on ConfigMap/Secret changes |
+| kubernetesIntegration.disruptionWindows | object | `{"enabled":false}` | Pod disruption windows for maintenance |
+| kubernetesIntegration.enhancedEvents | bool | `true` | Enable enhanced Kubernetes event generation |
+| kubernetesIntegration.resourceRecommendations | object | `{"enabled":false,"updateMode":"Off"}` | Resource recommendations via VPA |
+
+### Metrics Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| metrics.customQueries | object | `{}` | Custom queries for metrics |
+| metrics.enabled | bool | `false` | Enable PostgreSQL metrics exporter |
+| metrics.image | object | `{"pullPolicy":"IfNotPresent","repository":"quay.io/prometheuscommunity/postgres-exporter","tag":"v0.18.1"}` | Metrics exporter image |
+| metrics.port | int | `9187` | Metrics port |
+| metrics.resources | object | `{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}` | Metrics exporter resources |
+
+### Monitoring Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| monitoring.enabled | bool | `false` | Enable monitoring |
+| monitoring.grafanaDashboard.enabled | bool | `false` | Enable Grafana Dashboard ConfigMap |
+| monitoring.grafanaDashboard.labels | object | `{"grafana_dashboard":"1"}` | Additional labels |
+| monitoring.grafanaDashboard.namespace | string | `""` | Namespace for Grafana Dashboard |
+| monitoring.prometheusRule.enabled | bool | `false` | Enable PrometheusRule for alerts |
+| monitoring.prometheusRule.labels | object | `{}` | Additional labels |
+| monitoring.prometheusRule.namespace | string | `""` | Namespace for PrometheusRule |
+| monitoring.prometheusRule.rules | array | `[]` | Alert rules |
+| monitoring.serviceMonitor.enabled | bool | `false` | Enable ServiceMonitor for Prometheus Operator |
+| monitoring.serviceMonitor.interval | string | `"30s"` | Scrape interval |
+| monitoring.serviceMonitor.labels | object | `{}` | Additional labels |
+| monitoring.serviceMonitor.metricRelabelings | object | `[]` | Metric relabelings |
+| monitoring.serviceMonitor.namespace | string | `""` | Namespace for ServiceMonitor |
+| monitoring.serviceMonitor.relabelings | object | `[]` | Relabelings |
+| monitoring.serviceMonitor.scrapeTimeout | string | `"10s"` | Scrape timeout |
+
+### NetworkPolicy Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| networkPolicy.egress | array | `[]` | Egress rules |
+| networkPolicy.enabled | bool | `false` | Enable network policy |
+| networkPolicy.ingress | array | `[]` | Ingress rules |
+
+### PDB Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| pdb.enabled | bool | `false` | Enable PodDisruptionBudget |
+| pdb.maxUnavailable | string | `""` | Maximum unavailable pods |
+| pdb.minAvailable | int | `1` | Minimum available pods |
+
+### Persistence Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| persistence.accessModes | array | `["ReadWriteOnce"]` | Access modes |
+| persistence.annotations | object | `{}` | Annotations for PVC |
+| persistence.enabled | bool | `true` | Enable persistence using PVC |
+| persistence.existingClaim | string | `""` | Use existing PVC |
+| persistence.mountPath | string | `"/var/lib/postgresql/data"` | Mount path for data |
+| persistence.retentionPolicy | object | `{"enabled":false,"whenDeleted":"Retain","whenScaled":"Retain"}` | PVC retention policy (requires Kubernetes 1.23+) |
+| persistence.selector | object | `{}` | Selector for PVC |
+| persistence.size | string | `"2Gi"` | Size of the volume |
+| persistence.storageClass | string | `""` | Storage class name |
+| persistence.subPath | string | `""` | Sub path inside the volume |
+
+### PgBouncer Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| pgbouncer.config | object | `{"default_pool_size":25,"max_client_conn":1000,"max_db_connections":100,"max_user_connections":100,"min_pool_size":5,"pool_mode":"transaction","reserve_pool_size":5,"reserve_pool_timeout":3}` | PgBouncer configuration |
+| pgbouncer.enabled | bool | `false` | Enable PgBouncer connection pooler |
+| pgbouncer.image | object | `{"pullPolicy":"IfNotPresent","repository":"edoburu/pgbouncer","tag":"1.21.0"}` | PgBouncer image |
+| pgbouncer.port | int | `5432` | PgBouncer port |
+| pgbouncer.replicas | int | `1` | Number of PgBouncer replicas |
+| pgbouncer.resources | object | `{"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}` | PgBouncer resources |
+
+### PostgreSQL Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| postgresql.additionalDatabases | array | `[]` | Additional databases to create on first boot |
+| postgresql.additionalUsers | array | `[]` | Additional users to create on first boot |
+| postgresql.auth | object | `{"passwordFilesPath":"/opt/bitnami/postgresql/secrets","usePasswordFiles":true}` | Password security configuration |
+| postgresql.config | object | `{"checkpoint_completion_target":"0.9","default_statistics_target":"100","effective_cache_size":"1GB","effective_io_concurrency":"200","hot_standby":"on","hot_standby_feedback":"on","huge_pages":"try","log_autovacuum_min_duration":"0","log_checkpoints":"on","log_connections":"on","log_destination":"stderr","log_disconnections":"on","log_error_verbosity":"default","log_line_prefix":"%m [%p] %q%u@%d ","log_lock_waits":"on","log_min_duration_statement":"1000","log_temp_files":"0","logging_collector":"off","maintenance_work_mem":"64MB","max_connections":"100","max_parallel_maintenance_workers":"2","max_parallel_workers":"4","max_parallel_workers_per_gather":"2","max_replication_slots":"10","max_wal_senders":"10","max_wal_size":"4GB","max_worker_processes":"4","min_wal_size":"1GB","password_encryption":"scram-sha-256","random_page_cost":"1.1","shared_buffers":"256MB","ssl":"off","wal_buffers":"16MB","wal_level":"replica","work_mem":"2621kB"}` | PostgreSQL configuration parameters IMPORTANT: For dynamic user sync (CronJob) or external connections, set listen_addresses: "*" |
+| postgresql.customConfig | string | `""` | Custom PostgreSQL configuration (postgresql.conf) |
+| postgresql.customPgHba | string | `""` | Custom pg_hba.conf configuration |
+| postgresql.database | string | `"postgres"` | PostgreSQL database name |
+| postgresql.env | array | `[]` | Additional environment variables |
+| postgresql.envFrom | object | `[]` | Additional environment variables from secrets or configmaps |
+| postgresql.existingPostgresPasswordKey | string | `"postgresql-postgres-password"` | Key in existing secret containing the postgres password |
+| postgresql.existingPostgresSecret | string | `""` | Reference to existing secret containing postgres password |
+| postgresql.existingSecret | string | `""` | Reference to existing secret containing PostgreSQL password |
+| postgresql.existingSecretPasswordKey | string | `"postgresql-password"` | Key in existing secret containing the password |
+| postgresql.extensions | array | `["pg_stat_statements","pgcrypto"]` | PostgreSQL extensions to enable |
+| postgresql.externalResources | object | `{"databasesConfigMap":{"key":"databases.yaml","name":"","namespace":""},"enabled":false,"usersConfigMap":{"key":"users.yaml","name":"","namespace":""},"usersSecret":{"name":"","namespace":"","passwordKeys":{}}}` | External Kubernetes resources to read databases/users from |
+| postgresql.hostAuthMethod | string | `"scram-sha-256"` | PostgreSQL host authentication method Options: scram-sha-256, md5, password, trust |
+| postgresql.image | string | `{"digest":"","pullPolicy":"IfNotPresent","repository":"postgres","tag":"16.4-alpine"}` | PostgreSQL image repository |
+| postgresql.imagePullSecrets | object | `[]` | Image pull secrets |
+| postgresql.initScripts | array | `{}` | Init scripts to run on first boot |
+| postgresql.password | string | `""` | PostgreSQL password (if not using existingSecret) |
+| postgresql.postgresPassword | string | `""` | PostgreSQL postgres user password (superuser) |
+| postgresql.preInitScripts | object | `{}` | Pre-initialization scripts (run BEFORE database initialization) |
+| postgresql.username | string | `"postgres"` | PostgreSQL username |
+| postgresql.version | string | `"16.4"` | PostgreSQL version/image tag |
+
+### RBAC Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| rbac.create | bool | `false` | Create RBAC resources |
+| rbac.rules | array | `[]` | Additional rules for the role |
+
+### Recovery Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| recovery.backupFile | string | `""` | Specific backup file to restore (optional) If not specified, uses the latest backup Example: "backup-2024-11-12-02-00-00.sql.gz" |
+| recovery.enabled | bool | `false` | Enable recovery mode WARNING: This will restore from backup on install/upgrade! |
+| recovery.mode | string | `"full"` | Recovery mode: 'full' or 'pitr' full: Restore from full backup only pitr: Point-in-Time Recovery using full backup + WAL archives |
+| recovery.s3 | object | `{"backupFile":""}` | S3 recovery configuration (source: s3) |
+| recovery.source | string | `"backup"` | Recovery source: 'backup' (PVC) or 's3' |
+| recovery.targetTime | string | `""` | Target time for PITR (mode: pitr only) Format: 'YYYY-MM-DD HH:MM:SS' (UTC) Example: "2024-11-12 14:30:00" |
+| recovery.tempStorageSize | string | `"50Gi"` | Temporary storage size for recovery process Should be >= database size |
+
+### Replication Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| replication.advanced | object | `{"archiveModeOnReplicas":false,"maxReplicationSlots":10,"maxWalSenders":10,"walKeepSize":1024}` | Advanced replication settings |
+| replication.enabled | bool | `false` | Enable replication (requires StatefulSet) |
+| replication.existingSecret | string | `""` | Existing secret for replication credentials |
+| replication.failover | object | `{"enabled":true,"triggerFileEnabled":false,"triggerFilePath":"/tmp/postgresql.trigger"}` | Automatic failover preparation |
+| replication.monitoring | object | `{"delayThresholdSeconds":30,"enabled":true,"lagThresholdMB":100}` | Replication monitoring |
+| replication.numSynchronousReplicas | int | `0` | Number of synchronous replicas |
+| replication.password | string | `""` | Replication password |
+| replication.primary | object | `{"createService":true,"serviceName":"","servicePort":5432}` | Primary server configuration |
+| replication.readReplicas | int | `1` | Number of read replicas |
+| replication.replica | object | `{"hotStandbyFeedback":true,"maxStandbyArchiveDelay":30000,"maxStandbyStreamingDelay":30000,"walReceiverStatusInterval":10,"walReceiverTimeout":60000}` | Replica configuration |
+| replication.replicaService | object | `{"annotations":{},"enabled":true,"labels":{},"loadBalancerSourceRanges":[],"nameSuffix":"read","port":5432,"type":"ClusterIP"}` | Replica service configuration |
+| replication.slots | object | `{"autoCreate":true,"enabled":true,"prefix":"replica"}` | Replication slot configuration |
+| replication.synchronousCommit | bool | `false` | Synchronous commit |
+| replication.user | string | `"replicator"` | Replication user |
+
+### Service Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| service.annotations | object | `{}` | Service annotations |
+| service.clusterIP | string | `""` | Cluster IP |
+| service.enabled | bool | `true` | Enable service |
+| service.externalTrafficPolicy | string | `""` | External traffic policy |
+| service.labels | object | `{}` | Service labels |
+| service.loadBalancerIP | string | `""` | Load balancer IP (if service type is LoadBalancer) |
+| service.loadBalancerSourceRanges | array | `[]` | Load balancer source ranges |
+| service.nodePort | int | `""` | Node port (if service type is NodePort) |
+| service.port | int | `5432` | PostgreSQL service port |
+| service.sessionAffinity | string | `"None"` | Session affinity |
+| service.sessionAffinityConfig | object | `{}` | Session affinity config |
+| service.targetPort | int | `5432` | PostgreSQL container port |
+| service.type | string | `"ClusterIP"` | Service type |
+
+### ServiceAccount Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| serviceAccount.annotations | object | `{}` | Service account annotations |
+| serviceAccount.automountServiceAccountToken | bool | `false` | Automount service account token |
+| serviceAccount.create | bool | `true` | Create service account |
+| serviceAccount.name | string | `""` | Service account name |
+
+### Service Mesh Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| serviceMesh.enabled | bool | `false` | Enable service mesh integration |
+| serviceMesh.istio | object | `{"injection":true,"mtls":{"mode":"PERMISSIVE"},"trafficPolicy":{"connectionPool":{"http":{"http1MaxPendingRequests":100,"http2MaxRequests":100},"tcp":{"maxConnections":100}},"loadBalancer":{"simple":"LEAST_CONN"}}}` | Istio-specific configuration |
+| serviceMesh.linkerd | object | `{"injection":true,"skipInboundPorts":"","skipOutboundPorts":""}` | Linkerd-specific configuration |
+| serviceMesh.provider | string | `"istio"` | Service mesh provider (istio, linkerd, consul) |
+
+### StatefulSet Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| statefulset.enabled | bool | `false` | Use StatefulSet instead of Deployment |
+| statefulset.podManagementPolicy | string | `"OrderedReady"` | Pod management policy |
+| statefulset.serviceName | string | `"postgresql"` | Service name for StatefulSet |
+| statefulset.updateStrategy | object | `{"type":"RollingUpdate"}` | Update strategy |
+
+### TLS Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| tls.caCertFile | string | `"ca.crt"` | CA certificate file name in secret |
+| tls.certFile | string | `"tls.crt"` | Certificate file name in secret |
+| tls.certKeyFile | string | `"tls.key"` | Certificate key file name in secret |
+| tls.certificate | object | `{"dnsNames":[],"duration":"2160h","enabled":false,"issuerRef":{"kind":"ClusterIssuer","name":""},"renewBefore":"360h"}` | Certificate configuration for cert-manager |
+| tls.certificateSecret | string | `""` | Certificate secret name |
+| tls.enabled | bool | `false` | Enable TLS |
+
+### User Management Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| userManagement.dynamicSync | object | `{"configMapName":"","enabled":false,"failedJobsHistoryLimit":3,"podAnnotations":{},"resources":{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"32Mi"}},"schedule":"*/15 * * * *","successfulJobsHistoryLimit":3,"suspend":false,"watchExternalResources":{"configMaps":[],"enabled":false}}` | Dynamic user synchronization without pod restart |
+
+### VPA Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| vpa.enabled | bool | `false` | Enable VPA |
+| vpa.resourcePolicy | object | `{}` | Resource policy |
+| vpa.updateMode | string | `"Auto"` | Update mode (Off, Initial, Recreate, Auto) |
+
+### Other Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| backup.wal.archiveCommand | string | `""` | Archive command override (advanced users) Leave empty to use method-specific default |
+| backup.wal.cleanup | object | `{"enabled":true,"failedJobsHistoryLimit":1,"schedule":"0 3 * * *","successfulJobsHistoryLimit":1}` | WAL archiving job schedule (cleanup old WAL files) |
+| backup.wal.cleanup.enabled | bool | `true` | Enable WAL cleanup job |
+| backup.wal.cleanup.failedJobsHistoryLimit | int | `1` | Number of failed cleanup jobs to keep |
+| backup.wal.cleanup.schedule | string | `"0 3 * * *"` | Cleanup schedule (cron format) |
+| backup.wal.cleanup.successfulJobsHistoryLimit | int | `1` | Number of successful cleanup jobs to keep |
+| backup.wal.compression | string | `"gzip"` | Compression for WAL files: 'none', 'gzip', 'lz4', 'zstd' |
+| backup.wal.enabled | bool | `false` | Enable WAL archiving for incremental backups |
+| backup.wal.method | string | `"simple"` | WAL archive method: 'simple' (cp command), 'wal-g', 'wal-e', 'pgbackrest' simple: Copy WAL files to PVC storage wal-g: Modern tool with cloud storage support (recommended) wal-e: Legacy tool with S3 support pgbackrest: Advanced backup and restore tool |
+| backup.wal.persistence | object | `{"accessModes":["ReadWriteOnce"],"annotations":{},"enabled":true,"mountPath":"/wal-archive","size":"20Gi","storageClass":""}` | WAL archive persistence (used with 'simple' method) |
+| backup.wal.pgbackrest | object | `{"config":{},"image":{"pullPolicy":"IfNotPresent","repository":"pgbackrest/pgbackrest","tag":"2.49"},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}}` | pgBackRest specific configuration |
+| backup.wal.pgbackrest.config | object | `{}` | pgBackRest configuration |
+| backup.wal.pgbackrest.image | string | `{"pullPolicy":"IfNotPresent","repository":"pgbackrest/pgbackrest","tag":"2.49"}` | pgBackRest image |
+| backup.wal.pgbackrest.resources | object | `{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}` | pgBackRest resources |
+| backup.wal.restoreCommand | string | `""` | Restore command override (advanced users) Leave empty to use method-specific default |
+| backup.wal.retentionDays | int | `14` | WAL retention period in days |
+| backup.wal.storage | object | `{"azure":{"container":"","existingSecret":"","prefix":"wal-archive","storageAccount":""},"gcs":{"bucket":"","credentialsSecret":"","prefix":"wal-archive"},"s3":{"accessKeyId":"","bucket":"","endpoint":"","existingSecret":"","prefix":"wal-archive","region":"us-east-1","secretAccessKey":""},"type":"s3"}` | Cloud storage configuration (for wal-g, wal-e, pgbackrest) |
+| backup.wal.storage.azure | object | `{"container":"","existingSecret":"","prefix":"wal-archive","storageAccount":""}` | Azure configuration |
+| backup.wal.storage.gcs | object | `{"bucket":"","credentialsSecret":"","prefix":"wal-archive"}` | GCS configuration |
+| backup.wal.storage.s3 | object | `{"accessKeyId":"","bucket":"","endpoint":"","existingSecret":"","prefix":"wal-archive","region":"us-east-1","secretAccessKey":""}` | S3 configuration |
+| backup.wal.storage.type | string | `"s3"` | Storage type: 's3', 'gcs', 'azure', 'file' |
+| backup.wal.walg | object | `{"env":{},"image":{"pullPolicy":"IfNotPresent","repository":"wal-g/wal-g","tag":"v3.0.0"},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}}` | WAL-G specific configuration |
+| backup.wal.walg.env | object | `{}` | Additional environment variables for WAL-G |
+| backup.wal.walg.image | string | `{"pullPolicy":"IfNotPresent","repository":"wal-g/wal-g","tag":"v3.0.0"}` | WAL-G image |
+| backup.wal.walg.resources | object | `{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}` | WAL-G resources |
+| diagnosticMode.args | array | `["infinity"]` | Args override for diagnostic mode |
+| diagnosticMode.command | array | `["sleep"]` | Command override for diagnostic mode |
+| diagnosticMode.enabled | bool | `false` | Enable diagnostic mode (disables probes, overrides command) Useful for debugging container startup issues |
+| persistence.retentionPolicy.enabled | bool | `false` | Enable PVC retention policy |
+| persistence.retentionPolicy.whenDeleted | string | `"Retain"` | Volume retention behavior when the StatefulSet is deleted Options: Retain (keep PVCs), Delete (remove PVCs) |
+| persistence.retentionPolicy.whenScaled | string | `"Retain"` | Volume retention behavior when the replica count is reduced Options: Retain (keep PVCs), Delete (remove PVCs) |
+| postgresql.auth.passwordFilesPath | string | `"/opt/bitnami/postgresql/secrets"` | Path where password files will be mounted |
+| postgresql.auth.usePasswordFiles | bool | `true` | Use password files instead of environment variables (more secure) When enabled, passwords are mounted as files from secrets instead of being exposed as env vars This prevents password exposure in process lists and kubectl describe output |
+| postgresql.externalResources.databasesConfigMap | object | `{"key":"databases.yaml","name":"","namespace":""}` | ConfigMap containing database definitions |
+| postgresql.externalResources.enabled | bool | `false` | Enable reading from external ConfigMaps/Secrets |
+| postgresql.externalResources.usersConfigMap | object | `{"key":"users.yaml","name":"","namespace":""}` | ConfigMap containing user definitions |
+| postgresql.externalResources.usersSecret | object | `{"name":"","namespace":"","passwordKeys":{}}` | Secret containing user passwords |
+| recovery.s3.backupFile | string | `""` | Specific S3 backup file (optional) |
+| replication.advanced.archiveModeOnReplicas | bool | `false` | Enable archive mode for replicas |
+| replication.advanced.maxReplicationSlots | int | `10` | Maximum number of replication slots |
+| replication.advanced.maxWalSenders | int | `10` | Maximum WAL senders |
+| replication.advanced.walKeepSize | int | `1024` | WAL keep size in MB |
+| replication.failover.enabled | bool | `true` | Enable automatic promotion configuration Configures replicas to be able to promote automatically |
+| replication.failover.triggerFileEnabled | bool | `false` | Create trigger file for manual promotion |
+| replication.failover.triggerFilePath | string | `"/tmp/postgresql.trigger"` | Trigger file path |
+| replication.monitoring.delayThresholdSeconds | int | `30` | Alert threshold for replication delay in seconds |
+| replication.monitoring.enabled | bool | `true` | Enable replication lag monitoring |
+| replication.monitoring.lagThresholdMB | int | `100` | Alert threshold for replication lag in MB |
+| replication.primary.createService | bool | `true` | Create dedicated primary service |
+| replication.primary.serviceName | string | `""` | Service name for primary server Leave empty to auto-generate based on release name |
+| replication.primary.servicePort | int | `5432` | Service port for primary server |
+| replication.replica.hotStandbyFeedback | bool | `true` | Enable hot standby feedback |
+| replication.replica.maxStandbyArchiveDelay | int | `30000` | Max standby archive delay in milliseconds |
+| replication.replica.maxStandbyStreamingDelay | int | `30000` | Max standby streaming delay in milliseconds |
+| replication.replica.walReceiverStatusInterval | int | `10` | WAL receiver status interval in seconds |
+| replication.replica.walReceiverTimeout | int | `60000` | WAL receiver timeout in milliseconds |
+| replication.replicaService.annotations | object | `{}` | Service annotations |
+| replication.replicaService.enabled | bool | `true` | Create read-only service for replicas |
+| replication.replicaService.labels | object | `{}` | Service labels |
+| replication.replicaService.loadBalancerSourceRanges | string | `[]` | Load balancer source ranges |
+| replication.replicaService.nameSuffix | string | `"read"` | Service name suffix Full name will be: <release-name>-postgresql-read |
+| replication.replicaService.port | int | `5432` | Service port |
+| replication.replicaService.type | string | `"ClusterIP"` | Service type |
+| replication.slots.autoCreate | bool | `true` | Auto-create replication slots |
+| replication.slots.enabled | bool | `true` | Enable replication slots for reliable streaming |
+| replication.slots.prefix | string | `"replica"` | Replication slot name prefix |
+| userManagement.dynamicSync.configMapName | string | `""` | ConfigMap containing SQL scripts for user/database sync The ConfigMap should contain .sql files that will be executed Scripts should be idempotent (use IF NOT EXISTS checks) |
+| userManagement.dynamicSync.enabled | bool | `false` | Enable dynamic user/database synchronization via CronJob |
+| userManagement.dynamicSync.failedJobsHistoryLimit | int | `3` | Number of failed jobs to keep |
+| userManagement.dynamicSync.podAnnotations | object | `{}` | Pod annotations for the sync job |
+| userManagement.dynamicSync.resources | object | `{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"32Mi"}}` | Resources for the sync job container |
+| userManagement.dynamicSync.schedule | string | `"*/15 * * * *"` | Cron schedule for sync job Examples: - "*/5 * * * *" - Every 5 minutes - "0 * * * *" - Every hour - "@hourly" - Every hour Can also be triggered manually: kubectl create job --from=cronjob/<name> <job-name> |
+| userManagement.dynamicSync.successfulJobsHistoryLimit | int | `3` | Number of successful jobs to keep |
+| userManagement.dynamicSync.suspend | bool | `false` | Suspend the CronJob (useful for manual-only execution) |
+| userManagement.dynamicSync.watchExternalResources | object | `{"configMaps":[],"enabled":false}` | Watch external ConfigMaps for user/database definitions (cross-namespace) |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

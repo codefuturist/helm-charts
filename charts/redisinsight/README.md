@@ -1,617 +1,145 @@
-# RedisInsight Helm Chart
+# redisinsight
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
-![AppVersion: 9.10.0](https://img.shields.io/badge/AppVersion-9.10.0-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
-## Introduction
+A production-ready Helm chart for Redis Insight - Redis database management and administration tool
 
-This chart bootstraps a [RedisInsight 4](https://www.redisinsight.org/) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
-
-RedisInsight is the most popular and feature-rich Open Source administration and development platform for Redis, the most advanced Open Source database in the world.
-
-## Features
-
-- **Easy Installation**: Get started with minimal configuration
-- **Security First**: Hardened security contexts, network policies, and RBAC
-- **Production Ready**: Persistent storage, resource limits, health probes
-- **Flexible Configuration**: Support for both inline and existing secrets
-- **Pre-configured Servers**: Define Redis connections via values
-- **Ingress Support**: Expose via any ingress controller with TLS
-- **Monitoring Ready**: ServiceMonitor and PrometheusRule for Prometheus Operator
-- **High Availability**: Pod disruption budgets, HPA, and anti-affinity
-- **Advanced Features**: SMTP, LDAP, pgpass, config_local.py support
-- **Flexible Deployment**: Deployment or StatefulSet controller options
-- **Extensibility**: Extra containers, init containers, volumes, and environment variables
-- **Comprehensive Examples**: Ready-to-use configurations for common scenarios
-
-## Quick Start
-
-To deploy RedisInsight using this Helm chart, follow these steps:
-
-```console
-$ helm repo add codefuturist https://codefuturist.github.io/helm-charts
-$ helm repo update
-$ helm install my-redisinsight codefuturist/redisinsight \
-  --set redisinsight.email=admin@example.com \
-  --set redisinsight.password=SuperSecurePassword123
-```
-
-This will deploy RedisInsight with the default configuration. See the [Configuration](#configuration) section for details on customizing the deployment.
-
-> **Tip**: List all releases using `helm list`
-
-## Uninstalling the Chart
-
-To uninstall/delete the `my-redisinsight` deployment:
-
-```console
-$ helm delete my-redisinsight
-```
-
-The command removes all the Kubernetes components associated with the chart and deletes the release.
-
-If persistence was enabled, you may need to manually delete the PVC:
-
-```console
-$ kubectl delete pvc my-redisinsight
-```
-
-## Prerequisites
-
-- Kubernetes 1.21+
-- Helm 3.x
-- PersistentVolume support (optional, for data persistence)
-
-## Configuration
-
-The following table lists the configurable parameters of the RedisInsight chart and their default values.
-
-| Parameter | Description | Default |
-| --------- | ----------- | ------- |
-| `redisinsight.email` | Default login email address | `admin@example.com` |
-| `redisinsight.password` | Default login password | `""` (required) |
-| `redisinsight.existingSecret` | Name of existing secret with credentials | `""` |
-| `redisinsight.existingSecretEmailKey` | Key in existing secret for email | `email` |
-| `redisinsight.existingSecretPasswordKey` | Key in existing secret for password | `password` |
-| `redisinsight.config` | RedisInsight configuration environment variables | See values.yaml |
-| `redisinsight.disablePostfix` | Disable internal Postfix server | `false` |
-| `redisinsight.replaceServersOnStartup` | Replace server definitions on every startup | `false` |
-| `redisinsight.scriptName` | Script name for reverse proxy subdirectory hosting | `""` |
-| `redisinsight.serverDefinitions` | Pre-configured Redis server definitions | `{}` |
-| `redisinsight.existingServerDefinitionsConfigMap` | ConfigMap with server definitions JSON | `""` |
-| `redisinsight.pgpassFile` | pgpass file content for automatic authentication | `""` |
-| `redisinsight.existingPgpassSecret` | Secret containing pgpass file | `""` |
-| `redisinsight.configLocalPy` | Custom config_local.py content | `""` |
-| `redisinsight.existingConfigLocalPyConfigMap` | ConfigMap with config_local.py | `""` |
-| `redisinsight.smtp.enabled` | Enable SMTP configuration | `false` |
-| `redisinsight.smtp.server` | SMTP server address | `""` |
-| `redisinsight.smtp.port` | SMTP server port | `587` |
-| `redisinsight.smtp.useTLS` | Use TLS for SMTP | `true` |
-| `redisinsight.smtp.useSSL` | Use SSL for SMTP | `false` |
-| `redisinsight.smtp.username` | SMTP username | `""` |
-| `redisinsight.smtp.password` | SMTP password | `""` |
-| `redisinsight.smtp.fromAddress` | SMTP from address | `""` |
-| `redisinsight.smtp.existingSecret` | Existing secret with SMTP credentials | `""` |
-| `redisinsight.ldap.enabled` | Enable LDAP configuration | `false` |
-| `redisinsight.ldap.server` | LDAP server URI | `""` |
-| `redisinsight.ldap.bindDN` | LDAP bind DN | `""` |
-| `redisinsight.ldap.bindPassword` | LDAP bind password | `""` |
-| `redisinsight.ldap.existingSecret` | Existing secret with LDAP credentials | `""` |
-| `redisinsight.gunicorn.threads` | Number of threads per Gunicorn worker | `25` |
-| `redisinsight.gunicorn.accessLogfile` | Access log file path | `"-"` |
-| `redisinsight.gunicorn.limitRequestLine` | Maximum HTTP request line size | `8190` |
-| `controller.type` | Controller type: `deployment` or `statefulset` | `deployment` |
-| `controller.replicas` | Number of replicas | `1` |
-| `controller.updateStrategy` | Update strategy for the controller | `{}` |
-| `image.repository` | RedisInsight image repository | `dpage/redisinsight4` |
-| `image.tag` | RedisInsight image tag | `""` (chart appVersion) |
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `imagePullSecrets` | Image pull secrets | `[]` |
-| `service.type` | Service type | `ClusterIP` |
-| `service.port` | Service port | `80` |
-| `service.nodePort` | NodePort (if service.type is NodePort) | `""` |
-| `service.annotations` | Service annotations | `{}` |
-| `ingress.enabled` | Enable ingress | `false` |
-| `ingress.className` | Ingress class name | `""` |
-| `ingress.annotations` | Ingress annotations | `{}` |
-| `ingress.hosts` | Ingress hosts configuration | `[]` |
-| `ingress.tls` | Ingress TLS configuration | `[]` |
-| `persistence.enabled` | Enable persistent storage | `false` |
-| `persistence.storageClassName` | Storage class name | `""` |
-| `persistence.accessMode` | Access mode | `ReadWriteOnce` |
-| `persistence.size` | Storage size | `1Gi` |
-| `persistence.existingClaim` | Use existing PVC (Deployment only) | `""` |
-| `persistence.annotations` | PVC annotations | `{}` |
-| `resources.limits.cpu` | CPU limit | `1000m` |
-| `resources.limits.memory` | Memory limit | `512Mi` |
-| `resources.requests.cpu` | CPU request | `100m` |
-| `resources.requests.memory` | Memory request | `256Mi` |
-| `podSecurityContext` | Pod security context | See values.yaml |
-| `securityContext` | Container security context | See values.yaml |
-| `networkPolicy.enabled` | Enable network policy | `false` |
-| `networkPolicy.ingress` | Ingress rules | `[]` |
-| `networkPolicy.egress` | Egress rules | `[]` |
-| `serviceAccount.create` | Create service account | `true` |
-| `serviceAccount.annotations` | Service account annotations | `{}` |
-| `serviceAccount.name` | Service account name | `""` |
-| `rbac.create` | Create RBAC resources | `true` |
-| `rbac.rules` | Additional RBAC rules | `[]` |
-| `pdb.enabled` | Enable pod disruption budget | `false` |
-| `pdb.minAvailable` | Minimum available pods | `1` |
-| `hpa.enabled` | Enable horizontal pod autoscaler | `false` |
-| `hpa.minReplicas` | Minimum replicas | `1` |
-| `hpa.maxReplicas` | Maximum replicas | `10` |
-| `hpa.targetCPU` | Target CPU utilization percentage | `80` |
-| `hpa.targetMemory` | Target memory utilization percentage | `80` |
-| `monitoring.serviceMonitor.enabled` | Enable Prometheus ServiceMonitor | `false` |
-| `monitoring.prometheusRule.enabled` | Enable Prometheus rules | `false` |
-| `livenessProbe.enabled` | Enable liveness probe | `true` |
-| `readinessProbe.enabled` | Enable readiness probe | `true` |
-| `startupProbe.enabled` | Enable startup probe | `true` |
-| `nodeSelector` | Node selector | `{}` |
-| `tolerations` | Tolerations | `[]` |
-| `affinity` | Affinity rules | `{}` |
-| `extraEnv` | Additional environment variables | `[]` |
-| `extraVolumes` | Additional volumes | `[]` |
-| `extraVolumeMounts` | Additional volume mounts | `[]` |
-| `initContainers` | Init containers | `[]` |
-| `extraContainers` | Additional sidecar containers | `[]` |
-
-For complete configuration options with detailed comments, see [values.yaml](values.yaml).
-
-## Controller Type
-
-This chart supports two types of controllers for deploying RedisInsight:
-
-1. `Deployment` (default): Standard Kubernetes deployment, suitable for most use cases.
-
-2. `StatefulSet`: Provides stable network identities and ordered deployment/scaling. Recommended when using StatefulSet-specific features.
-
-To specify the controller type:
-
-```yaml
-controller:
-  type: deployment  # or statefulset
-```
-
-## Persistence
-
-By default, this chart uses an `emptyDir` volume, which means data is lost when the pod is removed. To enable persistent storage:
-
-```yaml
-persistence:
-  enabled: true
-  size: 5Gi
-  storageClassName: ""  # Use default storage class
-```
-
-### Using an Existing PVC
-
-When using a Deployment, you can specify an existing PVC:
-
-```yaml
-controller:
-  type: deployment
-persistence:
-  enabled: true
-  existingClaim: "my-existing-pvc"
-```
-
-## Pre-configured Redis Servers
-
-Define Redis server connections that appear automatically in RedisInsight:
-
-```yaml
-redisinsight:
-  serverDefinitions:
-    servers:
-      1:
-        Name: "Production Redis"
-        Group: "Production"
-        Host: "redis.default.svc.cluster.local"
-        Port: 5432
-        MaintenanceDB: "postgres"
-        Username: "postgres"
-        SSLMode: "prefer"
-      2:
-        Name: "Development Redis"
-        Group: "Development"
-        Host: "redis-dev.default.svc.cluster.local"
-        Port: 5432
-        MaintenanceDB: "postgres"
-        Username: "postgres"
-        SSLMode: "disable"
-```
-
-## Using Existing Secrets
-
-For production deployments, use Kubernetes secrets instead of inline credentials:
-
-```bash
-# Create secret for RedisInsight credentials
-kubectl create secret generic redisinsight-creds \
-  --from-literal=email=admin@example.com \
-  --from-literal=password=SecurePassword123
-
-# Install using secret
-helm install my-redisinsight codefuturist/redisinsight \
-  --set redisinsight.existingSecret=redisinsight-creds
-```
-
-## Examples
-
-Pre-configured example files are available in the [examples/](examples/) directory:
-
-- **values-minimal.yaml**: Quick development setup
-- **values-with-persistence.yaml**: Basic setup with persistent storage
-- **values-production.yaml**: Full production configuration with security
-- **values-multiple-servers.yaml**: Multiple Redis connections
-- **values-reverse-proxy.yaml**: Reverse proxy configuration with subdirectory hosting
-
-Deploy using an example configuration:
-
-```bash
-helm install my-redisinsight codefuturist/redisinsight -f examples/values-production.yaml
-```
-
-## Advanced Configuration
-
-### SMTP Configuration
-
-Configure SMTP for email alerts and password recovery:
-
-```yaml
-redisinsight:
-  smtp:
-    enabled: true
-    server: smtp.gmail.com
-    port: 587
-    useTLS: true
-    fromAddress: redisinsight@example.com
-    existingSecret: redisinsight-smtp-credentials
-```
-
-The secret should contain `username` and `password` keys.
-
-### LDAP Authentication
-
-Enable LDAP authentication for enterprise environments:
-
-```yaml
-redisinsight:
-  ldap:
-    enabled: true
-    server: "ldap://ldap.example.com"
-    bindDN: "cn=admin,dc=example,dc=com"
-    existingSecret: redisinsight-ldap-credentials
-```
-
-### pgpass File Support
-
-Automatically authenticate to Redis servers without storing passwords in RedisInsight:
-
-```yaml
-redisinsight:
-  pgpassFile: "redis.example.com:5432:*:myuser:mypassword"
-  # Or use existing secret
-  existingPgpassSecret: redisinsight-pgpass
-```
-
-The pgpass format is: `hostname:port:database:username:password`
-
-### Container Configuration
-
-#### Reverse Proxy Support
-
-Host RedisInsight under a subdirectory (e.g., `/redisinsight4`):
-
-```yaml
-redisinsight:
-  scriptName: "/redisinsight4"  # Sets SCRIPT_NAME environment variable
-```
-
-Configure your reverse proxy to set the `X-Script-Name` header:
-
-```nginx
-# Nginx
-location /redisinsight4 {
-    proxy_pass http://redisinsight-service;
-    proxy_set_header X-Script-Name /redisinsight4;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-}
-```
-
-#### Gunicorn Configuration
-
-Tune the WSGI server performance:
-
-```yaml
-redisinsight:
-  gunicorn:
-    threads: 25              # Threads per worker (default: 25)
-    accessLogfile: "-"       # Access log to stdout
-    limitRequestLine: 8190   # Max HTTP request line size
-```
-
-#### Postfix Control
-
-Disable internal Postfix (useful when using external SMTP or in restricted environments):
-
-```yaml
-redisinsight:
-  disablePostfix: true  # Sets REDISINSIGHT_DISABLE_POSTFIX=1
-```
-
-#### Server Definition Reloading
-
-Replace server definitions on every startup (not just first launch):
-
-```yaml
-redisinsight:
-  replaceServersOnStartup: true  # Sets REDISINSIGHT_REPLACE_SERVERS_ON_STARTUP=True
-```
-
-This is useful for dynamic server definitions managed via ConfigMaps.
-
-#### Additional Configuration Variables
-
-Pass any RedisInsight configuration variable as environment variables:
-
-```yaml
-redisinsight:
-  config:
-    REDISINSIGHT_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
-    REDISINSIGHT_CONFIG_SESSION_COOKIE_NAME: "redisinsight4_session"
-    REDISINSIGHT_CONFIG_CONSOLE_LOG_LEVEL: "10"
-    REDISINSIGHT_CONFIG_SESSION_EXPIRATION_TIME: "604800"  # 7 days in seconds
-```
-
-See [RedisInsight Container Deployment](https://www.redisinsight.org/docs/redisinsight4/latest/container_deployment.html) for all available configuration options.
-
-### Init Containers
-
-Use init containers to perform tasks before starting RedisInsight, such as waiting for a database or initializing configuration:
-
-```yaml
-initContainers:
-  - name: wait-for-db
-    image: busybox:latest
-    command: ['sh', '-c', 'until nslookup redis; do echo waiting for redis; sleep 2; done;']
-```
-
-### Additional Volumes and Mounts
-
-Add custom volumes and mounts for extensions, plugins, or custom configurations:
-
-```yaml
-extraVolumes:
-  - name: custom-plugins
-    configMap:
-      name: redisinsight-plugins
-  - name: custom-certs
-    secret:
-      secretName: redisinsight-certificates
-
-extraVolumeMounts:
-  - name: custom-plugins
-    mountPath: /var/lib/redisinsight/plugins
-  - name: custom-certs
-    mountPath: /certs
-    readOnly: true
-```
-
-### Sidecar Containers
-
-Add sidecar containers for logging, monitoring, or other auxiliary services:
-
-```yaml
-extraContainers:
-  - name: log-shipper
-    image: fluent/fluent-bit:latest
-    volumeMounts:
-      - name: redisinsight-data
-        mountPath: /var/lib/redisinsight
-        readOnly: true
-```
-
-### Horizontal Pod Autoscaling
-
-Enable HPA for automatic scaling based on resource usage:
-
-```yaml
-hpa:
-  enabled: true
-  minReplicas: 2
-  maxReplicas: 10
-  targetCPU: 80
-  targetMemory: 80
-```
-
-## Security
-
-### Pod Security Context
-
-The chart implements security best practices:
-
-- Runs as non-root user (UID 5050)
-- Drops all capabilities
-- Uses RuntimeDefault seccomp profile
-- Read-only root filesystem where possible
-
-### Network Policies
-
-When enabled, network policies restrict traffic:
-
-```yaml
-networkPolicy:
-  enabled: true
-  egress:
-    - to:
-      - namespaceSelector: {}
-      ports:
-      - protocol: TCP
-        port: 5432  # Redis only
-```
-
-### RBAC
-
-Service accounts and RBAC rules can be customized:
-
-```yaml
-serviceAccount:
-  create: true
-  annotations: {}
-
-rbac:
-  create: true
-  rules: []
-```
-
-## Ingress
-
-The chart supports standard Kubernetes ingress configuration for exposing RedisInsight externally:
-
-```yaml
-ingress:
-  enabled: true
-  className: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  hosts:
-    - host: redisinsight.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: redisinsight-tls
-      hosts:
-        - redisinsight.example.com
-```
-
-Alternatively, set `service.type` to `NodePort` or `LoadBalancer` when ingress is not available.
-
-## Monitoring with Prometheus
-
-Enable monitoring with Prometheus Operator:
-
-```yaml
-monitoring:
-  serviceMonitor:
-    enabled: true
-    interval: 30s
-    labels:
-      prometheus: kube-prometheus
-```
-
-## High Availability
-
-### Pod Disruption Budget
-
-```yaml
-pdb:
-  enabled: true
-  minAvailable: 1
-```
-
-### Multiple Replicas
-
-Note: RedisInsight uses SQLite for session storage by default, which doesn't support multiple replicas well. For HA deployments, consider:
-
-1. Using a single replica with PVC
-2. Implementing external session storage (requires custom configuration)
-
-## Upgrading
-
-### To New Chart Version
-
-```bash
-helm repo update
-helm upgrade my-redisinsight codefuturist/redisinsight
-```
-
-### With New Configuration
-
-```bash
-helm upgrade my-redisinsight codefuturist/redisinsight -f my-values.yaml
-```
-
-## Uninstalling
-
-```bash
-helm uninstall my-redisinsight
-
-# If persistence was enabled, manually delete PVC
-kubectl delete pvc my-redisinsight
-```
-
-## Troubleshooting
-
-### Connection Test
-
-Run Helm test to verify deployment:
-
-```bash
-helm test my-redisinsight
-```
-
-### Check Logs
-
-```bash
-kubectl logs -l app.kubernetes.io/name=redisinsight
-```
-
-### Access via Port Forward
-
-```bash
-kubectl port-forward svc/my-redisinsight 8080:80
-# Open http://localhost:8080
-```
-
-### Common Issues
-
-**Issue**: Can't log in  
-**Solution**: Verify password is set correctly, check pod logs for authentication errors
-
-**Issue**: Redis connection fails  
-**Solution**: Verify network policies allow egress to Redis port, check host/port configuration
-
-**Issue**: Data lost after restart  
-**Solution**: Enable persistence with `persistence.enabled=true`
-
-## Documentation
-
-- [Quick Start Guide](docs/QUICKSTART.md) - Detailed installation scenarios
-- [Examples](examples/) - Ready-to-use configuration files
-- [RedisInsight Official Documentation](https://www.redisinsight.org/docs/)
-
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](../../docs/CONTRIBUTING.md) for details.
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/codefuturist/helm-charts/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/codefuturist/helm-charts/discussions)
-
-## License
-
-This Helm chart is licensed under the Apache License 2.0. See [LICENSE](../../LICENSE) for details.
-
-RedisInsight 4 is licensed under [The Redis License](https://www.redisinsight.org/licence/).
+**Homepage:** <https://redis.io/insight/>
 
 ## Maintainers
 
-| Name | Email |
-| ---- | ------ |
-| codefuturist | <58808821+codefuturist@users.noreply.github.com> |
+| Name | Email | Url |
+| ---- | ------ | --- |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
 
 ## Source Code
 
-- **Chart Repository**: <https://github.com/codefuturist/helm-charts>
-- **RedisInsight Repository**: <https://github.com/redisinsight-org/redisinsight4>
+* <https://github.com/RedisInsight/RedisInsight>
+* <https://github.com/codefuturist/helm-charts>
 
----
+## Values
 
-*Made with care for the Redis community*
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| additionalAnnotations | object | `{}` | Additional annotations to add to all resources |
+| additionalLabels | object | `{}` | Additional labels to add to all resources |
+| affinity | object | `{}` | Affinity for pod assignment |
+| controller.args | list | `[]` | Args override for the main container |
+| controller.command | list | `[]` | Command override for the main container |
+| controller.lifecycle | object | `{}` | Lifecycle hooks for the main container |
+| controller.podManagementPolicy | string | `"OrderedReady"` | Pod management policy (only used if controller.type is statefulset) |
+| controller.replicas | int | `1` | Number of Redis Insight replicas |
+| controller.strategy | object | `{"type":"Recreate"}` | Deployment update strategy |
+| controller.terminationGracePeriodSeconds | int | `30` | Termination grace period in seconds |
+| controller.type | string | `"deployment"` | Controller type (deployment or statefulset) |
+| controller.updateStrategy | object | `{"type":"RollingUpdate"}` | StatefulSet update strategy (only used if controller.type is statefulset) |
+| controller.workingDir | string | `""` | Working directory for the main container |
+| diagnosticMode.args | list | `["infinity"]` | Args override for diagnostic mode |
+| diagnosticMode.command | list | `["sleep"]` | Command override for diagnostic mode |
+| diagnosticMode.enabled | bool | `false` | Enable diagnostic mode (disables probes, overrides command) |
+| dnsConfig | object | `{}` | DNS config |
+| dnsPolicy | string | `"ClusterFirst"` | DNS policy |
+| extraContainers | list | `[]` | Extra sidecar containers |
+| extraEnv | list | `[]` | Extra environment variables |
+| extraEnvFrom | list | `[]` | Extra environment variables from ConfigMaps or Secrets |
+| extraVolumeMounts | list | `[]` | Extra volume mounts |
+| extraVolumes | list | `[]` | Extra volumes |
+| fullnameOverride | string | `""` | Override the full name of the chart |
+| hostAliases | list | `[]` | Host aliases |
+| hpa | object | `{"customMetrics":[],"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80,"targetMemoryUtilizationPercentage":80}` | Horizontal Pod Autoscaler configuration |
+| hpa.customMetrics | list | `[]` | Custom metrics for autoscaling |
+| hpa.enabled | bool | `false` | Enable HorizontalPodAutoscaler |
+| hpa.maxReplicas | int | `3` | Maximum number of replicas |
+| hpa.minReplicas | int | `1` | Minimum number of replicas |
+| hpa.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization percentage |
+| hpa.targetMemoryUtilizationPercentage | int | `80` | Target memory utilization percentage |
+| image.digest | string | `""` | Image digest (overrides tag if set) |
+| image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
+| image.repository | string | `"redis/redisinsight"` | Redis Insight Docker image repository |
+| image.tag | string | Chart appVersion | Redis Insight Docker image tag |
+| imagePullSecrets | list | `[]` | Image pull secrets for private registries |
+| ingress.annotations | object | `{}` | Ingress annotations Example for nginx ingress: annotations:   cert-manager.io/cluster-issuer: "letsencrypt-prod"   nginx.ingress.kubernetes.io/backend-protocol: "HTTP" |
+| ingress.className | string | `""` | Ingress class name |
+| ingress.enabled | bool | `false` | Enable ingress |
+| ingress.hosts | list | `[]` | Ingress hosts configuration Example: hosts:   - host: redisinsight.example.com     paths:       - path: /         pathType: Prefix |
+| ingress.tls | list | `[]` | Ingress TLS configuration Example: tls:   - secretName: redisinsight-tls     hosts:       - redisinsight.example.com |
+| initContainers | list | `[]` | Init containers to run before the main container |
+| livenessProbe | object | `{"enabled":true,"failureThreshold":6,"httpGet":{"path":"/api/health/","port":"http"},"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Liveness probe configuration |
+| monitoring.prometheusRule.enabled | bool | `false` | Enable PrometheusRule for alerting |
+| monitoring.prometheusRule.labels | object | `{}` | Additional labels for the PrometheusRule |
+| monitoring.prometheusRule.namespace | string | `""` | Namespace for the PrometheusRule (defaults to the release namespace) |
+| monitoring.prometheusRule.rules | list | `[]` | Alert rules |
+| monitoring.serviceMonitor.annotations | object | `{}` | Additional annotations for the ServiceMonitor |
+| monitoring.serviceMonitor.enabled | bool | `false` | Enable ServiceMonitor for Prometheus Operator |
+| monitoring.serviceMonitor.interval | string | `"30s"` | Interval at which metrics should be scraped |
+| monitoring.serviceMonitor.labels | object | `{}` | Additional labels for the ServiceMonitor |
+| monitoring.serviceMonitor.metricRelabelings | list | `[]` | Metric relabelings |
+| monitoring.serviceMonitor.namespace | string | `""` | Namespace for the ServiceMonitor (defaults to the release namespace) |
+| monitoring.serviceMonitor.relabelings | list | `[]` | Relabelings |
+| monitoring.serviceMonitor.scrapeTimeout | string | `"10s"` | Timeout for scraping metrics |
+| nameOverride | string | `""` | Override the name of the chart |
+| namespaceOverride | string | `.Release.Namespace` | Override the namespace for all resources |
+| networkPolicy.egress | list | `[{"ports":[{"port":6379,"protocol":"TCP"}],"to":[{"namespaceSelector":{}}]},{"ports":[{"port":53,"protocol":"UDP"}],"to":[{"namespaceSelector":{}}]}]` | Egress rules By default, allow egress to Redis port |
+| networkPolicy.enabled | bool | `false` | Enable network policy |
+| networkPolicy.ingress | list | `[]` | Ingress rules |
+| networkPolicy.policyTypes | list | `["Ingress","Egress"]` | Policy types |
+| nodeSelector | object | `{}` | Node selector for pod assignment |
+| pdb.enabled | bool | `false` | Enable PodDisruptionBudget |
+| pdb.maxUnavailable | string | `""` | Maximum number of pods that can be unavailable |
+| pdb.minAvailable | int | `1` | Minimum number of pods that must be available |
+| persistence.accessMode | string | `"ReadWriteOnce"` | Access mode for the persistent volume |
+| persistence.annotations | object | `{}` | Annotations for the PVC |
+| persistence.enabled | bool | `false` | Enable persistent storage for Redis Insight data Data includes connections, preferences, and history |
+| persistence.existingClaim | string | `""` | Name of an existing PVC to use |
+| persistence.size | string | `"1Gi"` | Size of the persistent volume |
+| persistence.storageClassName | string | Default storage class | Storage class name |
+| podAnnotations | object | `{}` | Pod annotations |
+| podLabels | object | `{}` | Pod labels |
+| podSecurityContext | object | `{"fsGroup":1000,"fsGroupChangePolicy":"OnRootMismatch","runAsNonRoot":true,"runAsUser":1000,"seccompProfile":{"type":"RuntimeDefault"}}` | Pod security context Redis Insight runs as user 1000 by default |
+| priorityClassName | string | `""` | Priority class name for the pod |
+| rbac.create | bool | `true` | Create RBAC resources |
+| rbac.rules | list | `[]` | Additional RBAC rules |
+| readinessProbe | object | `{"enabled":true,"failureThreshold":3,"httpGet":{"path":"/api/health/","port":"http"},"initialDelaySeconds":15,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Readiness probe configuration |
+| redisInsight.connections | list | `[]` | Pre-configured Redis database connections Configure Redis connections using environment variables Each connection needs a unique ID (replace * with a number) Example: connections:   - id: "1"     host: "redis.default.svc.cluster.local"     port: 6379     alias: "Production Redis"     username: "default"     password: "password123"     tls: false   - id: "2"     host: "redis-cluster.database.svc"     port: 6379     alias: "Redis Cluster"     tls: true     tlsCaBase64: "LS0tLS1CRUdJTi..." |
+| redisInsight.databaseManagement | bool | `true` | Enable/disable database connection management When false, disables the ability to add, edit, or delete database connections |
+| redisInsight.encryptionKey | string | `""` | Encryption key for sensitive data Redis Insight stores sensitive information (passwords, history, etc.) encrypted The same key should be provided for subsequent starts with the same volume |
+| redisInsight.existingConnectionPasswordsSecret | string | `""` | Name of an existing secret containing Redis connection passwords Expected format: secret with keys like "password-1", "password-2", etc. |
+| redisInsight.existingEncryptionKeySecret | string | `""` | Name of an existing secret containing the encryption key The secret must contain a key 'encryptionKey' |
+| redisInsight.existingEncryptionKeySecretKey | string | `"encryptionKey"` | Key in existingEncryptionKeySecret that contains the encryption key |
+| redisInsight.filesLogger | bool | `true` | Enable file logging |
+| redisInsight.host | string | `"0.0.0.0"` | Application host that Redis Insight binds to |
+| redisInsight.logLevel | string | `"info"` | Log level for the application Supported levels: error, warn, info, http, verbose, debug, silly |
+| redisInsight.port | int | `5540` | Application port that Redis Insight listens on |
+| redisInsight.proxyPath | string | `""` | Proxy path for reverse proxy subdirectory hosting Set this when hosting Redis Insight under a subdirectory (e.g., /redisinsight) |
+| redisInsight.stdoutLogger | bool | `true` | Enable stdout logging |
+| redisInsight.tls | object | `{"cert":"","enabled":false,"existingSecret":"","existingSecretCertKey":"tls.crt","existingSecretKeyKey":"tls.key","key":""}` | TLS/SSL configuration for HTTPS |
+| redisInsight.tls.cert | string | `""` | TLS certificate (PEM format) Can be a path to a file or a string in PEM format |
+| redisInsight.tls.enabled | bool | `false` | Enable TLS/SSL |
+| redisInsight.tls.existingSecret | string | `""` | Name of an existing secret containing TLS key and cert |
+| redisInsight.tls.existingSecretCertKey | string | `"tls.crt"` | Key in existingSecret for TLS certificate |
+| redisInsight.tls.existingSecretKeyKey | string | `"tls.key"` | Key in existingSecret for TLS private key |
+| redisInsight.tls.key | string | `""` | TLS private key (PEM format) Can be a path to a file or a string in PEM format |
+| resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource limits and requests |
+| runtimeClassName | string | `""` | Runtime class name |
+| securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsNonRoot":true,"runAsUser":1000}` | Container security context |
+| service.annotations | object | `{}` | Service annotations |
+| service.clusterIP | string | `""` | Cluster IP (set to None for headless service) |
+| service.externalTrafficPolicy | string | `""` | External traffic policy (only used if type is LoadBalancer or NodePort) |
+| service.labels | object | `{}` | Service labels |
+| service.loadBalancerIP | string | `""` | Load balancer IP (only used if type is LoadBalancer) |
+| service.loadBalancerSourceRanges | list | `[]` | Load balancer source ranges (only used if type is LoadBalancer) |
+| service.nodePort | string | `""` | Node port (only used if type is NodePort) |
+| service.port | int | `5540` | Service port |
+| service.sessionAffinity | string | `"None"` | Session affinity |
+| service.sessionAffinityConfig | object | `{}` | Session affinity config |
+| service.targetPort | int | `5540` | Service target port (container port) |
+| service.type | string | `"ClusterIP"` | Service type |
+| serviceAccount.annotations | object | `{}` | Service account annotations |
+| serviceAccount.create | bool | `true` | Create a service account |
+| serviceAccount.name | string | `""` | Service account name (generated if not set and create is true) |
+| startupProbe | object | `{"enabled":true,"failureThreshold":30,"httpGet":{"path":"/api/health/","port":"http"},"initialDelaySeconds":10,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Startup probe configuration |
+| tolerations | list | `[]` | Tolerations for pod assignment |
+| topologySpreadConstraints | list | `[]` | Topology spread constraints for pod distribution |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

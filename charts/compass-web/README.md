@@ -1,325 +1,150 @@
-# MongoDB Compass Web Helm Chart
-
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
-![AppVersion: 0.3.1](https://img.shields.io/badge/AppVersion-0.3.1-informational?style=flat-square)
-
-## Introduction
-
-This chart bootstraps a [MongoDB Compass Web](https://github.com/haohanyang/compass-web) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
-
-MongoDB Compass Web is a web-based port of MongoDB Compass, providing an easy way to view and interact with your MongoDB databases from a browser, while keeping most of the MongoDB Compass features.
-
-## Features
-
-- **Easy Installation**: Get started with minimal configuration
-- **Security First**: Hardened security contexts, network policies, and RBAC
-- **Production Ready**: Persistent storage, resource limits, health probes
-- **Flexible Configuration**: Support for both inline and existing secrets
-- **Basic Authentication**: Optional HTTP basic auth protection
-- **GenAI Integration**: Support for OpenAI-powered query generation
-- **Ingress Support**: Expose via any ingress controller with TLS
-- **Monitoring Ready**: ServiceMonitor and PrometheusRule for Prometheus Operator
-- **High Availability**: Pod disruption budgets, HPA, and anti-affinity
-- **Flexible Deployment**: Deployment or StatefulSet controller options
-- **Extensibility**: Extra containers, init containers, volumes, and environment variables
-
-## Quick Start
-
-To deploy MongoDB Compass Web using this Helm chart, follow these steps:
-
-```console
-$ helm repo add codefuturist https://codefuturist.github.io/helm-charts
-$ helm repo update
-$ helm install my-compass-web codefuturist/compass-web \
-  --set compassWeb.mongoUri="mongodb://mongodb:27017"
-```
-
-This will deploy Compass Web with the default configuration. See the [Configuration](#configuration) section for details on customizing the deployment.
-
-> **Tip**: List all releases using `helm list`
-
-## Prerequisites
-
-- Kubernetes 1.19+
-- Helm 3.2.0+
-- A MongoDB instance (local or remote)
-
-## Installing the Chart
-
-To install the chart with the release name `my-compass-web`:
-
-```console
-$ helm install my-compass-web codefuturist/compass-web \
-  --set compassWeb.mongoUri="mongodb://mongodb:27017"
-```
-
-The command deploys Compass Web on the Kubernetes cluster with the default configuration. The [Parameters](#parameters) section lists the parameters that can be configured during installation.
-
-## Uninstalling the Chart
-
-To uninstall/delete the `my-compass-web` deployment:
-
-```console
-$ helm delete my-compass-web
-```
-
-The command removes all the Kubernetes components associated with the chart and deletes the release.
-
-## Configuration
-
-### MongoDB Connection
-
-The most important configuration is the MongoDB connection string:
-
-```yaml
-compassWeb:
-  mongoUri: "mongodb://username:password@mongodb:27017/database?authSource=admin"
-```
-
-You can also use multiple connection strings:
-
-```yaml
-compassWeb:
-  mongoUri: "mongodb://localhost:27017 mongodb+srv://user:pass@cluster.mongodb.net/"
-```
-
-### Using Existing Secrets
-
-Instead of providing the MongoDB URI in values, you can use an existing secret:
-
-```yaml
-compassWeb:
-  existingSecret: "my-mongo-secret"
-  existingSecretKey: "mongoUri"
-```
-
-### Basic Authentication
-
-Enable HTTP basic authentication to protect access:
-
-```yaml
-compassWeb:
-  basicAuth:
-    enabled: true
-    username: "admin"
-    password: "SuperSecurePassword123"
-```
-
-### GenAI Features
-
-Enable OpenAI-powered query generation:
-
-```yaml
-compassWeb:
-  genAI:
-    enabled: true
-    apiKey: "sk-..."
-    model: "gpt-4o-mini"
-    enableSampleDocuments: false
-```
-
-### Ingress
-
-Expose Compass Web via Ingress:
-
-```yaml
-ingress:
-  enabled: true
-  className: "nginx"
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  hosts:
-    - host: compass.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: compass-tls
-      hosts:
-        - compass.example.com
-```
-
-### Persistence
-
-Enable persistent storage for user preferences (optional):
-
-```yaml
-persistence:
-  enabled: true
-  size: 1Gi
-  storageClassName: "fast-ssd"
-```
-
-### Resources
-
-Configure resource limits and requests:
-
-```yaml
-resources:
-  limits:
-    cpu: 1000m
-    memory: 512Mi
-  requests:
-    cpu: 100m
-    memory: 256Mi
-```
-
-## Parameters
-
-### Global Parameters
-
-| Name | Description | Value |
-| --- | --- | --- |
-| `namespaceOverride` | Override the namespace for all resources | `""` |
-| `nameOverride` | Override the name of the chart | `""` |
-| `fullnameOverride` | Override the full name of the chart | `""` |
-| `additionalLabels` | Additional labels to add to all resources | `{}` |
-| `additionalAnnotations` | Additional annotations to add to all resources | `{}` |
-
-### Image Configuration
-
-| Name | Description | Value |
-| --- | --- | --- |
-| `image.repository` | MongoDB Compass Web Docker image repository | `haohanyang/compass-web` |
-| `image.tag` | MongoDB Compass Web Docker image tag | `0.3.1` |
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `image.digest` | Image digest (overrides tag if set) | `""` |
-| `imagePullSecrets` | Image pull secrets for private registries | `[]` |
-
-### Compass Web Configuration
-
-| Name | Description | Value |
-| --- | --- | --- |
-| `compassWeb.mongoUri` | MongoDB connection string(s) (required) | `""` |
-| `compassWeb.existingSecret` | Name of an existing secret containing MongoDB connection string | `""` |
-| `compassWeb.existingSecretKey` | Key in existingSecret that contains the MongoDB URI | `mongoUri` |
-| `compassWeb.appName` | Application name displayed in the UI | `Compass Web` |
-| `compassWeb.orgId` | Organization ID associated with the connection | `default-org-id` |
-| `compassWeb.projectId` | Project ID associated with the connection | `default-project-id` |
-| `compassWeb.clusterId` | Cluster ID associated with the connection | `default-cluster-id` |
-
-### Basic Authentication
-
-| Name | Description | Value |
-| --- | --- | --- |
-| `compassWeb.basicAuth.enabled` | Enable basic authentication | `false` |
-| `compassWeb.basicAuth.username` | Username for basic auth | `""` |
-| `compassWeb.basicAuth.password` | Password for basic auth | `""` |
-| `compassWeb.basicAuth.existingSecret` | Name of existing secret containing basic auth credentials | `""` |
-
-### GenAI Features
-
-| Name | Description | Value |
-| --- | --- | --- |
-| `compassWeb.genAI.enabled` | Enable GenAI features | `false` |
-| `compassWeb.genAI.apiKey` | OpenAI API key | `""` |
-| `compassWeb.genAI.existingSecret` | Name of existing secret containing OpenAI API key | `""` |
-| `compassWeb.genAI.model` | OpenAI model to use | `gpt-4o-mini` |
-| `compassWeb.genAI.enableSampleDocuments` | Enable uploading sample documents to GenAI service | `false` |
-
-### Service Configuration
-
-| Name | Description | Value |
-| --- | --- | --- |
-| `service.type` | Service type | `ClusterIP` |
-| `service.port` | Service port | `8080` |
-| `service.targetPort` | Service target port (container port) | `8080` |
-
-### Persistence Configuration
-
-| Name | Description | Value |
-| --- | --- | --- |
-| `persistence.enabled` | Enable persistent storage | `false` |
-| `persistence.size` | Size of the persistent volume | `1Gi` |
-| `persistence.storageClassName` | Storage class name | `""` |
-| `persistence.accessMode` | Access mode for the persistent volume | `ReadWriteOnce` |
-
-### Security Context
-
-| Name | Description | Value |
-| --- | --- | --- |
-| `podSecurityContext.runAsNonRoot` | Run as non-root user | `true` |
-| `podSecurityContext.runAsUser` | User ID to run as | `1000` |
-| `podSecurityContext.fsGroup` | Group ID for filesystem access | `1000` |
-| `securityContext.allowPrivilegeEscalation` | Allow privilege escalation | `false` |
-| `securityContext.readOnlyRootFilesystem` | Read-only root filesystem | `false` |
-
-### Resources
-
-| Name | Description | Value |
-| --- | --- | --- |
-| `resources.limits.cpu` | CPU limit | `1000m` |
-| `resources.limits.memory` | Memory limit | `512Mi` |
-| `resources.requests.cpu` | CPU request | `100m` |
-| `resources.requests.memory` | Memory request | `256Mi` |
-
-## Examples
-
-Check the `examples/` directory for more configuration examples:
-
-- `values-minimal.yaml` - Minimal configuration
-- `values-production.yaml` - Production-ready setup
-- `values-with-persistence.yaml` - Configuration with persistent storage
-- `values-reverse-proxy.yaml` - Reverse proxy configuration
-
-## Supported Cloud Providers
-
-MongoDB Compass Web supports:
-- MongoDB Atlas
-- Amazon DocumentDB
-- Azure Cosmos DB
-- Self-hosted MongoDB
-
-## Unsupported Features
-
-Not all MongoDB Compass Desktop features are available in Compass Web:
-- Mongo Shell (limited support)
-- Some proxy configurations
-
-## Troubleshooting
-
-### Connection Issues
-
-If you're having trouble connecting to MongoDB:
-
-1. Verify your MongoDB URI format
-2. Check network policies allow egress to MongoDB port (27017)
-3. Ensure MongoDB authentication credentials are correct
-4. For MongoDB Atlas, make sure TLS is enabled in the connection string
-
-### Container Logs
-
-View Compass Web logs:
-
-```console
-$ kubectl logs -l app.kubernetes.io/name=compass-web
-```
-
-### Health Checks
-
-Check the health of the application:
-
-```console
-$ kubectl get pods -l app.kubernetes.io/name=compass-web
-$ kubectl describe pod <pod-name>
-```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-This Helm chart is open source and available under the MIT License.
-
-## Credits
-
-- [MongoDB Compass Web](https://github.com/haohanyang/compass-web) by Haohan Yang
-- [MongoDB Compass](https://github.com/mongodb-js/compass) by MongoDB
-
-## Support
-
-For issues and questions:
-- Chart issues: [GitHub Issues](https://github.com/codefuturist/helm-charts/issues)
-- Compass Web issues: [Compass Web GitHub](https://github.com/haohanyang/compass-web/issues)
+# compass-web
+
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.3.1](https://img.shields.io/badge/AppVersion-0.3.1-informational?style=flat-square)
+
+A production-ready Helm chart for MongoDB Compass Web - MongoDB database management and administration tool
+
+**Homepage:** <https://github.com/haohanyang/compass-web>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
+
+## Source Code
+
+* <https://github.com/haohanyang/compass-web>
+* <https://github.com/codefuturist/helm-charts>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| additionalAnnotations | object | `{}` | Additional annotations to add to all resources |
+| additionalLabels | object | `{}` | Additional labels to add to all resources |
+| affinity | object | `{}` | Affinity for pod assignment |
+| compassWeb.appName | string | `"Compass Web"` | Application name displayed in the UI |
+| compassWeb.basicAuth | object | `{"enabled":false,"existingSecret":"","existingSecretPasswordKey":"password","existingSecretUsernameKey":"username","password":"","username":""}` | Basic HTTP authentication configuration |
+| compassWeb.basicAuth.enabled | bool | `false` | Enable basic authentication |
+| compassWeb.basicAuth.existingSecret | string | `""` | Name of existing secret containing basic auth credentials |
+| compassWeb.basicAuth.existingSecretPasswordKey | string | `"password"` | Key in existingSecret for password |
+| compassWeb.basicAuth.existingSecretUsernameKey | string | `"username"` | Key in existingSecret for username |
+| compassWeb.basicAuth.password | string | `""` | Password for basic auth |
+| compassWeb.basicAuth.username | string | `""` | Username for basic auth |
+| compassWeb.clusterId | string | `"default-cluster-id"` | Cluster ID associated with the connection |
+| compassWeb.config | object | `{}` | Additional Compass Web configuration as environment variables All variables are prefixed with CW_ in the container |
+| compassWeb.existingSecret | string | `""` | Name of an existing secret containing MongoDB connection string The secret must contain a key 'mongoUri' with the connection string(s) |
+| compassWeb.existingSecretKey | string | `"mongoUri"` | Key in existingSecret that contains the MongoDB URI |
+| compassWeb.genAI | object | `{"aggregationSystemPrompt":"","apiKey":"","enableSampleDocuments":false,"enabled":false,"existingSecret":"","existingSecretKey":"apiKey","model":"gpt-4o-mini","querySystemPrompt":""}` | GenAI features configuration (requires OpenAI API key) |
+| compassWeb.genAI.aggregationSystemPrompt | string | `""` | Custom system prompt for aggregation generation |
+| compassWeb.genAI.apiKey | string | `""` | OpenAI API key |
+| compassWeb.genAI.enableSampleDocuments | bool | `false` | Enable uploading sample documents to GenAI service |
+| compassWeb.genAI.enabled | bool | `false` | Enable GenAI features |
+| compassWeb.genAI.existingSecret | string | `""` | Name of existing secret containing OpenAI API key |
+| compassWeb.genAI.existingSecretKey | string | `"apiKey"` | Key in existingSecret for API key |
+| compassWeb.genAI.model | string | `"gpt-4o-mini"` | OpenAI model to use |
+| compassWeb.genAI.querySystemPrompt | string | `""` | Custom system prompt for query generation |
+| compassWeb.mongoUri | string | `""` | MongoDB connection string(s) (required) Can be a single URI or multiple URIs separated by whitespace Example: "mongodb://localhost:27017" Example multiple: "mongodb://localhost:27017 mongodb+srv://user:pass@cluster.mongodb.net/" |
+| compassWeb.orgId | string | `"default-org-id"` | Organization ID associated with the connection |
+| compassWeb.projectId | string | `"default-project-id"` | Project ID associated with the connection |
+| controller.args | list | `[]` | Args override for the main container |
+| controller.command | list | `[]` | Command override for the main container |
+| controller.lifecycle | object | `{}` | Lifecycle hooks for the main container |
+| controller.podManagementPolicy | string | `"OrderedReady"` | Pod management policy (only used if controller.type is statefulset) |
+| controller.replicas | int | `1` | Number of replicas |
+| controller.strategy | object | `{"type":"Recreate"}` | Deployment update strategy |
+| controller.terminationGracePeriodSeconds | int | `30` | Termination grace period in seconds |
+| controller.type | string | `"deployment"` | Controller type (deployment or statefulset) |
+| controller.updateStrategy | object | `{"type":"RollingUpdate"}` | StatefulSet update strategy (only used if controller.type is statefulset) |
+| controller.workingDir | string | `""` | Working directory for the main container |
+| diagnosticMode.args | list | `["infinity"]` | Args override for diagnostic mode |
+| diagnosticMode.command | list | `["sleep"]` | Command override for diagnostic mode |
+| diagnosticMode.enabled | bool | `false` | Enable diagnostic mode (disables probes, overrides command) Useful for debugging container startup issues |
+| dnsConfig | object | `{}` | DNS config |
+| dnsPolicy | string | `"ClusterFirst"` | DNS policy |
+| extraContainers | list | `[]` | Extra sidecar containers |
+| extraEnv | list | `[]` | Extra environment variables |
+| extraEnvFrom | list | `[]` | Extra environment variables from ConfigMaps or Secrets |
+| extraVolumeMounts | list | `[]` | Extra volume mounts |
+| extraVolumes | list | `[]` | Extra volumes |
+| fullnameOverride | string | `""` | Override the full name of the chart |
+| hostAliases | list | `[]` | Host aliases |
+| hpa | object | `{"customMetrics":[],"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80,"targetMemoryUtilizationPercentage":80}` | Horizontal Pod Autoscaler configuration |
+| hpa.customMetrics | list | `[]` | Custom metrics for autoscaling |
+| hpa.enabled | bool | `false` | Enable HorizontalPodAutoscaler |
+| hpa.maxReplicas | int | `3` | Maximum number of replicas |
+| hpa.minReplicas | int | `1` | Minimum number of replicas |
+| hpa.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization percentage |
+| hpa.targetMemoryUtilizationPercentage | int | `80` | Target memory utilization percentage |
+| image.digest | string | `""` | Image digest (overrides tag if set) |
+| image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
+| image.repository | string | `"haohanyang/compass-web"` | MongoDB Compass Web Docker image repository |
+| image.tag | string | Chart appVersion | MongoDB Compass Web Docker image tag |
+| imagePullSecrets | list | `[]` | Image pull secrets for private registries |
+| ingress.annotations | object | `{}` | Ingress annotations Example for nginx ingress: annotations:   cert-manager.io/cluster-issuer: "letsencrypt-prod"   nginx.ingress.kubernetes.io/backend-protocol: "HTTP" |
+| ingress.className | string | `""` | Ingress class name |
+| ingress.enabled | bool | `false` | Enable ingress |
+| ingress.hosts | list | `[]` | Ingress hosts configuration Example: hosts:   - host: compass.example.com     paths:       - path: /         pathType: Prefix |
+| ingress.tls | list | `[]` | Ingress TLS configuration Example: tls:   - secretName: compass-tls     hosts:       - compass.example.com |
+| initContainers | list | `[]` | Init containers to run before the main container |
+| livenessProbe | object | `{"enabled":true,"failureThreshold":6,"httpGet":{"path":"/","port":"http"},"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Liveness probe configuration |
+| monitoring.prometheusRule.enabled | bool | `false` | Enable PrometheusRule for alerting |
+| monitoring.prometheusRule.labels | object | `{}` | Additional labels for the PrometheusRule |
+| monitoring.prometheusRule.namespace | string | `""` | Namespace for the PrometheusRule (defaults to the release namespace) |
+| monitoring.prometheusRule.rules | list | `[]` | Alert rules |
+| monitoring.serviceMonitor.annotations | object | `{}` | Additional annotations for the ServiceMonitor |
+| monitoring.serviceMonitor.enabled | bool | `false` | Enable ServiceMonitor for Prometheus Operator |
+| monitoring.serviceMonitor.interval | string | `"30s"` | Interval at which metrics should be scraped |
+| monitoring.serviceMonitor.labels | object | `{}` | Additional labels for the ServiceMonitor |
+| monitoring.serviceMonitor.metricRelabelings | list | `[]` | Metric relabelings |
+| monitoring.serviceMonitor.namespace | string | `""` | Namespace for the ServiceMonitor (defaults to the release namespace) |
+| monitoring.serviceMonitor.relabelings | list | `[]` | Relabelings |
+| monitoring.serviceMonitor.scrapeTimeout | string | `"10s"` | Timeout for scraping metrics |
+| nameOverride | string | `""` | Override the name of the chart |
+| namespaceOverride | string | `.Release.Namespace` | Override the namespace for all resources |
+| networkPolicy.egress | list | `[{"ports":[{"port":27017,"protocol":"TCP"}],"to":[{"namespaceSelector":{}}]},{"ports":[{"port":27017,"protocol":"TCP"},{"port":27018,"protocol":"TCP"},{"port":27019,"protocol":"TCP"}],"to":[{"namespaceSelector":{}}]},{"ports":[{"port":53,"protocol":"UDP"}],"to":[{"namespaceSelector":{}}]},{"ports":[{"port":443,"protocol":"TCP"}],"to":[{"namespaceSelector":{}}]}]` | Egress rules By default, allow egress to MongoDB port and DNS |
+| networkPolicy.enabled | bool | `false` | Enable network policy |
+| networkPolicy.ingress | list | `[]` | Ingress rules Example to allow traffic from specific namespaces: ingress:   - from:     - namespaceSelector:         matchLabels:           name: ingress-nginx     ports:     - protocol: TCP       port: 8080 |
+| networkPolicy.policyTypes | list | `["Ingress","Egress"]` | Policy types |
+| nodeSelector | object | `{}` | Node selector for pod assignment |
+| pdb.enabled | bool | `false` | Enable PodDisruptionBudget |
+| pdb.maxUnavailable | string | `""` | Maximum number of pods that can be unavailable |
+| pdb.minAvailable | int | `1` | Minimum number of pods that must be available |
+| persistence.accessMode | string | `"ReadWriteOnce"` | Access mode for the persistent volume |
+| persistence.annotations | object | `{}` | Annotations for the PVC |
+| persistence.enabled | bool | `false` | Enable persistent storage for Compass Web data Note: Compass Web is mostly stateless, persistence is optional |
+| persistence.existingClaim | string | `""` | Name of an existing PVC to use |
+| persistence.size | string | `"1Gi"` | Size of the persistent volume |
+| persistence.storageClassName | string | Default storage class | Storage class name |
+| podAnnotations | object | `{}` | Pod annotations |
+| podLabels | object | `{}` | Pod labels |
+| podSecurityContext | object | `{"fsGroup":1000,"fsGroupChangePolicy":"OnRootMismatch","runAsNonRoot":true,"runAsUser":1000,"seccompProfile":{"type":"RuntimeDefault"}}` | Pod security context |
+| priorityClassName | string | `""` | Priority class name for the pod |
+| rbac.create | bool | `true` | Create RBAC resources |
+| rbac.rules | list | `[]` | Additional RBAC rules |
+| readinessProbe | object | `{"enabled":true,"failureThreshold":3,"httpGet":{"path":"/","port":"http"},"initialDelaySeconds":15,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Readiness probe configuration |
+| resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource limits and requests |
+| runtimeClassName | string | `""` | Runtime class name |
+| securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsNonRoot":true,"runAsUser":1000}` | Container security context |
+| service.annotations | object | `{}` | Service annotations |
+| service.clusterIP | string | `""` | Cluster IP (set to None for headless service) |
+| service.externalTrafficPolicy | string | `""` | External traffic policy (only used if type is LoadBalancer or NodePort) |
+| service.labels | object | `{}` | Service labels |
+| service.loadBalancerIP | string | `""` | Load balancer IP (only used if type is LoadBalancer) |
+| service.loadBalancerSourceRanges | list | `[]` | Load balancer source ranges (only used if type is LoadBalancer) |
+| service.nodePort | string | `""` | Node port (only used if type is NodePort) |
+| service.port | int | `8080` | Service port |
+| service.sessionAffinity | string | `"None"` | Session affinity |
+| service.sessionAffinityConfig | object | `{}` | Session affinity config |
+| service.targetPort | int | `8080` | Service target port (container port) |
+| service.type | string | `"ClusterIP"` | Service type |
+| serviceAccount.annotations | object | `{}` | Service account annotations |
+| serviceAccount.create | bool | `true` | Create a service account |
+| serviceAccount.name | string | `""` | Service account name (generated if not set and create is true) |
+| startupProbe | object | `{"enabled":true,"failureThreshold":30,"httpGet":{"path":"/","port":"http"},"initialDelaySeconds":10,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Startup probe configuration |
+| tolerations | list | `[]` | Tolerations for pod assignment |
+| topologySpreadConstraints | list | `[]` | Topology spread constraints for pod distribution |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

@@ -1,541 +1,229 @@
-# Restic Backup Helm Chart
+# restic-backup
 
-A production-ready Helm chart for automated Kubernetes volume backups using [restic](https://restic.net/), featuring multiple storage backends, flexible scheduling, retention policies, and comprehensive monitoring.
+![Version: 1.2.0](https://img.shields.io/badge/Version-1.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.3](https://img.shields.io/badge/AppVersion-0.17.3-informational?style=flat-square)
 
-## Features
+A user-friendly Helm chart for automated Kubernetes volume backups using restic with support for multiple storage backends and flexible scheduling
 
-✨ **Key Features:**
-
-- 🔄 **Automated Backups**: Scheduled CronJob-based backups with configurable intervals
-- 📦 **Multiple Storage Backends**: Support for S3, Azure, Google Cloud, B2, SFTP, REST, and local storage
-- 🗂️ **Flexible Volume Types**: PVC, HostPath, EmptyDir, ConfigMap, Secret, NFS, and custom volumes
-- 🔐 **Encryption**: Built-in AES-256 encryption for all backups
-- 📅 **Retention Policies**: Flexible retention rules (daily, weekly, monthly, yearly)
-- ♻️ **Automatic Pruning**: Remove old backups based on retention policy
-- 🔍 **Repository Checks**: Scheduled integrity verification
-- 📊 **Monitoring**: Prometheus ServiceMonitor support
-- 🔔 **Notifications**: Webhook support for backup success/failure alerts
-- 🛡️ **Security**: NetworkPolicy, RBAC, and SecurityContext support
-- 🚀 **Easy Restore**: Built-in restore job configuration
-- 📦 **Multi-Volume Support**: Back up multiple volumes in a single job
-- 🔧 **Pre/Post Hooks**: Execute commands before/after backups
-
-## Prerequisites
-
-- Kubernetes 1.19+
-- Helm 3.0+
-- Persistent Volume Claims (PVCs) to backup
-- Storage backend (S3, Azure, GCS, etc.) credentials
-
-## Installation
-
-### Quick Start (Local Backups)
-
-The chart works out of the box with local backup storage. A dedicated PersistentVolumeClaim is automatically created for storing backups.
-
-1. **Add the Helm repository** (if published):
-
-```bash
-helm repo add codefuturist https://codefuturist.github.io/helm-charts
-helm repo update
-```
-
-2. **Create a minimal values file** (`my-values.yaml`):
-
-```yaml
-restic:
-  # Local repository (default) - automatically uses dedicated backup volume
-  repository: "/backup-repository"
-  password: "your-secure-restic-password"
-
-# Backup volume is enabled by default with a 10Gi PVC
-# Adjust size if needed:
-backupVolume:
-  enabled: true  # default
-  pvc:
-    size: 20Gi   # adjust based on your needs
-
-volumes:
-  - name: app-data
-    claimName: myapp-pvc
-    mountPath: /data
-```
-
-3. **Install the chart**:
-
-```bash
-helm install restic-backup codefuturist/restic-backup \
-  -f my-values.yaml \
-  --namespace backups \
-  --create-namespace
-```
-
-### Using Remote Storage (S3, Azure, GCS)
-
-For remote backups, disable the local backup volume:
-
-```yaml
-restic:
-  repository: "s3:s3.amazonaws.com/my-backup-bucket/k8s-backups"
-  password: "your-secure-restic-password"
-  backendEnv:
-    AWS_ACCESS_KEY_ID: "your-aws-key"
-    AWS_SECRET_ACCESS_KEY: "your-aws-secret"
-    AWS_DEFAULT_REGION: "us-east-1"
-
-# Disable local backup volume when using remote storage
-backupVolume:
-  enabled: false
-
-volumes:
-  - name: app-data
-    claimName: myapp-pvc
-    mountPath: /data
-```
-
-### Using Existing Secrets (Recommended for Production)
-
-For better security, use an existing Kubernetes secret:
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: restic-credentials
-  namespace: backups
-type: Opaque
-stringData:
-  RESTIC_REPOSITORY: "/backup-repository"
-  RESTIC_PASSWORD: "your-restic-password"
-```
-
-Then reference it in your values:
-
-```yaml
-restic:
-  existingSecret: "restic-credentials"
-
-volumes:
-  - name: app-data
-    claimName: myapp-pvc
-    mountPath: /data
-```
-
-## Configuration
-
-### Backup Volume Configuration
-
-The chart automatically provisions a dedicated volume for local backups. This is enabled by default for ease of use.
-
-#### Default Configuration (Recommended)
-
-```yaml
-backupVolume:
-  enabled: true          # Enabled by default
-  type: pvc              # PersistentVolumeClaim
-  mountPath: /backup-repository
-  pvc:
-    size: 10Gi           # Adjust based on backup size
-    storageClassName: "" # Uses cluster default
-    accessModes:
-      - ReadWriteOnce
-```
-
-#### Using Existing PVC
-
-```yaml
-backupVolume:
-  enabled: true
-  type: pvc
-  pvc:
-    existingClaim: "my-backup-pvc"  # Use existing PVC
-```
-
-#### Using HostPath (for single-node clusters)
-
-```yaml
-backupVolume:
-  enabled: true
-  type: hostPath
-  hostPath:
-    path: /mnt/backup-storage
-    type: DirectoryOrCreate
-```
-
-#### Using NFS
-
-```yaml
-backupVolume:
-  enabled: true
-  type: nfs
-  nfs:
-    server: nfs-server.example.com
-    path: /exports/backups
-```
-
-#### Disable for Remote Storage
-
-When using S3, Azure, GCS, or other remote backends:
-
-```yaml
-backupVolume:
-  enabled: false
-
-restic:
-  repository: "s3:s3.amazonaws.com/bucket/path"
-  # ... backend credentials ...
-```
-
-### Storage Backends
-
-#### AWS S3
-
-```yaml
-restic:
-  repository: "s3:s3.amazonaws.com/bucket-name/path"
-  password: "your-password"
-  backendEnv:
-    AWS_ACCESS_KEY_ID: "key"
-    AWS_SECRET_ACCESS_KEY: "secret"
-    AWS_DEFAULT_REGION: "us-east-1"
-```
-
-#### Azure Blob Storage
-
-```yaml
-restic:
-  repository: "azure:container-name:/path"
-  password: "your-password"
-  backendEnv:
-    AZURE_ACCOUNT_NAME: "storageaccount"
-    AZURE_ACCOUNT_KEY: "key"
-```
-
-#### Google Cloud Storage
-
-```yaml
-restic:
-  repository: "gs:bucket-name:/path"
-  password: "your-password"
-  backendEnv:
-    GOOGLE_PROJECT_ID: "project-id"
-    GOOGLE_APPLICATION_CREDENTIALS: "/credentials/gcp-key.json"
-
-extraVolumes:
-  - name: gcp-credentials
-    secret:
-      secretName: gcp-sa-key
-
-extraVolumeMounts:
-  - name: gcp-credentials
-    mountPath: /credentials
-    readOnly: true
-```
-
-#### Backblaze B2
-
-```yaml
-restic:
-  repository: "b2:bucket-name:/path"
-  password: "your-password"
-  backendEnv:
-    B2_ACCOUNT_ID: "account-id"
-    B2_ACCOUNT_KEY: "account-key"
-```
-
-#### SFTP
-
-```yaml
-restic:
-  repository: "sftp:user@host:/path"
-  password: "your-password"
-```
-
-### Backup Schedule
-
-```yaml
-restic:
-  backup:
-    enabled: true
-    schedule: "0 2 * * *"  # Daily at 2 AM
-    tags:
-      - kubernetes
-      - production
-    excludes:
-      - "*.tmp"
-      - "*.cache"
-      - ".DS_Store"
-```
-
-### Retention Policy
-
-```yaml
-restic:
-  backup:
-    retention:
-      enabled: true
-      keepLast: 7        # Keep last 7 snapshots
-      keepDaily: 14      # Keep daily for 14 days
-      keepWeekly: 8      # Keep weekly for 8 weeks
-      keepMonthly: 12    # Keep monthly for 12 months
-      keepYearly: 3      # Keep yearly for 3 years
-```
-
-### Multiple Volumes
-
-```yaml
-volumes:
-  - name: app-data
-    claimName: myapp-pvc
-    mountPath: /app-data
-
-  - name: database
-    claimName: postgres-data
-    mountPath: /pgdata
-    readOnly: true  # Mount read-only for safety
-
-  - name: config
-    claimName: config-pvc
-    mountPath: /config
-    subPath: production  # Only backup specific subpath
-```
-
-### Pre/Post Backup Hooks
-
-```yaml
-hooks:
-  preBackup:
-    - name: database-dump
-      image: postgres:16
-      command: ["pg_dump"]
-      args: ["-h", "postgres", "-U", "user", "-d", "mydb", "-f", "/backup/dump.sql"]
-      volumeMounts:
-        - name: backup-staging
-          mountPath: /backup
-
-  postBackup:
-    - name: cleanup
-      image: busybox
-      command: ["rm", "-rf", "/backup/temp"]
-      volumeMounts:
-        - name: backup-staging
-          mountPath: /backup
-```
-
-### Notifications
-
-#### Webhook Notifications
-
-```yaml
-notifications:
-  enabled: true
-  webhook:
-    url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
-```
-
-### Monitoring
-
-```yaml
-serviceMonitor:
-  enabled: true
-  additionalLabels:
-    release: prometheus-stack
-  interval: 30s
-```
-
-### Security
-
-```yaml
-networkPolicy:
-  enabled: true
-  egress:
-    - to:
-      - namespaceSelector: {}
-      ports:
-      - protocol: TCP
-        port: 443
-
-serviceAccount:
-  annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT:role/restic-backup-role"
-
-cronjob:
-  securityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
-    runAsNonRoot: true
-```
-
-## Operations
-
-### Manual Backup
-
-Trigger a backup manually:
-
-```bash
-kubectl create job -n backups \
-  --from=cronjob/restic-backup-backup \
-  manual-backup-$(date +%s)
-```
-
-### List Snapshots
-
-```bash
-kubectl run -n backups restic-shell -it --rm \
-  --image=restic/restic:0.17.3 \
-  --env=RESTIC_REPOSITORY=<repo> \
-  --env=RESTIC_PASSWORD=<password> \
-  -- restic snapshots
-```
-
-### Restore from Backup
-
-Enable restore in values:
-
-```yaml
-restore:
-  enabled: true
-  snapshotId: "latest"  # or specific snapshot ID
-  targetVolume: "restore-pvc"
-  targetPath: "/restore"
-  verify: true
-```
-
-Then upgrade the release:
-
-```bash
-helm upgrade restic-backup codefuturist/restic-backup -f values.yaml
-```
-
-### View Backup Logs
-
-```bash
-# View recent backup logs
-kubectl logs -n backups -l app.kubernetes.io/component=backup-job --tail=100
-
-# Follow backup in progress
-kubectl logs -n backups -l app.kubernetes.io/component=backup-job -f
-```
-
-### Check Repository Health
-
-```bash
-# View check job schedule
-kubectl get cronjob -n backups restic-backup-check
-
-# Trigger manual check
-kubectl create job -n backups \
-  --from=cronjob/restic-backup-check \
-  manual-check-$(date +%s)
-```
-
-## Examples
-
-See the [`examples/`](./examples/) directory for:
-
-- [`values-minimal.yaml`](./examples/values-minimal.yaml) - Minimal configuration
-- [`values-production.yaml`](./examples/values-production.yaml) - Production setup with monitoring
-- [`values-multi-volume.yaml`](./examples/values-multi-volume.yaml) - Multiple volume backups
-- [`values-azure.yaml`](./examples/values-azure.yaml) - Azure Blob Storage backend
-- [`values-gcs.yaml`](./examples/values-gcs.yaml) - Google Cloud Storage backend
-
-## Architecture
-
-For detailed architecture information, see [ARCHITECTURE.md](./docs/ARCHITECTURE.md).
-
-## Troubleshooting
-
-### Backup Job Fails
-
-1. Check job logs:
-   ```bash
-   kubectl logs -n backups -l app.kubernetes.io/component=backup-job
-   ```
-
-2. Verify credentials:
-   ```bash
-   kubectl get secret -n backups restic-backup-credentials -o yaml
-   ```
-
-3. Test repository access:
-   ```bash
-   kubectl run -n backups restic-test -it --rm \
-     --image=restic/restic:0.17.3 \
-     --env=RESTIC_REPOSITORY=<repo> \
-     --env=RESTIC_PASSWORD=<password> \
-     -- restic snapshots
-   ```
-
-### Volume Mount Issues
-
-Ensure the backup pod has permissions to read the PVC:
-
-```yaml
-cronjob:
-  securityContext:
-    runAsUser: 0
-    fsGroup: 0
-```
-
-### Repository Not Initialized
-
-The chart automatically initializes the repository via a Helm hook. If it fails:
-
-```bash
-# Check init job logs
-kubectl logs -n backups -l app.kubernetes.io/component=init-job
-
-# Manually initialize
-kubectl run -n backups restic-init -it --rm \
-  --image=restic/restic:0.17.3 \
-  --env=RESTIC_REPOSITORY=<repo> \
-  --env=RESTIC_PASSWORD=<password> \
-  -- restic init
-```
-
-## Security Best Practices
-
-1. **Use External Secrets**: Integrate with External Secrets Operator or Vault
-2. **Enable Network Policies**: Restrict network access
-3. **Read-Only Mounts**: Mount volumes as read-only when possible
-4. **Rotate Credentials**: Regularly rotate storage backend credentials
-5. **Secure Repository Password**: Use strong, randomly generated passwords
-6. **Test Restores**: Regularly test restore procedures
-7. **Enable Monitoring**: Track backup success/failure metrics
-
-## Values Reference
-
-See the complete [values.yaml](./values.yaml) file for all available configuration options.
-
-## Contributing
-
-Contributions welcome! Please see [CONTRIBUTING.md](../../docs/CONTRIBUTING.md).
-
-## Support
-
-For bug reports, feature requests, and general questions:
-
-- **GitHub Issues**: [Report a bug or request a feature](https://github.com/codefuturist/helm-charts/issues)
-- **GitHub Discussions**: [Ask questions and discuss ideas](https://github.com/codefuturist/helm-charts/discussions)
-- **Restic Documentation**: [Official Restic Documentation](https://restic.readthedocs.io/)
-
-## License
-
-This Helm chart is licensed under the [Apache License 2.0](../../LICENSE).
+**Homepage:** <https://restic.net>
 
 ## Maintainers
 
-| Name | Email | GitHub |
-|------|-------|--------|
-| codefuturist | - | [@codefuturist](https://github.com/codefuturist) |
+| Name | Email | Url |
+| ---- | ------ | --- |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
 
 ## Source Code
 
-- **Chart Repository**: <https://github.com/codefuturist/helm-charts/tree/main/charts/restic-backup>
+* <https://github.com/restic/restic>
+* <https://github.com/codefuturist/helm-charts>
 
-## Acknowledgments
+## Values
 
-- [Restic](https://restic.net/) - The backup program powering this chart
-- [Kubernetes](https://kubernetes.io/) - Container orchestration platform
-- [Helm](https://helm.sh/) - Package manager for Kubernetes
+### Global Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| additionalLabels | tpl/object | `{}` | Additional labels for all resources. |
+| applicationName | string | `{{ .Chart.Name }}` | Application name. |
+| componentOverride | string | `""` | Override the component label for all resources. |
+| namespaceOverride | string | `""` | Override the namespace for all resources. |
+| partOfOverride | string | `""` | Override the partOf label for all resources. |
+
+### Backup Volume Configuration
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| backupVolume.custom | object | `{}` | Custom volume specification (when type is custom). Allows defining any Kubernetes volume type |
+| backupVolume.emptyDir | object | `{"sizeLimit":"10Gi"}` | EmptyDir configuration (when type is emptyDir). Note: Not recommended for production as data is ephemeral |
+| backupVolume.enabled | bool | `true` | Enable dedicated volume for backup repository storage. When enabled, a volume will be automatically mounted at the repository path. This is recommended for local backups and provides out-of-the-box functionality. |
+| backupVolume.hostPath | object | `{"path":"/mnt/backup-repository","type":"DirectoryOrCreate"}` | HostPath configuration (when type is hostPath). |
+| backupVolume.mountPath | string | `"/backup-repository"` | Mount path for the backup repository volume. Should match the restic.repository path for local backups |
+| backupVolume.nfs | object | `{"path":"/backup-repository","readOnly":false,"server":""}` | NFS configuration (when type is nfs). |
+| backupVolume.pvc | object | `{"accessModes":["ReadWriteOnce"],"annotations":{},"existingClaim":"","selector":{},"size":"10Gi","storageClassName":""}` | PersistentVolumeClaim configuration for backup repository. |
+| backupVolume.type | string | `"pvc"` | Type of volume to use for backup repository. Options: pvc, hostPath, emptyDir, nfs, custom |
+
+### CronJob Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| cronjob.activeDeadlineSeconds | int | `3600` | Optional deadline in seconds for job completion (timeout). Set this to prevent long-running backups from running indefinitely |
+| cronjob.additionalLabels | object | `{}` | Additional labels for CronJob. |
+| cronjob.additionalPodAnnotations | object | `{}` | Additional pod annotations. |
+| cronjob.affinity | object | `{}` | Affinity rules for backup pods. |
+| cronjob.annotations | object | `{}` | Annotations for CronJob. |
+| cronjob.concurrencyPolicy | string | `"Forbid"` | Concurrency policy for backup jobs. Options: Allow, Forbid, Replace |
+| cronjob.containerSecurityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":false}` | Container security context. |
+| cronjob.nodeSelector | object | `{}` | Node selector for backup pods. |
+| cronjob.resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}` | Resource limits and requests. |
+| cronjob.restartPolicy | string | `"OnFailure"` | Restart policy for backup pods. |
+| cronjob.securityContext | object | `{"fsGroup":0,"runAsGroup":0,"runAsNonRoot":false,"runAsUser":0}` | Pod security context. |
+| cronjob.startingDeadlineSeconds | int | `300` | Deadline in seconds for starting the job. |
+| cronjob.tolerations | list | `[]` | Tolerations for backup pods. |
+| cronjob.ttlSecondsAfterFinished | int | `86400` | Optional TTL in seconds for finished jobs (auto-cleanup). |
+
+### Advanced Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| dnsConfig | object | `{}` | DNS configuration for backup pods. |
+| dnsPolicy | string | `"ClusterFirst"` | DNS policy for backup pods. |
+| envFrom | object | `[]` | Additional environment variables from secrets/configmaps. |
+| extraVolumeMounts | list | `[]` | Additional volume mounts for backup container. |
+| extraVolumes | list | `[]` | Additional volumes to mount. |
+| hostNetwork | bool | `false` | Enable host network mode. |
+| priorityClassName | object | `""` | Priority class for backup pods. |
+
+### Hooks Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| hooks.postBackup | object | `[]` | Commands to run after backup. |
+| hooks.preBackup | object | `[]` | Commands to run before backup. |
+
+### Image Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| image.imagePullSecrets | list | `[]` | Image pull secrets. |
+| image.pullPolicy | string | `"IfNotPresent"` | Image pull policy. |
+| image.repository | string | `"restic/restic"` | Restic image repository. |
+| image.tag | string | `""` | Image tag (overrides appVersion from Chart.yaml). |
+
+### Metrics Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| metrics.additionalLabels | object | `{}` | Additional labels for metrics deployment. |
+| metrics.affinity | object | `{}` | Affinity rules for metrics exporter. |
+| metrics.annotations | object | `{}` | Annotations for metrics deployment. |
+| metrics.containerSecurityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true}` | Container security context for metrics exporter. |
+| metrics.enabled | bool | `false` | Enable metrics exporter for Prometheus monitoring. |
+| metrics.image | object | `{"pullPolicy":"IfNotPresent","repository":"python","tag":"3.11-alpine"}` | Metrics exporter image configuration. |
+| metrics.nodeSelector | object | `{}` | Node selector for metrics exporter. |
+| metrics.podAnnotations | object | `{}` | Additional pod annotations for metrics exporter. |
+| metrics.port | int | `9092` | Port for metrics endpoint. |
+| metrics.resources | object | `{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"32Mi"}}` | Resource limits and requests for metrics exporter. |
+| metrics.scrapeInterval | int | `60` | Interval between metrics collection in seconds. |
+| metrics.securityContext | object | `{"fsGroup":65534,"runAsGroup":65534,"runAsNonRoot":true,"runAsUser":65534}` | Security context for metrics exporter pod. |
+| metrics.service | object | `{"additionalLabels":{},"annotations":{},"clusterIP":"","port":9092,"type":"ClusterIP"}` | Service configuration for metrics. |
+| metrics.tolerations | list | `[]` | Tolerations for metrics exporter. |
+
+### Network Policy Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| networkPolicy.egress | object | `[{"ports":[{"port":53,"protocol":"TCP"},{"port":53,"protocol":"UDP"}],"to":[{"namespaceSelector":{}}]},{"to":[{"namespaceSelector":{}},{"ipBlock":{"cidr":"0.0.0.0/0","except":["169.254.169.254/32"]}}]}]` | Egress rules for network policy. |
+| networkPolicy.enabled | bool | `false` | Enable network policy. |
+| networkPolicy.ingress | object | `[]` | Ingress rules for network policy. |
+
+### Notifications Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| notifications.email | object | `{"enabled":false,"from":"restic-backup@example.com","smtpHost":"","smtpPasswordSecret":"","smtpPort":587,"smtpUser":"","to":[]}` | Email configuration for notifications. |
+| notifications.enabled | bool | `false` | Enable notifications on backup completion/failure. |
+| notifications.webhook | object | `{"url":""}` | Webhook configuration for notifications. |
+
+### RBAC Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| rbac.additionalRules | list | `[]` | Additional rules to add to the role. |
+| rbac.create | bool | `true` | Create RBAC resources (Role, RoleBinding). |
+
+### Restic Configuration
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| restic.backendEnv | object | `{}` | Backend-specific environment variables. |
+| restic.backup | object | `{"enabled":true,"excludes":["*.tmp","*.cache",".DS_Store","lost+found"],"failedJobsHistoryLimit":1,"options":{},"retention":{"enabled":true,"keepDaily":14,"keepLast":7,"keepMonthly":12,"keepWeekly":8,"keepYearly":3},"schedule":"0 2 * * *","successfulJobsHistoryLimit":3,"tags":["kubernetes","automated"]}` | Backup job configuration. |
+| restic.backup.excludes | list | `["*.tmp","*.cache",".DS_Store","lost+found"]` | Exclude patterns for backup. |
+| restic.backup.failedJobsHistoryLimit | int | `1` | Number of failed jobs to keep. |
+| restic.backup.options | object | `{}` | Additional restic backup options. |
+| restic.backup.retention | object | `{"enabled":true,"keepDaily":14,"keepLast":7,"keepMonthly":12,"keepWeekly":8,"keepYearly":3}` | Retention policy for backups. |
+| restic.backup.schedule | string | `"0 2 * * *"` | Cron schedule for backup job (default: daily at 2 AM). |
+| restic.backup.successfulJobsHistoryLimit | int | `3` | Number of successful jobs to keep. |
+| restic.backup.tags | list | `["kubernetes","automated"]` | List of tags to apply to backups. |
+| restic.check | object | `{"enabled":true,"readData":false,"schedule":"0 3 * * 0"}` | Repository check job configuration. |
+| restic.existingSecret | object | `""` | Reference to existing secret containing restic credentials. Keys required: RESTIC_REPOSITORY, RESTIC_PASSWORD Optional backend-specific keys: AWS_ACCESS_KEY_ID, AZURE_ACCOUNT_NAME, etc. |
+| restic.init | object | `{"enabled":true}` | Repository initialization job. |
+| restic.password | string | `"changeme-to-a-secure-password"` | Restic repository password. Required for encryption. IMPORTANT: Use external secret management in production |
+| restic.repository | string | `"/backup-repository"` | Restic repository URL. Supports multiple backends. Examples:   S3: s3:s3.amazonaws.com/bucket-name/path   Azure: azure:container-name:/path   GCS: gs:bucket-name:/path   B2: b2:bucket-name:/path   SFTP: sftp:user@host:/path   REST: rest:http://host:8000/path   Local/PVC: /backup-repository (requires backup volume) |
+
+### Restore Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| restore.enabled | bool | `false` | Enable one-time restore job. |
+| restore.snapshotId | string | `"latest"` | Snapshot ID to restore (latest if not specified). |
+| restore.targetPath | string | `"/"` | Target path within the volume. |
+| restore.targetVolume | string | `""` | Target volume for restore (PVC name - for backward compatibility). |
+| restore.targetVolumeConfig | object | `{}` | Target volume configuration for restore (advanced). Supports the same volume types as the main volumes configuration |
+| restore.verify | bool | `true` | Verify restored data integrity. |
+
+### Scripts Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| scripts.useConfigMap | bool | `true` | Use ConfigMap for backup scripts instead of inline commands. Enables better maintainability and customization of backup scripts |
+
+### ServiceAccount Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| serviceAccount.annotations | object | `{}` | Annotations for service account. |
+| serviceAccount.automountServiceAccountToken | bool | `true` | Automount service account token. |
+| serviceAccount.create | bool | `true` | Create service account. |
+| serviceAccount.name | string | `""` | Name of existing service account to use. |
+
+### Monitoring Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| serviceMonitor.additionalLabels | object | `{}` | Additional labels for ServiceMonitor. |
+| serviceMonitor.enabled | bool | `false` | Enable Prometheus ServiceMonitor. Requires metrics.enabled to be true |
+| serviceMonitor.interval | string | `"30s"` | Scrape interval. |
+| serviceMonitor.metricRelabelings | list | `[]` | Metric relabeling rules (optional). |
+| serviceMonitor.namespace | string | `""` | Namespace for ServiceMonitor (defaults to release namespace). |
+| serviceMonitor.path | string | `"/metrics"` | Metrics path (optional). |
+| serviceMonitor.relabelings | list | `[]` | Relabeling rules (optional). |
+| serviceMonitor.scheme | string | `"http"` | Scheme (http or https). |
+| serviceMonitor.scrapeTimeout | string | `"10s"` | Scrape timeout. |
+| serviceMonitor.tlsConfig | object | `{}` | TLS configuration (optional). |
+
+### Volumes Configuration
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| volumes | list | `[]` | List of volumes to backup. Supports multiple volume types. |
+
+### Other Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| backupVolume.pvc.accessModes | string | `["ReadWriteOnce"]` | Access mode for the PVC. |
+| backupVolume.pvc.annotations | object | `{}` | Additional PVC annotations. |
+| backupVolume.pvc.existingClaim | string | `""` | Name of existing PVC to use (leave empty to create new one). |
+| backupVolume.pvc.selector | object | `{}` | Resource selector for PVC. |
+| backupVolume.pvc.size | string | `"10Gi"` | Storage size for backup repository. |
+| backupVolume.pvc.storageClassName | string | `""` | Storage class for the PVC (uses cluster default if empty). |
+| cronjob.securityContext.runAsNonRoot | bool | `false` | Run as non-root user when possible. |
+| metrics.service.additionalLabels | object | `{}` | Additional labels for service. |
+| metrics.service.annotations | object | `{}` | Annotations for service. |
+| metrics.service.clusterIP | string | `""` | Cluster IP (optional). |
+| metrics.service.port | int | `9092` | Service port. |
+| metrics.service.type | string | `"ClusterIP"` | Service type. |
+| restic.backup.enabled | bool | `true` | Enable backup job. |
+| restic.backup.retention.enabled | bool | `true` | Enable automatic pruning of old backups. |
+| restic.backup.retention.keepDaily | int | `14` | Keep daily snapshots for N days. |
+| restic.backup.retention.keepLast | int | `7` | Keep last N snapshots. |
+| restic.backup.retention.keepMonthly | int | `12` | Keep monthly snapshots for N months. |
+| restic.backup.retention.keepWeekly | int | `8` | Keep weekly snapshots for N weeks. |
+| restic.backup.retention.keepYearly | int | `3` | Keep yearly snapshots for N years. |
+| restic.check.enabled | bool | `true` | Enable repository check job. |
+| restic.check.readData | bool | `false` | Read all data packs to verify integrity (slower but thorough). |
+| restic.check.schedule | string | `"0 3 * * 0"` | Cron schedule for check job (default: weekly on Sunday at 3 AM). |
+| restic.init.enabled | bool | `true` | Enable repository initialization job. |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

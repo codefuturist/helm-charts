@@ -1,242 +1,133 @@
-# Proxmox Backup Server Helm Chart
-
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
-![AppVersion: 4.0.12](https://img.shields.io/badge/AppVersion-4.0.12-informational?style=flat-square)
-
-## Introduction
-
-This chart bootstraps a [Proxmox Backup Server](https://pbs.proxmox.com/) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
-
-Proxmox Backup Server is an enterprise backup solution for backing up and restoring VMs, containers, and physical hosts. This containerized version is based on the [ayufan/pve-backup-server-dockerfiles](https://github.com/ayufan/pve-backup-server-dockerfiles) project.
-
-## Features
-
-- **Easy Installation**: Get started with minimal configuration
-- **Security First**: Configurable security contexts, network policies, and RBAC
-- **Production Ready**: Persistent storage for config, logs, and state
-- **Flexible Storage**: Support for multiple backup data volumes
-- **SMART Support**: Optional device access for SMART monitoring
-- **Timezone Configuration**: Set server timezone for accurate logging
-- **Ingress Support**: Expose via any ingress controller with TLS
-- **Monitoring Ready**: ServiceMonitor and PrometheusRule for Prometheus Operator
-- **High Availability**: Pod disruption budgets and anti-affinity
-- **Flexible Deployment**: Deployment or StatefulSet controller options
-- **Extensibility**: Extra containers, init containers, volumes, and environment variables
-
-## Quick Start
-
-To deploy Proxmox Backup Server using this Helm chart:
-
-```console
-$ helm repo add codefuturist https://codefuturist.github.io/helm-charts
-$ helm repo update
-$ helm install my-pbs codefuturist/proxmox-backup-server \
-  --set pbs.password=ChangeMe123
-```
-
-After installation, access the web interface at `https://<service-ip>:8007/` and login with:
-- Username: `admin@pbs`
-- Password: `pbspbs` (or your custom password)
-
-**IMPORTANT**: Change the default password after first login!
-
-## Prerequisites
-
-- Kubernetes 1.21+
-- Helm 3.0+
-- PV provisioner support in the underlying infrastructure (if persistence is enabled)
-
-## Installing the Chart
-
-Add the repository:
-
-```console
-$ helm repo add codefuturist https://codefuturist.github.io/helm-charts
-$ helm repo update
-```
-
-Install the chart:
-
-```console
-$ helm install my-pbs codefuturist/proxmox-backup-server
-```
-
-## Uninstalling the Chart
-
-To uninstall/delete the `my-pbs` deployment:
-
-```console
-$ helm delete my-pbs
-```
-
-## Configuration
-
-The following table lists the configurable parameters of the Proxmox Backup Server chart and their default values.
-
-### Global Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `namespaceOverride` | Override the namespace | `.Release.Namespace` |
-| `nameOverride` | Override the name | `""` |
-| `fullnameOverride` | Override the full name | `""` |
-
-### Image Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `image.repository` | PBS image repository | `ayufan/proxmox-backup-server` |
-| `image.tag` | PBS image tag (`latest` for stable, `beta` for pre-release) | `latest` |
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
-
-**Note**: Use `image.tag: beta` for the latest pre-release version. See [available tags](https://hub.docker.com/r/ayufan/proxmox-backup-server/tags).
-
-### PBS Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `pbs.username` | PBS admin username | `admin@pbs` |
-| `pbs.password` | PBS admin password | `pbspbs` |
-| `pbs.timezone` | Timezone | `UTC` |
-| `pbs.smartAccess.enabled` | Enable SMART device access | `false` |
-| `pbs.smartAccess.devices` | Device paths to expose | `[]` |
-
-### Persistence
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `persistence.enabled` | Enable persistence | `true` |
-| `persistence.etc.enabled` | Persist /etc/proxmox-backup | `true` |
-| `persistence.etc.size` | Size for etc volume | `1Gi` |
-| `persistence.logs.enabled` | Persist /var/log/proxmox-backup | `true` |
-| `persistence.logs.size` | Size for logs volume | `5Gi` |
-| `persistence.lib.enabled` | Persist /var/lib/proxmox-backup | `true` |
-| `persistence.lib.size` | Size for lib volume | `10Gi` |
-
-See [values.yaml](./values.yaml) for the complete list of parameters.
-
-## Examples
-
-### Basic Installation
-
-```yaml
-pbs:
-  password: MySecurePassword123
-  timezone: "America/New_York"
-
-persistence:
-  enabled: true
-```
-
-### With SMART Monitoring
-
-```yaml
-pbs:
-  password: MySecurePassword123
-  smartAccess:
-    enabled: true
-    devices:
-      - /dev/sda
-      - /dev/sdb
-```
-
-### With Additional Backup Volumes
-
-```yaml
-pbs:
-  password: MySecurePassword123
-  backupVolumes:
-    - name: backups-primary
-      mountPath: /backups
-      size: 500Gi
-```
-
-## Notes
-
-- Default credentials are `admin@pbs` / `pbspbs` - **change after first login**
-- The container requires `/run` mounted as tmpfs for authentication (automatically configured)
-- Some features are not available in containerized version:
-  - **ZFS**: Not installed in container
-  - **Shell Access**: Not available due to PVE authentication and ephemeral container architecture
-  - **PAM Authentication**: Containers are ephemeral, `/etc/` configs not persisted by default
-- For production use, enable persistent storage for etc, logs, and lib directories
-- Uses self-signed certificates by default - accept certificate warning in browser
-
-### Getting SSL Certificate Fingerprint
-
-If you need to integrate with Proxmox VE, you may need the PBS certificate fingerprint:
-
-```bash
-# For Kubernetes deployment
-kubectl exec -n <namespace> <pod-name> -- proxmox-backup-manager cert info | grep Fingerprint
-
-# Example output:
-# Fingerprint (sha256): xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx
-```
-
-Follow the [Proxmox VE Integration tutorial](https://pbs.proxmox.com/docs/pve-integration.html) for complete setup.
-
-## Troubleshooting
-
-### Authentication Failures
-
-If you experience authentication failures with `admin@pbs`:
-
-1. **Verify `/run` is mounted as tmpfs** - This is required for PBS 2.1.x and later (automatically configured in this chart)
-   ```bash
-   kubectl exec -n <namespace> <pod-name> -- mount | grep /run
-   # Should show: tmpfs on /run type tmpfs
-   ```
-
-2. **Check pod logs for errors**
-   ```bash
-   kubectl logs -n <namespace> <pod-name> -f
-   ```
-
-3. **Verify persistent volumes are mounted**
-   ```bash
-   kubectl get pvc -n <namespace>
-   # All PVCs should be "Bound"
-   ```
-
-### Service Not Accessible
-
-If you cannot access the web interface:
-
-1. **Check pod status**
-   ```bash
-   kubectl get pods -n <namespace> -l app.kubernetes.io/name=proxmox-backup-server
-   ```
-
-2. **Check service**
-   ```bash
-   kubectl get svc -n <namespace>
-   ```
-
-3. **Port-forward for testing**
-   ```bash
-   kubectl port-forward -n <namespace> svc/<release-name>-proxmox-backup-server 8007:8007
-   # Then visit https://localhost:8007/
-   ```
-
-### SMART Device Access Not Working
-
-If SMART monitoring doesn't show device information:
-
-1. Ensure `pbs.smartAccess.enabled: true`
-2. Verify devices are listed in `pbs.smartAccess.devices`
-3. Check pod has SYS_RAWIO capability:
-   ```bash
-   kubectl get pod <pod-name> -n <namespace> -o jsonpath='{.spec.containers[0].securityContext.capabilities}'
-   ```
-
-## License
-
-Apache 2.0
-
-## Links
-
-- [Proxmox Backup Server Official Docs](https://pbs.proxmox.com/docs/)
-- [Container Project](https://github.com/ayufan/pve-backup-server-dockerfiles)
-- [Docker Hub](https://hub.docker.com/r/ayufan/proxmox-backup-server)
+# proxmox-backup-server
+
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.0.12](https://img.shields.io/badge/AppVersion-4.0.12-informational?style=flat-square)
+
+A production-ready Helm chart for Proxmox Backup Server - Enterprise backup solution for virtual environments
+
+**Homepage:** <https://pbs.proxmox.com/>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
+
+## Source Code
+
+* <https://github.com/ayufan/pve-backup-server-dockerfiles>
+* <https://github.com/codefuturist/helm-charts>
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| additionalAnnotations | object | `{}` | Additional annotations to add to all resources |
+| additionalLabels | object | `{}` | Additional labels to add to all resources |
+| affinity | object | `{}` | Affinity for pod assignment |
+| controller.args | list | `[]` | Args override for the main container |
+| controller.command | list | `[]` | Command override for the main container |
+| controller.lifecycle | object | `{}` | Lifecycle hooks for the main container |
+| controller.podManagementPolicy | string | `"OrderedReady"` | Pod management policy (only used if controller.type is statefulset) |
+| controller.replicas | int | `1` | Number of PBS replicas |
+| controller.strategy | object | `{"type":"Recreate"}` | Deployment update strategy |
+| controller.terminationGracePeriodSeconds | int | `30` | Termination grace period in seconds |
+| controller.type | string | `"deployment"` | Controller type (deployment or statefulset) |
+| controller.updateStrategy | object | `{"type":"RollingUpdate"}` | StatefulSet update strategy (only used if controller.type is statefulset) |
+| controller.workingDir | string | `""` | Working directory for the main container |
+| diagnosticMode.args | list | `["infinity"]` | Args override for diagnostic mode |
+| diagnosticMode.command | list | `["sleep"]` | Command override for diagnostic mode |
+| diagnosticMode.enabled | bool | `false` | Enable diagnostic mode (disables probes, overrides command) Useful for debugging container startup issues |
+| dnsConfig | object | `{}` | DNS config |
+| dnsPolicy | string | `"ClusterFirst"` | DNS policy |
+| extraContainers | list | `[]` | Extra sidecar containers |
+| extraEnv | list | `[]` | Extra environment variables |
+| extraEnvFrom | list | `[]` | Extra environment variables from ConfigMaps or Secrets |
+| extraVolumeMounts | list | `[]` | Extra volume mounts |
+| extraVolumes | list | `[]` | Extra volumes |
+| fullnameOverride | string | `""` | Override the full name of the chart |
+| hostAliases | list | `[]` | Host aliases |
+| hpa | object | `{"customMetrics":[],"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80,"targetMemoryUtilizationPercentage":80}` | Horizontal Pod Autoscaler configuration Note: HPA is generally not recommended for PBS as it's typically single-instance |
+| hpa.customMetrics | list | `[]` | Custom metrics for autoscaling |
+| hpa.enabled | bool | `false` | Enable HorizontalPodAutoscaler |
+| hpa.maxReplicas | int | `3` | Maximum number of replicas |
+| hpa.minReplicas | int | `1` | Minimum number of replicas |
+| hpa.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization percentage |
+| hpa.targetMemoryUtilizationPercentage | int | `80` | Target memory utilization percentage |
+| image.digest | string | `""` | Image digest (overrides tag if set) |
+| image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
+| image.repository | string | `"ayufan/proxmox-backup-server"` | Proxmox Backup Server Docker image repository |
+| image.tag | string | Chart appVersion (use 'latest' for stable or 'beta' for pre-releases) | Proxmox Backup Server Docker image tag |
+| imagePullSecrets | list | `[]` | Image pull secrets for private registries |
+| ingress.annotations | object | `{}` | Ingress annotations Example for nginx ingress with SSL passthrough: annotations:   cert-manager.io/cluster-issuer: "letsencrypt-prod"   nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"   nginx.ingress.kubernetes.io/ssl-passthrough: "true" |
+| ingress.className | string | `""` | Ingress class name |
+| ingress.enabled | bool | `false` | Enable ingress |
+| ingress.hosts | list | `[]` | Ingress hosts configuration |
+| ingress.tls | list | `[]` | Ingress TLS configuration |
+| initContainers | list | `[]` | Init containers to run before the main container |
+| livenessProbe | object | `{"enabled":true,"failureThreshold":6,"httpGet":{"path":"/","port":"https","scheme":"HTTPS"},"initialDelaySeconds":60,"periodSeconds":30,"successThreshold":1,"timeoutSeconds":10}` | Liveness probe configuration |
+| monitoring.prometheusRule.enabled | bool | `false` | Enable PrometheusRule for alerting |
+| monitoring.prometheusRule.labels | object | `{}` | Additional labels for the PrometheusRule |
+| monitoring.prometheusRule.namespace | string | `""` | Namespace for the PrometheusRule (defaults to the release namespace) |
+| monitoring.prometheusRule.rules | list | `[]` | Alert rules |
+| monitoring.serviceMonitor.annotations | object | `{}` | Additional annotations for the ServiceMonitor |
+| monitoring.serviceMonitor.enabled | bool | `false` | Enable ServiceMonitor for Prometheus Operator |
+| monitoring.serviceMonitor.interval | string | `"30s"` | Interval at which metrics should be scraped |
+| monitoring.serviceMonitor.labels | object | `{}` | Additional labels for the ServiceMonitor |
+| monitoring.serviceMonitor.metricRelabelings | list | `[]` | Metric relabelings |
+| monitoring.serviceMonitor.namespace | string | `""` | Namespace for the ServiceMonitor (defaults to the release namespace) |
+| monitoring.serviceMonitor.relabelings | list | `[]` | Relabelings |
+| monitoring.serviceMonitor.scrapeTimeout | string | `"10s"` | Timeout for scraping metrics |
+| nameOverride | string | `""` | Override the name of the chart |
+| namespaceOverride | string | `.Release.Namespace` | Override the namespace for all resources |
+| networkPolicy.egress | list | `[{"to":[{"namespaceSelector":{}}]},{"ports":[{"port":53,"protocol":"UDP"}],"to":[{"namespaceSelector":{}}]}]` | Egress rules By default, allow all egress for backup operations |
+| networkPolicy.enabled | bool | `false` | Enable network policy |
+| networkPolicy.ingress | list | `[]` | Ingress rules |
+| networkPolicy.policyTypes | list | `["Ingress","Egress"]` | Policy types |
+| nodeSelector | object | `{}` | Node selector for pod assignment |
+| pbs.backupVolumes | list | `[]` | Additional backup data volumes Configure additional volumes for backup storage Example: backupVolumes:   - name: backups-primary     mountPath: /backups     storageClassName: fast-ssd     size: 500Gi   - name: backups-archive     mountPath: /archive     existingClaim: archive-pvc |
+| pbs.existingSecret | string | `""` | Name of an existing secret containing PBS credentials The secret must contain keys for username and password (see existingSecretUsernameKey and existingSecretPasswordKey) |
+| pbs.existingSecretPasswordKey | string | `"password"` | Key in existingSecret that contains the password |
+| pbs.existingSecretUsernameKey | string | `"username"` | Key in existingSecret that contains the username |
+| pbs.password | string | pbspbs (MUST be changed after first login) | Default PBS login password |
+| pbs.smartAccess | object | `{"devices":[],"enabled":false}` | Enable SMART device access When enabled, allows PBS to view SMART parameters for attached devices Requires devices to be exposed and SYS_RAWIO capability |
+| pbs.smartAccess.devices | list | `[]` | List of device paths to expose to the container Example: ["/dev/sda", "/dev/sdb", "/dev/nvme0n1"] |
+| pbs.timezone | string | `"UTC"` | Timezone configuration Example: "Europe/Warsaw", "America/New_York", "UTC" |
+| pbs.username | string | `"admin@pbs"` | Default PBS login username Default credentials are admin / pbspbs (change password after first login) |
+| pdb.enabled | bool | `false` | Enable PodDisruptionBudget |
+| pdb.maxUnavailable | string | `""` | Maximum number of pods that can be unavailable |
+| pdb.minAvailable | int | `1` | Minimum number of pods that must be available |
+| persistence.enabled | bool | `true` | Enable persistent storage for PBS data Includes configuration, logs, and library files |
+| persistence.etc | object | `{"accessMode":"ReadWriteOnce","annotations":{},"enabled":true,"existingClaim":"","size":"1Gi","storageClassName":""}` | Persist /etc/proxmox-backup directory (configuration) |
+| persistence.lib | object | `{"accessMode":"ReadWriteOnce","annotations":{},"enabled":true,"existingClaim":"","size":"10Gi","storageClassName":""}` | Persist /var/lib/proxmox-backup directory (library/state) |
+| persistence.logs | object | `{"accessMode":"ReadWriteOnce","annotations":{},"enabled":true,"existingClaim":"","size":"5Gi","storageClassName":""}` | Persist /var/log/proxmox-backup directory (logs) |
+| podAnnotations | object | `{}` | Pod annotations |
+| podLabels | object | `{}` | Pod labels |
+| podSecurityContext | object | `{"fsGroup":0,"fsGroupChangePolicy":"OnRootMismatch","runAsNonRoot":false,"seccompProfile":{"type":"RuntimeDefault"}}` | Pod security context PBS requires privileged access for some operations |
+| priorityClassName | string | `""` | Priority class name for the pod |
+| rbac.create | bool | `true` | Create RBAC resources |
+| rbac.rules | list | `[]` | Additional RBAC rules |
+| readinessProbe | object | `{"enabled":true,"failureThreshold":3,"httpGet":{"path":"/","port":"https","scheme":"HTTPS"},"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Readiness probe configuration |
+| resources | object | `{"limits":{"cpu":"2000m","memory":"2Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource limits and requests |
+| runtimeClassName | string | `""` | Runtime class name |
+| securityContext | object | `{"allowPrivilegeEscalation":true,"capabilities":{"add":["CHOWN","DAC_OVERRIDE","FOWNER","SETGID","SETUID"],"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsNonRoot":false,"runAsUser":0}` | Container security context |
+| service.annotations | object | `{}` | Service annotations |
+| service.clusterIP | string | `""` | Cluster IP (set to None for headless service) |
+| service.externalTrafficPolicy | string | `""` | External traffic policy (only used if type is LoadBalancer or NodePort) |
+| service.labels | object | `{}` | Service labels |
+| service.loadBalancerIP | string | `""` | Load balancer IP (only used if type is LoadBalancer) |
+| service.loadBalancerSourceRanges | list | `[]` | Load balancer source ranges (only used if type is LoadBalancer) |
+| service.nodePort | string | `""` | Node port (only used if type is NodePort) |
+| service.port | int | `8007` | Service port (PBS uses HTTPS on 8007) |
+| service.sessionAffinity | string | `"None"` | Session affinity |
+| service.sessionAffinityConfig | object | `{}` | Session affinity config |
+| service.targetPort | int | `8007` | Service target port (container port) |
+| service.type | string | `"ClusterIP"` | Service type |
+| serviceAccount.annotations | object | `{}` | Service account annotations |
+| serviceAccount.create | bool | `true` | Create a service account |
+| serviceAccount.name | string | `""` | Service account name (generated if not set and create is true) |
+| startupProbe | object | `{"enabled":true,"failureThreshold":30,"httpGet":{"path":"/","port":"https","scheme":"HTTPS"},"initialDelaySeconds":20,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Startup probe configuration |
+| tolerations | list | `[]` | Tolerations for pod assignment |
+| topologySpreadConstraints | list | `[]` | Topology spread constraints for pod distribution |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
