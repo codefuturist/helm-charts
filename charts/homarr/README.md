@@ -1,45 +1,48 @@
 # homarr
 
-![Version: 5.3.0](https://img.shields.io/badge/Version-5.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
-Generic helm chart for all kind of applications
+A Helm chart for Homarr - A simple, yet powerful dashboard for your server
 
-**Homepage:** <https://github.com/codefuturist/application>
+**Homepage:** <https://homarr.dev>
 
 ## Maintainers
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| codefuturist | <hello@allcloud.trade> |  |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
+
+## Source Code
+
+* <https://github.com/homarr-labs/homarr>
 
 ## Values
-
-### AlertmanagerConfig Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| alertmanagerConfig.enabled | bool | `false` | Deploy an AlertmanagerConfig (Prometheus Operator) resource. |
-| alertmanagerConfig.selectionLabels | object | `{"alertmanagerConfig":"workload"}` | Labels to be picked up by Alertmanager to add it to base config. Read more about it at [https://docs.openshift.com/container-platform/4.7/rest_api/monitoring_apis/alertmanager-monitoring-coreos-com-v1.html](OpenShift's AlermanagerConfig documentation) under .spec.alertmanagerConfigSelector. |
-| alertmanagerConfig.spec | object | `{"inhibitRules":[],"receivers":[],"route":null}` | AlertmanagerConfig spec. Read more about it at [https://docs.openshift.com/container-platform/4.7/rest_api/monitoring_apis/alertmanagerconfig-monitoring-coreos-com-v1alpha1.html](OpenShift's AlermanagerConfig documentation). |
-| alertmanagerConfig.spec.inhibitRules | list | `[]` | Inhibition rules that allows to mute alerts when other alerts are already firing. |
-| alertmanagerConfig.spec.receivers | list | `[]` | List of receivers. |
-| alertmanagerConfig.spec.route | object | `nil` | Route definition for alerts matching the resource’s namespace. It will be added to the generated Alertmanager configuration as a first-level route. |
 
 ### Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| additionalLabels | tpl/object | `{}` | Additional labels for all resources. |
 | applicationName | string | `{{ .Chart.Name }}` | Application name. |
 | componentOverride | string | `""` | Override the component label for all resources. |
+| extraObjects | list | `[]` | Extra K8s manifests to deploy. |
 | namespaceOverride | string | `""` | Override the namespace for all resources. |
 | partOfOverride | string | `""` | Override the partOf label for all resources. |
 
-### Autoscaling - Horizontal Pod Autoscaling Parameters
+### AlertmanagerConfig Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| autoscaling.additionalLabels | object | `nil` | Additional labels for HPA. |
-| autoscaling.annotations | object | `nil` | Annotations for HPA. |
+| alertmanagerConfig.enabled | bool | `false` | Deploy an AlertmanagerConfig resource. |
+| alertmanagerConfig.selectionLabels | object | `{"alertmanagerConfig":"workload"}` | Labels to be picked up by Alertmanager. |
+| alertmanagerConfig.spec | object | `{"inhibitRules":[],"receivers":[],"route":null}` | AlertmanagerConfig spec. |
+
+### Autoscaling Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| autoscaling.additionalLabels | object | `{}` | Additional labels for HPA. |
+| autoscaling.annotations | object | `{}` | Annotations for HPA. |
 | autoscaling.enabled | bool | `false` | Enable Horizontal Pod Autoscaling. |
 | autoscaling.maxReplicas | int | `10` | Maximum number of replicas. |
 | autoscaling.metrics | list | `[{"resource":{"name":"cpu","target":{"averageUtilization":60,"type":"Utilization"}},"type":"Resource"},{"resource":{"name":"memory","target":{"averageUtilization":60,"type":"Utilization"}},"type":"Resource"}]` | Metrics used for autoscaling. |
@@ -49,268 +52,253 @@ Generic helm chart for all kind of applications
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| backup.additionalLabels | object | `nil` | Additional labels for Backup. |
-| backup.annotations | object | `nil` | Annotations for Backup. |
-| backup.defaultVolumesToRestic | bool | `true` | Whether to use Restic to take snapshots of all pod volumes by default. |
-| backup.enabled | bool | `false` | Deploy a [Velero/OADP Backup](https://velero.io/docs/main/api-types/backup/) resource. |
-| backup.excludedResources | list | `nil` | List of resource types to exclude from the backup. |
-| backup.includedResources | list | `nil` | List of resource types to include in the backup. |
-| backup.namespace | string | `{{ .Release.Namespace }}` | Namespace for Backup. |
-| backup.snapshotVolumes | bool | `true` | Whether to take snapshots of persistent volumes as part of the backup. |
-| backup.storageLocation | string | `nil` | Name of the backup storage location where the backup should be stored. |
-| backup.ttl | string | `"1h0m0s"` | How long the Backup should be retained for. |
+| backup.additionalLabels | object | `{}` | Additional labels for Backup. |
+| backup.annotations | object | `{}` | Annotations for Backup. |
+| backup.defaultVolumesToRestic | bool | `true` | Use Restic for backups. |
+| backup.enabled | bool | `false` | Deploy a Backup resource. |
+| backup.excludedResources | list | `[]` | Excluded resources. |
+| backup.includedNamespaces | list | `[]` | Included namespaces. |
+| backup.includedResources | list | `[]` | Included resources. |
+| backup.namespace | string | `""` | Namespace for Backup. |
+| backup.snapshotVolumes | bool | `true` | Snapshot volumes. |
+| backup.storageLocation | string | `""` | Storage location. |
+| backup.ttl | string | `"1h0m0s"` | TTL for backup. |
 
-### cert-manager Certificate Parameters
+### Certificate Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| certificate.additionalLabels | object | `nil` | Additional labels for Certificate. |
-| certificate.annotations | object | `nil` | Annotations for Certificate. |
-| certificate.commonName | string | `"admin-app"` | Common name as specified on the DER encoded CSR. |
-| certificate.dnsNames | tpl/list | `nil` | List of DNS subjectAltNames to be set on the certificate. |
-| certificate.duration | string | `"8760h0m0s"` | The requested "duration" (i.e. lifetime) of the Certificate. |
-| certificate.emailSANs | list | `nil` | List of email subjectAltNames to be set on the Certificate. |
-| certificate.enabled | bool | `false` | Deploy a [cert-manager Certificate](https://cert-manager.io) resource. |
-| certificate.ipAddresses | list | `nil` | List of IP address subjectAltNames to be set on the certificate. |
-| certificate.isCA | bool | `false` | Mark this Certificate as valid for certificate signing. |
-| certificate.issuerRef.group | string | `"cert-manager.io"` | Group of the issuer resource being refered to. |
-| certificate.issuerRef.kind | string | `"ClusterIssuer"` | Kind of the issuer being referred to. |
-| certificate.issuerRef.name | string | `"ca-issuer"` | Reference to the issuer for this certificate. |
-| certificate.keyAlgorithm | string | `"rsa"` | Private key algorithm of the corresponding private key for this certificate. |
-| certificate.keyEncoding | string | `"pkcs1"` | Private key cryptography standards (PKCS) for this certificate's private key to be encoded in. |
-| certificate.keySize | int | `2048` | Key bit size of the corresponding private key for this certificate. |
-| certificate.keystores.enabled | bool | `false` | Enables keystore configuration. Keystores configures additional keystore output formats stored in the spec.secretName Secret resource. |
-| certificate.keystores.jks.create | bool | `false` | Enables jks keystore creation for the Certificate. JKS configures options for storing a JKS keystore in the spec.secretName Secret resource. |
-| certificate.keystores.jks.key | tpl/string | `"test_key"` | Key of the entry in the Secret resource's data field to be used. |
-| certificate.keystores.jks.name | string | `"test-creds"` | Name of the Secret resource being referred to. |
-| certificate.keystores.pkcs12.create | bool | `true` | Enables PKCS12 keystore creation for the Certificate. PKCS12 configures options for storing a PKCS12 keystore in the spec.secretName Secret resource. |
-| certificate.keystores.pkcs12.key | string | `"test_key"` | Key of the entry in the Secret resource's data field to be used. |
-| certificate.keystores.pkcs12.name | string | `"test-creds"` | Name of the Secret resource being referred to. |
-| certificate.privateKey.enabled | bool | `false` | Enable Private Key for the certificate. |
-| certificate.privateKey.rotationPolicy | string | `"Always"` | Denotes how private keys should be generated or sourced when a certificate is being issued. |
-| certificate.renewBefore | string | `"720h0m0s"` | The amount of time before the currently issued certificate's notAfter time that cert-manager will begin to attempt to renew the certificate. |
-| certificate.secretName | tpl/string | `"tls-cert"` | Name of the secret resource that will be automatically created and managed by this Certificate resource. |
-| certificate.subject | tpl/object | `nil` | Full X509 name specification for certificate. |
-| certificate.uriSANs | list | `nil` | List of URI subjectAltNames to be set on the certificate. |
-| certificate.usages | list | `nil` | Set of x509 usages that are requested for the certificate. |
+| certificate.additionalLabels | object | `{}` | Additional labels for Certificate. |
+| certificate.annotations | object | `{}` | Annotations for Certificate. |
+| certificate.dnsNames | tpl/list | `["homarr.local"]` | DNS names for the certificate. |
+| certificate.duration | string | `"8760h0m0s"` | Duration of the certificate. |
+| certificate.enabled | bool | `false` | Deploy a cert-manager Certificate resource. |
+| certificate.issuerRef.group | string | `"cert-manager.io"` | Group of the issuer. |
+| certificate.issuerRef.kind | string | `"ClusterIssuer"` | Kind of the issuer. |
+| certificate.issuerRef.name | string | `"ca-issuer"` | Name of the issuer. |
+| certificate.renewBefore | string | `"720h0m0s"` | Renew before duration. |
+| certificate.secretName | tpl/string | `"homarr-tls"` | Secret name for the certificate. |
 
 ### ConfigMap Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| configMap.additionalLabels | object | `nil` | Additional labels for ConfigMaps. |
-| configMap.annotations | object | `nil` | Annotations for ConfigMaps. |
+| configMap.additionalLabels | object | `{}` | Additional labels for ConfigMaps. |
+| configMap.annotations | object | `{}` | Annotations for ConfigMaps. |
 | configMap.enabled | bool | `false` | Deploy additional ConfigMaps. |
-| configMap.files | object | `nil` | List of ConfigMap entries. Key will be used as a name suffix for the ConfigMap. Value is the ConfigMap content. |
+| configMap.files | object | `{}` | Map of ConfigMaps. |
 
 ### CronJob Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | cronJob.enabled | bool | `false` | Deploy CronJob resources. |
-| cronJob.jobs | object | `nil` | Map of CronJob resources. Key will be used as a name suffix for the CronJob. Value is the CronJob configuration. See values for more details. |
+| cronJob.jobs | object | `{}` | Map of CronJob resources. |
 
 ### Deployment Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| deployment.additionalContainers | list | `nil` | Additional containers besides init and app containers (without templating). |
-| deployment.additionalLabels | object | `nil` | Additional labels for Deployment. |
-| deployment.additionalPodAnnotations | object | `nil` | Additional pod annotations. |
-| deployment.affinity | object | `nil` | Affinity for the pods. |
-| deployment.annotations | object | `nil` | Annotations for Deployment. |
+| deployment.additionalContainers | list | `[]` | Additional containers. |
+| deployment.additionalLabels | object | `{}` | Additional labels for Deployment. |
+| deployment.additionalPodAnnotations | object | `{}` | Additional pod annotations. |
+| deployment.affinity | object | `{}` | Affinity for the pods. |
+| deployment.annotations | object | `{}` | Annotations for Deployment. |
 | deployment.args | list | `[]` | Args for the app container. |
 | deployment.command | list | `[]` | Command for the app container. |
-| deployment.containerSecurityContext | object | `{"readOnlyRootFilesystem":true,"runAsNonRoot":true}` | Security Context at Container Level. |
-| deployment.dnsConfig | object | `nil` | DNS config for the pods. |
+| deployment.containerSecurityContext | object | `{"readOnlyRootFilesystem":false,"runAsGroup":0,"runAsNonRoot":false,"runAsUser":0}` | Security Context at Container Level. |
+| deployment.dnsConfig | object | `{}` | DNS config for the pods. |
+| deployment.dnsPolicy | object | `""` | DNS Policy. |
 | deployment.enabled | bool | `true` | Enable Deployment. |
 | deployment.env | object | `nil` | Environment variables to be added to the pod. |
-| deployment.envFrom | object | `nil` | Mount environment variables from ConfigMap or Secret to the pod. |
-| deployment.fluentdConfigAnnotations | object | `nil` | Configuration details for fluentdConfigurations. Only works for specific setup, see <https://medium.com/stakater/dynamic-log-processing-with-fluentd-konfigurator-and-slack-935a5de4eddb>. |
-| deployment.hostAliases | list | `nil` | Add host aliases to the pods. |
-| deployment.hostNetwork | bool | `nil` | Host network connectivity. |
-| deployment.image.digest | string | `""` | Image digest. If set to a non-empty value, digest takes precedence on the tag. |
+| deployment.envFrom | object | `{}` | Mount environment variables from ConfigMap or Secret to the pod. |
+| deployment.fluentdConfigAnnotations | object | `{}` | Fluentd configuration annotations. |
+| deployment.hostAliases | list | `[]` | Host aliases. |
+| deployment.image.digest | tpl/string | `""` | Image digest. If resolved to a non-empty value, digest takes precedence on the tag. |
 | deployment.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy. |
-| deployment.image.repository | string | `"nginx"` | Repository. |
-| deployment.image.tag | string | `"latest"` | Tag. |
+| deployment.image.repository | tpl/string | `"ghcr.io/homarr-labs/homarr"` | Repository. |
+| deployment.image.tag | tpl/string | `"latest"` | Tag. |
 | deployment.imagePullSecrets | list | `[]` | List of secrets to be used for pulling the images. |
-| deployment.initContainers | object | `nil` | Add init containers to the pods. |
-| deployment.lifecycle | object | `{}` | Lifecycle configuration for the pod. |
-| deployment.livenessProbe | object | See below | Liveness probe. Must specify either one of the following field when enabled: httpGet, exec, tcpSocket, grpc |
-| deployment.livenessProbe.enabled | bool | `false` | Enable Liveness probe. |
+| deployment.initContainers | object | `{}` | Init containers. |
+| deployment.livenessProbe | object | `{"enabled":true,"exec":{},"failureThreshold":3,"httpGet":{"path":"/","port":"http"},"periodSeconds":10,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":1}` | Liveness probe. |
+| deployment.livenessProbe.enabled | bool | `true` | Enable Liveness probe. |
 | deployment.livenessProbe.exec | object | `{}` | Exec probe. |
-| deployment.livenessProbe.failureThreshold | int | `30` | Number of retries before marking the pod as failed. |
-| deployment.livenessProbe.grpc | object | `{}` | gRPC probe. |
-| deployment.livenessProbe.httpGet | object | `{}` | HTTP Get probe. |
+| deployment.livenessProbe.failureThreshold | int | `3` | Number of retries before marking the pod as failed. |
+| deployment.livenessProbe.httpGet | object | `{"path":"/","port":"http"}` | HTTP Get probe. |
 | deployment.livenessProbe.periodSeconds | int | `10` | Time between retries. |
 | deployment.livenessProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
 | deployment.livenessProbe.tcpSocket | object | `{}` | TCP Socket probe. |
 | deployment.livenessProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
-| deployment.nodeSelector | object | `nil` | Select the node where the pods should be scheduled. |
-| deployment.openshiftOAuthProxy.disableTLSArg | bool | `false` | If disabled `--http-address=:8081` will be used instead of `--https-address=:8443`. It can be useful when an ingress is enabled for the application. |
-| deployment.openshiftOAuthProxy.enabled | bool | `false` | Enable [OpenShift OAuth Proxy](https://github.com/openshift/oauth-proxy). |
-| deployment.openshiftOAuthProxy.image | string | `"openshift/oauth-proxy:latest"` | Image for the OAuth Proxy. |
-| deployment.openshiftOAuthProxy.port | int | `8080` | Port on which application is running inside container. |
-| deployment.openshiftOAuthProxy.secretName | string | `"openshift-oauth-proxy-tls"` | Secret name for the OAuth Proxy TLS certificate. |
-| deployment.podLabels | object | `nil` | Additional pod labels which are used in Service's Label Selector. |
-| deployment.ports | list | `nil` | List of ports for the app container. |
+| deployment.nodeSelector | object | `{}` | Select the node where the pods should be scheduled. |
+| deployment.openshiftOAuthProxy | object | `{"disableTLSArg":false,"enabled":false,"image":"openshift/oauth-proxy:latest","port":7575,"secretName":"openshift-oauth-proxy-tls"}` | OpenShift OAuth Proxy configuration. |
+| deployment.podLabels | object | `{}` | Additional pod labels which are used in Service's Label Selector. |
+| deployment.ports | list | `[{"containerPort":7575,"name":"http","protocol":"TCP"}]` | List of ports for the app container. |
 | deployment.priorityClassName | string | `""` | Define the priority class for the pod. |
-| deployment.readinessProbe | object | See below | Readiness probe. Must specify either one of the following field when enabled: httpGet, exec, tcpSocket, grpc |
-| deployment.readinessProbe.enabled | bool | `false` | Enable Readiness probe. |
+| deployment.readinessProbe | object | `{"enabled":true,"exec":{},"failureThreshold":3,"httpGet":{"path":"/","port":"http"},"periodSeconds":10,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":1}` | Readiness probe. |
+| deployment.readinessProbe.enabled | bool | `true` | Enable Readiness probe. |
 | deployment.readinessProbe.exec | object | `{}` | Exec probe. |
-| deployment.readinessProbe.failureThreshold | int | `30` | Number of retries before marking the pod as failed. |
-| deployment.readinessProbe.grpc | object | `{}` | gRPC probe. |
-| deployment.readinessProbe.httpGet | object | `{}` | HTTP Get probe. |
+| deployment.readinessProbe.failureThreshold | int | `3` | Number of retries before marking the pod as failed. |
+| deployment.readinessProbe.httpGet | object | `{"path":"/","port":"http"}` | HTTP Get probe. |
 | deployment.readinessProbe.periodSeconds | int | `10` | Time between retries. |
 | deployment.readinessProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
 | deployment.readinessProbe.tcpSocket | object | `{}` | TCP Socket probe. |
 | deployment.readinessProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
 | deployment.reloadOnChange | bool | `true` | Reload deployment if attached Secret/ConfigMap changes. |
-| deployment.replicas | int | `nil` | Number of replicas. |
-| deployment.resources | object | `{"limits":{"cpu":0.5,"memory":"256Mi"},"requests":{"cpu":0.1,"memory":"128Mi"}}` | Resource limits and requests for the pod. |
+| deployment.replicas | int | `1` | Number of replicas. |
+| deployment.resources | object | `{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource limits and requests for the pod. |
 | deployment.revisionHistoryLimit | int | `2` | Number of ReplicaSet revisions to retain. |
-| deployment.securityContext | object | `nil` | Security Context for the pod. |
-| deployment.startupProbe | object | See below | Startup probe. Must specify either one of the following field when enabled: httpGet, exec, tcpSocket, grpc |
+| deployment.securityContext | object | `{"fsGroup":0}` | Security Context for the pod. |
+| deployment.startupProbe | object | `{"enabled":false,"exec":{},"failureThreshold":30,"httpGet":{},"periodSeconds":10,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":1}` | Startup probe. |
 | deployment.startupProbe.enabled | bool | `false` | Enable Startup probe. |
 | deployment.startupProbe.exec | object | `{}` | Exec probe. |
 | deployment.startupProbe.failureThreshold | int | `30` | Number of retries before marking the pod as failed. |
-| deployment.startupProbe.grpc | object | `{}` | gRPC probe. |
 | deployment.startupProbe.httpGet | object | `{}` | HTTP Get probe. |
 | deployment.startupProbe.periodSeconds | int | `10` | Time between retries. |
 | deployment.startupProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
 | deployment.startupProbe.tcpSocket | object | `{}` | TCP Socket probe. |
 | deployment.startupProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
-| deployment.strategy.rollingUpdate.maxSurge | string | `"25%"` | Max surge pods during update. |
-| deployment.strategy.rollingUpdate.maxUnavailable | string | `"25%"` | Max unavailable pods during update. |
 | deployment.strategy.type | string | `"RollingUpdate"` | Type of deployment strategy. |
-| deployment.terminationGracePeriodSeconds | int | `nil` | Gracefull termination period. |
-| deployment.tolerations | list | `nil` | Taint tolerations for the pods. |
-| deployment.topologySpreadConstraints | list | `nil` | Topology spread constraints for the pods. |
-| deployment.volumeMounts | object | `nil` | Mount path for Volumes. Key is the name of the volume. Value is the volume mount definition. |
-| deployment.volumes | object | `nil` | Volumes to be added to the pod. Key is the name of the volume. Value is the volume definition. |
-| persistence.accessMode | string | `"ReadWriteOnce"` | Access mode for volume. |
-| persistence.additionalLabels | object | `nil` | Additional labels for persistent volume. |
-| persistence.annotations | object | `nil` | Annotations for persistent volume. |
-| persistence.enabled | bool | `false` | Enable persistence. |
-| persistence.mountPVC | bool | `false` | Whether to mount the created PVC to the deployment. |
-| persistence.mountPath | string | `"/"` | If `persistence.mountPVC` is enabled, where to mount the volume in the containers. |
-| persistence.name | string | `{{ include "application.name" $ }}-data` | Name of the PVC. |
-| persistence.storageClass | string | `nil` | Storage class for volume. If defined, use that value If set to "-" or "", disable dynamic provisioning If undefined or set to null (the default), no storageClass spec is   set, choosing the default provisioner. |
-| persistence.storageSize | string | `"8Gi"` | Size of the persistent volume. |
-| persistence.volumeMode | string | `""` | PVC Volume Mode. |
-| persistence.volumeName | string | `""` | Name of the volume. |
+| deployment.tolerations | list | `[]` | Taint tolerations for the pods. |
+| deployment.topologySpreadConstraints | list | `[]` | Topology spread constraints for the pods. |
+| deployment.volumeMounts | object | `nil` | Mount path for Volumes. |
+| deployment.volumes | object | `nil` | Volumes to be added to the pod. |
 
 ### EndpointMonitor Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| endpointMonitor.additionalLabels | object | `nil` | Additional labels for EndpointMonitor. |
-| endpointMonitor.annotations | object | `nil` | Annotations for EndpointMonitor. |
-| endpointMonitor.enabled | bool | `false` | Deploy an [IMC EndpointMonitor](https://github.com/stakater/IngressMonitorController) resource. |
+| endpointMonitor.additionalLabels | object | `{}` | Additional labels for EndpointMonitor. |
+| endpointMonitor.annotations | object | `{}` | Annotations for EndpointMonitor. |
+| endpointMonitor.enabled | bool | `false` | Deploy an EndpointMonitor resource. |
 
 ### ExternalSecret Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| externalSecret.additionalLabels | object | `nil` | Additional labels for ExternalSecret. |
-| externalSecret.annotations | object | `nil` | Annotations for ExternalSecret. |
-| externalSecret.enabled | bool | `false` | Deploy [ExternalSecret](https://external-secrets.io/latest/) resources. |
-| externalSecret.files | object | `nil` | List of ExternalSecret entries. Key will be used as a name suffix for the ExternalSecret. There a two allowed modes: - `data`: Data defines the connection between the Kubernetes Secret keys and the Provider data - `dataFrom`: Used to fetch all properties from the Provider key |
-| externalSecret.refreshInterval | string | `"1m"` | RefreshInterval is the amount of time before the values are read again from the SecretStore provider. |
-| externalSecret.secretStore | object | `{"kind":"SecretStore","name":"tenant-vault-secret-store"}` | Default values for the SecretStore. Can be overriden per ExternalSecret in the `externalSecret.files` object. |
-| externalSecret.secretStore.kind | string | `"SecretStore"` | Kind of the SecretStore being refered to. |
-| externalSecret.secretStore.name | string | `"tenant-vault-secret-store"` | Name of the SecretStore to use. |
+| externalSecret.additionalLabels | object | `{}` | Additional labels for ExternalSecret. |
+| externalSecret.annotations | object | `{}` | Annotations for ExternalSecret. |
+| externalSecret.enabled | bool | `false` | Deploy ExternalSecret resources. |
+| externalSecret.files | object | `{}` | List of ExternalSecret entries. |
+| externalSecret.refreshInterval | string | `"1m"` | RefreshInterval for ExternalSecret. |
+| externalSecret.secretStore | object | `{"kind":"SecretStore","name":"tenant-vault-secret-store"}` | Default values for the SecretStore. |
 
 ### ForecastleApp Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| forecastle.additionalLabels | object | `nil` | Additional labels for ForecastleApp. |
-| forecastle.displayName | string | `""` | Application Name. Required if `forecastle.enabled` is set to `true`. |
-| forecastle.enabled | bool | `false` | Deploy a [ForecastleApp](https://github.com/stakater/Forecastle) resource. |
+| forecastle.additionalLabels | object | `{}` | Additional labels for ForecastleApp. |
+| forecastle.displayName | string | `"Homarr"` | Application Name. |
+| forecastle.enabled | bool | `false` | Deploy a ForecastleApp resource. |
 | forecastle.group | string | `{{ .Release.Namespace }}` | Application Group. |
-| forecastle.icon | string | `"https://raw.githubusercontent.com/stakater/ForecastleIcons/master/stakater-big.png"` | Icon URL. |
+| forecastle.icon | string | `"https://homarr.dev/img/logo.png"` | Icon URL. |
 | forecastle.networkRestricted | bool | `false` | Is application network restricted?. |
-| forecastle.properties | object | `nil` | Custom properties. |
+| forecastle.properties | object | `{}` | Custom properties. |
 
 ### GrafanaDashboard Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| grafanaDashboard.additionalLabels | object | `nil` | Additional labels for GrafanaDashboard. |
-| grafanaDashboard.annotations | object | `nil` | Annotations for GrafanaDashboard. |
-| grafanaDashboard.contents | object | `nil` | List of GrafanaDashboard entries. Key will be used as a name suffix for the GrafanaDashboard. Value is the GrafanaDashboard content. According to GrafanaDashboard behavior, `url` field takes precedence on the `json` field. |
-| grafanaDashboard.enabled | bool | `false` | Deploy [GrafanaDashboard](https://github.com/grafana/grafana-operator) resources. |
+| grafanaDashboard.additionalLabels | object | `{}` | Additional labels for GrafanaDashboard. |
+| grafanaDashboard.annotations | object | `{}` | Annotations for GrafanaDashboard. |
+| grafanaDashboard.contents | object | `{}` | List of GrafanaDashboard entries. |
+| grafanaDashboard.enabled | bool | `false` | Deploy GrafanaDashboard resources. |
+
+### HTTPRoute Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| httpRoute.additionalLabels | object | `{}` | Additional labels for HTTPRoute. |
+| httpRoute.annotations | object | `{}` | Annotations for HTTPRoute. |
+| httpRoute.enabled | bool | `false` | Enable HTTPRoute (Gateway API). |
+| httpRoute.gatewayNamespace | string | `""` | Gateway namespace. |
+| httpRoute.hostnames | list | `[]` | Hostnames for the HTTPRoute. |
+| httpRoute.parentRefs | list | `[]` | Parent references for the HTTPRoute. |
+| httpRoute.rules | list | `[]` | Rules for HTTPRoute. |
+| httpRoute.useDefaultGateways | string | `""` | Gateway scope. |
 
 ### Ingress Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| ingress.additionalLabels | object | `nil` | Additional labels for ingress. |
-| ingress.annotations | object | `nil` | Annotations for ingress. |
+| ingress.additionalLabels | object | `{}` | Additional labels for ingress. |
+| ingress.annotations | object | `{}` | Annotations for ingress. |
 | ingress.enabled | bool | `false` | Enable Ingress. |
-| ingress.hosts[0].host | tpl/string | `"chart-example.local"` | Hostname. |
+| ingress.hosts[0].host | tpl/string | `"homarr.local"` | Hostname. |
 | ingress.hosts[0].paths[0].path | string | `"/"` | Path. |
-| ingress.hosts[0].paths[0].pathType | string | `ImplementationSpecific` | Path type. |
-| ingress.hosts[0].paths[0].serviceName | string | `{{ include "application.name" $ }}` | Service name. |
-| ingress.hosts[0].paths[0].servicePort | string | `http` | Service port. |
+| ingress.hosts[0].paths[0].pathType | string | `"Prefix"` | Path type. |
 | ingress.ingressClassName | string | `""` | Name of the ingress class. |
-| ingress.tls | list | `nil` | TLS configuration for ingress. Secrets must exist in the namespace. You may also configure Certificate resource to generate the secret. |
+| ingress.tls | list | `[]` | TLS configuration for ingress. |
 
 ### Job Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | job.enabled | bool | `false` | Deploy Job resources. |
-| job.jobs | object | `nil` | Map of Job resources. Key will be used as a name suffix for the Job. Value is the Job configuration. See values for more details. |
+| job.jobs | object | `{}` | Map of Job resources. |
 
 ### NetworkPolicy Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| networkPolicy.additionalLabels | object | `nil` | Additional labels for Network Policy. |
-| networkPolicy.annotations | object | `nil` | Annotations for Network Policy. |
-| networkPolicy.egress | list | `nil` | Egress rules for Network Policy. |
-| networkPolicy.enabled | bool | `false` | Enable Network Policy. |
-| networkPolicy.ingress | list | `nil` | Ingress rules for Network Policy. |
+| networkPolicy.additionalLabels | object | `{}` | Additional labels for NetworkPolicy. |
+| networkPolicy.annotations | object | `{}` | Annotations for NetworkPolicy. |
+| networkPolicy.egress | list | `[]` | Egress rules for NetworkPolicy. |
+| networkPolicy.enabled | bool | `false` | Deploy NetworkPolicy resource. |
+| networkPolicy.ingress | list | `[]` | Ingress rules for NetworkPolicy. |
+| networkPolicy.podSelector | list | `{"matchLabels":{}}` | Pod Selector for NetworkPolicy. |
 
-### PodDisruptionBudget Parameters
+### PDB Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| pdb.additionalLabels | object | `{}` | Additional labels for PDB. |
+| pdb.annotations | object | `{}` | Annotations for PDB. |
 | pdb.enabled | bool | `false` | Enable Pod Disruption Budget. |
-| pdb.maxUnavailable | int | `nil` | Maximum number of unavailable pods during voluntary disruptions. |
-| pdb.minAvailable | int | `1` | Minimum number of pods that must be available after eviction. |
+| pdb.maxUnavailable | int | `nil` | Maximum unavailable pods. |
+| pdb.minAvailable | int | `1` | Minimum available pods. |
+
+### Persistence Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| persistence.accessMode | string | `"ReadWriteOnce"` | Access mode for volume. |
+| persistence.additionalLabels | object | `{}` | Additional labels for persistent volume. |
+| persistence.annotations | object | `{}` | Annotations for persistent volume. |
+| persistence.enabled | bool | `true` | Enable persistence. |
+| persistence.mountPVC | bool | `true` | Whether to mount the created PVC to the deployment. |
+| persistence.mountPath | string | `"/appdata"` | Where to mount the volume in the containers. |
+| persistence.name | string | `{{ include "application.name" $ }}-data` | Name of the PVC. |
+| persistence.storageClass | string | `nil` | Storage class for volume. |
+| persistence.storageSize | string | `"1Gi"` | Size of the persistent volume. |
 
 ### PrometheusRule Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| prometheusRule.additionalLabels | object | `nil` | Additional labels for PrometheusRule. |
-| prometheusRule.enabled | bool | `false` | Deploy a PrometheusRule (Prometheus Operator) resource. |
-| prometheusRule.groups | list | `[]` | Groups with alerting rules. Read more about it at [https://docs.openshift.com/container-platform/4.7/rest_api/monitoring_apis/prometheusrule-monitoring-coreos-com-v1.html](OpenShift's PrometheusRule documentation). |
+| prometheusRule.additionalLabels | object | `{}` | Additional labels for PrometheusRule. |
+| prometheusRule.enabled | bool | `false` | Deploy a PrometheusRule resource. |
+| prometheusRule.groups | list | `[]` | Groups with alerting rules. |
 
 ### RBAC Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | rbac.enabled | bool | `true` | Enable RBAC. |
-| rbac.roles | list | `nil` | Namespaced Roles. |
-| rbac.serviceAccount.additionalLabels | object | `nil` | Additional labels for Service Account. |
-| rbac.serviceAccount.annotations | object | `nil` | Annotations for Service Account. |
-| rbac.serviceAccount.enabled | bool | `false` | Deploy Service Account. |
+| rbac.roles | list | `[]` | Namespaced Roles. |
+| rbac.serviceAccount.additionalLabels | object | `{}` | Additional labels for Service Account. |
+| rbac.serviceAccount.annotations | object | `{}` | Annotations for Service Account. |
+| rbac.serviceAccount.enabled | bool | `true` | Deploy Service Account. |
 | rbac.serviceAccount.name | string | `{{ include "application.name" $ }}` | Service Account Name. |
 
 ### Route Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| route.additionalLabels | object | `nil` | Additional labels for Route. |
-| route.alternateBackends | list | `nil` | Alternate backend with it's weight. |
-| route.annotations | object | `nil` | Annotations for Route. |
+| route.additionalLabels | object | `{}` | Additional labels for Route. |
+| route.annotations | object | `{}` | Annotations for Route. |
 | route.enabled | bool | `false` | Deploy a Route (OpenShift) resource. |
-| route.host | string | `nil` | Explicit host. If no host is added then openshift inserts the default hostname. |
-| route.path | string | `nil` | Path. |
+| route.host | string | `""` | Explicit host. |
+| route.path | string | `""` | Path. |
 | route.port | object | `{"targetPort":"http"}` | Service port. |
 | route.tls.insecureEdgeTerminationPolicy | string | `"Redirect"` | TLS insecure termination policy. |
 | route.tls.termination | string | `"edge"` | TLS termination strategy. |
@@ -321,58 +309,57 @@ Generic helm chart for all kind of applications
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| sealedSecret.additionalLabels | object | `nil` | Additional labels for SealedSecret. |
-| sealedSecret.annotations | object | `nil` | Annotations for SealedSecret. |
-| sealedSecret.enabled | bool | `false` | Deploy [SealedSecret](https://github.com/bitnami-labs/sealed-secrets) resources. |
-| sealedSecret.files | object | `nil` | List of SealedSecret entries. Key will be used as a name suffix for the SealedSecret. Value is the SealedSecret content. |
+| sealedSecret.additionalLabels | object | `{}` | Additional labels for SealedSecret. |
+| sealedSecret.annotations | object | `{}` | Annotations for SealedSecret. |
+| sealedSecret.enabled | bool | `false` | Deploy SealedSecret resources. |
+| sealedSecret.files | object | `{}` | List of SealedSecret entries. |
 
 ### Secret Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| secret.additionalLabels | object | `nil` | Additional labels for Secret. |
-| secret.annotations | object | `nil` | Annotations for Secret. |
-| secret.enabled | bool | `false` | Deploy additional Secret resources. |
-| secret.files | object | `nil` | List of Secrets entries. Key will be used as a name suffix for the Secret. There a three allowed modes: - `data`: Data is base64 encoded by the chart - `encodedData`: Use raw values (already base64ed) inside the data map - `stringData`: Use raw values inside the stringData map |
+| secret.additionalLabels | object | `{}` | Additional labels for Secrets. |
+| secret.annotations | object | `{}` | Annotations for Secrets. |
+| secret.enabled | bool | `false` | Deploy additional Secrets. |
+| secret.files | object | `{}` | Map of Secrets. |
 
 ### SecretProviderClass Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| secretProviderClass.enabled | bool | `false` | Deploy a [Secrets Store CSI Driver SecretProviderClass](https://secrets-store-csi-driver.sigs.k8s.io/) resource. |
-| secretProviderClass.name | string | `""` | Name of the SecretProviderClass. Required if `secretProviderClass.enabled` is set to `true`. |
-| secretProviderClass.objects | list | `nil` | Objects definitions. |
-| secretProviderClass.provider | string | `""` | Name of the provider. Required if `secretProviderClass.enabled` is set to `true`. |
-| secretProviderClass.roleName | tpl/string | `""` | Vault Role Name. Required if `secretProviderClass.provider` is set to `vault`. |
-| secretProviderClass.secretObjects | list | `nil` | Objects mapping. |
-| secretProviderClass.vaultAddress | string | `""` | Vault Address. Required if `secretProviderClass.provider` is set to `vault`. |
+| secretProviderClass.enabled | bool | `false` | Deploy a SecretProviderClass resource. |
+| secretProviderClass.name | string | `""` | Name of the SecretProviderClass. |
+| secretProviderClass.objects | list | `[]` | Objects definitions. |
+| secretProviderClass.provider | string | `""` | Name of the provider. |
+| secretProviderClass.roleName | string | `""` | Vault Role Name. |
+| secretProviderClass.secretObjects | list | `[]` | Objects mapping. |
+| secretProviderClass.vaultAddress | string | `""` | Vault Address. |
 
 ### Service Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| service.additionalLabels | object | `nil` | Additional labels for service. |
-| service.annotations | object | `nil` | Annotations for service. |
-| service.clusterIP | string | `nil` | Fixed IP for a ClusterIP service. Set to `None` for an headless service |
+| service.additionalLabels | object | `{}` | Additional labels for service. |
+| service.annotations | object | `{}` | Annotations for service. |
 | service.enabled | bool | `true` | Enable Service. |
-| service.ports | list | `[{"name":"http","port":8080,"protocol":"TCP","targetPort":8080}]` | Ports for applications service. |
+| service.ports | list | `[{"name":"http","port":7575,"protocol":"TCP","targetPort":7575}]` | Ports for applications service. |
 | service.type | string | `"ClusterIP"` | Type of service. |
 
 ### ServiceMonitor Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| serviceMonitor.additionalLabels | object | `nil` | Additional labels for ServiceMonitor. |
-| serviceMonitor.annotations | object | `nil` | Annotations for ServiceMonitor. |
-| serviceMonitor.enabled | bool | `false` | Deploy a ServiceMonitor (Prometheus Operator) resource. |
-| serviceMonitor.endpoints | list | `[{"interval":"5s","path":"/actuator/prometheus","port":"http"}]` | Service endpoints from which prometheus will scrape data. |
+| servicemonitor.additionalLabels | object | `{}` | Additional labels for ServiceMonitor. |
+| servicemonitor.annotations | object | `{}` | Annotations for ServiceMonitor. |
+| servicemonitor.enabled | bool | `false` | Deploy ServiceMonitor (Prometheus Operator) resource. |
+| servicemonitor.endpoints | list | `[{"interval":"30s","path":"/metrics","port":"http"}]` | Endpoints for ServiceMonitor. |
 
-### VPA - Vertical Pod Autoscaler Parameters
+### VPA Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| vpa.additionalLabels | object | `nil` | Additional labels for VPA. |
-| vpa.annotations | object | `nil` | Annotations for VPA. |
+| vpa.additionalLabels | object | `{}` | Additional labels for VPA. |
+| vpa.annotations | object | `{}` | Annotations for VPA. |
 | vpa.containerPolicies | list | `[]` | Container policies for individual containers. |
 | vpa.enabled | bool | `false` | Enable Vertical Pod Autoscaling. |
 | vpa.updatePolicy | object | `{"updateMode":"Auto"}` | Update policy. |

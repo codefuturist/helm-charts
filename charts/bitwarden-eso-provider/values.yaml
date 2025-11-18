@@ -1,0 +1,315 @@
+# Bitwarden ESO Provider Values
+
+# -- (string) Override release name
+nameOverride: ""
+# -- (string) Override full release name
+fullnameOverride: ""
+
+image:
+  # -- (string) Container image repository
+  repository: ghcr.io/codefuturist/bitwarden-eso-provider
+  # -- (string) Image pull policy
+  pullPolicy: IfNotPresent
+  # -- (string) Image tag (defaults to chart appVersion)
+  tag: "1.0.0"
+
+# -- (list) Image pull secrets
+imagePullSecrets: []
+
+replicaCount: 2
+
+# Bitwarden configuration
+bitwarden:
+  # -- (string) Bitwarden server URL
+  # @default -- `https://vault.bitwarden.com`
+  server: "https://vault.bitwarden.com"
+
+  # -- (int) Session TTL in seconds
+  sessionTTL: 3600
+
+  # -- (int) Vault sync interval in seconds
+  syncInterval: 300
+
+  # Authentication methods (choose one)
+  auth:
+    # -- (bool) Use API key authentication (recommended)
+    useApiKey: true
+
+    # -- (bool) Use password authentication (less secure, for testing)
+    usePassword: false
+
+    # Existing secret containing credentials
+    existingSecret:
+      # -- (string) Name of existing secret with Bitwarden credentials
+      name: ""
+      # -- (string) Key in secret containing client ID (for API key auth)
+      clientIdKey: "clientId"
+      # -- (string) Key in secret containing client secret (for API key auth)
+      clientSecretKey: "clientSecret"
+      # -- (string) Key in secret containing master password (for password auth)
+      passwordKey: "password"
+      # -- (string) Key in secret containing email (for password auth)
+      emailKey: "email"
+
+    # Or provide credentials directly (will create a secret)
+    # NOTE: Better to use existingSecret in production!
+    credentials:
+      # -- (string) Bitwarden client ID (API key auth)
+      clientId: ""
+      # -- (string) Bitwarden client secret (API key auth)
+      clientSecret: ""
+      # -- (string) Bitwarden email (password auth)
+      email: ""
+      # -- (string) Bitwarden master password (password auth)
+      password: ""
+
+# Webhook API configuration
+api:
+  # -- (int) API server port
+  port: 8080
+
+  # -- (string) API token for webhook authentication
+  # If empty, a random token will be generated
+  token: ""
+
+  # Existing secret for API token
+  existingSecret:
+    # -- (string) Name of existing secret with API token
+    name: ""
+    # -- (string) Key in secret containing API token
+    key: "token"
+
+  # Read token from file (useful for mounted secrets)
+  tokenFile:
+    # -- (bool) Enable reading token from file
+    enabled: false
+    # -- (string) Path to token file (will be mounted at /etc/secrets/api-token)
+    path: "/etc/secrets/api-token"
+    # -- (string) Name of secret containing the token file
+    secretName: ""
+    # -- (string) Key in secret containing the token
+    secretKey: "token"
+
+# Caching configuration
+cache:
+  # -- (bool) Enable secret caching
+  enabled: true
+
+  # -- (int) Cache TTL in seconds
+  ttl: 60
+
+  # -- (int) Maximum cache size (number of items)
+  maxSize: 1000
+
+# Logging configuration
+logging:
+  # -- (string) Log level (debug, info, warning, error)
+  level: "info"
+
+  # -- (string) Log format (json, text)
+  format: "json"
+
+service:
+  # -- (string) Service type
+  type: ClusterIP
+  # -- (int) Service port
+  port: 8080
+  # -- (object) Service annotations
+  annotations: {}
+
+serviceAccount:
+  # -- (bool) Create service account
+  create: true
+  # -- (object) Service account annotations
+  annotations: {}
+  # -- (string) Service account name
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+startupProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 0
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 30
+
+# -- (string) Priority class name for pod scheduling
+priorityClassName: ""
+
+# -- (object) Node selector
+nodeSelector: {}
+
+# -- (list) Tolerations
+tolerations: []
+
+# -- (list) Topology spread constraints for better pod distribution
+topologySpreadConstraints: []
+# Example:
+# - maxSkew: 1
+#   topologyKey: topology.kubernetes.io/zone
+#   whenUnsatisfiable: DoNotSchedule
+#   labelSelector:
+#     matchLabels:
+#       app.kubernetes.io/name: bitwarden-eso-provider
+
+# -- (object) Affinity rules
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - bitwarden-eso-provider
+        topologyKey: kubernetes.io/hostname
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  # -- (bool) Enable PodDisruptionBudget
+  enabled: false
+  # -- (int) Minimum available pods (use this OR maxUnavailable)
+  minAvailable: 1
+  # -- (int) Maximum unavailable pods (use this OR minAvailable)
+  maxUnavailable: null
+  # -- (string) Unhealthy pod eviction policy (IfHealthyBudget, AlwaysAllow)
+  unhealthyPodEvictionPolicy: null
+
+# Horizontal Pod Autoscaling
+autoscaling:
+  # -- (bool) Enable HorizontalPodAutoscaler
+  enabled: false
+  # -- (int) Minimum replicas
+  minReplicas: 2
+  # -- (int) Maximum replicas
+  maxReplicas: 10
+  # -- (int) Target CPU utilization percentage
+  targetCPUUtilizationPercentage: 80
+  # -- (int) Target memory utilization percentage
+  targetMemoryUtilizationPercentage: null
+  # -- (object) HPA scaling behavior
+  behavior: {}
+  # Example behavior:
+  #   scaleDown:
+  #     stabilizationWindowSeconds: 300
+  #     policies:
+  #     - type: Percent
+  #       value: 50
+  #       periodSeconds: 60
+  #   scaleUp:
+  #     stabilizationWindowSeconds: 0
+  #     policies:
+  #     - type: Percent
+  #       value: 100
+  #       periodSeconds: 30
+  #     - type: Pods
+  #       value: 2
+  #       periodSeconds: 30
+  #     selectPolicy: Max
+
+# External Secrets Operator integration
+externalSecretsOperator:
+  # -- (bool) Create ClusterSecretStore resource
+  createClusterSecretStore: true
+
+  # -- (bool) Create namespaced SecretStore (if false, creates ClusterSecretStore)
+  namespaced: false
+
+  secretStore:
+    # -- (string) SecretStore/ClusterSecretStore name
+    name: "bitwarden"
+
+    # -- (object) Additional annotations
+    annotations: {}
+
+    # -- (object) Additional labels
+    labels: {}
+
+# Network policy
+networkPolicy:
+  # -- (bool) Enable network policy
+  enabled: false
+
+  # -- (list) Ingress rules
+  ingress:
+    - from:
+      - namespaceSelector: {}
+
+  # -- (list) Egress rules (allow Bitwarden API)
+  egress:
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 443
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 53
+      - protocol: UDP
+        port: 53
+
+# Monitoring
+metrics:
+  # -- (bool) Enable Prometheus metrics endpoint
+  enabled: false
+
+  serviceMonitor:
+    # -- (bool) Create ServiceMonitor resource (requires Prometheus Operator)
+    enabled: false
+    # -- (object) ServiceMonitor annotations
+    annotations: {}
+    # -- (object) Additional ServiceMonitor labels
+    labels: {}
+    # -- (string) Scrape interval
+    interval: 30s
+    # -- (string) Scrape timeout
+    scrapeTimeout: null
+    # -- (list) Relabelings for ServiceMonitor
+    relabelings: []
+    # -- (list) Metric relabelings for ServiceMonitor
+    metricRelabelings: []

@@ -1,0 +1,30 @@
+apiVersion: v2
+name: home-assistant
+description: A comprehensive Helm chart for Home Assistant - Open source home automation that puts local control and privacy first
+
+type: application
+
+# Helm chart version
+version: 1.0.0
+
+# Home Assistant version
+appVersion: "2024.11.1"
+
+keywords:
+  - home-assistant
+  - home-automation
+  - iot
+  - smart-home
+  - kubernetes
+  - homelab
+
+home: https://www.home-assistant.io/
+sources:
+  - https://github.com/home-assistant/core
+  - https://github.com/codefuturist/helm-charts
+
+maintainers:
+  - name: codefuturist
+    email: 58808821+codefuturist@users.noreply.github.com
+
+icon: https://www.home-assistant.io/images/home-assistant-logo.svg

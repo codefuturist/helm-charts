@@ -1,0 +1,67 @@
+apiVersion: v2
+name: semaphore
+description: Modern UI for Ansible, Terraform, OpenTofu, Bash, and Pulumi - task automation and infrastructure orchestration
+type: application
+version: 1.3.0
+appVersion: "2.10.32"
+
+keywords:
+  - semaphore
+  - ansible
+  - terraform
+  - opentofu
+  - automation
+  - ci-cd
+  - devops
+  - infrastructure
+  - orchestration
+  - homelab
+  - kubernetes
+
+home: https://semaphoreui.com
+sources:
+  - https://github.com/semaphoreui/semaphore
+  - https://github.com/codefuturist/helm-charts
+
+maintainers:
+  - name: codefuturist
+    email: 58808821+codefuturist@users.noreply.github.com
+
+icon: https://raw.githubusercontent.com/semaphoreui/semaphore/main/web/public/img/logo.png
+
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Added SEMAPHORE_DB_OPTIONS environment variable support for database connection tuning
+    - kind: added
+      description: Added JSON configuration environment variables (SEMAPHORE_APPS, SEMAPHORE_ENV_VARS, SEMAPHORE_FORWARDED_ENV_VARS)
+    - kind: added
+      description: Added TLS/HTTPS configuration environment variables (SEMAPHORE_TLS_ENABLED, TLS_CERT_FILE, TLS_KEY_FILE, TLS_HTTP_REDIRECT_PORT)
+    - kind: added
+      description: Added process control environment variables (SEMAPHORE_PROCESS_USER, UID, GID, CHROOT)
+    - kind: added
+      description: Added health probes to runner deployment (liveness, readiness, startup)
+    - kind: added
+      description: Added SSH private key management for runner operations
+    - kind: added
+      description: Added optional database migration init container support
+    - kind: changed
+      description: Enhanced ConfigMap to properly store JSON configurations
+    - kind: changed
+      description: Updated chart to v1.3.0 with comprehensive environment variable support
+  artifacthub.io/category: "integration-delivery"
+  artifacthub.io/kubeVersion: ">=1.21.0-0"
+  artifacthub.io/operator: "false"
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/license: "Apache-2.0"
+  artifacthub.io/links: |
+    - name: Chart Documentation
+      url: https://github.com/codefuturist/helm-charts/tree/main/charts/semaphore
+    - name: Semaphore Documentation
+      url: https://semaphoreui.com
+    - name: Semaphore GitHub
+      url: https://github.com/semaphoreui/semaphore
+  artifacthub.io/maintainers: |
+    - name: codefuturist
+      email: 58808821+codefuturist@users.noreply.github.com

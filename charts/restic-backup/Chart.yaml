@@ -1,0 +1,52 @@
+apiVersion: v2
+name: restic-backup
+description: A user-friendly Helm chart for automated Kubernetes volume backups using restic with support for multiple storage backends and flexible scheduling
+
+type: application
+
+# Helm chart Version
+version: 1.2.0
+
+# Application version
+appVersion: "0.17.3"
+
+keywords:
+  - restic
+  - backup
+  - restore
+  - volumes
+  - pvc
+  - kubernetes
+  - s3
+  - azure
+  - google-cloud
+  - sftp
+
+home: https://restic.net
+sources:
+  - https://github.com/restic/restic
+  - https://github.com/codefuturist/helm-charts
+
+maintainers:
+  - name: codefuturist
+    email: 58808821+codefuturist@users.noreply.github.com
+
+icon: https://restic.net/img/logo.png
+
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: "Default dedicated backup volume for out-of-the-box local backups"
+    - kind: added
+      description: "Automatic PVC creation for backup repository storage"
+    - kind: added
+      description: "Support for multiple backup volume types (PVC, hostPath, NFS, emptyDir)"
+    - kind: changed
+      description: "Simplified default configuration for better user experience"
+    - kind: changed
+      description: "Updated examples to demonstrate local-first backup approach"
+  artifacthub.io/signKey: |
+    fingerprint: 0000000000000000000000000000000000000000
+    url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0000000000000000000000000000000000000000
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/license: MIT

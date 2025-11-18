@@ -1,0 +1,408 @@
+# Helm chart values generated from Docker Compose
+# Generated on: 2025-11-10 19:58:10
+
+namespaceOverride: ''
+componentOverride: ''
+partOfOverride: ''
+applicationName: ''
+additionalLabels: {}
+mealie:
+  enabled: true
+  additionalLabels: {}
+  podLabels: {}
+  annotations: {}
+  additionalPodAnnotations: {}
+  reloadOnChange: true
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  imagePullSecrets: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  image:
+    repository: ghcr.io/mealie-recipes/mealie
+    tag: v3.4.0
+    digest: ''
+    imagePullPolicy: IfNotPresent
+  env:
+    # General Configuration
+    ALLOW_SIGNUP:
+      value: 'false'
+    PUID:
+      value: '1000'
+    PGID:
+      value: '1000'
+    TZ:
+      value: America/Anchorage
+    BASE_URL:
+      value: https://mealie.yourdomain.com
+    # DEFAULT_GROUP:
+    #   value: 'Home'
+    # DEFAULT_HOUSEHOLD:
+    #   value: 'Family'
+    # TOKEN_TIME:
+    #   value: '48'
+    # API_PORT:
+    #   value: '9000'
+    # API_DOCS:
+    #   value: 'true'
+
+    # Logging Configuration
+    # Logs are written to /app/data/mealie.log (on the mealie-data volume)
+    # Logs are also written to stdout/stderr for Kubernetes log aggregation
+    # LOG_LEVEL:
+    #   value: 'info'  # Options: critical, error, warning, info, debug
+    # LOG_CONFIG_OVERRIDE:
+    #   value: '/app/logging-config.yaml'  # Path to custom Python logging config
+
+    # DAILY_SCHEDULE_TIME:
+    #   value: '23:45'
+
+    # Security Configuration
+    # SECURITY_MAX_LOGIN_ATTEMPTS:
+    #   value: '5'
+    # SECURITY_USER_LOCKOUT_TIME:
+    #   value: '24'
+
+    # Email/SMTP Configuration (all required for email)
+    # SMTP_HOST:
+    #   value: 'smtp.gmail.com'
+    # SMTP_PORT:
+    #   value: '587'
+    # SMTP_FROM_NAME:
+    #   value: 'Mealie'
+    # SMTP_AUTH_STRATEGY:
+    #   value: 'TLS'  # Options: TLS, SSL, NONE
+    # SMTP_FROM_EMAIL:
+    #   value: 'mealie@example.com'
+    # SMTP_USER:
+    #   value: 'user@example.com'
+    # SMTP_PASSWORD:
+    #   value: 'password'
+    #   # For secrets, use valueFrom instead:
+    #   # valueFrom:
+    #   #   secretKeyRef:
+    #   #     name: mealie-smtp
+    #   #     key: password
+
+    # Webworker Configuration
+    # UVICORN_WORKERS:
+    #   value: '1'
+
+    # TLS Configuration (only when running without reverse proxy)
+    # TLS_CERTIFICATE_PATH:
+    #   value: '/path/to/cert.pem'
+    # TLS_PRIVATE_KEY_PATH:
+    #   value: '/path/to/key.pem'
+
+    # LDAP Configuration
+    # LDAP_AUTH_ENABLED:
+    #   value: 'false'
+    # LDAP_SERVER_URL:
+    #   value: 'ldap://ldap.example.com'
+    # LDAP_TLS_INSECURE:
+    #   value: 'false'
+    # LDAP_TLS_CACERTFILE:
+    #   value: '/path/to/ca.crt'
+    # LDAP_ENABLE_STARTTLS:
+    #   value: 'false'
+    # LDAP_BASE_DN:
+    #   value: 'CN=Users,DC=example,DC=com'
+    # LDAP_QUERY_BIND:
+    #   value: 'cn=admin,cn=users,dc=example,dc=com'
+    # LDAP_QUERY_PASSWORD:
+    #   value: 'password'
+    # LDAP_USER_FILTER:
+    #   value: '(memberOf=cn=mealie_user,dc=example,dc=com)'
+    # LDAP_ADMIN_FILTER:
+    #   value: '(memberOf=cn=admins,dc=example,dc=com)'
+    # LDAP_ID_ATTRIBUTE:
+    #   value: 'uid'
+    # LDAP_NAME_ATTRIBUTE:
+    #   value: 'name'
+    # LDAP_MAIL_ATTRIBUTE:
+    #   value: 'mail'
+
+    # OpenID Connect (OIDC) Configuration
+    # OIDC_AUTH_ENABLED:
+    #   value: 'false'
+    # OIDC_SIGNUP_ENABLED:
+    #   value: 'true'
+    # OIDC_CONFIGURATION_URL:
+    #   value: 'https://auth.example.com/.well-known/openid-configuration'
+    # OIDC_CLIENT_ID:
+    #   value: 'mealie-client'
+    # OIDC_CLIENT_SECRET:
+    #   value: 'secret'
+    #   # For secrets, use valueFrom instead:
+    #   # valueFrom:
+    #   #   secretKeyRef:
+    #   #     name: mealie-oidc
+    #   #     key: client-secret
+    # OIDC_USER_GROUP:
+    #   value: ''
+    # OIDC_ADMIN_GROUP:
+    #   value: ''
+    # OIDC_AUTO_REDIRECT:
+    #   value: 'false'
+    # OIDC_PROVIDER_NAME:
+    #   value: 'OAuth'
+    # OIDC_REMEMBER_ME:
+    #   value: 'false'
+    # OIDC_SIGNING_ALGORITHM:
+    #   value: 'RS256'
+    # OIDC_USER_CLAIM:
+    #   value: 'email'
+    # OIDC_NAME_CLAIM:
+    #   value: 'name'
+    # OIDC_GROUPS_CLAIM:
+    #   value: 'groups'
+    # OIDC_TLS_CACERTFILE:
+    #   value: '/path/to/ca.crt'
+
+    # OpenAI Configuration
+    # OPENAI_BASE_URL:
+    #   value: ''
+    # OPENAI_API_KEY:
+    #   value: ''
+    #   # For secrets, use valueFrom instead:
+    #   # valueFrom:
+    #   #   secretKeyRef:
+    #   #     name: mealie-openai
+    #   #     key: api-key
+    # OPENAI_MODEL:
+    #   value: 'gpt-4o'
+    # OPENAI_ENABLE_IMAGE_SERVICES:
+    #   value: 'true'
+    # OPENAI_WORKERS:
+    #   value: '2'
+    # OPENAI_SEND_DATABASE_DATA:
+    #   value: 'true'
+    # OPENAI_REQUEST_TIMEOUT:
+    #   value: '300'
+
+    # Theme Configuration - Light Mode
+    # THEME_LIGHT_PRIMARY:
+    #   value: '#E58325'
+    # THEME_LIGHT_ACCENT:
+    #   value: '#007A99'
+    # THEME_LIGHT_SECONDARY:
+    #   value: '#973542'
+    # THEME_LIGHT_SUCCESS:
+    #   value: '#43A047'
+    # THEME_LIGHT_INFO:
+    #   value: '#1976D2'
+    # THEME_LIGHT_WARNING:
+    #   value: '#FF6D00'
+    # THEME_LIGHT_ERROR:
+    #   value: '#EF5350'
+
+    # Theme Configuration - Dark Mode
+    # THEME_DARK_PRIMARY:
+    #   value: '#E58325'
+    # THEME_DARK_ACCENT:
+    #   value: '#007A99'
+    # THEME_DARK_SECONDARY:
+    #   value: '#973542'
+    # THEME_DARK_SUCCESS:
+    #   value: '#43A047'
+    # THEME_DARK_INFO:
+    #   value: '#1976D2'
+    # THEME_DARK_WARNING:
+    #   value: '#FF6D00'
+    # THEME_DARK_ERROR:
+    #   value: '#EF5350'
+  ports:
+  - name: port-9000
+    containerPort: 9000
+    protocol: TCP
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1000Mi
+      cpu: 1000m
+  livenessProbe:
+    httpGet:
+      path: /api/app/about
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /api/app/about
+      port: 9000
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  volumes:
+  - name: mealie-data
+    type: persistentVolumeClaim
+    mountPath: /app/data/
+    readOnly: false
+
+  # Logging Configuration
+  # Custom logging configuration using Python logging config format
+  # If enabled, creates a ConfigMap with the logging config and mounts it
+  logging:
+    enabled: false
+    # Path where the logging config will be mounted in the container
+    configPath: /app/logging-config.yaml
+    # Custom Python logging configuration in YAML format
+    # See: https://docs.python.org/3/library/logging.config.html#logging-config-dictschema
+    # Example: https://github.com/mealie-recipes/mealie/blob/mealie-next/mealie/core/config/logging_config.yaml
+    config: {}
+    # config:
+    #   version: 1
+    #   disable_existing_loggers: false
+    #   formatters:
+    #     standard:
+    #       format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    #   handlers:
+    #     console:
+    #       class: logging.StreamHandler
+    #       level: INFO
+    #       formatter: standard
+    #       stream: ext://sys.stdout
+    #     file:
+    #       class: logging.handlers.RotatingFileHandler
+    #       level: INFO
+    #       formatter: standard
+    #       filename: /app/data/mealie.log
+    #       maxBytes: 10485760  # 10MB
+    #       backupCount: 5
+    #   root:
+    #     level: INFO
+    #     handlers: [console, file]
+
+database:
+  # Database engine: 'postgres' or 'sqlite' (default)
+  # When postgres.enabled is false, Mealie uses SQLite (default)
+  # When postgres.enabled is true, these values configure the PostgreSQL connection
+  engine: postgres
+
+  # SQLite Configuration (used when postgres.enabled is false)
+  # Enable WAL mode for better concurrent access (useful for remote storage like Ceph)
+  sqliteWalMode: false
+
+  # PostgreSQL Configuration (used when postgres.enabled is true)
+  host: ''  # If empty and postgres.enabled=true, will use internal postgres service
+  port: '5432'
+  name: mealie
+  user: mealie
+  password: mealie
+  # Optional: Override all postgres connection settings with a single URL
+  # urlOverride: 'postgresql://user:password@host:port/dbname'
+postgres:
+  enabled: false
+  additionalLabels: {}
+  podLabels: {}
+  annotations: {}
+  additionalPodAnnotations: {}
+  reloadOnChange: true
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  imagePullSecrets: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  image:
+    repository: postgres
+    tag: '17'
+    digest: ''
+    imagePullPolicy: IfNotPresent
+  env:
+    POSTGRES_PASSWORD:
+      value: mealie
+    POSTGRES_USER:
+      value: mealie
+    PGUSER:
+      value: mealie
+    POSTGRES_DB:
+      value: mealie
+  ports:
+  - name: postgresql
+    containerPort: 5432
+    protocol: TCP
+  livenessProbe:
+    exec:
+      command:
+      - pg_isready
+      - -U
+      - mealie
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 20
+    failureThreshold: 3
+  readinessProbe:
+    exec:
+      command:
+      - pg_isready
+      - -U
+      - mealie
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+  volumes:
+  - name: mealie-pgdata
+    type: persistentVolumeClaim
+    mountPath: /var/lib/postgresql/data
+    subPath: pgdata
+    readOnly: false
+persistence:
+  mealie-data:
+    enabled: true
+    storageClass: ''
+    accessModes:
+    - ReadWriteOnce
+    size: 10Gi
+    annotations: {}
+  mealie-pgdata:
+    enabled: false  # Only needed when postgres.enabled is true
+    storageClass: ''
+    accessModes:
+    - ReadWriteOnce
+    size: 10Gi
+    annotations: {}
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+ingress:
+  enabled: false
+  className: ''
+  annotations: {}
+  hosts: []
+  tls: []
+configMap:
+  enabled: false
+  data: {}
+secret:
+  enabled: false
+  data: {}

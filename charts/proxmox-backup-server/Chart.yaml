@@ -1,0 +1,70 @@
+apiVersion: v2
+name: proxmox-backup-server
+description: A production-ready Helm chart for Proxmox Backup Server - Enterprise backup solution for virtual environments
+type: application
+version: 1.0.0
+appVersion: "4.0.12"
+
+keywords:
+  - proxmox
+  - backup
+  - pbs
+  - storage
+  - virtualization
+  - enterprise
+  - kubernetes
+
+home: https://pbs.proxmox.com/
+sources:
+  - https://github.com/ayufan/pve-backup-server-dockerfiles
+  - https://github.com/codefuturist/helm-charts
+
+maintainers:
+  - name: codefuturist
+    email: 58808821+codefuturist@users.noreply.github.com
+
+icon: https://www.proxmox.com/images/proxmox/Proxmox_symbol_standard_hex_400px.png
+
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release of Proxmox Backup Server Helm chart v1.0.0
+    - kind: added
+      description: Support for Deployment and StatefulSet controller types
+    - kind: added
+      description: Persistent storage for config, logs, and lib directories
+    - kind: added
+      description: Support for backup data volumes with flexible configuration
+    - kind: added
+      description: Comprehensive security with pod security contexts, RBAC, and network policies
+    - kind: added
+      description: Monitoring support with ServiceMonitor and PrometheusRule
+    - kind: added
+      description: SMART device access support with SYS_RAWIO capability
+    - kind: added
+      description: Timezone configuration support
+    - kind: added
+      description: tmpfs mount for /run directory (required for authentication)
+    - kind: added
+      description: High availability features (HPA, PDB, anti-affinity)
+  artifacthub.io/category: "storage"
+  artifacthub.io/kubeVersion: ">=1.21.0-0"
+  artifacthub.io/operator: "false"
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/license: "Apache-2.0"
+  artifacthub.io/links: |
+    - name: Chart Documentation
+      url: https://github.com/codefuturist/helm-charts/tree/main/charts/proxmox-backup-server
+    - name: Proxmox Backup Server Docs
+      url: https://pbs.proxmox.com/docs/
+    - name: Container Repository
+      url: https://github.com/ayufan/pve-backup-server-dockerfiles
+    - name: Docker Hub
+      url: https://hub.docker.com/r/ayufan/proxmox-backup-server
+  artifacthub.io/maintainers: |
+    - name: codefuturist
+      email: 58808821+codefuturist@users.noreply.github.com
+  artifacthub.io/recommendations: |
+    - url: https://artifacthub.io/packages/helm/bitnami/mongodb
+    - url: https://artifacthub.io/packages/helm/bitnami/postgresql

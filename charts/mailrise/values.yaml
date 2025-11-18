@@ -1,0 +1,367 @@
+# =============================================================================
+# Global Parameters
+# =============================================================================
+
+namespaceOverride: ""
+nameOverride: ""
+fullnameOverride: ""
+additionalLabels: {}
+additionalAnnotations: {}
+
+# =============================================================================
+# Image Configuration
+# =============================================================================
+
+image:
+  repository: yoryan/mailrise
+  tag: "1.4.0"
+  pullPolicy: IfNotPresent
+  digest: ""
+
+imagePullSecrets: []
+
+# =============================================================================
+# Mailrise Configuration
+# =============================================================================
+
+mailrise:
+  # Mailrise configuration as YAML (will be written to /etc/mailrise.conf)
+  # See: https://github.com/YoRyan/mailrise#configuration
+  config:
+    configs:
+      # Example: basic notification to Home Assistant
+      # Send email to: assistant@mailrise.xyz
+      assistant:
+        urls:
+          - "hasio://HOST/ACCESS_TOKEN"
+
+      # Example: multiple services
+      # Send email to: alerts@mailrise.xyz
+      alerts:
+        urls:
+          - "discord://WEBHOOK_ID/WEBHOOK_TOKEN"
+          - "tgram://BOT_TOKEN/CHAT_ID"
+
+    # Network configuration
+    listen:
+      host: "0.0.0.0"
+      port: 8025
+
+    # TLS configuration (disabled by default)
+    tls:
+      mode: "off"  # off, onconnect, starttls, starttlsrequire
+      # certfile: "/path/to/cert.pem"
+      # keyfile: "/path/to/key.pem"
+
+    # SMTP authentication (disabled by default)
+    # smtp:
+    #   auth:
+    #     basic:
+    #       username: password
+    #       user2: password2
+
+  # Use existing ConfigMap for mailrise.conf instead of inline config
+  existingConfigMap: ""
+
+  # ConfigMap key containing the configuration
+  existingConfigMapKey: "mailrise.conf"
+
+  # Mount TLS certificates from secrets
+  tls:
+    enabled: false
+    # Name of existing secret containing cert and key
+    existingSecret: ""
+    certKey: "tls.crt"
+    keyKey: "tls.key"
+
+  # SMTP authentication credentials
+  auth:
+    enabled: false
+    # Use existing secret for SMTP auth
+    existingSecret: ""
+    # Or provide credentials inline (will create secret)
+    users: {}
+      # username: password
+
+# =============================================================================
+# Controller Configuration
+# =============================================================================
+
+controller:
+  # Type: deployment or statefulset
+  type: deployment
+
+  # Number of replicas (deployment only)
+  replicas: 1
+
+  # Update strategy
+  strategy:
+    type: RollingUpdate
+
+  # Command override
+  command: []
+
+  # Args override
+  args: []
+
+  # Working directory
+  workingDir: ""
+
+  # Termination grace period
+  terminationGracePeriodSeconds: 30
+
+  # Lifecycle hooks
+  lifecycle: {}
+
+# =============================================================================
+# Service Configuration
+# =============================================================================
+
+service:
+  type: ClusterIP
+  port: 8025
+  targetPort: 8025
+
+  # NodePort (if type is NodePort)
+  nodePort: ""
+
+  # LoadBalancer configuration
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+
+  # Additional annotations
+  annotations: {}
+
+  # Additional labels
+  labels: {}
+
+  # Session affinity
+  sessionAffinity: None
+  sessionAffinityConfig: {}
+
+  # External traffic policy
+  externalTrafficPolicy: ""
+
+  # ClusterIP (if you want a specific IP)
+  clusterIP: ""
+
+# =============================================================================
+# Ingress Configuration
+# Note: Ingress for SMTP requires TCP routing (e.g., nginx-ingress TCP services)
+# =============================================================================
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: mailrise.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# =============================================================================
+# Persistence Configuration
+# =============================================================================
+
+persistence:
+  # Mailrise doesn't require persistence by default
+  # Enable this only if you need to persist logs or custom plugins
+  enabled: false
+
+  storageClassName: ""
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  annotations: {}
+  existingClaim: ""
+
+# =============================================================================
+# Security Contexts
+# =============================================================================
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 999
+  fsGroup: 999
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 999
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# =============================================================================
+# Resources
+# =============================================================================
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# =============================================================================
+# Health Probes
+# =============================================================================
+
+livenessProbe:
+  enabled: true
+  tcpSocket:
+    port: smtp
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  tcpSocket:
+    port: smtp
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  enabled: true
+  tcpSocket:
+    port: smtp
+  initialDelaySeconds: 0
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 30
+  successThreshold: 1
+
+# =============================================================================
+# Service Account and RBAC
+# =============================================================================
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+  automount: true
+
+rbac:
+  create: true
+
+# =============================================================================
+# Pod Configuration
+# =============================================================================
+
+podAnnotations: {}
+
+podLabels: {}
+
+priorityClassName: ""
+
+runtimeClassName: ""
+
+dnsPolicy: ClusterFirst
+
+dnsConfig: {}
+
+hostNetwork: false
+
+# =============================================================================
+# Scheduling
+# =============================================================================
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+topologySpreadConstraints: []
+
+# =============================================================================
+# High Availability
+# =============================================================================
+
+pdb:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: ""
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# =============================================================================
+# Monitoring
+# =============================================================================
+
+monitoring:
+  serviceMonitor:
+    enabled: false
+    interval: 60s
+    scrapeTimeout: 30s
+    honorLabels: false
+    labels: {}
+    annotations: {}
+
+  prometheusRule:
+    enabled: false
+    labels: {}
+    annotations: {}
+    rules: []
+
+# =============================================================================
+# Network Policy
+# =============================================================================
+
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress: []
+  egress:
+    # Allow all egress for Apprise notifications
+    - {}
+
+# =============================================================================
+# Extra Configuration
+# =============================================================================
+
+extraEnv: []
+
+extraEnvFrom: []
+
+extraVolumes: []
+
+extraVolumeMounts: []
+
+extraContainers: []
+
+initContainers: []
+
+# =============================================================================
+# Diagnostic Mode
+# =============================================================================
+
+diagnosticMode:
+  enabled: false
+  command:
+    - /bin/sh
+  args:
+    - -c
+    - sleep infinity

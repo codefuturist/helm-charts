@@ -1,0 +1,707 @@
+# -- (string) Override the namespace for all resources.
+# @section -- Global Parameters
+namespaceOverride: ""
+
+# -- (string) Override the component label for all resources.
+# @section -- Global Parameters
+componentOverride: ""
+
+# -- (string) Override the partOf label for all resources.
+# @section -- Global Parameters
+partOfOverride: ""
+
+# -- (string) Application name.
+# @default -- `{{ .Chart.Name }}`
+# @section -- Global Parameters
+applicationName: ""
+
+# -- (tpl/object) Additional labels for all resources.
+# @section -- Global Parameters
+additionalLabels: {}
+
+# =============================================================================
+# Restic Configuration
+# =============================================================================
+
+restic:
+  # -- (string) Restic repository URL. Supports multiple backends.
+  # @section -- Restic Configuration
+  # Examples:
+  #   S3: s3:s3.amazonaws.com/bucket-name/path
+  #   Azure: azure:container-name:/path
+  #   GCS: gs:bucket-name:/path
+  #   B2: b2:bucket-name:/path
+  #   SFTP: sftp:user@host:/path
+  #   REST: rest:http://host:8000/path
+  #   Local/PVC: /backup-repository (requires backup volume)
+  repository: "/backup-repository"
+
+  # -- (string) Restic repository password. Required for encryption.
+  # @section -- Restic Configuration
+  # IMPORTANT: Use external secret management in production
+  password: "changeme-to-a-secure-password"
+
+  # -- (object) Reference to existing secret containing restic credentials.
+  # @section -- Restic Configuration
+  # Keys required: RESTIC_REPOSITORY, RESTIC_PASSWORD
+  # Optional backend-specific keys: AWS_ACCESS_KEY_ID, AZURE_ACCOUNT_NAME, etc.
+  existingSecret: ""
+
+  # -- (object) Backend-specific environment variables.
+  # @section -- Restic Configuration
+  backendEnv: {}
+    # For S3:
+    # AWS_ACCESS_KEY_ID: "your-access-key"
+    # AWS_SECRET_ACCESS_KEY: "your-secret-key"
+    # AWS_DEFAULT_REGION: "us-east-1"
+    #
+    # For Azure:
+    # AZURE_ACCOUNT_NAME: "storageaccount"
+    # AZURE_ACCOUNT_KEY: "storagekey"
+    #
+    # For Google Cloud Storage:
+    # GOOGLE_PROJECT_ID: "project-id"
+    # GOOGLE_APPLICATION_CREDENTIALS: "/credentials/gcp-key.json"
+    #
+    # For B2:
+    # B2_ACCOUNT_ID: "account-id"
+    # B2_ACCOUNT_KEY: "account-key"
+
+  # -- (object) Backup job configuration.
+  # @section -- Restic Configuration
+  backup:
+    # -- (bool) Enable backup job.
+    enabled: true
+
+    # -- (string) Cron schedule for backup job (default: daily at 2 AM).
+    # @section -- Restic Configuration
+    schedule: "0 2 * * *"
+
+    # -- (int) Number of successful jobs to keep.
+    # @section -- Restic Configuration
+    successfulJobsHistoryLimit: 3
+
+    # -- (int) Number of failed jobs to keep.
+    # @section -- Restic Configuration
+    failedJobsHistoryLimit: 1
+
+    # -- (list) List of tags to apply to backups.
+    # @section -- Restic Configuration
+    tags:
+      - kubernetes
+      - automated
+
+    # -- (list) Exclude patterns for backup.
+    # @section -- Restic Configuration
+    excludes:
+      - "*.tmp"
+      - "*.cache"
+      - ".DS_Store"
+      - "lost+found"
+
+    # -- (object) Retention policy for backups.
+    # @section -- Restic Configuration
+    retention:
+      # -- (bool) Enable automatic pruning of old backups.
+      enabled: true
+      # -- (int) Keep last N snapshots.
+      keepLast: 7
+      # -- (int) Keep daily snapshots for N days.
+      keepDaily: 14
+      # -- (int) Keep weekly snapshots for N weeks.
+      keepWeekly: 8
+      # -- (int) Keep monthly snapshots for N months.
+      keepMonthly: 12
+      # -- (int) Keep yearly snapshots for N years.
+      keepYearly: 3
+
+    # -- (object) Additional restic backup options.
+    # @section -- Restic Configuration
+    options: {}
+      # verbose: 2
+      # compression: "auto"
+      # excludeCaches: true
+      # excludeIfPresent: [".nobackup"]
+
+  # -- (object) Repository initialization job.
+  # @section -- Restic Configuration
+  init:
+    # -- (bool) Enable repository initialization job.
+    enabled: true
+
+  # -- (object) Repository check job configuration.
+  # @section -- Restic Configuration
+  check:
+    # -- (bool) Enable repository check job.
+    enabled: true
+    # -- (string) Cron schedule for check job (default: weekly on Sunday at 3 AM).
+    schedule: "0 3 * * 0"
+    # -- (bool) Read all data packs to verify integrity (slower but thorough).
+    readData: false
+
+# =============================================================================
+# Backup Repository Volume Configuration
+# =============================================================================
+
+backupVolume:
+  # -- (bool) Enable dedicated volume for backup repository storage.
+  # @section -- Backup Volume Configuration
+  # When enabled, a volume will be automatically mounted at the repository path.
+  # This is recommended for local backups and provides out-of-the-box functionality.
+  enabled: true
+
+  # -- (string) Type of volume to use for backup repository.
+  # @section -- Backup Volume Configuration
+  # Options: pvc, hostPath, emptyDir, nfs, custom
+  type: pvc
+
+  # -- (string) Mount path for the backup repository volume.
+  # @section -- Backup Volume Configuration
+  # Should match the restic.repository path for local backups
+  mountPath: /backup-repository
+
+  # -- (object) PersistentVolumeClaim configuration for backup repository.
+  # @section -- Backup Volume Configuration
+  pvc:
+    # -- (string) Name of existing PVC to use (leave empty to create new one).
+    existingClaim: ""
+    # -- (string) Storage class for the PVC (uses cluster default if empty).
+    storageClassName: ""
+    # -- (string) Access mode for the PVC.
+    accessModes:
+      - ReadWriteOnce
+    # -- (string) Storage size for backup repository.
+    size: 10Gi
+    # -- (object) Additional PVC annotations.
+    annotations: {}
+    # -- (object) Resource selector for PVC.
+    selector: {}
+
+  # -- (object) HostPath configuration (when type is hostPath).
+  # @section -- Backup Volume Configuration
+  hostPath:
+    path: /mnt/backup-repository
+    type: DirectoryOrCreate
+
+  # -- (object) EmptyDir configuration (when type is emptyDir).
+  # @section -- Backup Volume Configuration
+  # Note: Not recommended for production as data is ephemeral
+  emptyDir:
+    sizeLimit: 10Gi
+
+  # -- (object) NFS configuration (when type is nfs).
+  # @section -- Backup Volume Configuration
+  nfs:
+    server: ""
+    path: /backup-repository
+    readOnly: false
+
+  # -- (object) Custom volume specification (when type is custom).
+  # @section -- Backup Volume Configuration
+  # Allows defining any Kubernetes volume type
+  custom: {}
+
+# =============================================================================
+# Volumes to Backup
+# =============================================================================
+
+# -- (list) List of volumes to backup. Supports multiple volume types.
+# @section -- Volumes Configuration
+volumes: []
+  # PersistentVolumeClaim example:
+  # - name: app-data
+  #   type: pvc  # or omit type, PVC is default
+  #   claimName: myapp-data-pvc
+  #   mountPath: /data
+  #   subPath: ""  # Optional: specific subpath to backup
+  #   readOnly: false  # Optional: mount as read-only
+  #
+  # HostPath example (useful for backing up host directories):
+  # - name: host-data
+  #   type: hostPath
+  #   hostPath:
+  #     path: /mnt/data
+  #     type: Directory  # Optional: Directory, DirectoryOrCreate, File, Socket, etc.
+  #   mountPath: /backup/host-data
+  #   readOnly: true
+  #
+  # EmptyDir example (temporary storage for backup workspace):
+  # - name: temp-workspace
+  #   type: emptyDir
+  #   emptyDir:
+  #     sizeLimit: 1Gi  # Optional
+  #   mountPath: /tmp/backup
+  #
+  # ConfigMap example (for backup configuration):
+  # - name: backup-config
+  #   type: configMap
+  #   configMap:
+  #     name: backup-settings
+  #   mountPath: /config
+  #
+  # Secret example (for backup credentials):
+  # - name: backup-creds
+  #   type: secret
+  #   secret:
+  #     secretName: backup-credentials
+  #   mountPath: /secrets
+  #
+  # Generic volume example (for custom volume definitions):
+  # - name: custom-volume
+  #   type: custom
+  #   volumeSpec:
+  #     nfs:
+  #       server: nfs-server.example.com
+  #       path: /exports/backup
+  #   mountPath: /backup/nfs
+
+# =============================================================================
+# CronJob Configuration
+# =============================================================================
+
+cronjob:
+  # -- (object) Additional labels for CronJob.
+  # @section -- CronJob Parameters
+  additionalLabels: {}
+
+  # -- (object) Annotations for CronJob.
+  # @section -- CronJob Parameters
+  annotations: {}
+
+  # -- (object) Additional pod annotations.
+  # @section -- CronJob Parameters
+  additionalPodAnnotations: {}
+
+  # -- (string) Concurrency policy for backup jobs.
+  # @section -- CronJob Parameters
+  # Options: Allow, Forbid, Replace
+  concurrencyPolicy: Forbid
+
+  # -- (string) Restart policy for backup pods.
+  # @section -- CronJob Parameters
+  restartPolicy: OnFailure
+
+  # -- (int) Deadline in seconds for starting the job.
+  # @section -- CronJob Parameters
+  startingDeadlineSeconds: 300
+
+  # -- (object) Pod security context.
+  # @section -- CronJob Parameters
+  securityContext:
+    runAsUser: 0 # Required to read volumes from different applications
+    runAsGroup: 0
+    fsGroup: 0
+    # -- (bool) Run as non-root user when possible.
+    runAsNonRoot: false
+
+  # -- (object) Container security context.
+  # @section -- CronJob Parameters
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: false
+    capabilities:
+      drop:
+        - ALL
+
+  # -- (object) Resource limits and requests.
+  # @section -- CronJob Parameters
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  # -- (object) Node selector for backup pods.
+  # @section -- CronJob Parameters
+  nodeSelector: {}
+
+  # -- (list) Tolerations for backup pods.
+  # @section -- CronJob Parameters
+  tolerations: []
+
+  # -- (object) Affinity rules for backup pods.
+  # @section -- CronJob Parameters
+  affinity: {}
+
+  # -- (int) Optional TTL in seconds for finished jobs (auto-cleanup).
+  # @section -- CronJob Parameters
+  ttlSecondsAfterFinished: 86400 # 24 hours
+
+  # -- (int) Optional deadline in seconds for job completion (timeout).
+  # @section -- CronJob Parameters
+  # Set this to prevent long-running backups from running indefinitely
+  activeDeadlineSeconds: 3600 # 1 hour default timeout
+
+# =============================================================================
+# Scripts Configuration
+# =============================================================================
+
+scripts:
+  # -- (bool) Use ConfigMap for backup scripts instead of inline commands.
+  # @section -- Scripts Parameters
+  # Enables better maintainability and customization of backup scripts
+  useConfigMap: true
+
+# =============================================================================
+# Metrics Configuration
+# =============================================================================
+
+metrics:
+  # -- (bool) Enable metrics exporter for Prometheus monitoring.
+  # @section -- Metrics Parameters
+  enabled: false
+
+  # -- (object) Metrics exporter image configuration.
+  # @section -- Metrics Parameters
+  image:
+    repository: python
+    tag: "3.11-alpine"
+    pullPolicy: IfNotPresent
+
+  # -- (int) Port for metrics endpoint.
+  # @section -- Metrics Parameters
+  port: 9092
+
+  # -- (int) Interval between metrics collection in seconds.
+  # @section -- Metrics Parameters
+  scrapeInterval: 60
+
+  # -- (object) Additional labels for metrics deployment.
+  # @section -- Metrics Parameters
+  additionalLabels: {}
+
+  # -- (object) Annotations for metrics deployment.
+  # @section -- Metrics Parameters
+  annotations: {}
+
+  # -- (object) Additional pod annotations for metrics exporter.
+  # @section -- Metrics Parameters
+  podAnnotations: {}
+
+  # -- (object) Security context for metrics exporter pod.
+  # @section -- Metrics Parameters
+  securityContext:
+    runAsUser: 65534
+    runAsGroup: 65534
+    fsGroup: 65534
+    runAsNonRoot: true
+
+  # -- (object) Container security context for metrics exporter.
+  # @section -- Metrics Parameters
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    capabilities:
+      drop:
+        - ALL
+
+  # -- (object) Resource limits and requests for metrics exporter.
+  # @section -- Metrics Parameters
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 32Mi
+
+  # -- (object) Node selector for metrics exporter.
+  # @section -- Metrics Parameters
+  nodeSelector: {}
+
+  # -- (list) Tolerations for metrics exporter.
+  # @section -- Metrics Parameters
+  tolerations: []
+
+  # -- (object) Affinity rules for metrics exporter.
+  # @section -- Metrics Parameters
+  affinity: {}
+
+  # -- (object) Service configuration for metrics.
+  # @section -- Metrics Parameters
+  service:
+    # -- (string) Service type.
+    type: ClusterIP
+    # -- (int) Service port.
+    port: 9092
+    # -- (string) Cluster IP (optional).
+    clusterIP: ""
+    # -- (object) Additional labels for service.
+    additionalLabels: {}
+    # -- (object) Annotations for service.
+    annotations: {}
+
+# =============================================================================
+# Image Configuration
+# =============================================================================
+
+image:
+  # -- (string) Restic image repository.
+  # @section -- Image Parameters
+  repository: restic/restic
+
+  # -- (string) Image pull policy.
+  # @section -- Image Parameters
+  pullPolicy: IfNotPresent
+
+  # -- (string) Image tag (overrides appVersion from Chart.yaml).
+  # @section -- Image Parameters
+  tag: ""
+
+  # -- (list) Image pull secrets.
+  # @section -- Image Parameters
+  imagePullSecrets: []
+
+# =============================================================================
+# ServiceAccount Configuration
+# =============================================================================
+
+serviceAccount:
+  # -- (bool) Create service account.
+  # @section -- ServiceAccount Parameters
+  create: true
+
+  # -- (object) Annotations for service account.
+  # @section -- ServiceAccount Parameters
+  annotations: {}
+    # Example for AWS IAM roles:
+    # eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT:role/restic-backup-role
+
+  # -- (string) Name of existing service account to use.
+  # @section -- ServiceAccount Parameters
+  name: ""
+
+  # -- (bool) Automount service account token.
+  # @section -- ServiceAccount Parameters
+  automountServiceAccountToken: true
+
+# =============================================================================
+# RBAC Configuration
+# =============================================================================
+
+rbac:
+  # -- (bool) Create RBAC resources (Role, RoleBinding).
+  # @section -- RBAC Parameters
+  create: true
+
+  # -- (list) Additional rules to add to the role.
+  # @section -- RBAC Parameters
+  additionalRules: []
+
+# =============================================================================
+# Network Policy
+# =============================================================================
+
+networkPolicy:
+  # -- (bool) Enable network policy.
+  # @section -- Network Policy Parameters
+  enabled: false
+
+  # -- (object) Ingress rules for network policy.
+  # @section -- Network Policy Parameters
+  ingress: []
+
+  # -- (object) Egress rules for network policy.
+  # @section -- Network Policy Parameters
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
+    - to:
+        - namespaceSelector: {}
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 169.254.169.254/32 # AWS metadata
+
+# =============================================================================
+# Monitoring Configuration
+# =============================================================================
+
+serviceMonitor:
+  # -- (bool) Enable Prometheus ServiceMonitor.
+  # @section -- Monitoring Parameters
+  # Requires metrics.enabled to be true
+  enabled: false
+
+  # -- (object) Additional labels for ServiceMonitor.
+  # @section -- Monitoring Parameters
+  additionalLabels: {}
+
+  # -- (string) Namespace for ServiceMonitor (defaults to release namespace).
+  # @section -- Monitoring Parameters
+  namespace: ""
+
+  # -- (string) Scrape interval.
+  # @section -- Monitoring Parameters
+  interval: 30s
+
+  # -- (string) Scrape timeout.
+  # @section -- Monitoring Parameters
+  scrapeTimeout: 10s
+
+  # -- (string) Metrics path (optional).
+  # @section -- Monitoring Parameters
+  path: /metrics
+
+  # -- (string) Scheme (http or https).
+  # @section -- Monitoring Parameters
+  scheme: http
+
+  # -- (object) TLS configuration (optional).
+  # @section -- Monitoring Parameters
+  tlsConfig: {}
+
+  # -- (list) Relabeling rules (optional).
+  # @section -- Monitoring Parameters
+  relabelings: []
+
+  # -- (list) Metric relabeling rules (optional).
+  # @section -- Monitoring Parameters
+  metricRelabelings: []
+
+# =============================================================================
+# Notifications Configuration
+# =============================================================================
+
+notifications:
+  # -- (bool) Enable notifications on backup completion/failure.
+  # @section -- Notifications Parameters
+  enabled: false
+
+  # -- (object) Webhook configuration for notifications.
+  # @section -- Notifications Parameters
+  webhook:
+    url: ""
+    # Example: https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+
+  # -- (object) Email configuration for notifications.
+  # @section -- Notifications Parameters
+  email:
+    enabled: false
+    from: "restic-backup@example.com"
+    to: []
+      # - admin@example.com
+      # - ops-team@example.com
+    smtpHost: ""
+    smtpPort: 587
+    smtpUser: ""
+    # Password should be stored in secret with key SMTP_PASSWORD
+    smtpPasswordSecret: ""
+
+# =============================================================================
+# Restore Job Configuration
+# =============================================================================
+
+restore:
+  # -- (bool) Enable one-time restore job.
+  # @section -- Restore Parameters
+  enabled: false
+
+  # -- (string) Snapshot ID to restore (latest if not specified).
+  # @section -- Restore Parameters
+  snapshotId: "latest"
+
+  # -- (string) Target volume for restore (PVC name - for backward compatibility).
+  # @section -- Restore Parameters
+  targetVolume: ""
+
+  # -- (object) Target volume configuration for restore (advanced).
+  # @section -- Restore Parameters
+  # Supports the same volume types as the main volumes configuration
+  targetVolumeConfig: {}
+    # type: pvc
+    # claimName: restore-target-pvc
+    # mountPath: /restore
+    #
+    # Or hostPath:
+    # type: hostPath
+    # hostPath:
+    #   path: /mnt/restore
+    #   type: DirectoryOrCreate
+    # mountPath: /restore
+
+  # -- (string) Target path within the volume.
+  # @section -- Restore Parameters
+  targetPath: "/"
+
+  # -- (bool) Verify restored data integrity.
+  # @section -- Restore Parameters
+  verify: true
+
+# =============================================================================
+# Pre/Post Backup Hooks
+# =============================================================================
+
+hooks:
+  # -- (object) Commands to run before backup.
+  # @section -- Hooks Parameters
+  preBackup: []
+    # - name: database-dump
+    #   image: postgres:16
+    #   command: ["pg_dump"]
+    #   args: ["-h", "postgres", "-U", "user", "-d", "db", "-f", "/backup/dump.sql"]
+    #   volumeMounts:
+    #     - name: backup-staging
+    #       mountPath: /backup
+
+  # -- (object) Commands to run after backup.
+  # @section -- Hooks Parameters
+  postBackup: []
+    # - name: cleanup
+    #   image: busybox
+    #   command: ["rm"]
+    #   args: ["-rf", "/backup/temp"]
+    #   volumeMounts:
+    #     - name: backup-staging
+    #       mountPath: /backup
+
+# =============================================================================
+# Advanced Configuration
+# =============================================================================
+
+# -- (object) Additional environment variables from secrets/configmaps.
+# @section -- Advanced Parameters
+envFrom: []
+  # - secretRef:
+  #     name: restic-credentials
+  # - configMapRef:
+  #     name: backup-config
+
+# -- (list) Additional volumes to mount.
+# @section -- Advanced Parameters
+extraVolumes: []
+  # - name: gcp-credentials
+  #   secret:
+  #     secretName: gcp-sa-key
+
+# -- (list) Additional volume mounts for backup container.
+# @section -- Advanced Parameters
+extraVolumeMounts: []
+  # - name: gcp-credentials
+  #   mountPath: /credentials
+  #   readOnly: true
+
+# -- (object) Priority class for backup pods.
+# @section -- Advanced Parameters
+priorityClassName: ""
+
+# -- (bool) Enable host network mode.
+# @section -- Advanced Parameters
+hostNetwork: false
+
+# -- (string) DNS policy for backup pods.
+# @section -- Advanced Parameters
+dnsPolicy: ClusterFirst
+
+# -- (object) DNS configuration for backup pods.
+# @section -- Advanced Parameters
+dnsConfig: {}

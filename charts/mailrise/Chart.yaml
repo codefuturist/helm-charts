@@ -1,0 +1,66 @@
+apiVersion: v2
+name: mailrise
+description: An SMTP gateway for Apprise notifications - convert emails to 60+ notification services
+type: application
+version: 1.0.0
+appVersion: "1.4.0"
+
+keywords:
+  - mailrise
+  - smtp
+  - apprise
+  - notifications
+  - email
+  - gateway
+  - homelab
+  - kubernetes
+
+home: https://github.com/YoRyan/mailrise
+sources:
+  - https://github.com/YoRyan/mailrise
+  - https://github.com/codefuturist/helm-charts
+
+maintainers:
+  - name: codefuturist
+    email: 58808821+codefuturist@users.noreply.github.com
+
+icon: https://raw.githubusercontent.com/YoRyan/mailrise/main/src/mailrise/asset/mailrise-logo.png
+
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release of Mailrise Helm chart v1.0.0
+    - kind: added
+      description: SMTP to Apprise notification gateway
+    - kind: added
+      description: Support for Deployment and StatefulSet controller types
+    - kind: added
+      description: ConfigMap-based or inline configuration
+    - kind: added
+      description: TLS support with cert-manager integration
+    - kind: added
+      description: SMTP authentication with secrets
+    - kind: added
+      description: Comprehensive security with pod security contexts, RBAC, and network policies
+    - kind: added
+      description: Monitoring support with ServiceMonitor and PrometheusRule
+    - kind: added
+      description: Runs as non-root user (UID 999)
+  artifacthub.io/category: "integration-delivery"
+  artifacthub.io/kubeVersion: ">=1.21.0-0"
+  artifacthub.io/operator: "false"
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/license: "Apache-2.0"
+  artifacthub.io/links: |
+    - name: Chart Documentation
+      url: https://github.com/codefuturist/helm-charts/tree/main/charts/mailrise
+    - name: Mailrise Documentation
+      url: https://github.com/YoRyan/mailrise
+    - name: Apprise Documentation
+      url: https://github.com/caronc/apprise
+  artifacthub.io/maintainers: |
+    - name: codefuturist
+      email: 58808821+codefuturist@users.noreply.github.com
+  artifacthub.io/recommendations: |
+    - url: https://artifacthub.io/packages/helm/apprise/apprise-api

@@ -1,0 +1,880 @@
+# =============================================================================
+# Global Parameters
+# =============================================================================
+
+namespaceOverride: ""
+nameOverride: ""
+fullnameOverride: ""
+additionalLabels: {}
+additionalAnnotations: {}
+
+# =============================================================================
+# Image Configuration
+# =============================================================================
+
+image:
+  repository: semaphoreui/semaphore
+  tag: "v2.10.32"
+  pullPolicy: IfNotPresent
+  digest: ""
+
+imagePullSecrets: []
+
+# =============================================================================
+# Semaphore Configuration
+# =============================================================================
+
+semaphore:
+  # Common settings
+  port: 3000
+  interface: "" # Network interface to bind to
+  tmpPath: "" # Path to store temporary files
+  gitClient: "cmd_git" # Type of Git client: 'cmd_git' or 'go_git'
+  webRoot: "" # Public address, e.g., 'https://company.com/semaphore'
+  scheduleTimezone: "" # Timezone for scheduling tasks
+  maxTaskDurationSec: "" # Max duration of a task in seconds
+  maxParallelTasks: "" # Max number of parallel tasks
+  maxTasksPerTemplate: "" # Maximum number of recent tasks stored per template
+  passwordLoginDisabled: false # Deny password login
+  nonAdminCanCreateProject: false # Allow non-admin users to create projects
+
+  # JSON configuration objects
+  apps: {} # JSON map containing apps configuration
+  envVars: {} # JSON map containing environment variables
+  forwardedEnvVars: [] # JSON array of env vars to forward from system
+
+  # Database configuration
+  database:
+    # Database type: bolt, postgres, mysql
+    dialect: "postgres"
+    # Host for postgres/mysql (ignored for sqlite)
+    host: "postgresql"
+    # Port for postgres (5432) or mysql (3306)
+    port: "5432"
+    # Database user
+    user: "semaphore"
+    # Database password (stored in secret)
+    password: "changeme"
+    # Database name
+    name: "semaphore"
+    # SSL mode for postgres: disable, require, verify-ca, verify-full
+    # For mysql: true, false, skip-verify, preferred
+    sslMode: "require"
+    # Additional database connection options as JSON
+    options: {}
+
+  # Admin user configuration
+  admin:
+    username: "admin"
+    password: "changeme"
+    name: "Admin"
+    email: "admin@localhost"
+
+  # Runner configuration (for enabling runner registration token on the server)
+  runner:
+    enabled: false
+    # Registration token - use a strong, randomly generated string
+    # This token is used by runners to register with the server
+    registrationToken: ""
+
+  # Email configuration
+  email:
+    enabled: false
+    sender: "" # Email address of the sender
+    host: "" # SMTP server hostname
+    port: "" # SMTP server port
+    username: "" # Username for SMTP server authentication
+    password: "" # Password for SMTP server authentication
+    secure: false # Enable StartTLS
+    tls: false # Use SSL or TLS connection
+    tlsMinVersion: "" # Minimum TLS version
+
+  # LDAP authentication
+  ldap:
+    enabled: false
+    bindDn: ""
+    bindPassword: ""
+    server: ""
+    searchDn: ""
+    searchFilter: ""
+    needTls: false
+    # LDAP attribute mappings
+    mappingDn: "" # Distinguished name mapping
+    mappingMail: "" # Email mapping
+    mappingUid: "" # UID mapping
+    mappingCn: "" # CN mapping
+
+  # Security - Encryption keys
+  security:
+    # Secret key used to sign cookies (required)
+    cookieHash: "changeme-cookie-hash-32-chars"
+    # Secret key used to encrypt cookies
+    cookieEncryption: "changeme-cookie-encryption"
+    # Secret key used to encrypt access keys
+    accessKeyEncryption: "changeme-access-key-encryption"
+
+  # Two-factor authentication
+  totp:
+    enabled: false
+    allowRecovery: false # Allow users to reset TOTP using recovery code
+
+  # TLS/HTTPS configuration
+  tls:
+    enabled: false
+    certFile: "" # Path to TLS certificate file
+    keyFile: "" # Path to TLS key file
+    httpRedirectPort: "" # Port for HTTP to HTTPS redirect
+
+  # Process configuration
+  process:
+    user: ""
+    uid: ""
+    gid: ""
+    chroot: ""
+
+  # Messenger integrations
+  messengers:
+    telegram:
+      enabled: false
+      chat: ""
+      token: ""
+    slack:
+      enabled: false
+      url: ""
+    rocketchat:
+      enabled: false
+      url: ""
+    microsoftTeams:
+      enabled: false
+      url: ""
+    dingtalk:
+      enabled: false
+      url: ""
+    gotify:
+      enabled: false
+      url: ""
+
+  # Existing secret to use (if not specified, a new secret will be created)
+  existingSecret: ""
+
+  # Ansible configuration
+  ansible:
+    hostKeyChecking: false
+
+# =============================================================================
+# Runner Deployment Configuration (Optional Separate Runner Pods)
+# =============================================================================
+
+runnerDeployment:
+  # Deploy separate runner pods for distributed task execution
+  enabled: false
+
+  # Runner image configuration
+  image:
+    repository: semaphoreui/runner
+    tag: "v2.16.43"
+    pullPolicy: IfNotPresent
+    digest: ""
+
+  # Number of runner replicas
+  replicas: 1
+
+  # Semaphore server connection
+  server:
+    # URL of the Semaphore server (required)
+    webRoot: "http://semaphore:3000"
+    # Registration token (must match server's runner.registrationToken)
+    registrationToken: ""
+    # Use existing secret for registration token
+    existingSecret: ""
+    # Key in existing secret containing the registration token
+    existingSecretKey: "runner-token"
+
+  # Runner configuration
+  config:
+    # Path to private key file for SSH operations
+    privateKeyFile: "/var/lib/semaphore/runner.key"
+    # Whether this runner is already registered
+    alreadyRegistered: false
+
+  # Ansible configuration for runners
+  ansible:
+    hostKeyChecking: false
+
+  # SSH private keys for runner operations
+  # Provide private keys that runners will use for SSH operations
+  privateKeys: []
+    # - name: deploy-key
+    #   key: |
+    #     # Example only - replace with your actual key
+    #     -----BEGIN OPENSSH PRIVATE KEY----- (example)
+    #     b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtz
+    #     ...
+    #     -----END OPENSSH PRIVATE KEY----- (example)
+
+  # Environment variables
+  env: []
+    # - name: CUSTOM_VAR
+    #   value: "value"
+
+  # Additional environment variables from secrets/configmaps
+  envFrom: []
+
+  # Persistence for runner data
+  persistence:
+    data:
+      enabled: true
+      storageClassName: ""
+      accessMode: ReadWriteOnce
+      size: 5Gi
+      mountPath: /var/lib/semaphore
+      existingClaim: ""
+    config:
+      enabled: false
+      storageClassName: ""
+      accessMode: ReadWriteOnce
+      size: 100Mi
+      mountPath: /etc/semaphore
+      existingClaim: ""
+    tmp:
+      enabled: true
+      storageClassName: ""
+      accessMode: ReadWriteOnce
+      size: 10Gi
+      mountPath: /tmp/semaphore
+      existingClaim: ""
+
+  # Service account
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+    automount: true
+
+  # Security contexts
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    fsGroup: 1001
+    fsGroupChangePolicy: "OnRootMismatch"
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL
+
+  # Resources
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+  # Health Probes
+  livenessProbe:
+    enabled: true
+    exec:
+      command:
+        - pgrep
+        - -f
+        - semaphore-runner
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    exec:
+      command:
+        - pgrep
+        - -f
+        - semaphore-runner
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+  startupProbe:
+    enabled: true
+    exec:
+      command:
+        - pgrep
+        - -f
+        - semaphore-runner
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 30
+    successThreshold: 1
+
+  # Pod configuration
+  podAnnotations: {}
+  podLabels: {}
+  priorityClassName: ""
+  runtimeClassName: ""
+  terminationGracePeriodSeconds: 30
+
+  # Update strategy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  # Scheduling
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  # Extra configuration
+  extraVolumes: []
+  extraVolumeMounts: []
+  extraContainers: []
+  initContainers: []
+
+# =============================================================================
+# Semaphore Server Deployment Configuration
+# =============================================================================
+
+controller:
+  ansible:
+    hostKeyChecking: false # Avoid host key checking
+
+  # Additional environment variables
+  env: []
+    # - name: CUSTOM_VAR
+    #   value: "value"
+
+  # Additional environment variables from secrets/configmaps
+  envFrom: []
+    # - secretRef:
+    #     name: semaphore-secrets
+
+  # Use existing secret for sensitive data
+  # If set, database password, admin password, and security keys
+  # will be read from this secret instead of values
+  existingSecret: ""
+  # Keys in the existing secret:
+  # - database-password
+  # - admin-password
+  # - cookie-hash
+  # - cookie-encryption
+  # - access-key-encryption
+  # - runner-token (if runner enabled)
+
+# =============================================================================
+# Controller Configuration
+# =============================================================================
+
+controller:
+  # Type: deployment or statefulset
+  # StatefulSet is recommended for production with persistent identity
+  type: deployment
+
+  # Number of replicas (deployment only)
+  replicas: 1
+
+  # Update strategy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  # Pod management policy (statefulset only)
+  podManagementPolicy: OrderedReady
+
+  # Update strategy for statefulset
+  updateStrategy:
+    type: RollingUpdate
+
+  # Command override
+  command: []
+
+  # Args override
+  args: []
+
+  # Working directory
+  workingDir: ""
+
+  # Termination grace period
+  terminationGracePeriodSeconds: 30
+
+  # Lifecycle hooks
+  lifecycle: {}
+    # preStop:
+    #   exec:
+    #     command: ["/bin/sh", "-c", "sleep 15"]
+
+# =============================================================================
+# Service Configuration
+# =============================================================================
+
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+
+  # NodePort (if type is NodePort)
+  nodePort: ""
+
+  # LoadBalancer configuration
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+
+  # Additional annotations
+  annotations: {}
+
+  # Additional labels
+  labels: {}
+
+  # Session affinity
+  sessionAffinity: None
+  sessionAffinityConfig: {}
+
+  # External traffic policy
+  externalTrafficPolicy: ""
+
+  # ClusterIP (if you want a specific IP)
+  clusterIP: ""
+
+# =============================================================================
+# Ingress Configuration
+# =============================================================================
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  hosts:
+    - host: semaphore.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: semaphore-tls
+    #   hosts:
+    #     - semaphore.example.com
+
+# =============================================================================
+# Persistence Configuration
+# =============================================================================
+
+persistence:
+  # Data volume - contains frequently changing files (task history, etc.)
+  data:
+    enabled: true
+    storageClassName: ""
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    mountPath: /var/lib/semaphore
+    annotations: {}
+    existingClaim: ""
+
+  # Config volume - contains configuration files
+  config:
+    enabled: false
+    storageClassName: ""
+    accessMode: ReadWriteOnce
+    size: 100Mi
+    mountPath: /etc/semaphore
+    annotations: {}
+    existingClaim: ""
+
+  # Temporary data volume - cache, cloned repos, inventory files
+  # This volume should be larger as it stores git repos and playbooks
+  tmp:
+    enabled: true
+    storageClassName: ""
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    mountPath: /tmp/semaphore
+    annotations: {}
+    existingClaim: ""
+
+  # For StatefulSet, use volumeClaimTemplates
+  volumeClaimTemplates:
+    enabled: false
+    data:
+      storageClassName: ""
+      accessMode: ReadWriteOnce
+      size: 5Gi
+    config:
+      storageClassName: ""
+      accessMode: ReadWriteOnce
+      size: 100Mi
+    tmp:
+      storageClassName: ""
+      accessMode: ReadWriteOnce
+      size: 10Gi
+
+# =============================================================================
+# Security Contexts
+# =============================================================================
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# =============================================================================
+# Resources
+# =============================================================================
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# =============================================================================
+# Health Probes
+# =============================================================================
+
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /api/ping
+    port: http
+    scheme: HTTP
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /api/ping
+    port: http
+    scheme: HTTP
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /api/ping
+    port: http
+    scheme: HTTP
+  initialDelaySeconds: 0
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 30
+  successThreshold: 1
+
+# =============================================================================
+# Service Account and RBAC
+# =============================================================================
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+  automount: true
+
+rbac:
+  create: true
+
+# =============================================================================
+# Pod Configuration
+# =============================================================================
+
+podAnnotations: {}
+  # backup.velero.io/backup-volumes: data,config,tmp
+  # pre.hook.backup.velero.io/command: '["/bin/sh", "-c", "sync"]'
+
+podLabels: {}
+  # k10.kasten.io/appname: semaphore
+
+priorityClassName: ""
+
+runtimeClassName: ""
+
+dnsPolicy: ClusterFirst
+
+dnsConfig: {}
+
+hostNetwork: false
+
+# =============================================================================
+# Scheduling
+# =============================================================================
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+topologySpreadConstraints: []
+
+# =============================================================================
+# High Availability
+# =============================================================================
+
+pdb:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: ""
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# =============================================================================
+# Monitoring
+# =============================================================================
+
+monitoring:
+  serviceMonitor:
+    enabled: false
+    interval: 60s
+    scrapeTimeout: 30s
+    honorLabels: false
+    labels: {}
+    annotations: {}
+
+  prometheusRule:
+    enabled: false
+    labels: {}
+    annotations: {}
+    rules:
+      # High memory usage
+      - alert: SemaphoreHighMemory
+        expr: |
+          container_memory_working_set_bytes{pod=~"semaphore-.*"} /
+          container_spec_memory_limit_bytes{pod=~"semaphore-.*"} > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Semaphore high memory usage (instance {{ $labels.pod }})"
+          description: "Memory usage is above 85% for 5 minutes. Current: {{ $value | humanizePercentage }}"
+
+      # High CPU usage
+      - alert: SemaphoreHighCPU
+        expr: |
+          rate(container_cpu_usage_seconds_total{pod=~"semaphore-.*"}[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Semaphore high CPU usage (instance {{ $labels.pod }})"
+          description: "CPU usage is above 80% for 5 minutes. Current: {{ $value | humanizePercentage }}"
+
+      # Pod not ready
+      - alert: SemaphorePodNotReady
+        expr: |
+          kube_pod_status_ready{condition="true",pod=~"semaphore-.*"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Semaphore pod not ready (instance {{ $labels.pod }})"
+          description: "Pod has been in a non-ready state for 5 minutes"
+
+      # Frequent pod restarts
+      - alert: SemaphoreHighRestartRate
+        expr: |
+          rate(kube_pod_container_status_restarts_total{pod=~"semaphore-.*"}[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Semaphore frequent restarts (instance {{ $labels.pod }})"
+          description: "Pod is restarting frequently. Check logs for errors."
+
+      # Persistent volume almost full
+      - alert: SemaphorePVAlmostFull
+        expr: |
+          kubelet_volume_stats_available_bytes{persistentvolumeclaim=~".*semaphore.*"} /
+          kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=~".*semaphore.*"} < 0.15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Semaphore PV almost full ({{ $labels.persistentvolumeclaim }})"
+          description: "Less than 15% space remaining. Consider increasing volume size."
+
+# =============================================================================
+# Network Policy
+# =============================================================================
+
+# =============================================================================
+# Network Policy
+# =============================================================================
+
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress: []
+    # - from:
+    #     - namespaceSelector:
+    #         matchLabels:
+    #           name: ingress-nginx
+    #   ports:
+    #     - protocol: TCP
+    #       port: 3000
+
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow HTTPS for git operations
+    - to:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+    # Allow SSH for git operations
+    - to:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 22
+    # Allow database connections (if external)
+    # - to:
+    #     - podSelector: {}
+    #   ports:
+    #     - protocol: TCP
+    #       port: 5432
+
+# =============================================================================
+# Init Container Configuration
+# =============================================================================
+
+initContainers:
+  # Database migration init container
+  dbMigration:
+    enabled: false
+    image:
+      repository: semaphoreui/semaphore
+      tag: ""  # Defaults to .Values.image.tag if not set
+      pullPolicy: IfNotPresent
+    command:
+      - semaphore
+      - migrate
+      - --config
+      - /etc/semaphore/config.json
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+# =============================================================================
+# Extra Configuration
+# =============================================================================
+
+extraEnv: []
+  # - name: CUSTOM_VAR
+  #   value: "custom-value"
+
+extraEnvFrom: []
+  # - secretRef:
+  #     name: extra-secrets
+  # - configMapRef:
+  #     name: extra-config
+
+extraVolumes: []
+  # - name: extra-config
+  #   configMap:
+  #     name: semaphore-extra-config
+
+extraVolumeMounts: []
+  # - name: extra-config
+  #   mountPath: /extra/config
+  #   readOnly: true
+
+extraContainers: []
+  # - name: sidecar
+  #   image: busybox:latest
+  #   command: ["sleep", "infinity"]
+
+# Init containers for main Semaphore server
+# Database migration init container
+initContainers:
+  dbMigration:
+    enabled: false
+    image:
+      repository: semaphoreui/semaphore
+      tag: ""  # Defaults to .Values.image.tag if not set
+      pullPolicy: IfNotPresent
+    command:
+      - semaphore
+      - migrate
+      - --config
+      - /etc/semaphore/config.json
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  # Additional init containers
+  extra: []
+    # - name: init-db
+    #   image: busybox:latest
+    #   command: ['sh', '-c', 'until nc -z postgresql 5432; do sleep 1; done']
+
+# =============================================================================
+# Diagnostic Mode
+# =============================================================================
+
+diagnosticMode:
+  enabled: false
+  command:
+    - /bin/sh
+  args:
+    - -c
+    - sleep infinity

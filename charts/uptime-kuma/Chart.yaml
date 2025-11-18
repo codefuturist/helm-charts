@@ -1,0 +1,66 @@
+apiVersion: v2
+name: uptime-kuma
+description: A self-hosted monitoring tool - monitor uptime for HTTP(s) / TCP / HTTP(s) Keyword / Ping / DNS Record / Push / Steam Game Server
+type: application
+version: 1.0.0
+appVersion: "2.0.0"
+
+keywords:
+  - uptime-kuma
+  - monitoring
+  - uptime
+  - status-page
+  - health-check
+  - alerting
+  - homelab
+  - kubernetes
+
+home: https://github.com/louislam/uptime-kuma
+sources:
+  - https://github.com/louislam/uptime-kuma
+  - https://github.com/codefuturist/helm-charts
+
+maintainers:
+  - name: codefuturist
+    email: 58808821+codefuturist@users.noreply.github.com
+
+icon: https://raw.githubusercontent.com/louislam/uptime-kuma/master/public/icon.svg
+
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release of Uptime Kuma Helm chart v1.0.0
+    - kind: added
+      description: Self-hosted monitoring and status page application
+    - kind: added
+      description: Support for Deployment and StatefulSet controller types
+    - kind: added
+      description: Persistent storage for monitoring data
+    - kind: added
+      description: Docker socket integration for container monitoring
+    - kind: added
+      description: Ingress support with TLS
+    - kind: added
+      description: Comprehensive security with pod security contexts, RBAC, and network policies
+    - kind: added
+      description: Monitoring support with ServiceMonitor and PrometheusRule
+    - kind: added
+      description: Runs as non-root user (UID 1000)
+  artifacthub.io/category: "monitoring-logging"
+  artifacthub.io/kubeVersion: ">=1.21.0-0"
+  artifacthub.io/operator: "false"
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/license: "Apache-2.0"
+  artifacthub.io/links: |
+    - name: Chart Documentation
+      url: https://github.com/codefuturist/helm-charts/tree/main/charts/uptime-kuma
+    - name: Uptime Kuma Documentation
+      url: https://github.com/louislam/uptime-kuma/wiki
+    - name: Uptime Kuma Demo
+      url: https://demo.uptime.kuma.pet
+  artifacthub.io/maintainers: |
+    - name: codefuturist
+      email: 58808821+codefuturist@users.noreply.github.com
+  artifacthub.io/recommendations: |
+    - url: https://artifacthub.io/packages/helm/prometheus-community/prometheus
