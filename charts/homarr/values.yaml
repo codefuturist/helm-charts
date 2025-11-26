@@ -205,6 +205,35 @@ deployment:
     # -- (object) TCP Socket probe.
     # @section -- Deployment Parameters
     tcpSocket: {}
+  # -- (object) Startup probe.
+  # @section -- Deployment Parameters
+  startupProbe:
+    # -- (bool) Enable Startup probe.
+    # @section -- Deployment Parameters
+    enabled: true
+    # -- (int) Number of retries before marking the pod as failed.
+    # @section -- Deployment Parameters
+    failureThreshold: 30
+    # -- (int) Time between retries.
+    # @section -- Deployment Parameters
+    periodSeconds: 10
+    # -- (int) Number of successful probes before marking the pod as ready.
+    # @section -- Deployment Parameters
+    successThreshold: 1
+    # -- (int) Time before the probe times out.
+    # @section -- Deployment Parameters
+    timeoutSeconds: 5
+    # -- (object) HTTP Get probe.
+    # @section -- Deployment Parameters
+    httpGet:
+      path: /api/health/live
+      port: http
+    # -- (object) Exec probe.
+    # @section -- Deployment Parameters
+    exec: {}
+    # -- (object) TCP Socket probe.
+    # @section -- Deployment Parameters
+    tcpSocket: {}
   # -- (object) Readiness probe.
   # @section -- Deployment Parameters
   readinessProbe:
@@ -222,11 +251,14 @@ deployment:
     successThreshold: 1
     # -- (int) Time before the probe times out.
     # @section -- Deployment Parameters
-    timeoutSeconds: 1
+    timeoutSeconds: 5
+    # -- (int) Initial delay before probe starts.
+    # @section -- Deployment Parameters
+    initialDelaySeconds: 10
     # -- (object) HTTP Get probe.
     # @section -- Deployment Parameters
     httpGet:
-      path: /
+      path: /api/health/ready
       port: http
     # -- (object) Exec probe.
     # @section -- Deployment Parameters
@@ -245,17 +277,20 @@ deployment:
     failureThreshold: 3
     # -- (int) Time between retries.
     # @section -- Deployment Parameters
-    periodSeconds: 10
+    periodSeconds: 20
     # -- (int) Number of successful probes before marking the pod as ready.
     # @section -- Deployment Parameters
     successThreshold: 1
     # -- (int) Time before the probe times out.
     # @section -- Deployment Parameters
-    timeoutSeconds: 1
+    timeoutSeconds: 5
+    # -- (int) Initial delay before probe starts.
+    # @section -- Deployment Parameters
+    initialDelaySeconds: 10
     # -- (object) HTTP Get probe.
     # @section -- Deployment Parameters
     httpGet:
-      path: /
+      path: /api/health/live
       port: http
     # -- (object) Exec probe.
     # @section -- Deployment Parameters
@@ -292,7 +327,7 @@ deployment:
   # -- (list) List of ports for the app container.
   # @section -- Deployment Parameters
   ports:
-    - containerPort: 7575
+    - containerPort: 3000
       name: http
       protocol: TCP
   # -- (object) OpenShift OAuth Proxy configuration.
@@ -362,7 +397,7 @@ service:
     - port: 7575
       name: http
       protocol: TCP
-      targetPort: 7575
+      targetPort: http
   # -- (string) Type of service.
   # @section -- Service Parameters
   type: ClusterIP

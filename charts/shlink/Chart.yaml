@@ -1,0 +1,88 @@
+apiVersion: v2
+name: shlink
+description: A production-ready Helm chart for Shlink - Self-hosted URL shortener with analytics and web UI
+type: application
+version: 1.0.1
+appVersion: "4.2.4"
+
+keywords:
+  - shlink
+  - url-shortener
+  - link-management
+  - analytics
+  - web
+  - api
+  - kubernetes
+
+home: https://shlink.io/
+sources:
+  - https://github.com/shlinkio/shlink
+  - https://github.com/shlinkio/shlink-web-client
+  - https://github.com/codefuturist/helm-charts
+
+maintainers:
+  - name: codefuturist
+    email: 58808821+codefuturist@users.noreply.github.com
+
+icon: https://shlink.io/images/shlink-logo-blue.svg
+
+dependencies:
+  - name: postgresql
+    version: "~16.2.0"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+
+annotations:
+  artifacthub.io/changes: |
+    - kind: fixed
+      description: Default secret key names now match generated Secret data to prevent missing API/GeoLite keys
+    - kind: added
+      description: New Traefik/docker-compose example values and documentation updates
+    - kind: removed
+      description: Removed stray values.yaml.backup file to avoid confusing defaults
+    - kind: added
+      description: Initial release of Shlink Helm chart v1.0.0
+    - kind: added
+      description: Support for Deployment and StatefulSet controller types
+    - kind: added
+      description: Separate deployments for backend API and web client UI
+    - kind: added
+      description: Integrated PostgreSQL subchart (Bitnami) for easy setup
+    - kind: added
+      description: Support for external database configuration
+    - kind: added
+      description: Comprehensive security with pod security contexts, RBAC, and network policies
+    - kind: added
+      description: Monitoring support with ServiceMonitor and PrometheusRule
+    - kind: added
+      description: Complete Shlink environment variable support (database, domains, API keys, GeoLite)
+    - kind: added
+      description: Web client configuration with customizable server definitions
+    - kind: added
+      description: Dual ingress support (API and web UI) with path-based or host-based routing
+    - kind: added
+      description: High availability features (HPA, PDB, anti-affinity)
+    - kind: added
+      description: Production-ready defaults with persistence enabled
+  artifacthub.io/category: "integration-delivery"
+  artifacthub.io/kubeVersion: ">=1.21.0-0"
+  artifacthub.io/operator: "false"
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/license: "Apache-2.0"
+  artifacthub.io/signKey: ""
+  artifacthub.io/links: |
+    - name: Chart Documentation
+      url: https://github.com/codefuturist/helm-charts/tree/main/charts/shlink
+    - name: Shlink Official Docs
+      url: https://shlink.io/documentation/
+    - name: Shlink Docker Image
+      url: https://hub.docker.com/r/shlinkio/shlink
+    - name: Web Client Repository
+      url: https://github.com/shlinkio/shlink-web-client
+  artifacthub.io/maintainers: |
+    - name: codefuturist
+      email: 58808821+codefuturist@users.noreply.github.com
+  artifacthub.io/recommendations: |
+    - url: https://artifacthub.io/packages/helm/bitnami/postgresql
+    - url: https://artifacthub.io/packages/helm/bitnami/redis

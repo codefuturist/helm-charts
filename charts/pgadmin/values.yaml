@@ -48,8 +48,9 @@ pgadmin:
   email: "admin@example.com"
 
   # -- Default pgAdmin login password (required if existingSecret is not set)
-  # @default -- (must be set or use existingSecret)
-  password: ""
+  # @default -- "changeme" (MUST be changed in production)
+  # IMPORTANT: Change this password before deploying to production!
+  password: "changeme"
 
   # -- Name of an existing secret containing pgAdmin credentials
   # The secret must contain keys for email and password (see existingSecretEmailKey and existingSecretPasswordKey)
@@ -65,9 +66,8 @@ pgadmin:
   # See https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html
   config:
     PGADMIN_LISTEN_PORT: "80"
-    PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
+    PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "False"
     PGADMIN_CONFIG_CONSOLE_LOG_LEVEL: "10"
-    PGADMIN_CONFIG_SESSION_COOKIE_NAME: "pgadmin4_session"
 
   # -- Disable internal Postfix server (set to any value to disable)
   # Useful when using external SMTP server or in environments that prevent sudo
@@ -310,7 +310,7 @@ ingress:
 persistence:
   # -- Enable persistent storage for pgAdmin data
   # Data includes user preferences, sessions, and saved queries
-  enabled: false
+  enabled: true
 
   # -- Storage class name
   # @default -- Default storage class
@@ -335,24 +335,15 @@ persistence:
 
 # -- Pod security context
 # pgAdmin runs as user 5050 by default
+# Note: Minimal security context to ensure compatibility with various Kubernetes clusters
 podSecurityContext:
-  runAsNonRoot: true
   runAsUser: 5050
+  runAsGroup: 5050
   fsGroup: 5050
-  fsGroupChangePolicy: "OnRootMismatch"
-  seccompProfile:
-    type: RuntimeDefault
 
 # -- Container security context
-securityContext:
-  allowPrivilegeEscalation: false
-  runAsNonRoot: true
-  runAsUser: 5050
-  # pgAdmin needs to write temporary files
-  readOnlyRootFilesystem: false
-  capabilities:
-    drop:
-      - ALL
+# Note: Empty by default to maximize compatibility. Override with stricter settings if your cluster supports them.
+securityContext: {}
 
 # =============================================================================
 # Resources

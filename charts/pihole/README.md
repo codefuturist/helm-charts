@@ -218,3 +218,4 @@ A Helm chart for Pi-hole DNS ad blocker with Kubernetes best practices
 | secretProviderClass.provider | string | `""` |  |
 | secretProviderClass.parameters | object | `{}` |  |
 | secretProviderClass.secretObjects | list | `[]` |  |
+

@@ -1,6 +1,6 @@
 # pgadmin
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 9.10.0](https://img.shields.io/badge/AppVersion-9.10.0-informational?style=flat-square)
+![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 9.10.0](https://img.shields.io/badge/AppVersion-9.10.0-informational?style=flat-square)
 
 A production-ready Helm chart for pgAdmin 4 - PostgreSQL management and administration tool
 
@@ -89,11 +89,11 @@ A production-ready Helm chart for pgAdmin 4 - PostgreSQL management and administ
 | pdb.minAvailable | int | `1` | Minimum number of pods that must be available |
 | persistence.accessMode | string | `"ReadWriteOnce"` | Access mode for the persistent volume |
 | persistence.annotations | object | `{}` | Annotations for the PVC |
-| persistence.enabled | bool | `false` | Enable persistent storage for pgAdmin data Data includes user preferences, sessions, and saved queries |
+| persistence.enabled | bool | `true` | Enable persistent storage for pgAdmin data Data includes user preferences, sessions, and saved queries |
 | persistence.existingClaim | string | `""` | Name of an existing PVC to use |
 | persistence.size | string | `"1Gi"` | Size of the persistent volume |
 | persistence.storageClassName | string | Default storage class | Storage class name |
-| pgadmin.config | object | `{"PGADMIN_CONFIG_CONSOLE_LOG_LEVEL":"10","PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION":"True","PGADMIN_CONFIG_SESSION_COOKIE_NAME":"pgadmin4_session","PGADMIN_LISTEN_PORT":"80"}` | pgAdmin configuration settings as environment variables See https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html |
+| pgadmin.config | object | `{"PGADMIN_CONFIG_CONSOLE_LOG_LEVEL":"10","PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION":"False","PGADMIN_LISTEN_PORT":"80"}` | pgAdmin configuration settings as environment variables See https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html |
 | pgadmin.configLocal | string | `""` | Custom config_local.py content for advanced pgAdmin configuration This Python file is loaded after config.py and can override any settings Example: configLocal: |   MASTER_PASSWORD_REQUIRED = False   SESSION_EXPIRATION_TIME = 1   ENHANCED_COOKIE_PROTECTION = True |
 | pgadmin.disablePostfix | bool | `false` | Disable internal Postfix server (set to any value to disable) Useful when using external SMTP server or in environments that prevent sudo |
 | pgadmin.email | string | `"admin@example.com"` | Default pgAdmin login email address (required if existingSecret is not set) |
@@ -114,7 +114,7 @@ A production-ready Helm chart for pgAdmin 4 - PostgreSQL management and administ
 | pgadmin.ldap.groupBaseDN | string | `""` | LDAP group base DN |
 | pgadmin.ldap.server | string | `""` | LDAP server URI |
 | pgadmin.ldap.userBaseDN | string | `""` | LDAP user base DN |
-| pgadmin.password | string | (must be set or use existingSecret) | Default pgAdmin login password (required if existingSecret is not set) |
+| pgadmin.password | string | "changeme" (MUST be changed in production) | Default pgAdmin login password (required if existingSecret is not set) IMPORTANT: Change this password before deploying to production! |
 | pgadmin.pgpassFile | string | `""` | pgpass file content for automatic PostgreSQL authentication Format: hostname:port:database:username:password (one entry per line) Example: pgpassFile: |   postgresql.default.svc.cluster.local:5432:*:postgres:password123   postgresql-prod.database.svc:5432:production:dbuser:secret |
 | pgadmin.replaceServersOnStartup | bool | `false` | Replace server definitions on every startup (not just first launch) When true, server definitions from serverDefinitions or existingServerDefinitionsConfigMap are reloaded on each start |
 | pgadmin.scriptName | string | `""` | Script name for reverse proxy subdirectory hosting Set this when hosting pgAdmin under a subdirectory (e.g., /pgadmin4) This sets the SCRIPT_NAME environment variable |
@@ -133,14 +133,14 @@ A production-ready Helm chart for pgAdmin 4 - PostgreSQL management and administ
 | pgadmin.smtp.username | string | `""` | SMTP username |
 | podAnnotations | object | `{}` | Pod annotations |
 | podLabels | object | `{}` | Pod labels |
-| podSecurityContext | object | `{"fsGroup":5050,"fsGroupChangePolicy":"OnRootMismatch","runAsNonRoot":true,"runAsUser":5050,"seccompProfile":{"type":"RuntimeDefault"}}` | Pod security context pgAdmin runs as user 5050 by default |
+| podSecurityContext | object | `{"fsGroup":5050,"runAsGroup":5050,"runAsUser":5050}` | Pod security context pgAdmin runs as user 5050 by default Note: Minimal security context to ensure compatibility with various Kubernetes clusters |
 | priorityClassName | string | `""` | Priority class name for the pod |
 | rbac.create | bool | `true` | Create RBAC resources |
 | rbac.rules | list | `[]` | Additional RBAC rules |
 | readinessProbe | object | `{"enabled":true,"failureThreshold":3,"httpGet":{"path":"/misc/ping","port":"http"},"initialDelaySeconds":15,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Readiness probe configuration |
 | resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource limits and requests |
 | runtimeClassName | string | `""` | Runtime class name |
-| securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsNonRoot":true,"runAsUser":5050}` | Container security context |
+| securityContext | object | `{}` | Container security context Note: Empty by default to maximize compatibility. Override with stricter settings if your cluster supports them. |
 | service.annotations | object | `{}` | Service annotations |
 | service.clusterIP | string | `""` | Cluster IP (set to None for headless service) |
 | service.externalTrafficPolicy | string | `""` | External traffic policy (only used if type is LoadBalancer or NodePort) |

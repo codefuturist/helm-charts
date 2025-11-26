@@ -1,6 +1,6 @@
 # homarr
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
+![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
 A Helm chart for Homarr - A simple, yet powerful dashboard for your server
 
@@ -120,43 +120,54 @@ A Helm chart for Homarr - A simple, yet powerful dashboard for your server
 | deployment.image.tag | tpl/string | `"latest"` | Tag. |
 | deployment.imagePullSecrets | list | `[]` | List of secrets to be used for pulling the images. |
 | deployment.initContainers | object | `{}` | Init containers. |
-| deployment.livenessProbe | object | `{"enabled":true,"exec":{},"failureThreshold":3,"httpGet":{"path":"/","port":"http"},"periodSeconds":10,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":1}` | Liveness probe. |
+| deployment.livenessProbe | object | `{"enabled":true,"exec":{},"failureThreshold":3,"httpGet":{"path":"/api/health/live","port":"http"},"initialDelaySeconds":10,"periodSeconds":20,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":5}` | Liveness probe. |
 | deployment.livenessProbe.enabled | bool | `true` | Enable Liveness probe. |
 | deployment.livenessProbe.exec | object | `{}` | Exec probe. |
 | deployment.livenessProbe.failureThreshold | int | `3` | Number of retries before marking the pod as failed. |
-| deployment.livenessProbe.httpGet | object | `{"path":"/","port":"http"}` | HTTP Get probe. |
-| deployment.livenessProbe.periodSeconds | int | `10` | Time between retries. |
+| deployment.livenessProbe.httpGet | object | `{"path":"/api/health/live","port":"http"}` | HTTP Get probe. |
+| deployment.livenessProbe.initialDelaySeconds | int | `10` | Initial delay before probe starts. |
+| deployment.livenessProbe.periodSeconds | int | `20` | Time between retries. |
 | deployment.livenessProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
 | deployment.livenessProbe.tcpSocket | object | `{}` | TCP Socket probe. |
-| deployment.livenessProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
+| deployment.livenessProbe.timeoutSeconds | int | `5` | Time before the probe times out. |
 | deployment.nodeSelector | object | `{}` | Select the node where the pods should be scheduled. |
 | deployment.openshiftOAuthProxy | object | `{"disableTLSArg":false,"enabled":false,"image":"openshift/oauth-proxy:latest","port":7575,"secretName":"openshift-oauth-proxy-tls"}` | OpenShift OAuth Proxy configuration. |
 | deployment.podLabels | object | `{}` | Additional pod labels which are used in Service's Label Selector. |
-| deployment.ports | list | `[{"containerPort":7575,"name":"http","protocol":"TCP"}]` | List of ports for the app container. |
+| deployment.ports | list | `[{"containerPort":3000,"name":"http","protocol":"TCP"}]` | List of ports for the app container. |
 | deployment.priorityClassName | string | `""` | Define the priority class for the pod. |
-| deployment.readinessProbe | object | `{"enabled":true,"exec":{},"failureThreshold":3,"httpGet":{"path":"/","port":"http"},"periodSeconds":10,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":1}` | Readiness probe. |
+| deployment.readinessProbe | object | `{"enabled":true,"exec":{},"failureThreshold":3,"httpGet":{"path":"/api/health/ready","port":"http"},"initialDelaySeconds":10,"periodSeconds":10,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":5}` | Readiness probe. |
 | deployment.readinessProbe.enabled | bool | `true` | Enable Readiness probe. |
 | deployment.readinessProbe.exec | object | `{}` | Exec probe. |
 | deployment.readinessProbe.failureThreshold | int | `3` | Number of retries before marking the pod as failed. |
-| deployment.readinessProbe.httpGet | object | `{"path":"/","port":"http"}` | HTTP Get probe. |
+| deployment.readinessProbe.httpGet | object | `{"path":"/api/health/ready","port":"http"}` | HTTP Get probe. |
+| deployment.readinessProbe.initialDelaySeconds | int | `10` | Initial delay before probe starts. |
 | deployment.readinessProbe.periodSeconds | int | `10` | Time between retries. |
 | deployment.readinessProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
 | deployment.readinessProbe.tcpSocket | object | `{}` | TCP Socket probe. |
-| deployment.readinessProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
+| deployment.readinessProbe.timeoutSeconds | int | `5` | Time before the probe times out. |
 | deployment.reloadOnChange | bool | `true` | Reload deployment if attached Secret/ConfigMap changes. |
 | deployment.replicas | int | `1` | Number of replicas. |
 | deployment.resources | object | `{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource limits and requests for the pod. |
 | deployment.revisionHistoryLimit | int | `2` | Number of ReplicaSet revisions to retain. |
 | deployment.securityContext | object | `{"fsGroup":0}` | Security Context for the pod. |
+| deployment.startupProbe | object | `{"enabled":true,"exec":{},"failureThreshold":30,"httpGet":{"path":"/api/health/live","port":"http"},"periodSeconds":10,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":5}` | Startup probe. |
 | deployment.startupProbe | object | `{"enabled":false,"exec":{},"failureThreshold":30,"httpGet":{},"periodSeconds":10,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":1}` | Startup probe. |
+| deployment.startupProbe.enabled | bool | `true` | Enable Startup probe. |
 | deployment.startupProbe.enabled | bool | `false` | Enable Startup probe. |
 | deployment.startupProbe.exec | object | `{}` | Exec probe. |
+| deployment.startupProbe.exec | object | `{}` | Exec probe. |
 | deployment.startupProbe.failureThreshold | int | `30` | Number of retries before marking the pod as failed. |
+| deployment.startupProbe.failureThreshold | int | `30` | Number of retries before marking the pod as failed. |
+| deployment.startupProbe.httpGet | object | `{"path":"/api/health/live","port":"http"}` | HTTP Get probe. |
 | deployment.startupProbe.httpGet | object | `{}` | HTTP Get probe. |
 | deployment.startupProbe.periodSeconds | int | `10` | Time between retries. |
+| deployment.startupProbe.periodSeconds | int | `10` | Time between retries. |
+| deployment.startupProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
 | deployment.startupProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
 | deployment.startupProbe.tcpSocket | object | `{}` | TCP Socket probe. |
+| deployment.startupProbe.tcpSocket | object | `{}` | TCP Socket probe. |
 | deployment.startupProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
+| deployment.startupProbe.timeoutSeconds | int | `5` | Time before the probe times out. |
 | deployment.strategy.type | string | `"RollingUpdate"` | Type of deployment strategy. |
 | deployment.tolerations | list | `[]` | Taint tolerations for the pods. |
 | deployment.topologySpreadConstraints | list | `[]` | Topology spread constraints for the pods. |
@@ -342,7 +353,7 @@ A Helm chart for Homarr - A simple, yet powerful dashboard for your server
 | service.additionalLabels | object | `{}` | Additional labels for service. |
 | service.annotations | object | `{}` | Annotations for service. |
 | service.enabled | bool | `true` | Enable Service. |
-| service.ports | list | `[{"name":"http","port":7575,"protocol":"TCP","targetPort":7575}]` | Ports for applications service. |
+| service.ports | list | `[{"name":"http","port":7575,"protocol":"TCP","targetPort":"http"}]` | Ports for applications service. |
 | service.type | string | `"ClusterIP"` | Type of service. |
 
 ### ServiceMonitor Parameters
