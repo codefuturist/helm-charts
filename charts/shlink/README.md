@@ -1,466 +1,208 @@
-# Shlink Helm Chart
+# shlink
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.2.4](https://img.shields.io/badge/AppVersion-4.2.4-informational?style=flat-square)
+![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.2.4](https://img.shields.io/badge/AppVersion-4.2.4-informational?style=flat-square)
 
-A production-ready Helm chart for deploying [Shlink](https://shlink.io) - a self-hosted URL shortener with analytics, written in PHP.
+A production-ready Helm chart for Shlink - Self-hosted URL shortener with analytics and web UI
 
-**Homepage:** <https://shlink.io>
-
-## Features
-
-- 🔗 **URL Shortening** - Create custom short URLs with tracking capabilities
-- 📊 **Analytics** - Track visits, referrers, browsers, OS, and geographic location
-- 🌐 **Multi-domain Support** - Configure multiple short domains
-- 🎨 **Web Client** - Beautiful React-based admin interface (optional)
-- 🗄️ **Database** - Integrated PostgreSQL subchart or external database support
-- 🔐 **Security** - API key authentication, secure secrets management
-- 📈 **Monitoring** - Prometheus ServiceMonitor and alerting rules
-- ⚡ **High Availability** - Horizontal autoscaling, pod disruption budgets
-- 💾 **Persistence** - Optional persistent storage for GeoLite2 databases
-- 🔄 **Health Checks** - Kubernetes-native liveness, readiness, and startup probes
-
-## Architecture
-
-This chart deploys two separate components:
-
-1. **Shlink Backend** - PHP-based REST API server (port 8080)
-2. **Shlink Web Client** - React-based admin UI served by nginx (port 80)
-
-Both components can be scaled independently and exposed via separate ingress routes.
-
-## Quick Start
-
-### Basic Installation
-
-```bash
-# Add the repository
-helm repo add codefuturist https://codefuturist.github.io/helm-charts
-
-# Install with minimal configuration
-helm install shlink codefuturist/shlink \
-  --set shlink.defaultDomain="short.example.com" \
-  --set postgresql.auth.password="change-me"
-```
-
-### Access Your Shlink Instance
-
-```bash
-# Port-forward to the backend API
-kubectl port-forward svc/shlink 8080:8080
-
-# Port-forward to the web client (if enabled)
-kubectl port-forward svc/shlink-webclient 8080:80
-```
-
-Visit <http://localhost:8080> for the API or web client.
-
-> The chart deploys the React web client by default. Expose it via ingress/port-forwarding or disable it with `--set webClient.enabled=false` if you only need the REST API.
-
-### Generate an API Key
-
-```bash
-# Connect to the Shlink pod
-kubectl exec -it deployment/shlink -- shlink api-key:generate
-
-# Or with initial API key in values:
-helm install shlink codefuturist/shlink \
-  --set shlink.initialApiKey="your-secure-api-key"
-```
-
-## Installation
-
-### Prerequisites
-
-- Kubernetes 1.21+
-- Helm 3.8+
-- PV provisioner support (if using persistence)
-
-### Install from Repository
-
-```bash
-helm repo add codefuturist https://codefuturist.github.io/helm-charts
-helm repo update
-helm install shlink codefuturist/shlink
-```
-
-### Install from Source
-
-```bash
-git clone https://github.com/codefuturist/helm-charts.git
-cd helm-charts/charts/shlink
-helm install shlink .
-```
-
-## Configuration
-
-### Basic Configuration
-
-```yaml
-# values.yaml
-shlink:
-  defaultDomain: "short.example.com"
-  defaultSchema: "https"
-  initialApiKey: "your-secure-api-key"
-
-webClient:
-  enabled: true
-  servers:
-    - name: "Production"
-      url: "https://short.example.com"
-      apiKey: "your-secure-api-key"
-      forwardCredentials: false
-
-ingress:
-  backend:
-    enabled: true
-    hosts:
-      - host: short.example.com
-        paths:
-          - path: /
-            pathType: Prefix
-  
-  webClient:
-    enabled: true
-    hosts:
-      - host: shlink.example.com
-        paths:
-          - path: /
-            pathType: Prefix
-
-postgresql:
-  enabled: true
-  auth:
-    password: "secure-database-password"
-
-### Pre-configuring the Default Web Client Server
-
-You can mirror the docker image behavior by letting the chart write a `servers.json` entry from environment variables. This is convenient for trusted clusters where you want the UI ready-to-use without exporting/importing servers manually.
-
-> ⚠️ The resulting `servers.json` lives in the web client's document root. Anyone with access to the UI can read your API key, so only use this mechanism for internal dashboards.
-
-```yaml
-webClient:
-  defaultServer:
-    enabled: true
-    url: "https://short.example.com"
-    name: "Production"
-    apiKeySecretRef:
-      name: shlink-webclient-secret
-      key: apiKey
-    forwardCredentials: false
-```
-
-### Using External Database
-
-```yaml
-shlink:
-  defaultDomain: "short.example.com"
-
-database:
-  type: "postgresql"  # or "mysql"
-  host: "postgres.example.com"
-  port: 5432
-  name: "shlink"
-  user: "shlink"
-  existingSecret: "shlink-db-secret"
-  existingSecretPasswordKey: "password"
-
-postgresql:
-  enabled: false  # Disable the subchart
-```
-
-### Migrating from docker-compose
-
-The chart can mirror the provided docker-compose stack (Traefik + external PostgreSQL) with the settings below.
-
-| docker-compose setting | Helm values |
-| --- | --- |
-| `DB_DRIVER`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | `database.*` (or `database.existingSecret*` to read from a Secret) |
-| `DEFAULT_DOMAIN` | `shlink.defaultDomain` |
-| `IS_HTTPS_ENABLED` | `shlink.defaultSchema` (`https` when `true`) |
-| `TZ` | `shlink.extraEnv[]` and `webClient.extraEnv[]` |
-| `SHLINK_SERVER_URL` | `webClient.defaultServer.url` or `webClient.servers[].url` |
-| `SHLINK_SERVER_API_KEY` | `webClient.defaultServer.apiKeySecretRef` (preferred) or `webClient.defaultServer.apiKey` |
-| Traefik labels (routers, entrypoints, middlewares, TLS) | `ingress.backend` / `ingress.webClient` hosts, TLS secrets, and annotations |
-
-See [`examples/values-traefik-compose.yaml`](./examples/values-traefik-compose.yaml) for a complete, secret-friendly translation of the compose file shared in the issue.
-
-### High Availability Setup
-
-```yaml
-controller:
-  replicaCount: 3
-
-autoscaling:
-  enabled: true
-  minReplicas: 3
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 70
-
-podDisruptionBudget:
-  enabled: true
-  minAvailable: 2
-
-persistence:
-  enabled: true
-  size: 10Gi
-
-postgresql:
-  enabled: true
-  auth:
-    password: "secure-password"
-  primary:
-    persistence:
-      enabled: true
-      size: 50Gi
-```
-
-## Configuration Values
-
-### Shlink Backend Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `shlink.defaultDomain` | Default domain for short URLs | `""` |
-| `shlink.defaultSchema` | Default URL schema (http/https) | `"http"` |
-| `shlink.initialApiKey` | Initial API key to create | `""` |
-| `shlink.geoLiteLicenseKey` | MaxMind GeoLite2 license key for geolocation | `""` |
-| `shlink.anonymizeRemoteAddr` | Anonymize visitor IP addresses | `false` |
-| `shlink.redirectsLogging` | Enable redirects logging | `true` |
-| `shlink.orphanVisitsLogging` | Enable orphan visits logging | `true` |
-| `shlink.redis.enabled` | Enable Redis for caching | `false` |
-| `shlink.redis.servers` | Redis server addresses | `""` |
-
-> The autogenerated secret uses the keys `initial-api-key` and `geolite-license-key`. Override `shlink.existingSecretApiKeyKey` / `shlink.existingSecretGeoLiteKey` only when pointing at a differently structured Secret.
-
-### Web Client Configuration
-
-> ⚠️ **Warning**: Pre-configured servers embed API keys in files served straight from the browser. Only enable them in trusted environments and prefer referencing Kubernetes Secrets instead of inlining credentials.
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `webClient.enabled` | Enable Shlink Web Client deployment | `false` |
-| `webClient.replicaCount` | Number of web client replicas | `1` |
-| `webClient.image.repository` | Web client image repository | `shlinkio/shlink-web-client` |
-| `webClient.image.tag` | Web client image tag | `4.2.1` |
-| `webClient.servers` | Pre-configured server connections | `[]` |
-| `webClient.servers[].forwardCredentials` | Forward cookies/client certs to the backend (requires restrictive CORS) | `false` |
-| `webClient.defaultServer.enabled` | Build a default server via `SHLINK_SERVER_*` env vars | `false` |
-| `webClient.defaultServer.name` | Display name for the generated server | `""` |
-| `webClient.defaultServer.url` | Backend URL for the generated server | `""` |
-| `webClient.defaultServer.apiKey` | Inline API key for the generated server (use only if plaintext is acceptable) | `""` |
-| `webClient.defaultServer.apiKeySecretRef.name` | Secret that stores the default server API key | `""` |
-| `webClient.defaultServer.apiKeySecretRef.key` | Key inside the secret that stores the API key | `""` |
-| `webClient.defaultServer.forwardCredentials` | Forward credentials for the generated server | `false` |
-
-### Database Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `database.type` | Database type (postgresql/mysql) | `"postgresql"` |
-| `database.host` | External database host | `""` |
-| `database.port` | External database port | `5432` |
-| `database.name` | Database name | `"shlink"` |
-| `database.user` | Database username | `"shlink"` |
-| `database.password` | Database password | `""` |
-| `database.existingSecret` | Existing secret with database credentials | `""` |
-
-### Service Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `service.backend.type` | Backend service type | `ClusterIP` |
-| `service.backend.port` | Backend service port | `8080` |
-| `service.webClient.type` | Web client service type | `ClusterIP` |
-| `service.webClient.port` | Web client service port | `80` |
-
-### Ingress Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `ingress.backend.enabled` | Enable ingress for backend API | `false` |
-| `ingress.backend.className` | Ingress class name | `""` |
-| `ingress.backend.hosts` | Backend ingress hosts | `[]` |
-| `ingress.backend.tls` | Backend TLS configuration | `[]` |
-| `ingress.webClient.enabled` | Enable ingress for web client | `false` |
-| `ingress.webClient.className` | Ingress class name | `""` |
-| `ingress.webClient.hosts` | Web client ingress hosts | `[]` |
-| `ingress.webClient.tls` | Web client TLS configuration | `[]` |
-
-### Persistence Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `persistence.enabled` | Enable persistent storage | `false` |
-| `persistence.storageClass` | Storage class name | `""` |
-| `persistence.size` | Volume size | `2Gi` |
-| `persistence.accessModes` | Access modes | `["ReadWriteOnce"]` |
-
-### PostgreSQL Subchart
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `postgresql.enabled` | Enable PostgreSQL subchart | `true` |
-| `postgresql.auth.username` | PostgreSQL username | `"shlink"` |
-| `postgresql.auth.password` | PostgreSQL password | `""` |
-| `postgresql.auth.database` | PostgreSQL database | `"shlink"` |
-
-For all PostgreSQL options, see the [Bitnami PostgreSQL chart documentation](https://github.com/bitnami/charts/tree/main/bitnami/postgresql).
-
-### Monitoring
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `monitoring.serviceMonitor.enabled` | Enable Prometheus ServiceMonitor | `false` |
-| `monitoring.serviceMonitor.interval` | Scrape interval | `30s` |
-| `monitoring.prometheusRule.enabled` | Enable Prometheus alerting rules | `false` |
-
-### Autoscaling
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `autoscaling.enabled` | Enable horizontal pod autoscaling | `false` |
-| `autoscaling.minReplicas` | Minimum replicas | `1` |
-| `autoscaling.maxReplicas` | Maximum replicas | `10` |
-| `autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization | `80` |
-
-## Examples
-
-See the [examples directory](./examples) for complete configuration examples:
-
-- **[values-minimal.yaml](./examples/values-minimal.yaml)** - Minimal working configuration
-- **[values-production.yaml](./examples/values-production.yaml)** - Production-ready HA setup
-- **[values-with-persistence.yaml](./examples/values-with-persistence.yaml)** - Focus on storage configuration
-- **[values-reverse-proxy.yaml](./examples/values-reverse-proxy.yaml)** - Advanced ingress scenarios
-- **[values-traefik-compose.yaml](./examples/values-traefik-compose.yaml)** - Translation of the sample docker-compose + Traefik deployment
-
-## Common Tasks
-
-### Create a Short URL via CLI
-
-```bash
-kubectl exec -it deployment/shlink -- shlink short-url:generate \
-  https://example.com/very-long-url \
-  --domain=short.example.com \
-  --custom-slug=myurl
-```
-
-### List All Short URLs
-
-```bash
-kubectl exec -it deployment/shlink -- shlink short-url:list
-```
-
-### View Visit Statistics
-
-```bash
-kubectl exec -it deployment/shlink -- shlink visit:stats
-```
-
-### Update GeoLite2 Database
-
-```bash
-kubectl exec -it deployment/shlink -- shlink visit:update-db
-```
-
-## Troubleshooting
-
-### Backend Pod Not Starting
-
-Check the logs:
-
-```bash
-kubectl logs deployment/shlink
-```
-
-Common issues:
-
-- Database connection failure - verify database credentials
-- Missing required environment variables - check values.yaml
-
-### Cannot Access via Ingress
-
-Verify ingress is created:
-
-```bash
-kubectl get ingress
-```
-
-Check ingress controller logs:
-
-```bash
-kubectl logs -n ingress-nginx deployment/ingress-nginx-controller
-```
-
-### Web Client Cannot Connect to Backend
-
-Ensure the server configuration matches your backend URL:
-
-```yaml
-webClient:
-  servers:
-    - name: "Production"
-      url: "https://short.example.com"  # Must match backend ingress
-      apiKey: "your-api-key"
-      forwardCredentials: false
-```
-
-## Upgrading
-
-### To 1.x from Initial Version
-
-This is the initial release. No upgrade path exists yet.
-
-```bash
-helm upgrade shlink codefuturist/shlink
-```
-
-## Uninstalling
-
-```bash
-helm uninstall shlink
-```
-
-This will remove all Kubernetes resources except:
-
-- PersistentVolumeClaims (if `persistence.enabled=true`)
-- Secrets (if using `existingSecret`)
-
-To remove PVCs:
-
-```bash
-kubectl delete pvc -l app.kubernetes.io/instance=shlink
-```
-
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## Support
-
-- **Documentation**: [Shlink Documentation](https://shlink.io/documentation/)
-- **Issues**: [GitHub Issues](https://github.com/codefuturist/helm-charts/issues)
-- **Chart Source**: [GitHub Repository](https://github.com/codefuturist/helm-charts/tree/main/charts/shlink)
+**Homepage:** <https://shlink.io/>
 
 ## Maintainers
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| codefuturist | <colin@codefuturist.com> | <https://github.com/codefuturist> |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
 
 ## Source Code
 
-- <https://github.com/shlinkio/shlink> (Backend)
-- <https://github.com/shlinkio/shlink-web-client> (Web Client)
-- <https://github.com/codefuturist/helm-charts/tree/main/charts/shlink> (Helm Chart)
+* <https://github.com/shlinkio/shlink>
+* <https://github.com/shlinkio/shlink-web-client>
+* <https://github.com/codefuturist/helm-charts>
 
-## License
+## Requirements
 
-This Helm chart is licensed under the Apache License 2.0.
+| Repository | Name | Version |
+|------------|------|---------|
+| https://charts.bitnami.com/bitnami | postgresql | ~16.2.0 |
 
-Shlink itself is licensed under the MIT License.
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| additionalAnnotations | object | `{}` | Additional annotations to add to all resources |
+| additionalLabels | object | `{}` | Additional labels to add to all resources |
+| affinity | object | `{}` | Affinity and anti-affinity rules |
+| autoscaling.behavior | object | `{}` | Behavior configuration for scaling |
+| autoscaling.enabled | bool | `false` | Enable Horizontal Pod Autoscaler |
+| autoscaling.maxReplicas | int | `10` | Maximum number of replicas |
+| autoscaling.minReplicas | int | `1` | Minimum number of replicas |
+| autoscaling.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization percentage |
+| autoscaling.targetMemoryUtilizationPercentage | int | `80` | Target memory utilization percentage |
+| controller.podManagementPolicy | string | `"OrderedReady"` | StatefulSet pod management policy |
+| controller.replicaCount | int | `1` | Number of replicas (ignored for statefulsets, use autoscaling or set directly) |
+| controller.strategy | object | `{"rollingUpdate":{"maxSurge":1,"maxUnavailable":0},"type":"RollingUpdate"}` | Deployment strategy / StatefulSet update strategy |
+| controller.type | string | `"deployment"` | Controller type (deployment or statefulset) |
+| database.existingSecret | string | `""` | Name of existing secret containing database credentials The secret must contain keys for username and password |
+| database.existingSecretPasswordKey | string | `"password"` | Key in existingSecret for database password |
+| database.existingSecretUserKey | string | `"username"` | Key in existingSecret for database username |
+| database.host | string | "shlink-postgresql" when postgresql.enabled=true | Database host (use subchart service name if postgresql.enabled=true) |
+| database.name | string | `"shlink"` | Database name |
+| database.options | object | `{}` | Database connection options |
+| database.password | string | `"changeme"` | Database password (only used if existingSecret is not set) |
+| database.port | int | `5432` | Database port |
+| database.type | string | `"postgres"` | Database type (postgres, mysql, maria, mssql) |
+| database.user | string | `"shlink"` | Database username |
+| diagnosticMode.args | list | `["infinity"]` | Arguments for diagnostic mode command |
+| diagnosticMode.command | list | `["sleep"]` | Command to run in diagnostic mode |
+| diagnosticMode.enabled | bool | `false` | Enable diagnostic mode (sleep infinity instead of running application) |
+| dnsConfig | object | `{}` | DNS config for pods |
+| dnsPolicy | string | `"ClusterFirst"` | DNS policy for pods |
+| extraContainers | list | `[]` | Additional containers to run alongside main container |
+| extraVolumeMounts | list | `[]` | Additional volume mounts for main container |
+| extraVolumes | list | `[]` | Additional volumes |
+| fullnameOverride | string | `""` | Override the full name of the chart |
+| hostAliases | list | `[]` | Host aliases for pods |
+| image.digest | string | `""` | Image digest (overrides tag if set) |
+| image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
+| image.repository | string | `"shlinkio/shlink"` | Shlink backend API Docker image repository |
+| image.tag | string | Chart appVersion | Shlink backend API Docker image tag |
+| imagePullSecrets | list | `[]` | Image pull secrets for private registries |
+| ingress.backend | object | `{"annotations":{},"className":"","enabled":false,"hosts":[{"host":"short.example.com","paths":[{"path":"/","pathType":"Prefix"}]}],"tls":[]}` | Backend API ingress configuration |
+| ingress.backend.annotations | object | `{}` | Annotations for backend ingress |
+| ingress.backend.className | string | `""` | Ingress class name |
+| ingress.backend.enabled | bool | `false` | Enable ingress for backend API |
+| ingress.backend.hosts | list | `[{"host":"short.example.com","paths":[{"path":"/","pathType":"Prefix"}]}]` | Ingress hosts configuration |
+| ingress.backend.tls | list | `[]` | TLS configuration |
+| ingress.webClient | object | `{"annotations":{},"className":"","enabled":false,"hosts":[{"host":"shlink-admin.example.com","paths":[{"path":"/","pathType":"Prefix"}]}],"tls":[]}` | Web client ingress configuration |
+| ingress.webClient.annotations | object | `{}` | Annotations for web client ingress |
+| ingress.webClient.className | string | `""` | Ingress class name |
+| ingress.webClient.enabled | bool | `false` | Enable ingress for web client |
+| ingress.webClient.hosts | list | `[{"host":"shlink-admin.example.com","paths":[{"path":"/","pathType":"Prefix"}]}]` | Ingress hosts configuration |
+| ingress.webClient.tls | list | `[]` | TLS configuration |
+| initContainers | list | `[]` | Init containers to run before main containers |
+| livenessProbe | object | `{"enabled":true,"failureThreshold":3,"httpGet":{"path":"/rest/health","port":8080},"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Liveness probe configuration for Shlink backend |
+| monitoring.prometheusRule | object | `{"enabled":false,"labels":{},"namespace":"","rules":[]}` | PrometheusRule configuration for alerting |
+| monitoring.prometheusRule.enabled | bool | `false` | Enable PrometheusRule |
+| monitoring.prometheusRule.labels | object | `{}` | Additional labels for PrometheusRule |
+| monitoring.prometheusRule.namespace | string | `""` | Namespace for PrometheusRule (defaults to release namespace) |
+| monitoring.prometheusRule.rules | list | `[]` | Alert rules |
+| monitoring.serviceMonitor | object | `{"enabled":false,"interval":"30s","labels":{},"metricRelabelings":[],"namespace":"","path":"/rest/v3/metrics","relabelings":[],"scheme":"http","scrapeTimeout":"10s","tlsConfig":{}}` | ServiceMonitor configuration for Prometheus Operator |
+| monitoring.serviceMonitor.enabled | bool | `false` | Enable ServiceMonitor |
+| monitoring.serviceMonitor.interval | string | `"30s"` | Interval for scraping metrics |
+| monitoring.serviceMonitor.labels | object | `{}` | Additional labels for ServiceMonitor |
+| monitoring.serviceMonitor.metricRelabelings | list | `[]` | Metric relabeling configs |
+| monitoring.serviceMonitor.namespace | string | `""` | Namespace for ServiceMonitor (defaults to release namespace) |
+| monitoring.serviceMonitor.path | string | `"/rest/v3/metrics"` | HTTP path to scrape metrics from |
+| monitoring.serviceMonitor.relabelings | list | `[]` | Relabeling configs |
+| monitoring.serviceMonitor.scheme | string | `"http"` | Scheme for metrics endpoint (http or https) |
+| monitoring.serviceMonitor.scrapeTimeout | string | `"10s"` | Timeout for scraping metrics |
+| monitoring.serviceMonitor.tlsConfig | object | `{}` | TLS config for metrics endpoint |
+| nameOverride | string | `""` | Override the name of the chart |
+| namespaceOverride | string | `.Release.Namespace` | Override the namespace for all resources |
+| networkPolicy.egress | list | `[]` | Egress rules |
+| networkPolicy.enabled | bool | `false` | Enable network policy |
+| networkPolicy.ingress | list | `[]` | Ingress rules |
+| networkPolicy.policyTypes | list | `["Ingress","Egress"]` | Policy types to enforce |
+| nodeName | string | `""` | Node name for pod assignment |
+| nodeSelector | object | `{}` | Node selector for pod assignment |
+| persistence.accessModes | list | `["ReadWriteOnce"]` | Access modes for PersistentVolumeClaim |
+| persistence.annotations | object | `{}` | Annotations for PersistentVolumeClaim |
+| persistence.dataSource | object | `{}` | Data source for PersistentVolumeClaim |
+| persistence.enabled | bool | `true` | Enable persistence for Shlink data |
+| persistence.existingClaim | string | `""` | Existing PersistentVolumeClaim name (if set, no new PVC will be created) |
+| persistence.selector | object | `{}` | Selector for PersistentVolumeClaim |
+| persistence.size | string | `"1Gi"` | Size of PersistentVolumeClaim |
+| persistence.storageClass | string | default storage class | Storage class for PersistentVolumeClaim |
+| podAnnotations | object | `{}` | Additional annotations for pods |
+| podDisruptionBudget.enabled | bool | `false` | Enable Pod Disruption Budget |
+| podDisruptionBudget.maxUnavailable | string | `""` | Maximum unavailable pods (alternative to minAvailable) |
+| podDisruptionBudget.minAvailable | int | `1` | Minimum available pods |
+| podLabels | object | `{}` | Additional labels for pods |
+| podSecurityContext | object | `{"fsGroup":1001,"runAsGroup":1001,"runAsNonRoot":true,"runAsUser":1001}` | Pod security context for Shlink backend |
+| postgresql | object | `{"architecture":"standalone","auth":{"database":"shlink","existingSecret":"","password":"changeme","username":"shlink"},"enabled":true,"image":{"tag":"latest"},"primary":{"persistence":{"enabled":true,"size":"8Gi"},"resources":{}}}` | PostgreSQL subchart configuration See https://github.com/bitnami/charts/tree/main/bitnami/postgresql for all options |
+| postgresql.architecture | string | `"standalone"` | PostgreSQL architecture (standalone or replication) |
+| postgresql.auth | object | `{"database":"shlink","existingSecret":"","password":"changeme","username":"shlink"}` | PostgreSQL authentication configuration |
+| postgresql.auth.database | string | `"shlink"` | PostgreSQL database name |
+| postgresql.auth.existingSecret | string | `""` | Existing secret with PostgreSQL credentials |
+| postgresql.auth.password | string | `"changeme"` | PostgreSQL password |
+| postgresql.auth.username | string | `"shlink"` | PostgreSQL username |
+| postgresql.enabled | bool | `true` | Enable PostgreSQL subchart |
+| postgresql.image | object | `{"tag":"latest"}` | PostgreSQL image configuration Override to use available image tag |
+| postgresql.primary | object | `{"persistence":{"enabled":true,"size":"8Gi"},"resources":{}}` | PostgreSQL primary configuration |
+| postgresql.primary.persistence | object | `{"enabled":true,"size":"8Gi"}` | Persistence configuration for primary |
+| postgresql.primary.resources | object | `{}` | Resource limits for primary |
+| priorityClassName | string | `""` | Priority class name for pods |
+| rbac.create | bool | `false` | Enable RBAC resources |
+| rbac.rules | list | `[]` | Rules for the Role/ClusterRole |
+| readinessProbe | object | `{"enabled":true,"failureThreshold":3,"httpGet":{"path":"/rest/health","port":8080},"initialDelaySeconds":10,"periodSeconds":5,"successThreshold":1,"timeoutSeconds":3}` | Readiness probe configuration for Shlink backend |
+| resources | object | `{}` | Resource limits and requests for Shlink backend |
+| securityContext | object | `{}` | Security context for Shlink backend container |
+| service.backend | object | `{"annotations":{},"labels":{},"nodePort":"","port":8080,"targetPort":8080,"type":"ClusterIP"}` | Backend API service configuration |
+| service.backend.annotations | object | `{}` | Annotations for backend service |
+| service.backend.labels | object | `{}` | Labels for backend service |
+| service.backend.nodePort | string | `""` | Node port for backend API (only for NodePort/LoadBalancer) |
+| service.backend.port | int | `8080` | Service port for backend API |
+| service.backend.targetPort | int | `8080` | Target port for backend API |
+| service.backend.type | string | `"ClusterIP"` | Service type for backend API |
+| service.webClient | object | `{"annotations":{},"labels":{},"nodePort":"","port":80,"targetPort":8080,"type":"ClusterIP"}` | Web client service configuration |
+| service.webClient.annotations | object | `{}` | Annotations for web client service |
+| service.webClient.labels | object | `{}` | Labels for web client service |
+| service.webClient.nodePort | string | `""` | Node port for web client (only for NodePort/LoadBalancer) |
+| service.webClient.port | int | `80` | Service port for web client |
+| service.webClient.targetPort | int | `8080` | Target port for web client |
+| service.webClient.type | string | `"ClusterIP"` | Service type for web client |
+| serviceAccount.annotations | object | `{}` | Annotations for service account |
+| serviceAccount.automountServiceAccountToken | bool | `false` | Automatically mount service account token |
+| serviceAccount.create | bool | `true` | Enable service account creation |
+| serviceAccount.name | string | `""` | Name of service account to use (if not created by chart) |
+| shareProcessNamespace | bool | `false` | Share process namespace |
+| shlink.anonymizeRemoteAddr | bool | `true` | Enable anonymizing IP addresses when collecting visits |
+| shlink.defaultDomain | string | `"short.example.com"` | Default domain for short URLs (e.g., short.example.com) This is the primary domain where your short links will be accessible |
+| shlink.defaultSchema | string | `"https"` | URL schema for short URLs (http or https) |
+| shlink.deleteShortUrlThreshold | int | `-1` | Delete threshold for short URLs (number of visits) Set to prevent deletion of short URLs with more than X visits |
+| shlink.existingSecret | string | `""` | Name of an existing secret containing Shlink configuration The secret can contain keys for initialApiKey, geoLiteLicenseKey |
+| shlink.existingSecretApiKeyKey | string | `"initial-api-key"` | Key in existingSecret that contains the initial API key |
+| shlink.existingSecretGeoLiteKey | string | `"geolite-license-key"` | Key in existingSecret that contains the GeoLite license key |
+| shlink.extraEnv | list | `[]` | Additional environment variables for Shlink backend See https://shlink.io/documentation/environment-variables/ |
+| shlink.geoLiteLicenseKey | string | `""` | GeoLite2 license key for geolocation features Get your free key from https://www.maxmind.com/en/geolite2/signup |
+| shlink.initialApiKey | string | `""` | Initial API key for bootstrapping Leave empty to auto-generate on first startup IMPORTANT: For production, create API keys through the CLI after deployment |
+| shlink.orphanVisitsLogging | bool | `true` | Enable orphan visits logging (visits to non-existent short codes) |
+| shlink.redirect | object | `{"cacheLifetime":30,"statusCode":302}` | Configure redirect behavior |
+| shlink.redirect.cacheLifetime | int | `30` | Enable caching redirects (not recommended for analytics) |
+| shlink.redirect.statusCode | int | `302` | Status code for redirects (301 or 302) |
+| shlink.redirectsLogging | bool | `true` | Enable redirects logging (keep visit history) |
+| shlink.redis | object | `{"enabled":false,"servers":""}` | Redis configuration for caching (optional but recommended for production) |
+| shlink.redis.enabled | bool | `false` | Enable Redis caching |
+| shlink.redis.servers | string | `""` | Redis server(s) - can be comma-separated for multiple servers Format: host:port or redis://host:port or redis://password@host:port |
+| shlink.urlShortener | object | `{"domain":{"hostname":"","schema":"https"}}` | URL shortener configuration |
+| shlink.urlShortener.domain | object | `{"hostname":"","schema":"https"}` | Domain configuration for multiple domains |
+| shlink.urlShortener.domain.hostname | string | `""` | Hostname for domain resolution |
+| shlink.urlShortener.domain.schema | string | `"https"` | Schema for domain resolution |
+| shlink.worker | object | `{"count":16}` | Task worker configuration |
+| shlink.worker.count | int | `16` | Number of task workers |
+| startupProbe | object | `{"enabled":true,"failureThreshold":30,"httpGet":{"path":"/rest/health","port":8080},"initialDelaySeconds":0,"periodSeconds":5,"successThreshold":1,"timeoutSeconds":3}` | Startup probe configuration for Shlink backend |
+| terminationGracePeriodSeconds | int | `30` | Termination grace period in seconds |
+| tolerations | list | `[]` | Tolerations for pod assignment |
+| topologySpreadConstraints | list | `[]` | Topology spread constraints |
+| webClient.autoscaling | object | `{"enabled":false,"maxReplicas":10,"minReplicas":2,"targetCPUUtilizationPercentage":80,"targetMemoryUtilizationPercentage":80}` | Autoscaling configuration for web client |
+| webClient.defaultServer | object | `{"apiKey":"","apiKeySecretRef":{"key":"","name":""},"enabled":false,"forwardCredentials":false,"name":"","url":""}` | Automatically generate a servers.json entry from env vars (shlink-web-client 3.2+) WARNING: Enabling this also exposes credentials to every user of the web client. |
+| webClient.defaultServer.apiKey | string | `""` | API key with permissions for the web client (avoid inlining secrets when possible) |
+| webClient.defaultServer.apiKeySecretRef | object | `{"key":"","name":""}` | Reference an existing secret containing the API key |
+| webClient.defaultServer.enabled | bool | `false` | Enable default server injection through SHLINK_SERVER_* env vars |
+| webClient.defaultServer.forwardCredentials | bool | `false` | Forward cookies/client certs to backend (requires restrictive CORS) |
+| webClient.defaultServer.name | string | `""` | Display name (defaults to "Shlink" when empty) |
+| webClient.defaultServer.url | string | `""` | Backend URL that the web client will call |
+| webClient.enabled | bool | `true` | Enable Shlink Web Client deployment |
+| webClient.extraEnv | list | `[]` | Additional environment variables for web client |
+| webClient.image | object | `{"digest":"","pullPolicy":"IfNotPresent","repository":"shlinkio/shlink-web-client","tag":"4.2.1"}` | Web client image configuration |
+| webClient.image.digest | string | `""` | Image digest (overrides tag if set) |
+| webClient.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
+| webClient.image.repository | string | `"shlinkio/shlink-web-client"` | Shlink Web Client Docker image repository |
+| webClient.image.tag | string | `"4.2.1"` | Shlink Web Client Docker image tag |
+| webClient.podSecurityContext | object | `{"fsGroup":101,"runAsGroup":101,"runAsNonRoot":true,"runAsUser":101}` | Pod security context for web client |
+| webClient.replicaCount | int | `2` | Number of web client replicas |
+| webClient.resources | object | `{}` | Resource limits and requests for web client |
+| webClient.securityContext | object | `{}` | Security context for web client container |
+| webClient.servers | list | `[]` | Pre-configured server definitions for web client These servers will be available in the web UI immediately WARNING: These entries expose API keys to every browser that can load the          web client. Only use in trusted environments. |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
