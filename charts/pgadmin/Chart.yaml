@@ -2,7 +2,7 @@ apiVersion: v2
 name: pgadmin
 description: A production-ready Helm chart for pgAdmin 4 - PostgreSQL management and administration tool
 type: application
-version: 1.0.0
+version: 1.0.1
 appVersion: "9.10.0"
 
 keywords:
@@ -27,6 +27,8 @@ icon: https://www.pgadmin.org/static/img/logos/pgAdmin.svg
 
 annotations:
   artifacthub.io/changes: |
+    - kind: changed
+      description: Updated pgAdmin to version 9.10.0
     - kind: added
       description: Initial release of pgAdmin 4 Helm chart v1.0.0
     - kind: added
@@ -45,14 +47,23 @@ annotations:
       description: Reverse proxy configuration with SCRIPT_NAME support
     - kind: added
       description: High availability features (HPA, PDB, anti-affinity)
+    - kind: changed
+      description: Minimal security context for maximum Kubernetes distribution compatibility (K3s, K8s, etc.)
+    - kind: changed
+      description: Fixed PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION setting for proper startup
+    - kind: security
+      description: Default password "changeme" included for out-of-box testing (must be changed for production)
     - kind: added
-      description: Comprehensive test suite with 11 CI configurations
+      description: Works out of the box without requiring custom values overrides
+    - kind: added
+      description: Persistence enabled by default for production readiness
   artifacthub.io/category: "database"
   artifacthub.io/kubeVersion: ">=1.21.0-0"
   artifacthub.io/operator: "false"
   artifacthub.io/prerelease: "false"
   artifacthub.io/containsSecurityUpdates: "false"
   artifacthub.io/license: "Apache-2.0"
+  artifacthub.io/signKey: ""
   artifacthub.io/links: |
     - name: Chart Documentation
       url: https://github.com/codefuturist/helm-charts/tree/main/charts/pgadmin

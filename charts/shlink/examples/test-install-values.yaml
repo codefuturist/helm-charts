@@ -1,0 +1,65 @@
+# Test installation values for Shlink with PostgreSQL connection
+shlink:
+  email: admin@example.com
+  password: admin123
+
+  # Pre-configure PostgreSQL server connection
+  serverDefinitions:
+    servers:
+      1:
+        Name: "Test PostgreSQL"
+        Group: "Testing"
+        Host: "test-postgres-postgresql.default.svc.cluster.local"
+        Port: 5432
+        MaintenanceDB: "postgres"
+        Username: "postgres"
+        SSLMode: "prefer"
+        Comment: "Bitnami PostgreSQL test instance"
+
+  # Configure pgpass for automatic authentication
+  pgpassFile: "test-postgres-postgresql.default.svc.cluster.local:5432:*:postgres:postgres123"
+
+# Use Deployment for simpler testing
+controller:
+  type: deployment
+  replicas: 1
+
+# Enable persistence for testing
+persistence:
+  enabled: false
+
+# Basic service
+service:
+  type: ClusterIP
+  port: 80
+
+# Resource limits for local testing
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Health probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 30
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 15
+  periodSeconds: 10
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 0
+  periodSeconds: 5
+  failureThreshold: 30
+
+# Override security context for testing - use minimal restrictions
+podSecurityContext: {}
+
+securityContext: {}

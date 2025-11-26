@@ -1,0 +1,141 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                ║
+║                              🔗 SHLINK DEPLOYED 🔗                             ║
+║                                                                                ║
+║                   Self-hosted URL Shortener with Analytics                    ║
+║                                                                                ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+📦 Release Information:
+  • Release Name:    {{ .Release.Name }}
+  • Namespace:       {{ include "shlink.namespace" . }}
+  • Chart Version:   {{ .Chart.Version }}
+  • App Version:     {{ .Chart.AppVersion }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌐 Accessing Shlink:
+
+{{- if .Values.ingress.backend.enabled }}
+  📍 Shlink API (Backend):
+    {{- range .Values.ingress.backend.hosts }}
+    🔗 https://{{ .host }}
+    {{- end }}
+{{- else if contains "LoadBalancer" .Values.service.backend.type }}
+  📍 Shlink API (Backend):
+    ⏳ LoadBalancer IP is being provisioned. Run this command to get it:
+       kubectl get svc {{ include "shlink.fullname" . }} -n {{ include "shlink.namespace" . }} --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
+
+    🔗 Once available, access Shlink at http://<EXTERNAL-IP>:{{ .Values.service.backend.port }}
+{{- else if contains "NodePort" .Values.service.backend.type }}
+  📍 Shlink API (Backend):
+    🔍 Get the Node IP and NodePort:
+       export NODE_IP=$(kubectl get nodes --selector=kubernetes.io/role!=master -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')
+       export NODE_PORT=$(kubectl get svc {{ include "shlink.fullname" . }} -n {{ include "shlink.namespace" . }} -o jsonpath='{.spec.ports[0].nodePort}')
+    
+    🔗 Access Shlink at http://$NODE_IP:$NODE_PORT
+{{- else }}
+  📍 Shlink API (Backend):
+    💡 Port-forward to access locally:
+       kubectl port-forward -n {{ include "shlink.namespace" . }} svc/{{ include "shlink.fullname" . }} 8080:{{ .Values.service.backend.port }}
+    
+    🔗 Then access Shlink at http://localhost:8080
+{{- end }}
+
+{{- if .Values.webClient.enabled }}
+
+{{- if .Values.ingress.webClient.enabled }}
+  📱 Shlink Web Client (UI):
+    {{- range .Values.ingress.webClient.hosts }}
+    🔗 https://{{ .host }}
+    {{- end }}
+{{- else if contains "LoadBalancer" .Values.service.webClient.type }}
+  📱 Shlink Web Client (UI):
+    ⏳ LoadBalancer IP is being provisioned. Run this command to get it:
+       kubectl get svc {{ include "shlink.fullname" . }}-webclient -n {{ include "shlink.namespace" . }} --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
+
+    🔗 Once available, access Web UI at http://<EXTERNAL-IP>:{{ .Values.service.webClient.port }}
+{{- else if contains "NodePort" .Values.service.webClient.type }}
+  📱 Shlink Web Client (UI):
+    🔍 Get the Node IP and NodePort:
+       export NODE_IP=$(kubectl get nodes --selector=kubernetes.io/role!=master -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')
+       export NODE_PORT=$(kubectl get svc {{ include "shlink.fullname" . }}-webclient -n {{ include "shlink.namespace" . }} -o jsonpath='{.spec.ports[0].nodePort}')
+    
+    🔗 Access Web UI at http://$NODE_IP:$NODE_PORT
+{{- else }}
+  📱 Shlink Web Client (UI):
+    💡 Port-forward to access locally:
+       kubectl port-forward -n {{ include "shlink.namespace" . }} svc/{{ include "shlink.fullname" . }}-webclient 8081:{{ .Values.service.webClient.port }}
+    
+    🔗 Then access Web UI at http://localhost:8081
+{{- end }}
+{{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔐 Security Notes:
+
+{{- if .Values.postgresql.enabled }}
+  🗄️  Database:
+    PostgreSQL has been deployed as a subchart.
+    {{- if eq .Values.postgresql.auth.password "changeme" }}
+    
+    ⚠️  WARNING: You are using the default database password 'changeme'
+    🔒 IMPORTANT: Change this password immediately in production!
+    
+    Update with:
+      --set postgresql.auth.password=YOUR_SECURE_PASSWORD
+    {{- end }}
+{{- else }}
+  🗄️  Database:
+    Using external database: {{ .Values.database.host }}:{{ .Values.database.port }}
+{{- end }}
+
+{{- if not .Values.shlink.initialApiKey }}
+  🔑 API Key:
+    No initial API key was set. Generate one using the Shlink CLI:
+      kubectl exec -n {{ include "shlink.namespace" . }} -it deployment/{{ include "shlink.fullname" . }} -- ./vendor/bin/shlink api-key:generate
+{{- else }}
+  🔑 API Key:
+    Initial API key has been configured.
+    ⚠️  For production, create additional API keys with specific permissions via the CLI.
+{{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 Next Steps:
+
+  1. 🔑 Create API Keys (if not using initial key):
+     kubectl exec -n {{ include "shlink.namespace" . }} -it deployment/{{ include "shlink.fullname" . }} -- ./vendor/bin/shlink api-key:generate
+
+  2. 🌍 Configure your domain:
+     Update the DNS records for '{{ .Values.shlink.defaultDomain }}' to point to your Shlink instance
+
+  3. 📊 Enable GeoLite2 (optional):
+     Sign up at https://www.maxmind.com/en/geolite2/signup
+     Then update with:
+       --set shlink.geoLiteLicenseKey=YOUR_LICENSE_KEY
+
+  4. 📖 View Logs:
+     Backend:     kubectl logs -n {{ include "shlink.namespace" . }} -l app.kubernetes.io/name={{ include "shlink.name" . }} -f
+     {{- if .Values.webClient.enabled }}
+     Web Client:  kubectl logs -n {{ include "shlink.namespace" . }} -l app.kubernetes.io/name={{ include "shlink.name" . }}-webclient -f
+     {{- end }}
+
+  5. 📋 Get Pod Status:
+     kubectl get pods -n {{ include "shlink.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📖 Documentation:
+  • Chart Docs:   https://github.com/codefuturist/helm-charts/tree/main/charts/shlink
+  • Shlink Docs:  https://shlink.io/documentation/
+  • API Docs:     https://api-spec.shlink.io/
+
+💬 Support:
+  • GitHub Issues: https://github.com/codefuturist/helm-charts/issues
+  • Shlink GitHub: https://github.com/shlinkio/shlink
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Thank you for using Shlink! 🚀

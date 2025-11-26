@@ -1,10 +1,48 @@
 # pgadmin
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 9.10.0](https://img.shields.io/badge/AppVersion-9.10.0-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 9.8.0](https://img.shields.io/badge/AppVersion-9.8.0-informational?style=flat-square)
 
 A production-ready Helm chart for pgAdmin 4 - PostgreSQL management and administration tool
 
 **Homepage:** <https://www.pgadmin.org/>
+
+## ⚠️ Security Notice
+
+**The chart includes a default password (`changeme`) for quick testing.**
+
+**You MUST change this password before deploying to production:**
+
+```bash
+helm install pgadmin ./charts/pgadmin \
+  --set pgadmin.password="your-secure-password"
+```
+
+Or use an existing secret for better security:
+
+```bash
+kubectl create secret generic pgadmin-secret \
+  --from-literal=email=admin@example.com \
+  --from-literal=password=your-secure-password
+
+helm install pgadmin ./charts/pgadmin \
+  --set pgadmin.existingSecret=pgadmin-secret
+```
+
+## Quick Start
+
+```bash
+# Install with default values (includes default password - change for production!)
+helm install pgadmin ./charts/pgadmin
+
+# Install with custom password
+helm install pgadmin ./charts/pgadmin \
+  --set pgadmin.password="your-secure-password"
+
+# Access pgAdmin
+kubectl port-forward svc/pgadmin 8080:80
+# Visit http://localhost:8080
+# Login: admin@example.com / your-password
+```
 
 ## Maintainers
 

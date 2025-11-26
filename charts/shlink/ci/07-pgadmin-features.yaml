@@ -1,0 +1,25 @@
+# CI Test: Shlink-specific features
+# Tests GeoLite, Redis, and security settings
+
+shlink:
+  defaultDomain: "short.example.com"
+  defaultSchema: "https"
+  initialApiKey: "test-api-key"
+
+  geoLiteLicenseKey: "test-geolite-key"
+
+  redis:
+    enabled: true
+    servers: "redis-master:6379"
+
+  anonymizeRemoteAddr: true
+  redirectsLogging: true
+  orphanVisitsLogging: true
+
+postgresql:
+  enabled: true
+  auth:
+    password: "test123"
+
+persistence:
+  enabled: false

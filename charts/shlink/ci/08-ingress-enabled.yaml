@@ -1,0 +1,54 @@
+# CI Test: Ingress configuration
+# Tests dual ingress with TLS for backend and webclient
+
+shlink:
+  defaultDomain: "short.example.com"
+  defaultSchema: "https"
+  initialApiKey: "test-api-key"
+
+webClient:
+  enabled: true
+  servers:
+    - name: "Test"
+      url: "https://short.example.com"
+      apiKey: "test-api-key"
+
+postgresql:
+  enabled: true
+  auth:
+    password: "test123"
+
+ingress:
+  backend:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    hosts:
+      - host: short.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: shlink-backend-tls
+        hosts:
+          - short.example.com
+
+  webClient:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - host: shlink.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: shlink-webclient-tls
+        hosts:
+          - shlink.example.com
+
+persistence:
+  enabled: false

@@ -387,3 +387,4 @@ A production-ready Helm chart for PostgreSQL database with advanced features inc
 | userManagement.dynamicSync.watchExternalResources | object | `{"configMaps":[],"enabled":false}` | Watch external ConfigMaps for user/database definitions (cross-namespace) |
 | userManagement.dynamicSync.podAnnotations | object | `{}` | Pod annotations for the sync job |
 | userManagement.dynamicSync.resources | object | `{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"32Mi"}}` | Resources for the sync job container |
+

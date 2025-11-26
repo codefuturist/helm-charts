@@ -56,7 +56,27 @@
 🔐 LOGIN CREDENTIALS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Email:    {{ .Values.pgadmin.email }}
-  Password: {{ if .Values.pgadmin.existingSecret }}<stored in secret: {{ .Values.pgadmin.existingSecret }}>{{ else }}<the password you configured>{{ end }}
+  Password: {{ if .Values.pgadmin.existingSecret }}<stored in secret: {{ .Values.pgadmin.existingSecret }}>{{ else if eq .Values.pgadmin.password "changeme" }}<DEFAULT - CHANGE THIS!>{{ else }}<the password you configured>{{ end }}
+{{- if and (not .Values.pgadmin.existingSecret) (eq .Values.pgadmin.password "changeme") }}
+
+⚠️  SECURITY WARNING: Using default password "changeme"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  The default password is for TESTING ONLY!
+
+  📝 Change it immediately for production:
+     helm upgrade {{ .Release.Name }} {{ .Chart.Name }} \
+       --set pgadmin.password="YourSecurePassword123" \
+       --reuse-values
+
+  Or use a Kubernetes secret:
+     kubectl create secret generic {{ include "pgadmin.fullname" . }}-custom \
+       --from-literal=email={{ .Values.pgadmin.email }} \
+       --from-literal=password=YourSecurePassword123
+
+     helm upgrade {{ .Release.Name }} {{ .Chart.Name }} \
+       --set pgadmin.existingSecret={{ include "pgadmin.fullname" . }}-custom \
+       --reuse-values
+{{- end }}
 {{- if .Values.pgadmin.serverDefinitions }}
 
 ✅ PRE-CONFIGURED SERVERS

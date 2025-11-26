@@ -1,0 +1,26 @@
+suite: Shlink web client servers configmap
+templates:
+  - configmap.yaml
+tests:
+  - it: does not render when web client servers list is empty
+    set:
+      webClient:
+        enabled: true
+        servers: []
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders servers.json with forwardCredentials flag
+    set:
+      webClient:
+        enabled: true
+        servers:
+          - name: Production
+            url: https://short.example.com
+            apiKey: test
+            forwardCredentials: true
+    asserts:
+      - matchRegex:
+          path: data["servers.json"]
+          pattern: '"forwardCredentials"\s*:\s*true'

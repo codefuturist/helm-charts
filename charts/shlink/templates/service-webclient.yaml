@@ -1,0 +1,28 @@
+{{- if .Values.webClient.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "shlink.fullname" . }}-webclient
+  namespace: {{ include "shlink.namespace" . }}
+  labels:
+    {{- include "shlink.webClientLabels" . | nindent 4 }}
+    {{- with .Values.service.webClient.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.service.webClient.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.webClient.type }}
+  ports:
+    - port: {{ .Values.service.webClient.port }}
+      targetPort: {{ .Values.service.webClient.targetPort }}
+      protocol: TCP
+      name: http
+      {{- if and (or (eq .Values.service.webClient.type "NodePort") (eq .Values.service.webClient.type "LoadBalancer")) .Values.service.webClient.nodePort }}
+      nodePort: {{ .Values.service.webClient.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "shlink.webClientSelectorLabels" . | nindent 4 }}
+{{- end }}

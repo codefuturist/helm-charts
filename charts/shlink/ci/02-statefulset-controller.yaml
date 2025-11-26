@@ -1,0 +1,19 @@
+# CI Test: StatefulSet controller with persistence
+# Tests StatefulSet deployment with volumeClaimTemplates
+
+controller:
+  type: statefulset
+  replicas: 2
+
+shlink:
+  defaultDomain: "short.example.com"
+  initialApiKey: "test-api-key"
+
+postgresql:
+  enabled: true
+  auth:
+    password: "test123"
+
+persistence:
+  enabled: true
+  size: 2Gi

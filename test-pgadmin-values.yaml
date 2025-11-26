@@ -1,0 +1,13 @@
+# Test values for pgAdmin
+pgadmin:
+  email: "admin@example.com"
+  password: "test-password-123"
+  disablePostfix: true
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Use emptyDir for testing instead of PVC
+persistence:
+  enabled: false

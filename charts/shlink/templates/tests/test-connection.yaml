@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "shlink.fullname" . }}-test-connection"
+  namespace: {{ include "shlink.namespace" . }}
+  labels:
+    {{- include "shlink.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  containers:
+    - name: test-connection
+      image: curlimages/curl:latest
+      command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Testing Shlink connection..."
+
+          # Test 1: Health check endpoint
+          echo "Test 1: Checking /misc/ping endpoint..."
+          if curl -f -s --max-time 10 "{{ include "shlink.fullname" . }}:{{ .Values.service.port }}/misc/ping" > /dev/null; then
+            echo "✓ Health check passed"
+          else
+            echo "✗ Health check failed"
+            exit 1
+          fi
+
+          # Test 2: Main page loads
+          echo "Test 2: Checking main page..."
+          if curl -f -s --max-time 10 "{{ include "shlink.fullname" . }}:{{ .Values.service.port }}/" > /dev/null; then
+            echo "✓ Main page accessible"
+          else
+            echo "✗ Main page not accessible"
+            exit 1
+          fi
+
+          # Test 3: Service DNS resolution
+          echo "Test 3: Checking DNS resolution..."
+          if nslookup "{{ include "shlink.fullname" . }}.{{ include "shlink.namespace" . }}.svc.cluster.local" > /dev/null 2>&1; then
+            echo "✓ DNS resolution successful"
+          else
+            echo "✗ DNS resolution failed"
+            exit 1
+          fi
+
+          echo "All tests passed!"
+  restartPolicy: Never

@@ -1,0 +1,80 @@
+suite: Shlink backend deployment
+templates:
+  - deployment.yaml
+  - configmap.yaml
+  - secret.yaml
+tests:
+  - it: renders a Deployment with default values
+    asserts:
+      - template: deployment.yaml
+        isKind:
+          of: Deployment
+      - template: deployment.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-shlink
+
+  - it: uses a PVC when persistence is enabled
+    set:
+      persistence:
+        enabled: true
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.volumes
+          content:
+            name: shlink-data
+            persistentVolumeClaim:
+              claimName: RELEASE-NAME-shlink
+
+  - it: uses emptyDir storage when persistence is disabled
+    set:
+      persistence:
+        enabled: false
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.volumes
+          content:
+            name: shlink-data
+            emptyDir: {}
+
+  - it: sources the database password from the PostgreSQL subchart secret
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-shlink-postgresql
+                key: password
+
+  - it: adds URL_SHORTENER_DOMAIN_HOSTNAME when domain hostname is set
+    set:
+      shlink:
+        urlShortener:
+          domain:
+            hostname: "api.example.com"
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: URL_SHORTENER_DOMAIN_HOSTNAME
+            value: "api.example.com"
+
+  - it: appends additional environment variables
+    set:
+      shlink:
+        extraEnv:
+          - name: TIMEZONE
+            value: "America/New_York"
+    asserts:
+      - template: deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TIMEZONE
+            value: "America/New_York"

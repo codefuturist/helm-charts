@@ -1,0 +1,25 @@
+# CI Test: Web client with server definitions
+# Tests web client with pre-configured server connections
+
+shlink:
+  defaultDomain: "short.example.com"
+  initialApiKey: "test-api-key-12345"
+
+webClient:
+  enabled: true
+  replicaCount: 2
+  servers:
+    - name: "Test Shlink"
+      url: "http://shlink:8080"
+      apiKey: "test-api-key-12345"
+    - name: "Staging Shlink"
+      url: "https://short-staging.example.com"
+      apiKey: "staging-api-key"
+
+postgresql:
+  enabled: true
+  auth:
+    password: "test123"
+
+persistence:
+  enabled: false

@@ -1,0 +1,37 @@
+# Minimal Shlink Configuration
+# This example provides the absolute minimum configuration to run Shlink
+
+# Shlink backend configuration
+shlink:
+  defaultDomain: "short.example.com"
+  defaultSchema: "https"
+
+# Disable web client for minimal setup
+webClient:
+  enabled: false
+
+# Use internal PostgreSQL database (not recommended for production)
+postgresql:
+  enabled: true
+  auth:
+    username: shlink
+    password: "change-me-please"
+    database: shlink
+
+# Disable persistence (using emptyDir)
+persistence:
+  enabled: false
+
+# Disable monitoring
+monitoring:
+  serviceMonitor:
+    enabled: false
+  prometheusRule:
+    enabled: false
+
+# Disable ingress (use port-forward)
+ingress:
+  backend:
+    enabled: false
+  webClient:
+    enabled: false

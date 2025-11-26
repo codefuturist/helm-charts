@@ -1,0 +1,232 @@
+# Shlink with Persistence Configuration
+# This example focuses on persistent storage configuration for Shlink data
+# and demonstrates various storage scenarios
+
+# Shlink backend configuration
+shlink:
+  defaultDomain: "short.example.com"
+  defaultSchema: "https"
+
+# Web client enabled
+webClient:
+  enabled: true
+  replicaCount: 2
+
+# Controller configuration
+controller:
+  replicaCount: 2
+
+# Service configuration
+service:
+  backend:
+    type: ClusterIP
+    port: 8080
+
+  webClient:
+    type: ClusterIP
+    port: 80
+
+# Ingress configuration
+ingress:
+  backend:
+    enabled: true
+    className: "nginx"
+    hosts:
+      - host: short.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+
+  webClient:
+    enabled: true
+    className: "nginx"
+    hosts:
+      - host: shlink.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+
+# === PERSISTENCE CONFIGURATION (Primary Focus) ===
+
+# Persistent Volume Configuration
+persistence:
+  enabled: true
+
+  # Storage class selection
+  # Use "default" for cluster default, or specify your storage class
+  # Common options: "gp3", "fast-ssd", "nfs-client", "longhorn"
+  storageClass: "default"
+
+  # Volume size - adjust based on your needs
+  # Consider:
+  # - Number of short URLs
+  # - Visit tracking data retention
+  # - GeoLite2 database size (~100MB)
+  size: 20Gi
+
+  # Access mode
+  # ReadWriteOnce: Single node access (most common)
+  # ReadWriteMany: Multi-node access (requires compatible storage class)
+  accessModes:
+    - ReadWriteOnce
+
+  # Existing PVC
+  # If you want to use a pre-created PVC instead of dynamic provisioning
+  # existingClaim: "my-existing-shlink-pvc"
+
+  # Selector for specific PV binding
+  # selector:
+  #   matchLabels:
+  #     app: shlink
+  #     environment: production
+
+  # Data source from existing volume
+  # dataSource:
+  #   name: shlink-snapshot
+  #   kind: VolumeSnapshot
+  #   apiGroup: snapshot.storage.k8s.io
+
+# Resource limits (moderate for persistence scenario)
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+# Security contexts
+podSecurityContext:
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001 # Important for volume permissions
+  runAsNonRoot: true
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false # Required for writing to persistent volume
+  runAsNonRoot: true
+  runAsUser: 1001
+
+# === POSTGRESQL PERSISTENCE ===
+
+postgresql:
+  enabled: true
+  auth:
+    username: shlink
+    password: "CHANGE-THIS-PASSWORD"
+    database: shlink
+
+  primary:
+    persistence:
+      enabled: true
+
+      # PostgreSQL storage class (can differ from Shlink storage class)
+      storageClass: "default"
+
+      # Database size - consider your data growth
+      # Factors:
+      # - Short URLs: ~1KB per URL
+      # - Visits: ~500 bytes per visit
+      # Example: 1M URLs + 10M visits ≈ 6GB data
+      size: 50Gi
+
+      # Access mode
+      accessModes:
+        - ReadWriteOnce
+
+      # Existing claim for database
+      # existingClaim: "my-postgres-pvc"
+
+    # PostgreSQL resource limits
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+
+# === BACKUP CONSIDERATIONS ===
+# (These are annotations and can be used with backup tools)
+
+# Velero backup annotations
+podAnnotations:
+  backup.velero.io/backup-volumes: shlink-data
+  # pre.hook.backup.velero.io/command: '["/bin/sh", "-c", "shlink db:create-snapshot"]'
+  # post.hook.restore.velero.io/command: '["/bin/sh", "-c", "shlink db:restore-snapshot"]'
+# Example: Database backup with pg_dump (via CronJob - not included in this chart)
+# Add this configuration to your cluster separately:
+# ---
+# apiVersion: batch/v1
+# kind: CronJob
+# metadata:
+#   name: shlink-db-backup
+# spec:
+#   schedule: "0 2 * * *"  # Daily at 2 AM
+#   jobTemplate:
+#     spec:
+#       template:
+#         spec:
+#           containers:
+#           - name: backup
+#             image: postgres:16
+#             command:
+#             - sh
+#             - -c
+#             - |
+#               pg_dump -h shlink-postgresql -U shlink shlink | \
+#               gzip > /backup/shlink-$(date +%Y%m%d-%H%M%S).sql.gz
+#             volumeMounts:
+#             - name: backup
+#               mountPath: /backup
+#           volumes:
+#           - name: backup
+#             persistentVolumeClaim:
+#               claimName: shlink-backup-pvc
+#           restartPolicy: OnFailure
+
+# === STORAGE CLASS EXAMPLES ===
+#
+# For reference, here are common storage class configurations:
+#
+# AWS EBS (gp3):
+# ---
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: fast-ssd
+# provisioner: ebs.csi.aws.com
+# parameters:
+#   type: gp3
+#   iops: "3000"
+#   throughput: "125"
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+#
+# NFS:
+# ---
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: nfs-client
+# provisioner: nfs-client
+# parameters:
+#   archiveOnDelete: "true"
+# volumeBindingMode: Immediate
+# allowVolumeExpansion: true
+#
+# Longhorn:
+# ---
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: longhorn
+# provisioner: driver.longhorn.io
+# parameters:
+#   numberOfReplicas: "3"
+#   staleReplicaTimeout: "30"
+# volumeBindingMode: Immediate
+# allowVolumeExpansion: true

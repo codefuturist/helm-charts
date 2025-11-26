@@ -1,0 +1,12 @@
+{{- if and .Values.webClient.enabled .Values.webClient.servers }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "shlink.webClientConfigMapName" . }}
+  namespace: {{ include "shlink.namespace" . }}
+  labels:
+    {{- include "shlink.webClientLabels" . | nindent 4 }}
+data:
+  servers.json: |
+    {{- .Values.webClient.servers | toJson | nindent 4 }}
+{{- end }}

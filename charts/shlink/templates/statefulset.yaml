@@ -1,0 +1,186 @@
+{{- include "shlink.validateValues" . -}}
+{{- if eq .Values.controller.type "statefulset" }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "shlink.fullname" . }}
+  namespace: {{ include "shlink.namespace" . }}
+  labels:
+    {{- include "shlink.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "shlink.fullname" . }}
+  replicas: {{ .Values.controller.replicas }}
+  {{- with .Values.controller.podManagementPolicy }}
+  podManagementPolicy: {{ . }}
+  {{- end }}
+  {{- with .Values.controller.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "shlink.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if not .Values.shlink.existingSecret }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "shlink.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "shlink.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: shlink
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: SHLINK_DEFAULT_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "shlink.secretName" . }}
+                  key: {{ .Values.shlink.existingSecretEmailKey }}
+            - name: SHLINK_DEFAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "shlink.secretName" . }}
+                  key: {{ .Values.shlink.existingSecretPasswordKey }}
+            {{- if .Values.shlink.disablePostfix }}
+            - name: SHLINK_DISABLE_POSTFIX
+              value: "1"
+            {{- end }}
+            {{- if .Values.shlink.replaceServersOnStartup }}
+            - name: SHLINK_REPLACE_SERVERS_ON_STARTUP
+              value: "True"
+            {{- end }}
+            {{- if .Values.shlink.scriptName }}
+            - name: SCRIPT_NAME
+              value: {{ .Values.shlink.scriptName | quote }}
+            {{- end }}
+            {{- if or .Values.shlink.serverDefinitions .Values.shlink.existingServerDefinitionsConfigMap }}
+            - name: SHLINK_SERVER_JSON_FILE
+              value: "/shlink4/servers.json"
+            {{- end }}
+            {{- if or .Values.shlink.pgpassFile .Values.shlink.existingPgpassSecret }}
+            - name: PGPASS_FILE
+              value: "/var/lib/shlink/.pgpass"
+            {{- end }}
+            - name: GUNICORN_THREADS
+              value: {{ .Values.shlink.gunicorn.threads | quote }}
+            {{- if .Values.shlink.gunicorn.accessLogfile }}
+            - name: GUNICORN_ACCESS_LOGFILE
+              value: {{ .Values.shlink.gunicorn.accessLogfile | quote }}
+            {{- end }}
+            - name: GUNICORN_LIMIT_REQUEST_LINE
+              value: {{ .Values.shlink.gunicorn.limitRequestLine | quote }}
+            {{- if .Values.shlink.smtp.enabled }}
+            {{- if .Values.shlink.smtp.server }}
+            - name: SHLINK_CONFIG_MAIL_SERVER
+              value: {{ .Values.shlink.smtp.server | quote }}
+            {{- end }}
+            {{- if .Values.shlink.smtp.port }}
+            - name: SHLINK_CONFIG_MAIL_PORT
+              value: {{ .Values.shlink.smtp.port | quote }}
+            {{- end }}
+            - name: SHLINK_CONFIG_MAIL_USE_TLS
+              value: {{ .Values.shlink.smtp.useTLS | quote }}
+            - name: SHLINK_CONFIG_MAIL_USE_SSL
+              value: {{ .Values.shlink.smtp.useSSL | quote }}
+            {{- if or .Values.shlink.smtp.username .Values.shlink.smtp.existingSecret }}
+            - name: SHLINK_CONFIG_MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "shlink.smtpSecretName" . }}
+                  key: {{ .Values.shlink.smtp.existingSecretUsernameKey }}
+            {{- end }}
+            {{- if or .Values.shlink.smtp.password .Values.shlink.smtp.existingSecret }}
+            - name: SHLINK_CONFIG_MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "shlink.smtpSecretName" . }}
+                  key: {{ .Values.shlink.smtp.existingSecretPasswordKey }}
+            {{- end }}
+            {{- if .Values.shlink.smtp.fromAddress }}
+            - name: SHLINK_CONFIG_MAIL_FROM
+              value: {{ .Values.shlink.smtp.fromAddress | quote }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.shlink.ldap.enabled }}
+            {{- if .Values.shlink.ldap.server }}
+            - name: SHLINK_CONFIG_LDAP_SERVER_URI
+              value: {{ .Values.shlink.ldap.server | quote }}
+            {{- end }}
+            {{- if .Values.shlink.ldap.bindDN }}
+            - name: SHLINK_CONFIG_LDAP_BIND_DN
+              value: {{ .Values.shlink.ldap.bindDN | quote }}
+            {{- end }}
+            {{- if or .Values.shlink.ldap.bindPassword .Values.shlink.ldap.existingSecret }}
+            - name: SHLINK_CONFIG_LDAP_BIND_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "shlink.ldapSecretName" . }}
+                  key: {{ .Values.shlink.ldap.existingSecretPasswordKey }}
+            {{- end }}
+            {{- end }}
+            {{- range $key, $value := .Values.shlink.config }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: shlink-data
+              mountPath: /var/lib/shlink
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+  {{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
+  volumeClaimTemplates:
+    - metadata:
+        name: shlink-data
+        labels:
+          {{- include "shlink.labels" . | nindent 10 }}
+        {{- with .Values.persistence.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - {{ .Values.persistence.accessMode }}
+        {{- if .Values.persistence.storageClassName }}
+        storageClassName: {{ .Values.persistence.storageClassName }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,234 @@
+{{- include "shlink.validateValues" . -}}
+{{- if eq .Values.controller.type "deployment" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "shlink.fullname" . }}
+  namespace: {{ include "shlink.namespace" . }}
+  labels:
+    {{- include "shlink.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.controller.replicaCount }}
+  {{- with .Values.controller.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "shlink.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if not .Values.shlink.existingSecret }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "shlink.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "shlink.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.runtimeClassName }}
+      runtimeClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.controller.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsPolicy }}
+      dnsPolicy: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hostAliases }}
+      hostAliases:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.initContainers }}
+      initContainers:
+        {{- toYaml .Values.initContainers | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: shlink
+          image: {{ include "shlink.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if or .Values.controller.command .Values.diagnosticMode.enabled }}
+          command:
+            {{- if .Values.diagnosticMode.enabled }}
+            {{- toYaml .Values.diagnosticMode.command | nindent 12 }}
+            {{- else }}
+            {{- toYaml .Values.controller.command | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.controller.args .Values.diagnosticMode.enabled }}
+          args:
+            {{- if .Values.diagnosticMode.enabled }}
+            {{- toYaml .Values.diagnosticMode.args | nindent 12 }}
+            {{- else }}
+            {{- toYaml .Values.controller.args | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.controller.workingDir }}
+          workingDir: {{ . }}
+          {{- end }}
+          env:
+            # Database Configuration
+            - name: DB_DRIVER
+              value: {{ .Values.database.type | quote }}
+            - name: DB_HOST
+              value: {{ include "shlink.databaseHost" . | quote }}
+            - name: DB_PORT
+              value: {{ include "shlink.databasePort" . | quote }}
+            - name: DB_NAME
+              value: {{ include "shlink.databaseName" . | quote }}
+            - name: DB_USER
+              value: {{ include "shlink.databaseUser" . | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "shlink.databaseSecretName" . }}
+                  {{- if .Values.postgresql.enabled }}
+                  key: password
+                  {{- else if .Values.database.existingSecret }}
+                  key: {{ .Values.database.existingSecretPasswordKey }}
+                  {{- else }}
+                  key: database-password
+                  {{- end }}
+            # Shlink Core Configuration
+            - name: DEFAULT_DOMAIN
+              value: {{ .Values.shlink.defaultDomain | quote }}
+            - name: DEFAULT_SCHEME
+              value: {{ .Values.shlink.defaultSchema | quote }}
+            {{- if .Values.shlink.initialApiKey }}
+            - name: INITIAL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "shlink.secretName" . }}
+                  key: {{ .Values.shlink.existingSecretApiKeyKey }}
+            {{- end }}
+            {{- if .Values.shlink.geoLiteLicenseKey }}
+            - name: GEOLITE_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "shlink.secretName" . }}
+                  key: {{ .Values.shlink.existingSecretGeoLiteKey }}
+            {{- end }}
+            - name: IS_HTTPS_ENABLED
+              value: {{ eq .Values.shlink.defaultSchema "https" | toString | quote }}
+            - name: ANONYMIZE_REMOTE_ADDR
+              value: {{ .Values.shlink.anonymizeRemoteAddr | toString | quote }}
+            - name: REDIRECTS_LOGGING_ENABLED
+              value: {{ .Values.shlink.redirectsLogging | toString | quote }}
+            - name: ORPHAN_VISITS_LOGGING_ENABLED
+              value: {{ .Values.shlink.orphanVisitsLogging | toString | quote }}
+            - name: DEFAULT_REDIRECT_STATUS_CODE
+              value: {{ .Values.shlink.redirect.statusCode | quote }}
+            - name: DEFAULT_REDIRECT_CACHE_LIFETIME
+              value: {{ .Values.shlink.redirect.cacheLifetime | quote }}
+            - name: DELETE_SHORT_URL_THRESHOLD
+              value: {{ .Values.shlink.deleteShortUrlThreshold | quote }}
+            {{- if .Values.shlink.redis.enabled }}
+            - name: REDIS_SERVERS
+              value: {{ .Values.shlink.redis.servers | quote }}
+            {{- end }}
+            {{- if .Values.shlink.urlShortener.domain.hostname }}
+            - name: URL_SHORTENER_DOMAIN_HOSTNAME
+              value: {{ .Values.shlink.urlShortener.domain.hostname | quote }}
+            {{- end }}
+            - name: TASK_WORKER_NUM
+              value: {{ .Values.shlink.worker.count | quote }}
+            {{- with .Values.shlink.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            {{- omit .Values.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.controller.lifecycle }}
+          lifecycle:
+            {{- toYaml .Values.controller.lifecycle | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: shlink-data
+              mountPath: /etc/shlink/data
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- if .Values.extraContainers }}
+        {{- toYaml .Values.extraContainers | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: shlink-data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "shlink.pvcName" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

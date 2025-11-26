@@ -1,0 +1,21 @@
+# CI Test: Diagnostic mode
+# Tests diagnostic mode configuration
+
+shlink:
+  defaultDomain: "short.example.com"
+  initialApiKey: "test-api-key"
+
+postgresql:
+  enabled: true
+  auth:
+    password: "test123"
+
+diagnosticMode:
+  enabled: true
+  command:
+    - sleep
+  args:
+    - "infinity"
+
+persistence:
+  enabled: false

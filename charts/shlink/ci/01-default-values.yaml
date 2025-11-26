@@ -1,0 +1,14 @@
+# CI Test: Default configuration with minimal settings
+# Tests basic deployment with all defaults
+
+shlink:
+  defaultDomain: "short.example.com"
+  defaultSchema: "http"
+
+postgresql:
+  enabled: true
+  auth:
+    password: "test123"
+
+persistence:
+  enabled: false

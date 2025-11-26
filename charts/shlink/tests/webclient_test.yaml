@@ -1,0 +1,86 @@
+suite: Shlink web client deployment
+templates:
+  - deployment-webclient.yaml
+  - configmap.yaml
+tests:
+  - it: injects SHLINK_SERVER_* env vars when default server is enabled
+    set:
+      webClient:
+        enabled: true
+        defaultServer:
+          enabled: true
+          url: https://short.example.com
+          apiKey: inline-key
+          name: Production
+          forwardCredentials: true
+        extraEnv:
+          - name: TZ
+            value: UTC
+    asserts:
+      - template: deployment-webclient.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SHLINK_SERVER_URL
+            value: https://short.example.com
+      - template: deployment-webclient.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SHLINK_SERVER_API_KEY
+            value: inline-key
+      - template: deployment-webclient.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SHLINK_SERVER_FORWARD_CREDENTIALS
+            value: "true"
+      - template: deployment-webclient.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TZ
+            value: UTC
+
+  - it: references API key via secret when apiKeySecretRef is provided
+    set:
+      webClient:
+        enabled: true
+        defaultServer:
+          enabled: true
+          url: https://short.example.com
+          apiKeySecretRef:
+            name: webclient-api
+            key: token
+    asserts:
+      - template: deployment-webclient.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SHLINK_SERVER_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: webclient-api
+                key: token
+
+  - it: only renders extra env when default server is disabled
+    set:
+      webClient:
+        enabled: true
+        defaultServer:
+          enabled: false
+        extraEnv:
+          - name: CUSTOM
+            value: value
+    asserts:
+      - template: deployment-webclient.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CUSTOM
+            value: value
+      - template: deployment-webclient.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SHLINK_SERVER_URL

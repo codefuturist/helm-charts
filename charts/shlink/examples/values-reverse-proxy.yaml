@@ -1,0 +1,297 @@
+# Shlink with Reverse Proxy Configuration
+# This example demonstrates advanced ingress configurations with path-based routing,
+# multiple domains, TLS, and various reverse proxy scenarios
+
+# Shlink backend configuration
+shlink:
+  defaultDomain: "go.company.com"
+  defaultSchema: "https"
+
+  # Allow redirects from multiple domains
+  # This is useful when you have multiple short domains
+  redirectsBaseUrlPath: "https://go.company.com"
+
+# Web client enabled
+webClient:
+  enabled: true
+  replicaCount: 2
+
+  # Configure multiple server connections
+  servers:
+    - name: "Production (go.company.com)"
+      url: "https://go.company.com"
+      apiKey: ""
+    - name: "Production (s.company.com)"
+      url: "https://s.company.com"
+      apiKey: ""
+    - name: "Staging"
+      url: "https://shlink-staging.company.com"
+      apiKey: ""
+
+# Controller configuration
+controller:
+  replicaCount: 2
+
+# Service configuration
+service:
+  backend:
+    type: ClusterIP
+    port: 8080
+    annotations:
+      # Service mesh annotations (if using Istio/Linkerd)
+      # linkerd.io/inject: enabled
+      # sidecar.istio.io/inject: "true"
+
+  webClient:
+    type: ClusterIP
+    port: 80
+
+# === INGRESS CONFIGURATION (Primary Focus) ===
+
+ingress:
+  # Backend API ingress with multiple domains
+  backend:
+    enabled: true
+    className: "nginx"
+
+    annotations:
+      # TLS and certificate management
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+      # SSL/TLS settings
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+
+      # CORS settings (if needed for API access)
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "https://shlink.company.com"
+      nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+      nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,X-Api-Key"
+
+      # Rate limiting
+      nginx.ingress.kubernetes.io/rate-limit: "100"
+      nginx.ingress.kubernetes.io/rate-limit-burst: "200"
+
+      # Request size limits
+      nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+
+      # Timeout settings
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "30"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
+
+      # Custom headers
+      nginx.ingress.kubernetes.io/configuration-snippet: |
+        more_set_headers "X-Frame-Options: DENY";
+        more_set_headers "X-Content-Type-Options: nosniff";
+        more_set_headers "X-XSS-Protection: 1; mode=block";
+        more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+
+      # External DNS (if using external-dns)
+      external-dns.alpha.kubernetes.io/hostname: "go.company.com,s.company.com"
+
+    hosts:
+      # Primary short URL domain
+      - host: go.company.com
+        paths:
+          - path: /
+            pathType: Prefix
+
+      # Alternative short URL domain
+      - host: s.company.com
+        paths:
+          - path: /
+            pathType: Prefix
+
+      # API-specific subdomain (optional)
+      - host: api.go.company.com
+        paths:
+          - path: /
+            pathType: Prefix
+
+    tls:
+      - secretName: shlink-go-tls
+        hosts:
+          - go.company.com
+      - secretName: shlink-s-tls
+        hosts:
+          - s.company.com
+      - secretName: shlink-api-tls
+        hosts:
+          - api.go.company.com
+
+  # Web client ingress
+  webClient:
+    enabled: true
+    className: "nginx"
+
+    annotations:
+      # TLS and certificate management
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+      # SSL/TLS settings
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+      # Security headers
+      nginx.ingress.kubernetes.io/configuration-snippet: |
+        more_set_headers "X-Frame-Options: SAMEORIGIN";
+        more_set_headers "X-Content-Type-Options: nosniff";
+        more_set_headers "X-XSS-Protection: 1; mode=block";
+        more_set_headers "Content-Security-Policy: default-src 'self' https://go.company.com https://s.company.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'";
+
+      # OAuth2 authentication (if using oauth2-proxy)
+      # nginx.ingress.kubernetes.io/auth-url: "https://oauth2-proxy.company.com/oauth2/auth"
+      # nginx.ingress.kubernetes.io/auth-signin: "https://oauth2-proxy.company.com/oauth2/start?rd=$escaped_request_uri"
+
+      # External DNS
+      external-dns.alpha.kubernetes.io/hostname: "shlink.company.com"
+
+    hosts:
+      - host: shlink.company.com
+        paths:
+          - path: /
+            pathType: Prefix
+
+    tls:
+      - secretName: shlink-webclient-tls
+        hosts:
+          - shlink.company.com
+
+# === PATH-BASED ROUTING EXAMPLE ===
+# If you want to host Shlink under a subpath instead of a subdomain:
+#
+# ingress:
+#   backend:
+#     enabled: true
+#     className: "nginx"
+#     annotations:
+#       nginx.ingress.kubernetes.io/rewrite-target: /$2
+#       nginx.ingress.kubernetes.io/use-regex: "true"
+#     hosts:
+#       - host: company.com
+#         paths:
+#           - path: /s(/|$)(.*)
+#             pathType: ImplementationSpecific
+#
+#   webClient:
+#     enabled: true
+#     className: "nginx"
+#     annotations:
+#       nginx.ingress.kubernetes.io/rewrite-target: /$2
+#       nginx.ingress.kubernetes.io/use-regex: "true"
+#     hosts:
+#       - host: company.com
+#         paths:
+#           - path: /shlink(/|$)(.*)
+#             pathType: ImplementationSpecific
+
+# Persistence enabled
+persistence:
+  enabled: true
+  storageClass: "default"
+  size: 10Gi
+
+# Resource limits
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+# Security contexts
+podSecurityContext:
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  runAsNonRoot: true
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1001
+
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    username: shlink
+    password: "CHANGE-THIS-PASSWORD"
+    database: shlink
+
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "default"
+      size: 20Gi
+# === EXTERNAL LOAD BALANCER EXAMPLE ===
+# If you're using an external load balancer (not ingress controller):
+#
+# service:
+#   backend:
+#     type: LoadBalancer
+#     port: 443
+#     targetPort: 8080
+#     annotations:
+#       # AWS example
+#       service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+#       service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+#       service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:..."
+#       service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+#
+#       # GCP example
+#       cloud.google.com/load-balancer-type: "External"
+#
+#       # Azure example
+#       service.beta.kubernetes.io/azure-load-balancer-internal: "false"
+#
+#   webClient:
+#     type: LoadBalancer
+#     port: 443
+#     targetPort: 80
+#     annotations:
+#       service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+
+# === CLOUDFLARE TUNNEL EXAMPLE ===
+# If you're using Cloudflare Tunnel instead of ingress:
+#
+# 1. Install cloudflared in your cluster
+# 2. Create a tunnel: cloudflared tunnel create shlink
+# 3. Configure the tunnel:
+#
+# cloudflared:
+#   config:
+#     tunnel: <tunnel-id>
+#     credentials-file: /etc/cloudflared/creds.json
+#     ingress:
+#       - hostname: go.company.com
+#         service: http://shlink:8080
+#       - hostname: s.company.com
+#         service: http://shlink:8080
+#       - hostname: shlink.company.com
+#         service: http://shlink-webclient:80
+#       - service: http_status:404
+
+# === TRAEFIK INGRESS EXAMPLE ===
+# If you're using Traefik instead of nginx:
+#
+# ingress:
+#   backend:
+#     enabled: true
+#     className: "traefik"
+#     annotations:
+#       traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+#       traefik.ingress.kubernetes.io/router.tls: "true"
+#       traefik.ingress.kubernetes.io/router.tls.certresolver: "letsencrypt"
+#       traefik.ingress.kubernetes.io/router.middlewares: "default-headers@kubernetescrd"
+#     hosts:
+#       - host: go.company.com
+#         paths:
+#           - path: /
+#             pathType: Prefix

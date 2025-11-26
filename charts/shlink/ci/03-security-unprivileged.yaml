@@ -1,0 +1,41 @@
+# CI Test: Enhanced security configuration
+# Tests security contexts, network policies, and RBAC
+
+shlink:
+  defaultDomain: "short.example.com"
+  initialApiKey: "test-api-key"
+
+postgresql:
+  enabled: true
+  auth:
+    password: "test123"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 5050
+  fsGroup: 5050
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 5050
+  capabilities:
+    drop:
+      - ALL
+
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+
+serviceAccount:
+  create: true
+
+rbac:
+  create: true
+
+persistence:
+  enabled: false

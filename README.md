@@ -181,3 +181,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Maintained by:** [@codefuturist](https://github.com/codefuturist)  
 **Repository:** [github.com/codefuturist/helm-charts](https://github.com/codefuturist/helm-charts)
+https://github.com/rancher/local-path-provisioner/blob/master/deploy/chart/local-path-provisioner/README.md

@@ -1,0 +1,64 @@
+suite: Shlink services
+templates:
+  - service.yaml
+  - service-webclient.yaml
+tests:
+  - it: renders backend ClusterIP service by default
+    asserts:
+      - template: service.yaml
+        isKind:
+          of: Service
+      - template: service.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-shlink
+      - template: service.yaml
+        equal:
+          path: spec.type
+          value: ClusterIP
+      - template: service.yaml
+        equal:
+          path: spec.ports[0].port
+          value: 8080
+
+  - it: renders web client service when enabled
+    set:
+      webClient:
+        enabled: true
+    asserts:
+      - template: service-webclient.yaml
+        hasDocuments:
+          count: 1
+      - template: service-webclient.yaml
+        equal:
+          path: spec.ports[0].port
+          value: 80
+
+  - it: omits web client service when disabled
+    set:
+      webClient:
+        enabled: false
+    asserts:
+      - template: service-webclient.yaml
+        hasDocuments:
+          count: 0
+
+  - it: allows configuring NodePort for web client service
+    set:
+      webClient:
+        enabled: true
+      service:
+        webClient:
+          type: NodePort
+          port: 80
+          targetPort: 8080
+          nodePort: 32080
+    asserts:
+      - template: service-webclient.yaml
+        equal:
+          path: spec.type
+          value: NodePort
+      - template: service-webclient.yaml
+        equal:
+          path: spec.ports[0].nodePort
+          value: 32080

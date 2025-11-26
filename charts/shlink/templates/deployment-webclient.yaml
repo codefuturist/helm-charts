@@ -1,0 +1,158 @@
+{{- if .Values.webClient.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "shlink.fullname" . }}-webclient
+  namespace: {{ include "shlink.namespace" . }}
+  labels:
+    {{- include "shlink.webClientLabels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.webClient.autoscaling.enabled }}
+  replicas: {{ .Values.webClient.replicaCount }}
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "shlink.webClientSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "shlink.webClientSelectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "shlink.serviceAccountName" . }}
+      {{- with .Values.webClient.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsPolicy }}
+      dnsPolicy: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hostAliases }}
+      hostAliases:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: webclient
+          image: {{ include "shlink.webClientImage" . }}
+          imagePullPolicy: {{ .Values.webClient.image.pullPolicy }}
+          {{- with .Values.webClient.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command:
+            {{- toYaml .Values.diagnosticMode.command | nindent 12 }}
+          args:
+            {{- toYaml .Values.diagnosticMode.args | nindent 12 }}
+          {{- end }}
+          {{- if .Values.webClient.defaultServer.enabled }}
+          env:
+            - name: SHLINK_SERVER_URL
+              value: {{ .Values.webClient.defaultServer.url | quote }}
+            - name: SHLINK_SERVER_API_KEY
+              {{- if .Values.webClient.defaultServer.apiKeySecretRef.name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.webClient.defaultServer.apiKeySecretRef.name }}
+                  key: {{ default "apiKey" .Values.webClient.defaultServer.apiKeySecretRef.key }}
+              {{- else }}
+              value: {{ .Values.webClient.defaultServer.apiKey | quote }}
+              {{- end }}
+            - name: SHLINK_SERVER_NAME
+              value: {{ default "Shlink" .Values.webClient.defaultServer.name | quote }}
+            - name: SHLINK_SERVER_FORWARD_CREDENTIALS
+              value: {{ default false .Values.webClient.defaultServer.forwardCredentials | toString | quote }}
+            {{- with .Values.webClient.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- else }}
+            {{- with .Values.webClient.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          {{- if not .Values.diagnosticMode.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+          {{- end }}
+          {{- with .Values.webClient.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.webClient.servers }}
+            - name: servers-config
+              mountPath: /usr/share/nginx/html/servers.json
+              subPath: servers.json
+              readOnly: true
+            {{- end }}
+      volumes:
+        {{- if .Values.webClient.servers }}
+        - name: servers-config
+          configMap:
+            name: {{ include "shlink.webClientConfigMapName" . }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

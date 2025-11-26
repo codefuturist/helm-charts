@@ -1,0 +1,312 @@
+# Production Shlink Configuration
+# This example demonstrates a production-ready setup with high availability,
+# monitoring, persistence, and proper security
+
+# Shlink backend configuration
+shlink:
+  defaultDomain: "short.yourcompany.com"
+  defaultSchema: "https"
+
+  # Enable GeoLite2 for geolocation features
+  geoLiteLicenseKey: "YOUR_GEOLITE_LICENSE_KEY"
+
+  # Security settings
+  anonymizeRemoteAddr: true
+  redirectsLogging: true
+  orphanVisitsLogging: true
+
+  # Redis for caching (recommended for production)
+  redis:
+    enabled: true
+    servers: "redis-master:6379"
+
+# Web client configuration
+webClient:
+  enabled: true
+  replicaCount: 3
+
+  # Pre-configure server connections
+  servers:
+    - name: "Production"
+      url: "https://short.yourcompany.com"
+      apiKey: "" # Add API key after deployment
+
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+# Controller configuration
+controller:
+  replicaCount: 3
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+# Service configuration
+service:
+  backend:
+    type: ClusterIP
+    port: 8080
+
+  webClient:
+    type: ClusterIP
+    port: 80
+
+# Ingress configuration with TLS
+ingress:
+  backend:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    hosts:
+      - host: short.yourcompany.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: shlink-api-tls
+        hosts:
+          - short.yourcompany.com
+
+  webClient:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    hosts:
+      - host: shlink.yourcompany.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: shlink-webclient-tls
+        hosts:
+          - shlink.yourcompany.com
+
+# Persistence enabled
+persistence:
+  enabled: true
+  storageClass: "fast-ssd" # Use your storage class
+  size: 10Gi
+  accessModes:
+    - ReadWriteOnce
+
+# Security contexts
+podSecurityContext:
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1001
+  allowPrivilegeEscalation: false
+
+# Resource limits
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Health probes (already configured properly in values.yaml)
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 0
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 60 # Allow up to 5 minutes for startup
+
+# Pod scheduling
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - shlink
+          topologyKey: kubernetes.io/hostname
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: shlink
+
+# Monitoring
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      prometheus: kube-prometheus
+
+  prometheusRule:
+    enabled: true
+    labels:
+      prometheus: kube-prometheus
+    rules:
+      - alert: ShlinkHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate in Shlink"
+          description: "Shlink error rate is above 5% for more than 5 minutes"
+
+      - alert: ShlinkDown
+        expr: up{job="shlink"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Shlink is down"
+          description: "Shlink has been down for more than 2 minutes"
+
+# Autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+      selectPolicy: Min
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+        - type: Pods
+          value: 4
+          periodSeconds: 30
+      selectPolicy: Max
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# PostgreSQL configuration (production-ready)
+postgresql:
+  enabled: true
+  auth:
+    username: shlink
+    password: "CHANGE-THIS-TO-A-STRONG-PASSWORD"
+    database: shlink
+
+  architecture: standalone # or "replication" for HA
+
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "fast-ssd"
+      size: 50Gi
+
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+      requests:
+        cpu: 1000m
+        memory: 1Gi
+
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1001
+
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+      runAsNonRoot: true
+
+# Network Policy
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+    - to: # Allow DNS
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+        - podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53

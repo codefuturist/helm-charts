@@ -1,0 +1,44 @@
+# CI test configuration: Container configuration options
+# Tests: External database, Redis, and advanced settings
+
+shlink:
+  defaultDomain: "short.example.com"
+  defaultSchema: "https"
+  initialApiKey: "ci-test-api-key"
+
+  # Redis configuration
+  redis:
+    enabled: true
+    servers: "redis-master:6379"
+
+  # GeoLite configuration
+  geoLiteLicenseKey: "test-license-key"
+
+  # Security and logging
+  anonymizeRemoteAddr: true
+  redirectsLogging: true
+  orphanVisitsLogging: false
+
+# External database configuration test
+database:
+  type: "postgresql"
+  host: "postgresql.default.svc.cluster.local"
+  port: 5432
+  name: "shlink"
+  user: "testuser"
+  password: "testpassword"
+
+postgresql:
+  enabled: false
+
+controller:
+  type: deployment
+  replicaCount: 1
+
+persistence:
+  enabled: false
+
+service:
+  backend:
+    type: ClusterIP
+    port: 8080

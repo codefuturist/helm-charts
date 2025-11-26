@@ -1,0 +1,108 @@
+# Example values for migrating the provided docker-compose stack to Kubernetes with Traefik
+#
+# Prerequisites:
+#   kubectl create secret generic shlink-credentials \
+#     --from-literal=initial-api-key="replace-me" \
+#     --from-literal=apiKey="replace-me"
+#   kubectl create secret generic shlink-db \
+#     --from-literal=username="shlink" \
+#     --from-literal=password="s.pandia.io"
+#   kubectl create secret tls link-pandia-tls --cert=... --key=...
+#   kubectl create secret tls shlink-pandia-tls --cert=... --key=...
+#
+# Replace hostnames, passwords, and TLS secrets with your own values.
+
+shlink:
+  defaultDomain: "link.pandia.io"
+  defaultSchema: "https"
+  existingSecret: "shlink-credentials"
+  existingSecretApiKeyKey: "initial-api-key"
+  extraEnv:
+    - name: TZ
+      value: "Europe/Zurich"
+
+# Use the external PostgreSQL instance defined in the compose file
+postgresql:
+  enabled: false
+
+database:
+  type: "postgres"
+  host: "postgres.default.svc.cluster.local"
+  port: 5432
+  name: "shlink"
+  user: "shlink"
+  existingSecret: "shlink-db"
+  existingSecretUserKey: "username"
+  existingSecretPasswordKey: "password"
+
+webClient:
+  enabled: true
+  defaultServer:
+    enabled: true
+    name: "Production"
+    url: "https://link.pandia.io"
+    apiKeySecretRef:
+      name: "shlink-credentials"
+      key: "apiKey"
+    forwardCredentials: false
+  extraEnv:
+    - name: TZ
+      value: "Europe/Zurich"
+
+service:
+  backend:
+    type: ClusterIP
+    port: 8080
+  webClient:
+    type: ClusterIP
+    port: 80
+
+ingress:
+  backend:
+    enabled: true
+    className: "traefik"
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.middlewares: "default-chain@file"
+    hosts:
+      - host: "link.pandia.io"
+        paths:
+          - path: "/"
+            pathType: Prefix
+    tls:
+      - secretName: "link-pandia-tls"
+        hosts:
+          - "link.pandia.io"
+  webClient:
+    enabled: true
+    className: "traefik"
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.middlewares: "default-chain@file"
+    hosts:
+      - host: "shlink.pandia.io"
+        paths:
+          - path: "/"
+            pathType: Prefix
+    tls:
+      - secretName: "shlink-pandia-tls"
+        hosts:
+          - "shlink.pandia.io"
+
+persistence:
+  enabled: true
+  size: 1Gi
+
+monitoring:
+  serviceMonitor:
+    enabled: false
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi

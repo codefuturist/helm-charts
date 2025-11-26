@@ -394,3 +394,4 @@ Generic helm chart for all kind of applications
 | backup.includedNamespaces | tpl/list | `[ {{ include "application.namespace" $ }} ]` | List of namespaces to include objects from. |
 | backup.includedResources | list | `nil` | List of resource types to include in the backup. |
 | backup.excludedResources | list | `nil` | List of resource types to exclude from the backup. |
+
