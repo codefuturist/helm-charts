@@ -1,0 +1,73 @@
+# Minimal production values for Home Assistant on k3s-prod
+# Using defaults from chart where possible to avoid schema conflicts
+
+# Image - specific version for reproducibility
+image:
+  tag: "2024.11.3"
+
+# Single instance - use Deployment (avoids StatefulSet schema issues)
+replicaCount: 1
+controller:
+  type: Deployment
+
+strategy:
+  type: Recreate
+
+# Use emptyDir for temporary storage (restart loses data)
+persistence:
+  config:
+    enabled: false
+
+# Service
+service:
+  type: ClusterIP
+  port: 8123
+
+# Ingress
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  hosts:
+    - host: homeassistant.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: homeassistant-tls
+      hosts:
+        - homeassistant.example.com
+
+# Database
+database:
+  type: sqlite
+
+# Security - non-privileged mode
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - NET_ADMIN
+      - NET_RAW
+  privileged: false
+
+# Resources
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 1Gi
+
+# Disable probes to avoid schema conflicts
+# ProbesNotSet
+
+# Disable code server
+codeserver:
+  enabled: false

@@ -1,0 +1,130 @@
+# Production values for Home Assistant on k3s-prod cluster
+# Secure, non-privileged configuration following best practices
+
+# Image configuration
+image:
+  repository: ghcr.io/home-assistant/home-assistant
+  pullPolicy: IfNotPresent
+  tag: "2024.11.3" # Specific version for reproducibility
+
+# Single instance deployment
+replicaCount: 1
+
+# Controller configuration
+controller:
+  type: StatefulSet # Required for persistent volume support
+
+strategy:
+  type: RollingUpdate # StatefulSet uses RollingUpdate
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8123
+  annotations: {}
+
+# Ingress configuration (adjust hostname as needed)
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    # WebSocket support for Home Assistant
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  hosts:
+    - host: homeassistant.pandia.io # CHANGE THIS
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: homeassistant-tls
+      hosts:
+        - homeassistant.pandia.io # CHANGE THIS
+
+# Persistence configuration
+persistence:
+  config:
+    enabled: true
+    # Common OpenEBS storage classes: openebs-hostpath, openebs-lvmpv, openebs-jiva-default
+    # Use 'kubectl get sc' to see available storage classes in your cluster
+    storageClassName: openebs-hostpath
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    retain: true
+
+# Database - using default SQLite for simplicity
+database:
+  type: sqlite
+
+# Home Assistant environment
+homeassistant:
+  env:
+    TZ: "UTC" # CHANGE THIS to your timezone
+
+  # Basic configuration for reverse proxy
+  configuration:
+    http:
+      use_x_forwarded_for: true
+      trusted_proxies:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+    logger:
+      default: info
+
+# Security Context - NON-PRIVILEGED configuration
+podSecurityContext:
+  runAsNonRoot: false # Home Assistant needs root for device access
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - NET_ADMIN # Network discovery (SSDP, mDNS)
+      - NET_RAW # Ping integration, network scanning
+      # Only add SYS_ADMIN if you need specific hardware access
+      # - SYS_ADMIN
+  readOnlyRootFilesystem: false
+  privileged: false # SECURE: No privileged mode
+
+# Resource allocation - minimal for scheduling
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 1Gi # Prevent memory leaks
+
+# Probes - disabled to avoid schema conflicts with StatefulSet
+# Home Assistant will restart on failure due to initial setup
+livenessProbe:
+  enabled: false
+
+readinessProbe:
+  enabled: false
+
+startupProbe:
+  enabled: false
+
+# Disable add-ons for minimal footprint
+codeserver:
+  enabled: false
+
+# Node affinity (optional - uncomment if you have specific hardware on certain nodes)
+# nodeSelector:
+#   kubernetes.io/hostname: your-node-name
+
+# Tolerations (optional - for node taints)
+tolerations: []
+
+# Affinity rules (optional - for pod placement)
+affinity: {}
