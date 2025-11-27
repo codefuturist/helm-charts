@@ -322,13 +322,12 @@ deployment:
 
   # -- (object) Resource limits and requests
   # @section -- Deployment Parameters
+  # Minimal requests to allow scheduling, no limits to allow bursting
   resources:
-    limits:
-      cpu: 1000m
-      memory: 1Gi
+    limits: {}
     requests:
-      cpu: 250m
-      memory: 256Mi
+      cpu: 10m
+      memory: 128Mi
 
   # -- (object) Liveness probe configuration
   # @section -- Deployment Parameters
@@ -834,13 +833,12 @@ backup:
 
   # -- (object) Backup resources
   # @section -- Backup Parameters
+  # Minimal requests to allow scheduling, no limits to allow bursting
   resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
+    limits: {}
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 10m
+      memory: 64Mi
 
   # -- (object) Backup persistence configuration
   # @section -- Backup Parameters
@@ -934,13 +932,12 @@ backup:
         pullPolicy: IfNotPresent
 
       # -- (object) WAL-G resources
+      # Minimal requests to allow scheduling, no limits to allow bursting
       resources:
-        limits:
-          cpu: 200m
-          memory: 256Mi
+        limits: {}
         requests:
-          cpu: 50m
-          memory: 64Mi
+          cpu: 10m
+          memory: 32Mi
 
       # -- (object) Additional environment variables for WAL-G
       env: {}
@@ -956,13 +953,12 @@ backup:
         pullPolicy: IfNotPresent
 
       # -- (object) pgBackRest resources
+      # Minimal requests to allow scheduling, no limits to allow bursting
       resources:
-        limits:
-          cpu: 200m
-          memory: 256Mi
+        limits: {}
         requests:
-          cpu: 50m
-          memory: 64Mi
+          cpu: 10m
+          memory: 32Mi
 
       # -- (object) pgBackRest configuration
       config: {}
@@ -1233,13 +1229,12 @@ metrics:
 
   # -- (object) Metrics exporter resources
   # @section -- Metrics Parameters
+  # Minimal requests to allow scheduling, no limits to allow bursting
   resources:
-    limits:
-      cpu: 100m
-      memory: 128Mi
+    limits: {}
     requests:
-      cpu: 50m
-      memory: 64Mi
+      cpu: 5m
+      memory: 32Mi
 
   # -- (object) Custom queries for metrics
   # @section -- Metrics Parameters
@@ -1283,13 +1278,12 @@ pgbouncer:
 
   # -- (object) PgBouncer resources
   # @section -- PgBouncer Parameters
+  # Minimal requests to allow scheduling, no limits to allow bursting
   resources:
-    limits:
-      cpu: 500m
-      memory: 256Mi
+    limits: {}
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 10m
+      memory: 32Mi
 
 # =====================================================================
 # Service Mesh Integration
@@ -1410,13 +1404,12 @@ userManagement:
     podAnnotations: {}
 
     # -- (object) Resources for the sync job container
+    # Minimal requests to allow scheduling, no limits to allow bursting
     resources:
       requests:
-        cpu: 10m
-        memory: 32Mi
-      limits:
-        cpu: 100m
-        memory: 128Mi
+        cpu: 5m
+        memory: 16Mi
+      limits: {}
 
 # =====================================================================
 # Extra Objects

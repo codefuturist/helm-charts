@@ -1,0 +1,37 @@
+suite: paperless-service
+templates:
+  - service.yaml
+tests:
+  - it: renders default ClusterIP service
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0].port
+          value: 80
+      - equal:
+          path: spec.ports[0].targetPort
+          value: http
+
+  - it: configures NodePort options when requested
+    set:
+      service.type: NodePort
+      service.port: 8080
+      service.nodePort: 32080
+      service.externalTrafficPolicy: Local
+    asserts:
+      - equal:
+          path: spec.type
+          value: NodePort
+      - equal:
+          path: spec.ports[0].port
+          value: 8080
+      - equal:
+          path: spec.ports[0].nodePort
+          value: 32080
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local

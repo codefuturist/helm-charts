@@ -260,13 +260,12 @@ codeserver:
   env:
     PASSWORD: "" # Leave empty to generate random password
   # -- (object) Resources for code-server
+  # Minimal requests to allow scheduling, no limits to allow bursting
   resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
+    limits: {}
     requests:
-      cpu: 100m
-      memory: 256Mi
+      cpu: 10m
+      memory: 64Mi
   ingress:
     # -- (bool) Enable separate ingress for code-server
     enabled: false
@@ -292,13 +291,12 @@ mqtt:
   # -- (object) MQTT configuration
   config: {}
   # -- (object) Resources for MQTT
+  # Minimal requests to allow scheduling, no limits to allow bursting
   resources:
-    limits:
-      cpu: 100m
-      memory: 128Mi
+    limits: {}
     requests:
-      cpu: 50m
-      memory: 64Mi
+      cpu: 10m
+      memory: 32Mi
   persistence:
     # -- (bool) Enable MQTT persistence
     enabled: false
@@ -384,15 +382,14 @@ securityContext:
 # Resources
 # =============================================================================
 
+# Minimal requests to allow scheduling, no limits to allow bursting
 resources:
   # -- (object) Resource limits
-  limits:
-    cpu: 2000m
-    memory: 2Gi
+  limits: {}
   # -- (object) Resource requests
   requests:
-    cpu: 500m
-    memory: 512Mi
+    cpu: 10m
+    memory: 128Mi
 
 # =============================================================================
 # Probes

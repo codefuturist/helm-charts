@@ -306,13 +306,12 @@ cronjob:
 
   # -- (object) Resource limits and requests.
   # @section -- CronJob Parameters
+  # Minimal requests to allow scheduling, no limits to allow bursting
   resources:
-    limits:
-      cpu: 1000m
-      memory: 512Mi
+    limits: {}
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 10m
+      memory: 64Mi
 
   # -- (object) Node selector for backup pods.
   # @section -- CronJob Parameters
@@ -401,13 +400,12 @@ metrics:
 
   # -- (object) Resource limits and requests for metrics exporter.
   # @section -- Metrics Parameters
+  # Minimal requests to allow scheduling, no limits to allow bursting
   resources:
-    limits:
-      cpu: 100m
-      memory: 128Mi
+    limits: {}
     requests:
-      cpu: 10m
-      memory: 32Mi
+      cpu: 5m
+      memory: 16Mi
 
   # -- (object) Node selector for metrics exporter.
   # @section -- Metrics Parameters

@@ -1,0 +1,192 @@
+# Example: MeTube with Reverse Proxy Configuration
+# This example demonstrates hosting MeTube under a subdirectory path
+# with optimized settings for reverse proxy environments
+
+metube:
+  # Reverse proxy configuration
+  # Host MeTube at https://example.com/metube
+  urlPrefix: "/metube"
+
+  # Download configuration
+  downloadMode: sequential
+
+  # Output template for organized downloads
+  outputTemplate: "%(uploader)s/%(title)s.%(ext)s"
+
+  # Default format selection
+  defaultFormat: "bestvideo[height<=1080]+bestaudio/best"
+
+  # yt-dlp options for better compatibility
+  ytdlOptions: |
+    {
+      "retries": 10,
+      "fragment_retries": 10,
+      "socket_timeout": 30,
+      "http_chunk_size": 10485760
+    }
+
+# Controller configuration
+controller:
+  type: deployment
+  replicas: 1
+
+# Resource limits
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Persistence for downloads
+persistence:
+  downloads:
+    enabled: true
+    size: 100Gi
+    storageClassName: "fast-ssd"
+    accessMode: ReadWriteOnce
+
+  temp:
+    enabled: true
+    size: 20Gi
+    accessMode: ReadWriteOnce
+
+# Ingress configuration for reverse proxy
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    # Enable HTTPS redirect
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # Certificate issuer (cert-manager)
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Rewrite target to remove path prefix
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # Allow large file uploads
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    # Increase timeouts for long downloads
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+  hosts:
+    - host: example.com
+      paths:
+        # Host at /metube/*
+        - path: /metube(/|$)(.*)
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: example-com-tls
+      hosts:
+        - example.com
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8081
+
+# Security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  capabilities:
+    drop:
+      - ALL
+
+# Network policy
+networkPolicy:
+  enabled: true
+  ingress:
+    # Allow traffic from ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8081
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow HTTPS for video downloads
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+
+# Monitoring with Prometheus
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    labels:
+      prometheus: kube-prometheus
+  prometheusRule:
+    enabled: true
+    rules:
+      - alert: MeTubeDown
+        expr: up{job="metube"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MeTube is down"
+          description: "MeTube has been down for more than 5 minutes"
+
+# Pod disruption budget
+pdb:
+  enabled: true
+  minAvailable: 1
+
+# Health probes (adjust for reverse proxy delays)
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+  successThreshold: 1
+
+# Additional labels
+podLabels:
+  app.kubernetes.io/component: media-downloader
+  app.kubernetes.io/part-of: media-infrastructure
+
+# Additional annotations
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8081"

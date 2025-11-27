@@ -1,0 +1,25 @@
+{{- if and .Values.paperlessGpt.enabled .Values.paperlessGpt.persistence.enabled (not .Values.paperlessGpt.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "paperless-ngx.paperlessGpt.pvc" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: paperless-gpt
+  {{- with .Values.paperlessGpt.persistence.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- range .Values.paperlessGpt.persistence.accessModes }}
+    - {{ . }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.paperlessGpt.persistence.size | quote }}
+  {{- if .Values.paperlessGpt.persistence.storageClass }}
+  storageClassName: {{ .Values.paperlessGpt.persistence.storageClass | quote }}
+  {{- end }}
+{{- end }}

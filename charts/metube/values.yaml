@@ -1,0 +1,403 @@
+## @section Global parameters
+## Global Docker image parameters
+
+## @param global.imageRegistry Global Docker image registry
+## @param global.imagePullSecrets Global Docker registry secret names as an array
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+## @section Common parameters
+
+## @param nameOverride String to partially override metube.fullname
+nameOverride: ""
+
+## @param fullnameOverride String to fully override metube.fullname
+fullnameOverride: ""
+
+## @param namespaceOverride String to fully override common.names.namespace
+namespaceOverride: ""
+
+## @param kubeVersion Force target Kubernetes version (using Helm capabilities if not set)
+kubeVersion: ""
+
+## @param clusterDomain Kubernetes Cluster Domain
+clusterDomain: cluster.local
+
+## @param commonLabels Add labels to all the deployed resources
+commonLabels: {}
+
+## @param commonAnnotations Add annotations to all the deployed resources
+commonAnnotations: {}
+
+## Enable diagnostic mode in the deployment
+diagnosticMode:
+  ## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
+  enabled: false
+  ## @param diagnosticMode.command Command to override all containers
+  command:
+    - sleep
+  ## @param diagnosticMode.args Args to override all containers
+  args:
+    - infinity
+
+## @section MeTube Image parameters
+
+## MeTube image
+## @param image.registry [default: ghcr.io] MeTube image registry
+## @param image.repository [default: alexta69/metube] MeTube image repository
+## @param image.tag MeTube image tag (immutable tags are recommended)
+## @param image.digest MeTube image digest in the way sha256:aa....
+## @param image.pullPolicy MeTube image pull policy
+## @param image.pullSecrets MeTube image pull secrets
+## @param image.debug Enable image debug mode
+image:
+  registry: ghcr.io
+  repository: alexta69/metube
+  tag: latest
+  digest: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+  debug: false
+
+## @section MeTube Configuration parameters
+
+## MeTube application configuration
+## @param config.downloadMode Download behavior mode (sequential, concurrent, limited)
+## @param config.maxConcurrentDownloads Maximum concurrent downloads (only with downloadMode: limited)
+## @param config.deleteFileOnTrashcan Delete files from server when trashed in UI
+## @param config.defaultOptionPlaylistStrictMode Enable strict playlist mode by default
+## @param config.defaultOptionPlaylistItemLimit Maximum playlist items to download (0 = no limit)
+## @param config.customDirs Enable custom directories for organizing downloads
+## @param config.createCustomDirs Allow creating new custom directories on the fly
+## @param config.customDirsExcludeRegex Regular expression to exclude directories from dropdown
+## @param config.downloadDirsIndexable Make download directories indexable on web server
+## @param config.outputTemplate Output filename template for yt-dlp
+## @param config.outputTemplateChapter Output filename template for chapters
+## @param config.outputTemplatePlaylist Output filename template for playlists
+## @param config.ytdlOptions Additional yt-dlp options in JSON format
+## @param config.urlPrefix URL prefix for reverse proxy subdirectory hosting
+## @param config.publicHostUrl Base URL for download links in the UI
+## @param config.publicHostAudioUrl Base URL for audio download links
+## @param config.uid User ID to run MeTube as
+## @param config.gid Group ID to run MeTube as
+## @param config.umask Umask for created files and directories
+## @param config.defaultTheme Default UI theme (light, dark, auto)
+## @param config.loglevel Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL, NONE)
+## @param config.enableAccesslog Enable access log
+config:
+  downloadMode: "limited"
+  maxConcurrentDownloads: 3
+  deleteFileOnTrashcan: false
+  defaultOptionPlaylistStrictMode: false
+  defaultOptionPlaylistItemLimit: 0
+  customDirs: true
+  createCustomDirs: true
+  customDirsExcludeRegex: "(^|/)[.@].*$"
+  downloadDirsIndexable: false
+  outputTemplate: "%(title)s.%(ext)s"
+  outputTemplateChapter: "%(title)s - %(section_number)s %(section_title)s.%(ext)s"
+  outputTemplatePlaylist: "%(playlist_title)s/%(title)s.%(ext)s"
+  ytdlOptions: ""
+  urlPrefix: "/"
+  publicHostUrl: ""
+  publicHostAudioUrl: ""
+  uid: 1000
+  gid: 1000
+  umask: "022"
+  defaultTheme: "auto"
+  loglevel: "INFO"
+  enableAccesslog: false
+
+## Storage paths configuration
+## @param storage.downloadDir Main download directory path inside container
+## @param storage.audioDownloadDir Audio-only download directory (empty = same as downloadDir)
+## @param storage.stateDir State directory for queue persistence
+## @param storage.tempDir Temporary directory for intermediate files
+storage:
+  downloadDir: "/downloads"
+  audioDownloadDir: ""
+  stateDir: ""
+  tempDir: ""
+
+## Cookie file support for authenticated downloads
+## @param cookies.enabled Enable cookie file support
+## @param cookies.content Cookie file content (cookies.txt format)
+## @param cookies.existingSecret Name of existing secret containing cookies.txt
+cookies:
+  enabled: false
+  content: ""
+  existingSecret: ""
+
+## HTTPS/TLS configuration
+## @param tls.enabled Enable HTTPS mode
+## @param tls.certFile Path to SSL certificate file
+## @param tls.keyFile Path to SSL key file
+## @param tls.existingSecret Name of existing secret containing SSL certificate and key
+tls:
+  enabled: false
+  certFile: ""
+  keyFile: ""
+  existingSecret: ""
+
+## @section Deployment/StatefulSet parameters
+
+## @param replicaCount Number of MeTube replicas
+replicaCount: 1
+
+## @param updateStrategy.type Update strategy type (Recreate or RollingUpdate)
+updateStrategy:
+  type: Recreate
+
+## @param podLabels Additional labels for MeTube pods
+podLabels: {}
+
+## @param podAnnotations Annotations for MeTube pods
+podAnnotations: {}
+
+## Configure Pods Security Context
+## @param podSecurityContext.enabled Enable pod security context
+## @param podSecurityContext.fsGroup Group ID for the pod
+## @param podSecurityContext.fsGroupChangePolicy Policy for changing fsGroup
+podSecurityContext:
+  enabled: true
+  fsGroup: 1000
+  fsGroupChangePolicy: "Always"
+
+## Configure Container Security Context
+## @param containerSecurityContext.enabled Enable container security context
+## @param containerSecurityContext.runAsUser User ID for the container
+## @param containerSecurityContext.runAsGroup Group ID for the container
+## @param containerSecurityContext.runAsNonRoot Force the container to run as non-root
+## @param containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges
+## @param containerSecurityContext.capabilities.drop List of capabilities to drop
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+## MeTube container port
+## @param containerPort MeTube container port
+containerPort: 8081
+
+## Configure extra options for liveness probe
+## @param livenessProbe.enabled Enable livenessProbe
+## @param livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+## @param livenessProbe.periodSeconds Period seconds for livenessProbe
+## @param livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+## @param livenessProbe.failureThreshold Failure threshold for livenessProbe
+## @param livenessProbe.successThreshold Success threshold for livenessProbe
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+## Configure extra options for readiness probe
+## @param readinessProbe.enabled Enable readinessProbe
+## @param readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+## @param readinessProbe.periodSeconds Period seconds for readinessProbe
+## @param readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+## @param readinessProbe.failureThreshold Failure threshold for readinessProbe
+## @param readinessProbe.successThreshold Success threshold for readinessProbe
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+  successThreshold: 1
+
+## Configure extra options for startup probe
+## @param startupProbe.enabled Enable startupProbe
+## @param startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+## @param startupProbe.periodSeconds Period seconds for startupProbe
+## @param startupProbe.timeoutSeconds Timeout seconds for startupProbe
+## @param startupProbe.failureThreshold Failure threshold for startupProbe
+## @param startupProbe.successThreshold Success threshold for startupProbe
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 30
+  successThreshold: 1
+
+## MeTube resource requests and limits
+## @param resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set.
+## @param resources Set container requests and limits for different resources like CPU or memory
+resourcesPreset: "small"
+resources: {}
+
+## @param command Override default container command (useful when using custom images)
+command: []
+
+## @param args Override default container args (useful when using custom images)
+args: []
+
+## @param extraEnvVars Extra environment variables to be set on MeTube container
+extraEnvVars: []
+
+## @param extraEnvVarsCM Name of existing ConfigMap containing extra env vars
+extraEnvVarsCM: ""
+
+## @param extraEnvVarsSecret Name of existing Secret containing extra env vars
+extraEnvVarsSecret: ""
+
+## @section Traffic Exposure parameters
+
+## MeTube service parameters
+service:
+  ## @param service.type MeTube service type
+  type: ClusterIP
+  ## @param service.ports.http MeTube service HTTP port
+  ports:
+    http: 8081
+  ## @param service.nodePorts.http Node port for HTTP
+  nodePorts:
+    http: ""
+  ## @param service.clusterIP MeTube service Cluster IP
+  clusterIP: ""
+  ## @param service.loadBalancerIP MeTube service Load Balancer IP
+  loadBalancerIP: ""
+  ## @param service.loadBalancerSourceRanges MeTube service Load Balancer sources
+  loadBalancerSourceRanges: []
+  ## @param service.externalTrafficPolicy MeTube service external traffic policy
+  externalTrafficPolicy: Cluster
+  ## @param service.annotations Additional custom annotations for MeTube service
+  annotations: {}
+  ## @param service.sessionAffinity Session Affinity for Kubernetes service
+  sessionAffinity: None
+  ## @param service.sessionAffinityConfig Additional settings for the sessionAffinity
+  sessionAffinityConfig: {}
+
+## Configure the ingress resource
+## @param ingress.enabled Enable ingress record generation for MeTube
+## @param ingress.pathType Ingress path type
+## @param ingress.apiVersion Force Ingress API version (automatically detected if not set)
+## @param ingress.ingressClassName IngressClass that will be used to implement the Ingress
+## @param ingress.hostname Default host for the ingress record
+## @param ingress.path Default path for the ingress record
+## @param ingress.annotations Additional annotations for the Ingress resource
+## @param ingress.tls Enable TLS configuration for the host defined at ingress.hostname parameter
+## @param ingress.selfSigned Create a TLS secret for this ingress record using self-signed certificates
+## @param ingress.extraHosts An array with additional hostname(s) to be covered with the ingress record
+## @param ingress.extraPaths An array with additional arbitrary paths that may need to be added to the ingress under the main host
+## @param ingress.extraTls TLS configuration for additional hostname(s) to be covered with this ingress record
+## @param ingress.secrets Custom TLS certificates as secrets
+## @param ingress.extraRules Additional rules to be covered with this ingress record
+ingress:
+  enabled: false
+  pathType: ImplementationSpecific
+  apiVersion: ""
+  ingressClassName: ""
+  hostname: metube.local
+  path: /
+  annotations: {}
+  tls: false
+  selfSigned: false
+  extraHosts: []
+  extraPaths: []
+  extraTls: []
+  secrets: []
+  extraRules: []
+
+## @section Persistence parameters
+
+## Enable persistence using Persistent Volume Claims
+## @param persistence.enabled Enable persistence using Persistent Volume Claims
+## @param persistence.storageClass Storage class of backing PVC
+## @param persistence.annotations Persistent Volume Claim annotations
+## @param persistence.accessModes Persistent Volume Access Modes
+## @param persistence.size Size of data volume
+## @param persistence.existingClaim The name of an existing PVC to use for persistence
+## @param persistence.selector Selector to match an existing Persistent Volume for data
+## @param persistence.dataSource Custom PVC data source
+persistence:
+  enabled: true
+  storageClass: ""
+  annotations: {}
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  existingClaim: ""
+  selector: {}
+  dataSource: {}
+
+## @section RBAC parameters
+
+## ServiceAccount configuration
+## @param serviceAccount.create Enable the creation of a ServiceAccount for MeTube pods
+## @param serviceAccount.name The name of the ServiceAccount to use
+## @param serviceAccount.automountServiceAccountToken Allows auto mount of ServiceAccountToken
+## @param serviceAccount.annotations Additional custom annotations for the ServiceAccount
+serviceAccount:
+  create: true
+  name: ""
+  automountServiceAccountToken: false
+  annotations: {}
+
+## @section Other parameters
+
+## MeTube Autoscaling configuration
+## @param autoscaling.enabled Enable autoscaling for MeTube
+## @param autoscaling.minReplicas Minimum number of MeTube replicas
+## @param autoscaling.maxReplicas Maximum number of MeTube replicas
+## @param autoscaling.targetCPU Target CPU utilization percentage
+## @param autoscaling.targetMemory Target Memory utilization percentage
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPU: 80
+  targetMemory: 80
+
+## Configure Pods Disruption Budget
+## @param pdb.enabled Enable pod disruption budget
+## @param pdb.minAvailable Minimum number of pods that must be available
+## @param pdb.maxUnavailable Maximum number of pods that can be unavailable
+pdb:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: ""
+
+## @param networkPolicy.enabled Enable network policies
+## @param networkPolicy.ingress.enabled Enable ingress rules
+## @param networkPolicy.egress.enabled Enable egress rules
+## @param networkPolicy.egress.allowExternal Allow external egress
+networkPolicy:
+  enabled: false
+  ingress:
+    enabled: true
+  egress:
+    enabled: true
+    allowExternal: true
+
+## Prometheus Metrics
+## @param metrics.enabled Enable the export of Prometheus metrics
+## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
+## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor Resource
+## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped
+## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+## @param metrics.serviceMonitor.labels Additional labels for ServiceMonitor
+## @param metrics.serviceMonitor.selector Prometheus instance selector labels
+## @param metrics.serviceMonitor.relabelings RelabelConfigs to apply to samples before scraping
+## @param metrics.serviceMonitor.metricRelabelings MetricRelabelConfigs to apply to samples before ingestion
+metrics:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    namespace: ""
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+    selector: {}
+    relabelings: []
+    metricRelabelings: []

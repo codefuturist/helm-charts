@@ -1,0 +1,20 @@
+# Test values for MeTube installation
+image:
+  tag: "latest"
+
+persistence:
+  enabled: true
+  size: 10Gi
+
+service:
+  type: ClusterIP
+  ports:
+    http: 8081
+
+ingress:
+  enabled: false
+
+config:
+  downloadMode: "audio"
+  maxConcurrentDownloads: 3
+  outputTemplate: "%(title)s.%(ext)s"

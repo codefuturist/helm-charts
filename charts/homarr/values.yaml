@@ -300,13 +300,12 @@ deployment:
     tcpSocket: {}
   # -- (object) Resource limits and requests for the pod.
   # @section -- Deployment Parameters
+  # Minimal requests to allow scheduling, no limits to allow bursting
   resources:
-    limits:
-      memory: 512Mi
-      cpu: 500m
+    limits: {}
     requests:
-      memory: 256Mi
-      cpu: 100m
+      memory: 64Mi
+      cpu: 10m
   # -- (object) Security Context at Container Level.
   # @section -- Deployment Parameters
   containerSecurityContext:

@@ -1,0 +1,87 @@
+Name:             metube-test-b578b46d5-fw2t2
+Namespace:        metube-test
+Priority:         0
+Service Account:  metube-test
+Node:             k3s-testbox/192.168.2.92
+Start Time:       Fri, 21 Nov 2025 12:08:04 +0100
+Labels:           app.kubernetes.io/instance=metube-test
+                  app.kubernetes.io/managed-by=Helm
+                  app.kubernetes.io/name=metube
+                  app.kubernetes.io/version=latest
+                  helm.sh/chart=metube-1.0.0
+                  pod-template-hash=b578b46d5
+Annotations:      checksum/config: 316deeb28892b1cdebfe5c12c2cd620b5b8f29289c1ffe3d4f5fc1b2e6a4ea7d
+Status:           Running
+IP:               10.42.0.78
+IPs:
+  IP:           10.42.0.78
+Controlled By:  ReplicaSet/metube-test-b578b46d5
+Containers:
+  metube:
+    Container ID:   containerd://464dbec43cb82046a942f1e5d2a0c5daa79288848677052f2bad7c7023a5e30e
+    Image:          ghcr.io/alexta69/metube:latest
+    Image ID:       ghcr.io/alexta69/metube@sha256:017341a17b5837120b00e0f3cc0be084a572a9886828d018e8d45e8c22d550cf
+    Port:           8081/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Fri, 21 Nov 2025 12:08:13 +0100
+    Ready:          False
+    Restart Count:  0
+    Limits:
+      cpu:                750m
+      ephemeral-storage:  2Gi
+      memory:             768Mi
+    Requests:
+      cpu:                500m
+      ephemeral-storage:  50Mi
+      memory:             512Mi
+    Liveness:             http-get http://:http/ delay=30s timeout=5s period=10s #success=1 #failure=6
+    Readiness:            http-get http://:http/ delay=15s timeout=3s period=10s #success=1 #failure=3
+    Startup:              http-get http://:http/ delay=10s timeout=3s period=10s #success=1 #failure=30
+    Environment:
+      DOWNLOAD_MODE:                        limited
+      MAX_CONCURRENT_DOWNLOADS:             3
+      DELETE_FILE_ON_TRASHCAN:              false
+      DEFAULT_OPTION_PLAYLIST_STRICT_MODE:  false
+      DEFAULT_OPTION_PLAYLIST_ITEM_LIMIT:   0
+      CUSTOM_DIRS:                          true
+      CREATE_CUSTOM_DIRS:                   true
+      CUSTOM_DIRS_EXCLUDE_REGEX:            (^|/)[.@].*$
+      DOWNLOAD_DIRS_INDEXABLE:              false
+      OUTPUT_TEMPLATE:                      %(title)s.%(ext)s
+      OUTPUT_TEMPLATE_CHAPTER:              %(title)s - %(section_number)s %(section_title)s.%(ext)s
+      OUTPUT_TEMPLATE_PLAYLIST:             %(playlist_title)s/%(title)s.%(ext)s
+      URL_PREFIX:                           /
+      DOWNLOAD_DIR:                         /downloads
+      UID:                                  1000
+      GID:                                  1000
+      UMASK:                                022
+      DEFAULT_THEME:                        auto
+      LOGLEVEL:                             INFO
+      ENABLE_ACCESSLOG:                     false
+    Mounts:
+      /downloads from downloads (rw)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       False
+  ContainersReady             False
+  PodScheduled                True
+Volumes:
+  downloads:
+    Type:        PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:   metube-test
+    ReadOnly:    false
+QoS Class:       Burstable
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  24s   default-scheduler  Successfully assigned metube-test/metube-test-b578b46d5-fw2t2 to k3s-testbox
+  Normal  Pulling    24s   kubelet            Pulling image "ghcr.io/alexta69/metube:latest"
+  Normal  Pulled     16s   kubelet            Successfully pulled image "ghcr.io/alexta69/metube:latest" in 8.575s (8.575s including waiting). Image size: 145417729 bytes.
+  Normal  Created    16s   kubelet            Created container: metube
+  Normal  Started    16s   kubelet            Started container metube

@@ -1,0 +1,25 @@
+{{- if and .Values.metube.ytdlOptionsFile (not .Values.metube.existingYtdlOptionsConfigMap) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "metube.ytdlOptionsConfigMapName" . }}
+  namespace: {{ include "metube.namespace" . }}
+  labels:
+    {{- include "metube.labels" . | nindent 4 }}
+data:
+  ytdl-options.json: |
+    {{- .Values.metube.ytdlOptionsFile | nindent 4 }}
+{{- end }}
+---
+{{- if and .Values.metube.robotsTxt (not .Values.metube.existingRobotsTxtConfigMap) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "metube.robotsTxtConfigMapName" . }}
+  namespace: {{ include "metube.namespace" . }}
+  labels:
+    {{- include "metube.labels" . | nindent 4 }}
+data:
+  robots.txt: |
+    {{- .Values.metube.robotsTxt | nindent 4 }}
+{{- end }}

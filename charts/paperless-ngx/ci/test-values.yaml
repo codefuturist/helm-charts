@@ -1,0 +1,42 @@
+# CI test values - minimal configuration for testing
+# This configuration is used by chart-testing during CI
+
+config:
+  secretKey: "test-secret-key-for-ci-only-not-for-production-use"
+
+database:
+  postgresql:
+    host: postgresql.default.svc.cluster.local
+    password: test-password
+
+redis:
+  host: redis.default.svc.cluster.local
+
+# Use smaller volumes for testing
+persistence:
+  data:
+    size: 1Gi
+  media:
+    size: 1Gi
+  consume:
+    size: 1Gi
+
+# Reduce resources for testing
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+worker:
+  enabled: true
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi

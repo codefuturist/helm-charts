@@ -1,0 +1,35 @@
+{{- if .Values.paperlessAi.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "paperless-ngx.paperlessAi.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: paperless-ai
+  {{- with .Values.paperlessAi.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.paperlessAi.service.type }}
+  selector:
+    {{- include "paperless-ngx.paperlessAi.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.paperlessAi.service.port }}
+      protocol: TCP
+      targetPort: http
+      {{- if and (eq .Values.paperlessAi.service.type "NodePort") .Values.paperlessAi.service.nodePort }}
+      nodePort: {{ .Values.paperlessAi.service.nodePort }}
+      {{- end }}
+  {{- if .Values.paperlessAi.service.exposeRagPort }}
+    - name: rag
+      port: {{ .Values.paperlessAi.service.ragPort }}
+      protocol: TCP
+      targetPort: rag
+      {{- if and (eq .Values.paperlessAi.service.type "NodePort") .Values.paperlessAi.service.ragNodePort }}
+      nodePort: {{ .Values.paperlessAi.service.ragNodePort }}
+      {{- end }}
+  {{- end }}
+{{- end }}

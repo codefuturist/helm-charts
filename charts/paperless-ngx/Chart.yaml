@@ -1,0 +1,27 @@
+apiVersion: v2
+name: paperless-ngx
+description: A Helm chart for Paperless-ngx - A community-supported supercharged version of paperless based on paperless-ng
+type: application
+version: 0.1.0
+appVersion: "2.13.5"
+keywords:
+  - paperless
+  - document-management
+  - ocr
+  - archive
+home: https://github.com/paperless-ngx/paperless-ngx
+sources:
+  - https://github.com/paperless-ngx/paperless-ngx
+  - https://github.com/codefuturist/helm-charts
+maintainers:
+  - name: codefuturist
+    url: https://github.com/codefuturist
+dependencies:
+  - name: postgresql
+    version: "16.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: redis
+    version: "20.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled

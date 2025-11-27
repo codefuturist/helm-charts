@@ -1,0 +1,169 @@
+{{- if .Values.paperlessGpt.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "paperless-ngx.paperlessGpt.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "paperless-ngx.paperlessGpt.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.paperlessGpt.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "paperless-ngx.paperlessGpt.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- if eq (include "paperless-ngx.paperlessGpt.managedEnv" .) "true" }}
+        checksum/paperless-gpt-env: {{ include (print $.Template.BasePath "/paperless-gpt-env-secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.paperlessGpt.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "paperless-ngx.paperlessGpt.selectorLabels" . | nindent 8 }}
+        {{- with .Values.paperlessGpt.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "paperless-ngx.paperlessGpt.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "paperless-ngx.paperlessGpt.serviceAccountName" . }}
+      automountServiceAccountToken: {{ default false .Values.paperlessGpt.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.paperlessGpt.podSecurityContext }}
+      securityContext:
+        {{- toYaml .Values.paperlessGpt.podSecurityContext | nindent 8 }}
+      {{- else if .Values.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paperlessGpt.priorityClassName }}
+      priorityClassName: {{ . | quote }}
+      {{- end }}
+      {{- with .Values.paperlessGpt.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: paperless-gpt
+          {{- if .Values.paperlessGpt.containerSecurityContext }}
+          securityContext:
+            {{- toYaml .Values.paperlessGpt.containerSecurityContext | nindent 12 }}
+          {{- else if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          image: {{ include "paperless-ngx.paperlessGpt.image" . }}
+          imagePullPolicy: {{ .Values.paperlessGpt.image.pullPolicy }}
+          env:
+            - name: PAPERLESS_API_URL
+              value: {{ include "paperless-ngx.paperlessGpt.apiUrl" . | quote }}
+            - name: PAPERLESS_GPT_PORT
+              value: {{ .Values.paperlessGpt.service.port | quote }}
+            - name: RAG_SERVICE_URL
+              value: {{ printf "http://127.0.0.1:%d" (int (default 8100 .Values.paperlessGpt.service.ragPort)) | quote }}
+            - name: RAG_SERVICE_ENABLED
+              value: {{ default "true" .Values.paperlessGpt.env.RAG_SERVICE_ENABLED | quote }}
+            {{- with .Values.paperlessGpt.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- $hasEnvFrom := or .Values.paperlessGpt.extraEnvFrom .Values.paperlessGpt.envFromSecrets }}
+          {{- if $hasEnvFrom }}
+          envFrom:
+            {{- range .Values.paperlessGpt.extraEnvFrom }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- range .Values.paperlessGpt.envFromSecrets }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.paperlessGpt.service.port }}
+              protocol: TCP
+            - name: rag
+              containerPort: {{ .Values.paperlessGpt.service.ragPort }}
+              protocol: TCP
+          {{- if .Values.paperlessGpt.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: {{ .Values.paperlessGpt.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.paperlessGpt.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.paperlessGpt.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.paperlessGpt.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.paperlessGpt.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.paperlessGpt.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: {{ .Values.paperlessGpt.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.paperlessGpt.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.paperlessGpt.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.paperlessGpt.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.paperlessGpt.readinessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.paperlessGpt.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: {{ .Values.paperlessGpt.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.paperlessGpt.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.paperlessGpt.startupProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.paperlessGpt.startupProbe.successThreshold }}
+            failureThreshold: {{ .Values.paperlessGpt.startupProbe.failureThreshold }}
+          {{- end }}
+          {{- with .Values.paperlessGpt.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: paperless-gpt-data
+              mountPath: /app/data
+            {{- if eq (include "paperless-ngx.paperlessGpt.managedEnv" .) "true" }}
+            - name: paperless-gpt-env
+              mountPath: /app/data/.env
+              subPath: {{ include "paperless-ngx.paperlessGpt.envSecretKey" . }}
+              readOnly: true
+            {{- end }}
+            {{- with .Values.paperlessGpt.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- with .Values.paperlessGpt.sidecars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: paperless-gpt-data
+          {{- if .Values.paperlessGpt.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "paperless-ngx.paperlessGpt.pvc" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- if eq (include "paperless-ngx.paperlessGpt.managedEnv" .) "true" }}
+        - name: paperless-gpt-env
+          secret:
+            secretName: {{ include "paperless-ngx.paperlessGpt.envSecretName" . }}
+        {{- end }}
+        {{- with .Values.paperlessGpt.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.paperlessGpt.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paperlessGpt.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paperlessGpt.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

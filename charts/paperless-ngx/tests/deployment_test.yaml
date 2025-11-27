@@ -1,0 +1,53 @@
+suite: paperless-deployment
+templates:
+  - secret.yaml
+  - deployment.yaml
+tests:
+  - it: renders primary deployment with secret env reference
+    set:
+      config.secretKey: supersecret
+      config.existingSecret: external-secret
+    asserts:
+      - documentIndex: 0
+        isKind:
+          of: Deployment
+      - documentIndex: 0
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-paperless-ngx
+      - documentIndex: 0
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PAPERLESS_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: external-secret
+                key: secret-key
+      - documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 8000
+
+  - it: enables Flower flag when configured
+    set:
+      config.secretKey: supersecret
+      config.existingSecret: external-secret
+      config.enableFlowerDebug: true
+    asserts:
+      - documentIndex: 0
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PAPERLESS_ENABLE_FLOWER
+            value: "true"
+
+  - it: omits replicas when autoscaling is enabled
+    set:
+      config.secretKey: supersecret
+      config.existingSecret: external-secret
+      autoscaling.enabled: true
+    asserts:
+      - documentIndex: 0
+        notExists:
+          path: spec.replicas

@@ -1,0 +1,80 @@
+apiVersion: v2
+name: metube
+description: A production-ready Helm chart for MeTube - YouTube downloader with web interface powered by yt-dlp
+type: application
+version: 1.0.0
+appVersion: "latest"
+
+keywords:
+  - metube
+  - youtube
+  - downloader
+  - yt-dlp
+  - youtube-dl
+  - video
+  - media
+  - kubernetes
+
+home: https://github.com/alexta69/metube
+sources:
+  - https://github.com/alexta69/metube
+  - https://github.com/codefuturist/helm-charts
+
+maintainers:
+  - name: codefuturist
+    email: 58808821+codefuturist@users.noreply.github.com
+
+icon: https://raw.githubusercontent.com/alexta69/metube/master/favicon/android-chrome-192x192.png
+
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release of MeTube Helm chart v1.0.0
+    - kind: added
+      description: Support for Deployment and StatefulSet controller types (Deployment default)
+    - kind: added
+      description: Comprehensive download directory management with 10Gi default storage
+    - kind: added
+      description: Full yt-dlp configuration support via YTDL_OPTIONS
+    - kind: added
+      description: Cookie authentication support for restricted content
+    - kind: added
+      description: Comprehensive security with pod security contexts, RBAC, and network policies
+    - kind: added
+      description: Monitoring support with ServiceMonitor and PrometheusRule
+    - kind: added
+      description: All official MeTube environment variables (download mode, output templates, etc.)
+    - kind: added
+      description: Reverse proxy configuration with URL_PREFIX support
+    - kind: added
+      description: High availability features (HPA, PDB, anti-affinity)
+    - kind: added
+      description: Minimal security context for maximum Kubernetes distribution compatibility (K3s, K8s, etc.)
+    - kind: changed
+      description: Fixed PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION setting for proper startup
+    - kind: security
+      description: Default password "changeme" included for out-of-box testing (must be changed for production)
+    - kind: added
+      description: Works out of the box without requiring custom values overrides
+    - kind: added
+      description: Persistence enabled by default for production readiness
+  artifacthub.io/category: "database"
+  artifacthub.io/kubeVersion: ">=1.21.0-0"
+  artifacthub.io/operator: "false"
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/license: "Apache-2.0"
+  artifacthub.io/signKey: ""
+  artifacthub.io/links: |
+    - name: Chart Documentation
+      url: https://github.com/codefuturist/helm-charts/tree/main/charts/pgadmin
+    - name: pgAdmin Official Docs
+      url: https://www.pgadmin.org/docs/
+    - name: Container Deployment Guide
+      url: https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html
+  artifacthub.io/maintainers: |
+    - name: codefuturist
+      email: 58808821+codefuturist@users.noreply.github.com
+  artifacthub.io/recommendations: |
+    - url: https://artifacthub.io/packages/helm/bitnami/postgresql
+    - url: https://artifacthub.io/packages/helm/cloudnative-pg/cloudnative-pg

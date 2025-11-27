@@ -1,0 +1,60 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                     📹 MeTube Successfully Deployed! 🎉                       ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+📋 RELEASE INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Release Name:    {{ .Release.Name }}
+  Namespace:       {{ include "common.names.namespace" . }}
+  Chart Version:   {{ .Chart.Version }}
+  App Version:     {{ .Chart.AppVersion }}
+
+🌐 ACCESS YOUR METUBE INSTANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{- if .Values.ingress.enabled }}
+{{- if .Values.ingress.hostname }}
+
+  🔗 http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.hostname }}{{ .Values.ingress.path }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+
+  export NODE_PORT=$(kubectl get --namespace {{ include "common.names.namespace" . }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "common.names.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ include "common.names.namespace" . }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "🔗 http://$NODE_IP:$NODE_PORT"
+{{- else if contains "LoadBalancer" .Values.service.type }}
+
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+  Watch the status with: kubectl get --namespace {{ include "common.names.namespace" . }} svc -w {{ include "common.names.fullname" . }}
+
+  export SERVICE_IP=$(kubectl get svc --namespace {{ include "common.names.namespace" . }} {{ include "common.names.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "🔗 http://$SERVICE_IP:{{ .Values.service.ports.http }}"
+{{- else if contains "ClusterIP" .Values.service.type }}
+
+  kubectl port-forward --namespace {{ include "common.names.namespace" . }} svc/{{ include "common.names.fullname" . }} 8080:{{ .Values.service.ports.http }}
+  Then visit: 🔗 http://127.0.0.1:8080
+{{- end }}
+
+💡 USAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. Open the MeTube web interface
+  2. Paste a YouTube or video URL
+  3. Select quality and format
+  4. Click "Add" to start downloading
+  5. Monitor progress in the interface
+
+📦 STORAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{- if .Values.persistence.enabled }}
+  Storage:     {{ .Values.persistence.size }} (Persistent)
+  Path:        {{ .Values.storage.downloadDir }}
+{{- else }}
+  ⚠️  Persistence disabled - downloads will be lost on pod restart!
+{{- end }}
+
+📖 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Chart: https://github.com/codefuturist/helm-charts
+  MeTube: https://github.com/alexta69/metube
+  yt-dlp: https://github.com/yt-dlp/yt-dlp
+
+🎬 Happy Downloading! 📥

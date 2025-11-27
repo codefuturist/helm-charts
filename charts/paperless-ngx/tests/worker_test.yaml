@@ -1,0 +1,44 @@
+suite: paperless-worker
+templates:
+  - secret.yaml
+  - worker-deployment.yaml
+tests:
+  - it: renders worker deployment when enabled
+    set:
+      config.secretKey: workersecret
+      config.existingSecret: shared-secret
+      worker.enabled: true
+      worker.replicaCount: 2
+    asserts:
+      - documentIndex: 0
+        isKind:
+          of: Deployment
+      - documentIndex: 0
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-paperless-ngx-worker
+      - documentIndex: 0
+        equal:
+          path: spec.replicas
+          value: 2
+      - documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].command[0]
+          value: /usr/local/bin/celery
+      - documentIndex: 0
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PAPERLESS_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: shared-secret
+                key: secret-key
+
+  - it: skips worker deployment when disabled
+    set:
+      config.existingSecret: shared-secret
+      worker.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

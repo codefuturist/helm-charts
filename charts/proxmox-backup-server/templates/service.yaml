@@ -5,6 +5,7 @@ metadata:
   namespace: {{ include "pbs.namespace" . }}
   labels:
     {{- include "pbs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup-server
     {{- with .Values.service.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}

@@ -1,0 +1,241 @@
+# Production MeTube Configuration
+#
+# This configuration follows best practices for production deployments:
+# - Enables persistent storage
+# - Configures resource limits
+# - Enables monitoring and network policies
+# - Includes ingress configuration
+# - Configures high availability
+#
+# Usage:
+#   helm install metube codefuturist/metube -f values-production.yaml
+
+# =============================================================================
+# MeTube Configuration
+# =============================================================================
+metube:
+  # Download behavior (sequential is safer for production)
+  downloadMode: sequential
+
+  # Output template for organized downloads
+  outputTemplate: "%(uploader)s/%(playlist_title)s/%(title)s.%(ext)s"
+
+  # Default format selection
+  defaultFormat: "bestvideo[height<=1080]+bestaudio/best"
+
+  # URL prefix for reverse proxy (if needed)
+  urlPrefix: ""
+
+  # yt-dlp options for production use
+  ytdlOptions: |
+    {
+      "retries": 10,
+      "fragment_retries": 10,
+      "writesubtitles": true,
+      "writeautomaticsub": false,
+      "subtitleslangs": ["en"],
+      "merge_output_format": "mkv"
+    }
+
+# =============================================================================
+# Controller: Deployment with lifecycle hooks
+# =============================================================================
+controller:
+  type: deployment
+  replicas: 1
+  terminationGracePeriodSeconds: 60
+
+# =============================================================================
+# Persistence: Enable for production to retain downloads
+# =============================================================================
+persistence:
+  downloads:
+    enabled: true
+    size: 100Gi
+    storageClassName: "" # Use default storage class
+    accessMode: ReadWriteOnce
+
+  temp:
+    enabled: true
+    size: 20Gi
+    storageClassName: ""
+    accessMode: ReadWriteOnce
+
+# =============================================================================
+# Resources: Production-appropriate resource allocation
+# =============================================================================
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# =============================================================================
+# High Availability: Pod disruption budget
+# =============================================================================
+pdb:
+  enabled: true
+  minAvailable: 1
+
+# Note: HPA not recommended for MeTube (stateful downloads)
+# hpa:
+#   enabled: false
+
+# =============================================================================
+# Ingress: Production ingress with TLS
+# =============================================================================
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"  # Allow large file uploads
+  hosts:
+    - host: metube.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: metube-tls
+      hosts:
+        - metube.example.com
+
+# =============================================================================
+# Monitoring: Enable Prometheus ServiceMonitor and alerting rules
+# =============================================================================
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      prometheus: kube-prometheus
+    metricRelabelings:
+      - sourceLabels: [__name__]
+        regex: "go_.*"
+        action: drop
+
+  prometheusRule:
+    enabled: true
+    rules:
+      - alert: MeTubeDown
+        expr: up{job="metube"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MeTube is down"
+          description: "MeTube has been down for more than 5 minutes"
+      - alert: MeTubeHighMemory
+        expr: container_memory_usage_bytes{container="metube"} > 1800000000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MeTube high memory usage"
+          description: "MeTube memory usage is above 1.8GB"
+      - alert: MeTubeStorageFull
+        expr: kubelet_volume_stats_available_bytes{persistentvolumeclaim="metube-downloads"} / kubelet_volume_stats_capacity_bytes{persistentvolumeclaim="metube-downloads"} < 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MeTube storage nearly full"
+          description: "MeTube download storage is over 90% full"
+
+# =============================================================================
+# Network Policy: Restrict network access
+# =============================================================================
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # Allow ingress from nginx ingress controller
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8081
+
+  # Allow egress for downloading videos
+  egress:
+    # DNS resolution
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+    # HTTPS for video downloads
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+
+# =============================================================================
+# Security Context: Enhanced security
+# =============================================================================
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# =============================================================================
+# Pod Configuration: Production scheduling
+# =============================================================================
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - metube
+          topologyKey: kubernetes.io/hostname
+
+priorityClassName: "high-priority"
+
+# Extra environment variables for advanced configuration
+extraEnv:
+  - name: TZ
+    value: "UTC"
+  - name: UMASK
+    value: "022"
+
+# =============================================================================
+# Additional Configuration
+# =============================================================================
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8081"
+
+additionalLabels:
+  environment: production
+  team: media-ops

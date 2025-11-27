@@ -1,0 +1,69 @@
+# Minimal resource configuration for testing on resource-constrained clusters
+resources:
+  requests:
+    cpu: 10m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+worker:
+  enabled: true
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+config:
+  consumerDisable: true # rely on API uploads only in tiny environments
+
+# Extended startup timeout for initial database setup
+startupProbe:
+  failureThreshold: 60 # 60 × 10s = 600s = 10 minutes
+
+postgresql:
+  enabled: true
+  image:
+    tag: "latest"
+  primary:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+  auth:
+    database: paperless
+    username: paperless
+    password: paperless
+
+redis:
+  enabled: true
+  image:
+    tag: "latest"
+  master:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 50m
+        memory: 64Mi
+  replica:
+    replicaCount: 0
+
+persistence:
+  data:
+    enabled: true
+    size: 1Gi
+  media:
+    enabled: true
+    size: 1Gi
+  consume:
+    enabled: true
+    size: 1Gi

@@ -1,0 +1,345 @@
+{{- if eq .Values.controller.type "deployment" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "metube.fullname" . }}
+  namespace: {{ include "metube.namespace" . }}
+  labels:
+    {{- include "metube.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.controller.replicas }}
+  {{- with .Values.controller.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "metube.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "metube.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "metube.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.runtimeClassName }}
+      runtimeClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.controller.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsPolicy }}
+      dnsPolicy: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hostAliases }}
+      hostAliases:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.initContainers }}
+      initContainers:
+        {{- toYaml .Values.initContainers | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: metube
+          image: {{ include "metube.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if or .Values.controller.command .Values.diagnosticMode.enabled }}
+          command:
+            {{- if .Values.diagnosticMode.enabled }}
+            {{- toYaml .Values.diagnosticMode.command | nindent 12 }}
+            {{- else }}
+            {{- toYaml .Values.controller.command | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.controller.args .Values.diagnosticMode.enabled }}
+          args:
+            {{- if .Values.diagnosticMode.enabled }}
+            {{- toYaml .Values.diagnosticMode.args | nindent 12 }}
+            {{- else }}
+            {{- toYaml .Values.controller.args | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.controller.workingDir }}
+          workingDir: {{ . }}
+          {{- end }}
+          env:
+            {{- if .Values.metube.downloadMode }}
+            - name: DOWNLOAD_MODE
+              value: {{ .Values.metube.downloadMode | quote }}
+            {{- end }}
+            {{- if .Values.metube.maxConcurrentDownloads }}
+            - name: MAX_CONCURRENT_DOWNLOADS
+              value: {{ .Values.metube.maxConcurrentDownloads | quote }}
+            {{- end }}
+            {{- if .Values.metube.deleteFileOnTrashcan }}
+            - name: DELETE_FILE_ON_TRASHCAN
+              value: {{ .Values.metube.deleteFileOnTrashcan | quote }}
+            {{- end }}
+            {{- if .Values.metube.defaultOptionPlaylistStrictMode }}
+            - name: DEFAULT_OPTION_PLAYLIST_STRICT_MODE
+              value: {{ .Values.metube.defaultOptionPlaylistStrictMode | quote }}
+            {{- end }}
+            {{- if .Values.metube.defaultOptionPlaylistItemLimit }}
+            - name: DEFAULT_OPTION_PLAYLIST_ITEM_LIMIT
+              value: {{ .Values.metube.defaultOptionPlaylistItemLimit | quote }}
+            {{- end }}
+            {{- if .Values.metube.customDirs }}
+            - name: CUSTOM_DIRS
+              value: {{ .Values.metube.customDirs | quote }}
+            {{- end }}
+            {{- if .Values.metube.createCustomDirs }}
+            - name: CREATE_CUSTOM_DIRS
+              value: {{ .Values.metube.createCustomDirs | quote }}
+            {{- end }}
+            {{- if .Values.metube.customDirsExcludeRegex }}
+            - name: CUSTOM_DIRS_EXCLUDE_REGEX
+              value: {{ .Values.metube.customDirsExcludeRegex | quote }}
+            {{- end }}
+            {{- if .Values.metube.downloadDirsIndexable }}
+            - name: DOWNLOAD_DIRS_INDEXABLE
+              value: {{ .Values.metube.downloadDirsIndexable | quote }}
+            {{- end }}
+            {{- if .Values.metube.outputTemplate }}
+            - name: OUTPUT_TEMPLATE
+              value: {{ .Values.metube.outputTemplate | quote }}
+            {{- end }}
+            {{- if .Values.metube.outputTemplateChapter }}
+            - name: OUTPUT_TEMPLATE_CHAPTER
+              value: {{ .Values.metube.outputTemplateChapter | quote }}
+            {{- end }}
+            {{- if .Values.metube.outputTemplatePlaylist }}
+            - name: OUTPUT_TEMPLATE_PLAYLIST
+              value: {{ .Values.metube.outputTemplatePlaylist | quote }}
+            {{- end }}
+            {{- if .Values.metube.ytdlOptions }}
+            - name: YTDL_OPTIONS
+              value: {{ .Values.metube.ytdlOptions | quote }}
+            {{- end }}
+            {{- if or .Values.metube.ytdlOptionsFile .Values.metube.existingYtdlOptionsConfigMap }}
+            - name: YTDL_OPTIONS_FILE
+              value: "/app/ytdl-options.conf"
+            {{- end }}
+            {{- if .Values.metube.urlPrefix }}
+            - name: URL_PREFIX
+              value: {{ .Values.metube.urlPrefix | quote }}
+            {{- end }}
+            {{- if .Values.metube.publicHostUrl }}
+            - name: PUBLIC_HOST_URL
+              value: {{ .Values.metube.publicHostUrl | quote }}
+            {{- end }}
+            {{- if .Values.metube.publicHostAudioUrl }}
+            - name: PUBLIC_HOST_AUDIO_URL
+              value: {{ .Values.metube.publicHostAudioUrl | quote }}
+            {{- end }}
+            - name: DOWNLOAD_DIR
+              value: {{ .Values.storage.downloadDir | quote }}
+            {{- if .Values.storage.audioDownloadDir }}
+            - name: AUDIO_DOWNLOAD_DIR
+              value: {{ .Values.storage.audioDownloadDir | quote }}
+            {{- end }}
+            {{- if .Values.storage.stateDir }}
+            - name: STATE_DIR
+              value: {{ .Values.storage.stateDir | quote }}
+            {{- end }}
+            {{- if .Values.storage.tempDir }}
+            - name: TEMP_DIR
+              value: {{ .Values.storage.tempDir | quote }}
+            {{- end }}
+            {{- if .Values.metube.uid }}
+            - name: UID
+              value: {{ .Values.metube.uid | quote }}
+            {{- end }}
+            {{- if .Values.metube.gid }}
+            - name: GID
+              value: {{ .Values.metube.gid | quote }}
+            {{- end }}
+            {{- if .Values.metube.umask }}
+            - name: UMASK
+              value: {{ .Values.metube.umask | quote }}
+            {{- end }}
+            {{- if .Values.metube.defaultTheme }}
+            - name: DEFAULT_THEME
+              value: {{ .Values.metube.defaultTheme | quote }}
+            {{- end }}
+            {{- if .Values.metube.loglevel }}
+            - name: LOGLEVEL
+              value: {{ .Values.metube.loglevel | quote }}
+            {{- end }}
+            {{- if .Values.metube.enableAccesslog }}
+            - name: ENABLE_ACCESSLOG
+              value: {{ .Values.metube.enableAccesslog | quote }}
+            {{- end }}
+            {{- if .Values.metube.https }}
+            - name: HTTPS
+              value: "true"
+            {{- end }}
+            {{- if and .Values.metube.https .Values.metube.certFile }}
+            - name: CERTFILE
+              value: {{ .Values.metube.certFile | quote }}
+            {{- end }}
+            {{- if and .Values.metube.https .Values.metube.keyFile }}
+            - name: KEYFILE
+              value: {{ .Values.metube.keyFile | quote }}
+            {{- end }}
+            {{- if or .Values.metube.robotsTxt .Values.metube.existingRobotsTxtConfigMap }}
+            - name: ROBOTS_TXT
+              value: "/app/robots.txt"
+            {{- end }}
+            {{- range $key, $value := .Values.metube.config }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            {{- omit .Values.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.controller.lifecycle }}
+          lifecycle:
+            {{- toYaml .Values.controller.lifecycle | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: downloads
+              mountPath: {{ .Values.storage.downloadDir }}
+            {{- if .Values.metube.cookies.enabled }}
+            - name: cookies
+              mountPath: /cookies
+              readOnly: true
+            {{- end }}
+            {{- if .Values.metube.https }}
+            - name: tls-cert
+              mountPath: /app/cert
+              readOnly: true
+            - name: tls-key
+              mountPath: /app/key
+              readOnly: true
+            {{- end }}
+            {{- if or .Values.metube.ytdlOptionsFile .Values.metube.existingYtdlOptionsConfigMap }}
+            - name: ytdl-options
+              mountPath: /app/ytdl-options.conf
+              subPath: ytdl-options.conf
+              readOnly: true
+            {{- end }}
+            {{- if or .Values.metube.robotsTxt .Values.metube.existingRobotsTxtConfigMap }}
+            - name: robots-txt
+              mountPath: /app/robots.txt
+              subPath: robots.txt
+              readOnly: true
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- if .Values.extraContainers }}
+        {{- toYaml .Values.extraContainers | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: downloads
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "metube.pvcName" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- if .Values.metube.cookies.enabled }}
+        - name: cookies
+          secret:
+            secretName: {{ include "metube.cookiesSecretName" . }}
+        {{- end }}
+        {{- if .Values.metube.https }}
+        - name: tls-cert
+          secret:
+            secretName: {{ include "metube.tlsSecretName" . }}
+            items:
+              - key: tls.crt
+                path: cert.pem
+        - name: tls-key
+          secret:
+            secretName: {{ include "metube.tlsSecretName" . }}
+            items:
+              - key: tls.key
+                path: key.pem
+        {{- end }}
+        {{- if or .Values.metube.ytdlOptionsFile .Values.metube.existingYtdlOptionsConfigMap }}
+        - name: ytdl-options
+          configMap:
+            name: {{ include "metube.ytdlOptionsConfigMapName" . }}
+        {{- end }}
+        {{- if or .Values.metube.robotsTxt .Values.metube.existingRobotsTxtConfigMap }}
+        - name: robots-txt
+          configMap:
+            name: {{ include "metube.robotsTxtConfigMapName" . }}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

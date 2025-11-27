@@ -1,0 +1,21 @@
+# MeTube CI Test: Cookie Authentication
+# Tests cookie file configuration for authenticated downloads
+
+metube:
+  cookies:
+    enabled: true
+    cookieFile: |
+      # Netscape HTTP Cookie File
+      .youtube.com  TRUE    /   TRUE    0   CONSENT YES+1
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

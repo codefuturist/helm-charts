@@ -1,0 +1,483 @@
+# Production configuration example
+# This demonstrates a production-ready configuration with high availability,
+# monitoring, and security features enabled
+
+## Deployment Configuration
+replicaCount: 2
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+## Application Configuration
+config:
+  # Use existing secret in production
+  existingSecret: "paperless-secrets"
+
+  # Application settings
+  adminUser: "admin"
+  adminMail: "admin@example.com"
+  url: "https://paperless.example.com"
+  forceScriptName: "/docs"
+  staticUrl: "/docs/static/"
+
+  # Security settings
+  csrfTrustedOrigins:
+    - "https://paperless.example.com"
+  allowedHosts:
+    - "paperless.example.com"
+  trustedProxies:
+    - "10.0.0.0/8"
+  proxySslHeader:
+    - "HTTP_X_FORWARDED_PROTO"
+    - "https"
+  logoutRedirectUrl: "https://portal.example.com/logout-complete"
+
+  # Localization
+  timeZone: "America/New_York"
+
+  # OCR settings for multiple languages
+  ocrLanguage: "eng+deu+fra"
+  ocrMode: "skip"
+  ocrOutputType: "pdfa"
+  ocrImageDpi: 300
+  dateParserLanguages: "en+de"
+  dateOrder: "DMY"
+  ignoreDates: "01/01"
+
+  # Performance tuning
+  taskWorkers: 2
+  threadsPerWorker: 2
+  webserverWorkers: 2
+  enableCompression: true
+  optimize: true
+  workerTimeout: 1200
+  convertMemoryLimit: "1Gi"
+  convertTmpdir: "/tmp/paperless"
+  enableHttpRemoteUser: true
+  enableHttpRemoteUserAPI: true
+  httpRemoteUserHeaderName: "HTTP_X_REMOTE_USER"
+  redirectLoginToSSO: true
+  accountAllowSignups: false
+  socialAccountSyncGroups: true
+  accountDefaultGroups:
+    - "paperless-users"
+  socialAccountDefaultGroups:
+    - "paperless-users"
+  sessionCookieAge: 2419200 # 28 days
+
+  # Document consumer tuning
+  consumerSubdirsAsTags: true
+  consumerRecursive: true
+  consumerPolling: 10
+  consumerPollingRetryCount: 10
+  consumerPollingDelay: 5
+  consumerInotifyDelay: 0.2
+  enableNltk: true
+  numberOfSuggestedDates: 5
+  enableGpgDecryptor: true
+  nltkDir: "/var/paperless/nltk"
+  loggingDir: "/var/log/paperless"
+  modelFile: "/var/paperless/model.bin"
+
+## Database Configuration (External)
+database:
+  type: postgresql
+  postgresql:
+    host: "postgresql-primary.database.svc.cluster.local"
+    port: 5432
+    database: "paperless"
+    username: "paperless"
+    existingSecret: "paperless-secrets"
+    passwordKey: "database-password"
+    sslMode: "verify-full"
+    sslRootCert: "/etc/paperless/certs/pg-root.crt"
+    sslCert: "/etc/paperless/certs/pg-client.crt"
+    sslKey: "/etc/paperless/certs/pg-client.key"
+    poolSize: 15
+    timeout: 30
+
+  readCache:
+    enabled: true
+    ttl: 7200
+    redisUrl: "redis://paperless-cache.redis.svc.cluster.local:6379/5"
+
+## Redis Configuration (External)
+redis:
+  enabled: false
+  host: "redis-master.database.svc.cluster.local"
+  port: 6379
+  database: 0
+  prefix: "paperless:prod"
+  existingSecret: "paperless-secrets"
+  passwordKey: "redis-password"
+  ssl: true
+
+## Optional document parsing helpers
+tika:
+  enabled: true
+  endpoint: "http://tika.tika.svc.cluster.local:9998"
+  gotenbergEndpoint: "http://gotenberg.apps.svc.cluster.local:3000"
+
+emailParsing:
+  defaultLayout: 1
+
+## Scheduled maintenance tasks
+tasks:
+  email: "*/5 * * * *"
+  train: "15 */6 * * *"
+  index: "0 * * * *"
+  sanity: "30 0 * * sun"
+  emptyTrash: "0 2 * * *"
+
+## Email Configuration
+email:
+  enabled: true
+  host: "smtp.example.com"
+  port: 587
+  from: "paperless@example.com"
+  useTLS: true
+  username: "paperless@example.com"
+  existingSecret: "paperless-secrets"
+  passwordKey: "email-password"
+
+## Worker Configuration
+worker:
+  enabled: true
+  replicaCount: 3
+
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/component
+                  operator: In
+                  values:
+                    - worker
+            topologyKey: kubernetes.io/hostname
+
+## Persistence Configuration
+persistence:
+  data:
+    enabled: true
+    storageClass: "fast-ssd"
+    size: 20Gi
+    accessModes:
+      - ReadWriteOnce
+
+  media:
+    enabled: true
+    storageClass: "standard"
+    size: 100Gi
+    accessModes:
+      - ReadWriteOnce
+
+  consume:
+    enabled: true
+    storageClass: "fast-ssd"
+    size: 20Gi
+    accessModes:
+      - ReadWriteOnce
+
+  export:
+    enabled: true
+    storageClass: "standard"
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+
+## Service Configuration
+service:
+  type: ClusterIP
+  port: 80
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+
+## Ingress Configuration
+ingress:
+  enabled: true
+  className: "nginx"
+
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+  hosts:
+    - host: paperless.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+  tls:
+    - secretName: paperless-tls
+      hosts:
+        - paperless.example.com
+
+## Security Configuration
+podSecurityContext:
+  enabled: true
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1000
+  runAsNonRoot: true
+  privileged: false
+  readOnlyRootFilesystem: false
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+## RBAC Configuration
+serviceAccount:
+  create: true
+  automountServiceAccountToken: false
+
+## Resource Configuration
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+## Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+## Autoscaling Configuration
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPU: 70
+  targetMemory: 80
+
+## Health Checks
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+  successThreshold: 1
+
+## Scheduling Configuration
+nodeSelector:
+  workload-type: application
+
+tolerations:
+  - key: "workload-type"
+    operator: "Equal"
+    value: "application"
+    effect: "NoSchedule"
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - paperless-ngx
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - webserver
+          topologyKey: kubernetes.io/hostname
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8000"
+
+## Paperless-AI Integration
+paperlessAi:
+  enabled: true
+  configMode: managed
+
+  env:
+    PAPERLESS_AI_INITIAL_SETUP: "no"
+    AI_PROVIDER: "openai"
+    OPENAI_MODEL: "gpt-4o-mini"
+    SCAN_INTERVAL: "*/15 * * * *"
+    ADD_AI_PROCESSED_TAG: "yes"
+    AI_PROCESSED_TAG_NAME: "ai-reviewed"
+
+  extraEnv:
+    - name: PAPERLESS_API_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: paperless-ai-secrets
+          key: paperless-api-token
+    - name: OPENAI_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: paperless-ai-secrets
+          key: openai-api-key
+
+  persistence:
+    enabled: true
+    storageClass: "standard"
+    size: 20Gi
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    hosts:
+      - host: ai.paperless.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: paperless-ai-tls
+        hosts:
+          - ai.paperless.example.com
+
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /health
+    prometheus.io/port: "3000"
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+paperlessGpt:
+  enabled: true
+  configMode: managed
+
+  env:
+    GPT_PROVIDER: "openai"
+    GPT_MODEL: "gpt-4o-mini"
+    STREAMING_ENABLED: "true"
+    SUMMARIZATION_ENABLED: "true"
+    EMBEDDINGS_PROVIDER: "openai"
+    EMBEDDINGS_MODEL: "text-embedding-3-large"
+
+  extraEnv:
+    - name: PAPERLESS_API_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: paperless-gpt-secrets
+          key: paperless-api-token
+    - name: OPENAI_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: paperless-gpt-secrets
+          key: openai-api-key
+
+  persistence:
+    enabled: true
+    storageClass: "standard"
+    size: 10Gi
+
+  service:
+    type: ClusterIP
+    port: 3100
+    exposeRagPort: true
+    ragPort: 8100
+
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    hosts:
+      - host: gpt.paperless.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: paperless-gpt-tls
+        hosts:
+          - gpt.paperless.example.com
+
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /health
+    prometheus.io/port: "3100"
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1500m
+      memory: 2Gi
+
+## Network Policy
+networkPolicy:
+  enabled: true
+  allowExternal: true
+
+## Monitoring
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      prometheus: kube-prometheus

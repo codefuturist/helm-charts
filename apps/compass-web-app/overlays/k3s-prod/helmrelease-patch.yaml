@@ -1,0 +1,11 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: compass-web
+  namespace: compass-web
+spec:
+  values:
+    # Production-specific overrides
+    service:
+      type: ClusterIP

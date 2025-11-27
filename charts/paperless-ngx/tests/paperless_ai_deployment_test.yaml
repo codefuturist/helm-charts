@@ -1,0 +1,53 @@
+suite: paperless-ai-deployment
+templates:
+  - paperless-ai-env-secret.yaml
+  - paperless-ai-deployment.yaml
+tests:
+  - it: renders Paperless-AI deployment with managed env mount
+    set:
+      paperlessAi.enabled: true
+    asserts:
+      - documentIndex: 1
+        isKind:
+          of: Deployment
+      - documentIndex: 1
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-paperless-ngx-paperless-ai
+      - documentIndex: 1
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PAPERLESS_API_URL
+            value: http://RELEASE-NAME-paperless-ngx:80/api
+      - documentIndex: 1
+        contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: paperless-ai-env
+            mountPath: /app/data/.env
+            subPath: paperless-ai.env
+            readOnly: true
+      - documentIndex: 1
+        contains:
+          path: spec.template.spec.volumes
+          content:
+            name: paperless-ai-env
+            secret:
+              secretName: RELEASE-NAME-paperless-ngx-paperless-ai-env
+
+  - it: skips env secret mount when configMode is ui
+    set:
+      paperlessAi.enabled: true
+      paperlessAi.configMode: ui
+    asserts:
+      - documentIndex: 0
+        notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: paperless-ai-env
+      - documentIndex: 0
+        notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: paperless-ai-env
