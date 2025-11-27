@@ -1,6 +1,6 @@
 # restic-backup
 
-![Version: 1.2.0](https://img.shields.io/badge/Version-1.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.3](https://img.shields.io/badge/AppVersion-0.17.3-informational?style=flat-square)
+![Version: 1.2.1](https://img.shields.io/badge/Version-1.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.3](https://img.shields.io/badge/AppVersion-0.17.3-informational?style=flat-square)
 
 A user-friendly Helm chart for automated Kubernetes volume backups using restic with support for multiple storage backends and flexible scheduling
 
@@ -54,7 +54,7 @@ A user-friendly Helm chart for automated Kubernetes volume backups using restic 
 | cronjob.concurrencyPolicy | string | `"Forbid"` | Concurrency policy for backup jobs. Options: Allow, Forbid, Replace |
 | cronjob.containerSecurityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":false}` | Container security context. |
 | cronjob.nodeSelector | object | `{}` | Node selector for backup pods. |
-| cronjob.resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}` | Resource limits and requests. |
+| cronjob.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resource limits and requests. Minimal requests to allow scheduling, no limits to allow bursting |
 | cronjob.restartPolicy | string | `"OnFailure"` | Restart policy for backup pods. |
 | cronjob.securityContext | object | `{"fsGroup":0,"runAsGroup":0,"runAsNonRoot":false,"runAsUser":0}` | Pod security context. |
 | cronjob.startingDeadlineSeconds | int | `300` | Deadline in seconds for starting the job. |
@@ -102,7 +102,7 @@ A user-friendly Helm chart for automated Kubernetes volume backups using restic 
 | metrics.nodeSelector | object | `{}` | Node selector for metrics exporter. |
 | metrics.podAnnotations | object | `{}` | Additional pod annotations for metrics exporter. |
 | metrics.port | int | `9092` | Port for metrics endpoint. |
-| metrics.resources | object | `{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"32Mi"}}` | Resource limits and requests for metrics exporter. |
+| metrics.resources | object | `{"limits":{},"requests":{"cpu":"5m","memory":"16Mi"}}` | Resource limits and requests for metrics exporter. Minimal requests to allow scheduling, no limits to allow bursting |
 | metrics.scrapeInterval | int | `60` | Interval between metrics collection in seconds. |
 | metrics.securityContext | object | `{"fsGroup":65534,"runAsGroup":65534,"runAsNonRoot":true,"runAsUser":65534}` | Security context for metrics exporter pod. |
 | metrics.service | object | `{"additionalLabels":{},"annotations":{},"clusterIP":"","port":9092,"type":"ClusterIP"}` | Service configuration for metrics. |

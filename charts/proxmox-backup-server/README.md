@@ -1,6 +1,6 @@
 # proxmox-backup-server
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.0.12](https://img.shields.io/badge/AppVersion-4.0.12-informational?style=flat-square)
+![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.0.12](https://img.shields.io/badge/AppVersion-4.0.12-informational?style=flat-square)
 
 A production-ready Helm chart for Proxmox Backup Server - Enterprise backup solution for virtual environments
 
@@ -107,7 +107,7 @@ A production-ready Helm chart for Proxmox Backup Server - Enterprise backup solu
 | rbac.create | bool | `true` | Create RBAC resources |
 | rbac.rules | list | `[]` | Additional RBAC rules |
 | readinessProbe | object | `{"enabled":true,"failureThreshold":3,"httpGet":{"path":"/","port":"https","scheme":"HTTPS"},"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Readiness probe configuration |
-| resources | object | `{"limits":{"cpu":"2000m","memory":"2Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource limits and requests |
+| resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"128Mi"}}` | Resource limits and requests Minimal requests to allow scheduling, no limits to allow bursting |
 | runtimeClassName | string | `""` | Runtime class name |
 | securityContext | object | `{"allowPrivilegeEscalation":true,"capabilities":{"add":["CHOWN","DAC_OVERRIDE","FOWNER","SETGID","SETUID"],"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsNonRoot":false,"runAsUser":0}` | Container security context |
 | service.annotations | object | `{}` | Service annotations |

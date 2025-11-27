@@ -1,197 +1,180 @@
-# MeTube Helm Chart
+# metube
 
-A Helm chart for deploying MeTube - a self-hosted YouTube/video downloader with a web interface powered by yt-dlp.
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
-## Prerequisites
+A Helm chart for MeTube - YouTube downloader with web interface powered by yt-dlp
 
-- Kubernetes 1.19+
-- Helm 3.2.0+
-- PV provisioner support in the underlying infrastructure (for persistence)
+**Homepage:** <https://github.com/alexta69/metube>
 
-## Architecture
+## Maintainers
 
-This chart follows the common chart library pattern used across this repository. It leverages the shared `common` chart for:
+| Name | Email | Url |
+| ---- | ------ | --- |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
 
-- Standardized labels and naming
-- Image handling and pull secrets
-- Resource presets
-- Security contexts
-- Capability detection (API versions)
+## Source Code
 
-## Installing the Chart
+* <https://github.com/alexta69/metube>
+* <https://github.com/codefuturist/helm-charts>
 
-```bash
-helm install metube ./charts/metube
-```
+## Requirements
 
-## Uninstalling the Chart
+| Repository | Name | Version |
+|------------|------|---------|
+| file://../common | common | 2.x.x |
 
-```bash
-helm delete metube
-```
+## Values
 
-## Configuration
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| args | list | `[]` |  |
+| autoscaling.enabled | bool | `false` |  |
+| autoscaling.maxReplicas | int | `3` |  |
+| autoscaling.minReplicas | int | `1` |  |
+| autoscaling.targetCPU | int | `80` |  |
+| autoscaling.targetMemory | int | `80` |  |
+| clusterDomain | string | `"cluster.local"` |  |
+| command | list | `[]` |  |
+| commonAnnotations | object | `{}` |  |
+| commonLabels | object | `{}` |  |
+| config.createCustomDirs | bool | `true` |  |
+| config.customDirs | bool | `true` |  |
+| config.customDirsExcludeRegex | string | `"(^|/)[.@].*$"` |  |
+| config.defaultOptionPlaylistItemLimit | int | `0` |  |
+| config.defaultOptionPlaylistStrictMode | bool | `false` |  |
+| config.defaultTheme | string | `"auto"` |  |
+| config.deleteFileOnTrashcan | bool | `false` |  |
+| config.downloadDirsIndexable | bool | `false` |  |
+| config.downloadMode | string | `"limited"` |  |
+| config.enableAccesslog | bool | `false` |  |
+| config.gid | int | `1000` |  |
+| config.loglevel | string | `"INFO"` |  |
+| config.maxConcurrentDownloads | int | `3` |  |
+| config.outputTemplate | string | `"%(title)s.%(ext)s"` |  |
+| config.outputTemplateChapter | string | `"%(title)s - %(section_number)s %(section_title)s.%(ext)s"` |  |
+| config.outputTemplatePlaylist | string | `"%(playlist_title)s/%(title)s.%(ext)s"` |  |
+| config.publicHostAudioUrl | string | `""` |  |
+| config.publicHostUrl | string | `""` |  |
+| config.uid | int | `1000` |  |
+| config.umask | string | `"022"` |  |
+| config.urlPrefix | string | `"/"` |  |
+| config.ytdlOptions | string | `""` |  |
+| containerPort | int | `8081` |  |
+| containerSecurityContext.allowPrivilegeEscalation | bool | `false` |  |
+| containerSecurityContext.capabilities.drop[0] | string | `"ALL"` |  |
+| containerSecurityContext.enabled | bool | `true` |  |
+| containerSecurityContext.runAsGroup | int | `1000` |  |
+| containerSecurityContext.runAsNonRoot | bool | `true` |  |
+| containerSecurityContext.runAsUser | int | `1000` |  |
+| cookies.content | string | `""` |  |
+| cookies.enabled | bool | `false` |  |
+| cookies.existingSecret | string | `""` |  |
+| diagnosticMode.args[0] | string | `"infinity"` |  |
+| diagnosticMode.command[0] | string | `"sleep"` |  |
+| diagnosticMode.enabled | bool | `false` |  |
+| extraEnvVars | list | `[]` |  |
+| extraEnvVarsCM | string | `""` |  |
+| extraEnvVarsSecret | string | `""` |  |
+| fullnameOverride | string | `""` |  |
+| global.imagePullSecrets | list | `[]` |  |
+| global.imageRegistry | string | `""` |  |
+| image.debug | bool | `false` |  |
+| image.digest | string | `""` |  |
+| image.pullPolicy | string | `"IfNotPresent"` |  |
+| image.pullSecrets | list | `[]` |  |
+| image.registry | string | `"ghcr.io"` |  |
+| image.repository | string | `"alexta69/metube"` |  |
+| image.tag | string | `"latest"` |  |
+| ingress.annotations | object | `{}` |  |
+| ingress.apiVersion | string | `""` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.extraHosts | list | `[]` |  |
+| ingress.extraPaths | list | `[]` |  |
+| ingress.extraRules | list | `[]` |  |
+| ingress.extraTls | list | `[]` |  |
+| ingress.hostname | string | `"metube.local"` |  |
+| ingress.ingressClassName | string | `""` |  |
+| ingress.path | string | `"/"` |  |
+| ingress.pathType | string | `"ImplementationSpecific"` |  |
+| ingress.secrets | list | `[]` |  |
+| ingress.selfSigned | bool | `false` |  |
+| ingress.tls | bool | `false` |  |
+| kubeVersion | string | `""` |  |
+| livenessProbe.enabled | bool | `true` |  |
+| livenessProbe.failureThreshold | int | `6` |  |
+| livenessProbe.initialDelaySeconds | int | `30` |  |
+| livenessProbe.periodSeconds | int | `10` |  |
+| livenessProbe.successThreshold | int | `1` |  |
+| livenessProbe.timeoutSeconds | int | `5` |  |
+| metrics.enabled | bool | `false` |  |
+| metrics.serviceMonitor.enabled | bool | `false` |  |
+| metrics.serviceMonitor.interval | string | `"30s"` |  |
+| metrics.serviceMonitor.labels | object | `{}` |  |
+| metrics.serviceMonitor.metricRelabelings | list | `[]` |  |
+| metrics.serviceMonitor.namespace | string | `""` |  |
+| metrics.serviceMonitor.relabelings | list | `[]` |  |
+| metrics.serviceMonitor.scrapeTimeout | string | `"10s"` |  |
+| metrics.serviceMonitor.selector | object | `{}` |  |
+| nameOverride | string | `""` |  |
+| namespaceOverride | string | `""` |  |
+| networkPolicy.egress.allowExternal | bool | `true` |  |
+| networkPolicy.egress.enabled | bool | `true` |  |
+| networkPolicy.enabled | bool | `false` |  |
+| networkPolicy.ingress.enabled | bool | `true` |  |
+| pdb.enabled | bool | `false` |  |
+| pdb.maxUnavailable | string | `""` |  |
+| pdb.minAvailable | int | `1` |  |
+| persistence.accessModes[0] | string | `"ReadWriteOnce"` |  |
+| persistence.annotations | object | `{}` |  |
+| persistence.dataSource | object | `{}` |  |
+| persistence.enabled | bool | `true` |  |
+| persistence.existingClaim | string | `""` |  |
+| persistence.selector | object | `{}` |  |
+| persistence.size | string | `"10Gi"` |  |
+| persistence.storageClass | string | `""` |  |
+| podAnnotations | object | `{}` |  |
+| podLabels | object | `{}` |  |
+| podSecurityContext.enabled | bool | `true` |  |
+| podSecurityContext.fsGroup | int | `1000` |  |
+| podSecurityContext.fsGroupChangePolicy | string | `"Always"` |  |
+| readinessProbe.enabled | bool | `true` |  |
+| readinessProbe.failureThreshold | int | `3` |  |
+| readinessProbe.initialDelaySeconds | int | `15` |  |
+| readinessProbe.periodSeconds | int | `10` |  |
+| readinessProbe.successThreshold | int | `1` |  |
+| readinessProbe.timeoutSeconds | int | `3` |  |
+| replicaCount | int | `1` |  |
+| resources | object | `{}` |  |
+| resourcesPreset | string | `"small"` |  |
+| service.annotations | object | `{}` |  |
+| service.clusterIP | string | `""` |  |
+| service.externalTrafficPolicy | string | `"Cluster"` |  |
+| service.loadBalancerIP | string | `""` |  |
+| service.loadBalancerSourceRanges | list | `[]` |  |
+| service.nodePorts.http | string | `""` |  |
+| service.ports.http | int | `8081` |  |
+| service.sessionAffinity | string | `"None"` |  |
+| service.sessionAffinityConfig | object | `{}` |  |
+| service.type | string | `"ClusterIP"` |  |
+| serviceAccount.annotations | object | `{}` |  |
+| serviceAccount.automountServiceAccountToken | bool | `false` |  |
+| serviceAccount.create | bool | `true` |  |
+| serviceAccount.name | string | `""` |  |
+| startupProbe.enabled | bool | `true` |  |
+| startupProbe.failureThreshold | int | `30` |  |
+| startupProbe.initialDelaySeconds | int | `10` |  |
+| startupProbe.periodSeconds | int | `10` |  |
+| startupProbe.successThreshold | int | `1` |  |
+| startupProbe.timeoutSeconds | int | `3` |  |
+| storage.audioDownloadDir | string | `""` |  |
+| storage.downloadDir | string | `"/downloads"` |  |
+| storage.stateDir | string | `""` |  |
+| storage.tempDir | string | `""` |  |
+| tls.certFile | string | `""` |  |
+| tls.enabled | bool | `false` |  |
+| tls.existingSecret | string | `""` |  |
+| tls.keyFile | string | `""` |  |
+| updateStrategy.type | string | `"Recreate"` |  |
 
-The following table lists the configurable parameters of the MeTube chart and their default values.
-
-### Global Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `global.imageRegistry` | Global Docker image registry | `""` |
-| `global.imagePullSecrets` | Global Docker registry secret names | `[]` |
-
-### Image Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `image.registry` | MeTube image registry | `ghcr.io` |
-| `image.repository` | MeTube image repository | `alexta69/metube` |
-| `image.tag` | MeTube image tag | `latest` |
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `image.pullSecrets` | Specify docker-registry secret names | `[]` |
-
-### MeTube Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `config.downloadMode` | Download mode (audio/video) | `video` |
-| `config.maxConcurrentDownloads` | Maximum concurrent downloads | `5` |
-| `config.outputTemplate` | yt-dlp output template | `%(title)s.%(ext)s` |
-| `config.ytdlOptions` | Custom yt-dlp options (JSON) | `{}` |
-| `config.urlPrefix` | URL prefix for reverse proxy | `""` |
-| `config.deleteFileOnTrashed` | Delete file when trashed | `false` |
-
-### Storage Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `persistence.enabled` | Enable persistence | `true` |
-| `persistence.existingClaim` | Use existing PVC | `""` |
-| `persistence.storageClass` | Storage class | `""` |
-| `persistence.accessModes` | Access modes | `["ReadWriteOnce"]` |
-| `persistence.size` | Storage size | `10Gi` |
-| `storage.downloadDir` | Download directory path | `/downloads` |
-| `storage.uid` | User ID | `1000` |
-| `storage.gid` | Group ID | `1000` |
-
-### Service Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `service.type` | Service type | `ClusterIP` |
-| `service.ports.http` | HTTP port | `8081` |
-| `service.nodePorts.http` | Node port (if applicable) | `""` |
-| `service.clusterIP` | Specific cluster IP | `""` |
-| `service.loadBalancerIP` | LoadBalancer IP | `""` |
-
-### Ingress Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `ingress.enabled` | Enable ingress | `false` |
-| `ingress.ingressClassName` | Ingress class name | `""` |
-| `ingress.hostname` | Default hostname | `metube.local` |
-| `ingress.path` | Default path | `/` |
-| `ingress.pathType` | Path type | `ImplementationSpecific` |
-| `ingress.tls` | Enable TLS | `false` |
-| `ingress.selfSigned` | Create self-signed certificate | `false` |
-
-### Security Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `podSecurityContext.enabled` | Enable pod security context | `true` |
-| `podSecurityContext.fsGroup` | Group ID for volumes | `1000` |
-| `containerSecurityContext.enabled` | Enable container security context | `true` |
-| `containerSecurityContext.runAsUser` | User ID | `1000` |
-| `containerSecurityContext.runAsNonRoot` | Run as non-root | `true` |
-
-### Resource Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `resourcesPreset` | Resource preset | `small` |
-| `resources.limits` | Resource limits | `{}` |
-| `resources.requests` | Resource requests | `{}` |
-
-## Examples
-
-### Basic Installation
-
-```bash
-helm install metube ./charts/metube
-```
-
-### With Custom Storage Size
-
-```bash
-helm install metube ./charts/metube \
-  --set persistence.size=50Gi
-```
-
-### With Ingress
-
-```bash
-helm install metube ./charts/metube \
-  --set ingress.enabled=true \
-  --set ingress.hostname=metube.example.com \
-  --set ingress.tls=true
-```
-
-### Audio-Only Downloads
-
-```bash
-helm install metube ./charts/metube \
-  --set config.downloadMode=audio \
-  --set config.outputTemplate="%(artist)s - %(title)s.%(ext)s"
-```
-
-### With Cookies for Authentication
-
-```yaml
-# values-cookies.yaml
-cookies:
-  enabled: true
-  content: |
-    # Netscape HTTP Cookie File
-    .youtube.com    TRUE    /   FALSE   0   CONSENT YES+
-```
-
-```bash
-helm install metube ./charts/metube -f values-cookies.yaml
-```
-
-## Upgrade
-
-```bash
-helm upgrade metube ./charts/metube
-```
-
-## Troubleshooting
-
-### Check Pod Status
-
-```bash
-kubectl get pods -l app.kubernetes.io/name=metube
-kubectl logs -l app.kubernetes.io/name=metube
-```
-
-### Access Logs
-
-```bash
-kubectl logs deployment/metube -f
-```
-
-### Check PVC
-
-```bash
-kubectl get pvc
-kubectl describe pvc metube
-```
-
-## Links
-
-- [MeTube GitHub](https://github.com/alexta69/metube)
-- [yt-dlp Documentation](https://github.com/yt-dlp/yt-dlp)
-- [Chart Repository](https://github.com/codefuturist/helm-charts)
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

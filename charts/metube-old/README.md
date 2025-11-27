@@ -2,101 +2,9 @@
 
 ![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
-A production-ready Helm chart for MeTube - Web-based YouTube downloader powered by yt-dlp
+A production-ready Helm chart for MeTube - YouTube downloader with web interface powered by yt-dlp
 
 **Homepage:** <https://github.com/alexta69/metube>
-
-## Description
-
-MeTube is a self-hosted web UI for youtube-dl/yt-dlp that allows you to download videos from YouTube and many other sites. This Helm chart provides a production-ready deployment with comprehensive configuration options, persistent storage, monitoring, and high availability features.
-
-## Features
-
-- 🎥 Download videos from YouTube and 1000+ other sites
-- 🌐 Clean, modern web interface
-- 📁 Persistent storage for downloads
-- 🔒 Security-hardened with pod security contexts and network policies
-- 📊 Monitoring with Prometheus ServiceMonitor and alerts
-- 🚀 High availability with horizontal pod autoscaling
-- 🎛️ Full yt-dlp configuration support
-- 🍪 Cookie authentication for restricted content
-- 🔄 Reverse proxy support with URL_PREFIX
-
-## Quick Start
-
-```bash
-# Install with default values
-helm install metube codefuturist/metube
-
-# Install with larger storage
-helm install metube codefuturist/metube \
-  --set persistence.downloads.size=50Gi
-
-# Access MeTube
-kubectl port-forward svc/metube 8081:8081
-# Visit http://localhost:8081
-```
-
-## Installation
-
-### Basic Installation
-
-```bash
-# Add the Helm repository
-helm repo add codefuturist https://codefuturist.github.io/helm-charts
-helm repo update
-
-# Install the chart
-helm install metube codefuturist/metube
-```
-
-### Production Installation
-
-For production deployments, enable persistence, monitoring, and ingress:
-
-```bash
-helm install metube codefuturist/metube \
-  --set persistence.downloads.enabled=true \
-  --set persistence.downloads.size=100Gi \
-  --set ingress.enabled=true \
-  --set ingress.hosts[0].host=metube.example.com \
-  --set monitoring.serviceMonitor.enabled=true
-```
-
-## Documentation
-
-- **[Quick Start Guide](docs/QUICKSTART.md)** - Get started quickly with common configurations
-- **[Testing Guide](docs/TESTING.md)** - Comprehensive testing instructions
-- **[Example Configurations](examples/)** - Production-ready example values files
-
-## Basic Usage
-
-Once deployed, access the web interface and:
-
-1. Paste a video URL into the input field
-2. Select quality and format preferences
-3. Click "Download" button
-4. Monitor download progress in real-time
-5. Access downloaded files in the configured storage location
-
-## Storage Considerations
-
-MeTube requires persistent storage for downloads. The default configuration provisions 10Gi of storage, but you should adjust this based on your needs:
-
-```bash
-# For high-volume usage
-helm install metube codefuturist/metube \
-  --set persistence.downloads.size=100Gi
-```
-
-## Common Configuration Scenarios
-
-See the [examples/](examples/) directory for complete configuration examples:
-
-- `values-minimal.yaml` - Minimal setup for testing
-- `values-production.yaml` - Production deployment with ingress and monitoring
-- `values-with-persistence.yaml` - Focus on storage configuration
-- `values-reverse-proxy.yaml` - Configuration for reverse proxy environments
 
 ## Maintainers
 
@@ -106,7 +14,7 @@ See the [examples/](examples/) directory for complete configuration examples:
 
 ## Source Code
 
-* <https://github.com/pgadmin-org/pgadmin4>
+* <https://github.com/alexta69/metube>
 * <https://github.com/codefuturist/helm-charts>
 
 ## Values
@@ -120,7 +28,7 @@ See the [examples/](examples/) directory for complete configuration examples:
 | controller.command | list | `[]` | Command override for the main container |
 | controller.lifecycle | object | `{}` | Lifecycle hooks for the main container |
 | controller.podManagementPolicy | string | `"OrderedReady"` | Pod management policy (only used if controller.type is statefulset) |
-| controller.replicas | int | `1` | Number of pgAdmin replicas |
+| controller.replicas | int | `1` | Number of MeTube replicas Note: Multiple replicas share the same storage, ensure your storage supports ReadWriteMany if scaling |
 | controller.strategy | object | `{"type":"Recreate"}` | Deployment update strategy |
 | controller.terminationGracePeriodSeconds | int | `30` | Termination grace period in seconds |
 | controller.type | string | `"deployment"` | Controller type (deployment or statefulset) |
@@ -138,7 +46,7 @@ See the [examples/](examples/) directory for complete configuration examples:
 | extraVolumes | list | `[]` | Extra volumes |
 | fullnameOverride | string | `""` | Override the full name of the chart |
 | hostAliases | list | `[]` | Host aliases |
-| hpa | object | `{"customMetrics":[],"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80,"targetMemoryUtilizationPercentage":80}` | Horizontal Pod Autoscaler configuration Note: HPA is generally not recommended for pgAdmin as it's typically single-instance |
+| hpa | object | `{"customMetrics":[],"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80,"targetMemoryUtilizationPercentage":80}` | Horizontal Pod Autoscaler configuration Note: HPA may not be ideal for MeTube as downloads benefit from consistent resources |
 | hpa.customMetrics | list | `[]` | Custom metrics for autoscaling |
 | hpa.enabled | bool | `false` | Enable HorizontalPodAutoscaler |
 | hpa.maxReplicas | int | `3` | Maximum number of replicas |
@@ -147,16 +55,50 @@ See the [examples/](examples/) directory for complete configuration examples:
 | hpa.targetMemoryUtilizationPercentage | int | `80` | Target memory utilization percentage |
 | image.digest | string | `""` | Image digest (overrides tag if set) |
 | image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
-| image.repository | string | `"dpage/pgadmin4"` | pgAdmin 4 Docker image repository |
-| image.tag | string | Chart appVersion | pgAdmin 4 Docker image tag |
+| image.repository | string | `"ghcr.io/alexta69/metube"` | MeTube Docker image repository |
+| image.tag | string | Chart appVersion | MeTube Docker image tag |
 | imagePullSecrets | list | `[]` | Image pull secrets for private registries |
-| ingress.annotations | object | `{}` | Ingress annotations Example for nginx ingress: annotations:   cert-manager.io/cluster-issuer: "letsencrypt-prod"   nginx.ingress.kubernetes.io/backend-protocol: "HTTP" |
+| ingress.annotations | object | `{}` | Ingress annotations Example for nginx ingress: annotations:   cert-manager.io/cluster-issuer: "letsencrypt-prod"   nginx.ingress.kubernetes.io/backend-protocol: "HTTP"   nginx.ingress.kubernetes.io/proxy-body-size: "0" |
 | ingress.className | string | `""` | Ingress class name |
 | ingress.enabled | bool | `false` | Enable ingress |
-| ingress.hosts | list | `[]` | Ingress hosts configuration Example: hosts:   - host: pgadmin.example.com     paths:       - path: /         pathType: Prefix |
-| ingress.tls | list | `[]` | Ingress TLS configuration Example: tls:   - secretName: pgadmin-tls     hosts:       - pgadmin.example.com |
+| ingress.hosts | list | `[]` | Ingress hosts configuration Example: hosts:   - host: metube.example.com     paths:       - path: /         pathType: Prefix |
+| ingress.tls | list | `[]` | Ingress TLS configuration Example: tls:   - secretName: metube-tls     hosts:       - metube.example.com |
 | initContainers | list | `[]` | Init containers to run before the main container |
-| livenessProbe | object | `{"enabled":true,"failureThreshold":6,"httpGet":{"path":"/misc/ping","port":"http"},"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Liveness probe configuration |
+| livenessProbe | object | `{"enabled":true,"failureThreshold":6,"httpGet":{"path":"/","port":"http"},"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Liveness probe configuration |
+| metube.certFile | string | `""` | Path to SSL certificate file (mounted via secret) |
+| metube.cookies | object | `{"cookieFile":"","enabled":false,"existingSecret":""}` | Cookie file support for authenticated downloads |
+| metube.cookies.cookieFile | string | `""` | Cookie file content (cookies.txt format) Format: Netscape cookie file |
+| metube.cookies.enabled | bool | `false` | Enable cookie file support |
+| metube.cookies.existingSecret | string | `""` | Name of existing secret containing cookies.txt Secret must contain key: cookies.txt |
+| metube.createCustomDirs | bool | `true` | Allow creating new custom directories on the fly |
+| metube.customDirs | bool | `true` | Enable custom directories for organizing downloads |
+| metube.customDirsExcludeRegex | string | `"(^|/)[.@].*$"` | Regular expression to exclude directories from dropdown Default excludes hidden directories and those starting with @ |
+| metube.defaultOptionPlaylistItemLimit | int | `0` | Maximum playlist items to download (0 = no limit) |
+| metube.defaultOptionPlaylistStrictMode | bool | `false` | Enable strict playlist mode by default In strict mode, playlists download only if URL strictly points to playlist |
+| metube.defaultTheme | string | `"auto"` | Default UI theme (light, dark, auto) |
+| metube.deleteFileOnTrashcan | bool | `false` | Delete files from server when trashed in UI |
+| metube.downloadDirsIndexable | bool | `false` | Make download directories indexable on web server |
+| metube.downloadMode | string | `"limited"` | Download behavior mode (sequential, concurrent, limited) sequential: One download at a time concurrent: Unlimited simultaneous downloads limited: Controlled concurrency (see maxConcurrentDownloads) |
+| metube.enableAccesslog | bool | `false` | Enable access log |
+| metube.existingRobotsTxtConfigMap | string | `""` | Name of existing ConfigMap containing robots.txt |
+| metube.existingTlsSecret | string | `""` | Name of existing secret containing SSL certificate and key Secret must contain keys: tls.crt and tls.key |
+| metube.existingYtdlOptionsConfigMap | string | `""` | Name of existing ConfigMap containing ytdl_options.json |
+| metube.gid | int | `1000` | Group ID to run MeTube as |
+| metube.https | bool | `false` | Enable HTTPS mode (requires certFile and keyFile) |
+| metube.keyFile | string | `""` | Path to SSL key file (mounted via secret) |
+| metube.loglevel | string | `"INFO"` | Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL, NONE) |
+| metube.maxConcurrentDownloads | int | `3` | Maximum concurrent downloads (only used with downloadMode: limited) |
+| metube.outputTemplate | string | `"%(title)s.%(ext)s"` | Output filename template for yt-dlp See: https://github.com/yt-dlp/yt-dlp#output-template |
+| metube.outputTemplateChapter | string | `"%(title)s - %(section_number)s %(section_title)s.%(ext)s"` | Output filename template for chapters |
+| metube.outputTemplatePlaylist | string | `"%(playlist_title)s/%(title)s.%(ext)s"` | Output filename template for playlists (empty uses outputTemplate) |
+| metube.publicHostAudioUrl | string | `""` | Base URL for audio download links |
+| metube.publicHostUrl | string | `""` | Base URL for download links in the UI Leave empty to serve files through MeTube itself |
+| metube.robotsTxt | string | `""` | Path to robots.txt file (mounted via ConfigMap) |
+| metube.uid | int | `1000` | User ID to run MeTube as |
+| metube.umask | string | `"022"` | Umask for created files and directories |
+| metube.urlPrefix | string | `"/"` | URL prefix for reverse proxy subdirectory hosting Example: /metube for hosting at https://example.com/metube |
+| metube.ytdlOptions | string | `""` | Additional yt-dlp options in JSON format See: https://github.com/yt-dlp/yt-dlp#usage-and-options Example: '{"format": "bestvideo+bestaudio", "writesubtitles": true}' |
+| metube.ytdlOptionsFile | string | `""` | Path to JSON file with yt-dlp options (mounted via ConfigMap) Takes precedence over ytdlOptions if both are set |
 | monitoring.prometheusRule.enabled | bool | `false` | Enable PrometheusRule for alerting |
 | monitoring.prometheusRule.labels | object | `{}` | Additional labels for the PrometheusRule |
 | monitoring.prometheusRule.namespace | string | `""` | Namespace for the PrometheusRule (defaults to the release namespace) |
@@ -171,68 +113,31 @@ See the [examples/](examples/) directory for complete configuration examples:
 | monitoring.serviceMonitor.scrapeTimeout | string | `"10s"` | Timeout for scraping metrics |
 | nameOverride | string | `""` | Override the name of the chart |
 | namespaceOverride | string | `.Release.Namespace` | Override the namespace for all resources |
-| networkPolicy.egress | list | `[{"ports":[{"port":5432,"protocol":"TCP"}],"to":[{"namespaceSelector":{}}]},{"ports":[{"port":53,"protocol":"UDP"}],"to":[{"namespaceSelector":{}}]}]` | Egress rules By default, allow egress to PostgreSQL port |
+| networkPolicy.egress | list | `[{"ports":[{"port":443,"protocol":"TCP"},{"port":80,"protocol":"TCP"}],"to":[{"namespaceSelector":{}}]},{"ports":[{"port":53,"protocol":"UDP"}],"to":[{"namespaceSelector":{}}]}]` | Egress rules MeTube needs internet access to download videos |
 | networkPolicy.enabled | bool | `false` | Enable network policy |
-| networkPolicy.ingress | list | `[]` | Ingress rules Example to allow traffic from specific namespaces: ingress:   - from:     - namespaceSelector:         matchLabels:           name: ingress-nginx     ports:     - protocol: TCP       port: 80 |
+| networkPolicy.ingress | list | `[]` | Ingress rules Example to allow traffic from ingress controller: ingress:   - from:     - namespaceSelector:         matchLabels:           name: ingress-nginx     ports:     - protocol: TCP       port: 8081 |
 | networkPolicy.policyTypes | list | `["Ingress","Egress"]` | Policy types |
 | nodeSelector | object | `{}` | Node selector for pod assignment |
 | pdb.enabled | bool | `false` | Enable PodDisruptionBudget |
 | pdb.maxUnavailable | string | `""` | Maximum number of pods that can be unavailable |
 | pdb.minAvailable | int | `1` | Minimum number of pods that must be available |
-| persistence.accessMode | string | `"ReadWriteOnce"` | Access mode for the persistent volume |
+| persistence.accessMode | string | `"ReadWriteOnce"` | Access mode for the persistent volume Use ReadWriteMany if running multiple replicas |
+| persistence.additionalVolumes | list | `[]` | Additional volumes for specific use cases |
 | persistence.annotations | object | `{}` | Annotations for the PVC |
-| persistence.enabled | bool | `false` | Enable persistent storage for pgAdmin data Data includes user preferences, sessions, and saved queries |
+| persistence.enabled | bool | `true` | Enable persistent storage for downloads |
 | persistence.existingClaim | string | `""` | Name of an existing PVC to use |
-| persistence.size | string | `"1Gi"` | Size of the persistent volume |
+| persistence.size | string | `"10Gi"` | Size of the persistent volume for downloads Recommended: 50Gi-100Gi for typical usage |
 | persistence.storageClassName | string | Default storage class | Storage class name |
-| pgadmin.config | object | `{"PGADMIN_CONFIG_CONSOLE_LOG_LEVEL":"10","PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION":"True","PGADMIN_CONFIG_SESSION_COOKIE_NAME":"pgadmin4_session","PGADMIN_LISTEN_PORT":"80"}` | pgAdmin configuration settings as environment variables See https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html |
-| pgadmin.configLocal | string | `""` | Custom config_local.py content for advanced pgAdmin configuration This Python file is loaded after config.py and can override any settings Example: configLocal: |   MASTER_PASSWORD_REQUIRED = False   SESSION_EXPIRATION_TIME = 1   ENHANCED_COOKIE_PROTECTION = True |
-| pgadmin.disablePostfix | bool | `false` | Disable internal Postfix server (set to any value to disable) Useful when using external SMTP server or in environments that prevent sudo |
-| pgadmin.email | string | `"admin@example.com"` | Default pgAdmin login email address (required if existingSecret is not set) |
-| pgadmin.existingConfigLocalConfigMap | string | `""` | Name of an existing ConfigMap containing config_local.py |
-| pgadmin.existingPgpassSecret | string | `""` | Name of an existing Secret containing pgpass file The secret must contain a key 'pgpass' with the pgpass file content |
-| pgadmin.existingSecret | string | `""` | Name of an existing secret containing pgAdmin credentials The secret must contain keys for email and password (see existingSecretEmailKey and existingSecretPasswordKey) |
-| pgadmin.existingSecretEmailKey | string | `"email"` | Key in existingSecret that contains the email address |
-| pgadmin.existingSecretPasswordKey | string | `"password"` | Key in existingSecret that contains the password |
-| pgadmin.existingServerDefinitionsConfigMap | string | `""` | Name of an existing ConfigMap containing server definitions (servers.json) If set, this takes precedence over serverDefinitions |
-| pgadmin.gunicorn | object | `{"accessLogfile":"-","limitRequestLine":8190,"threads":25}` | Gunicorn configuration |
-| pgadmin.gunicorn.accessLogfile | string | `"-"` | Access log file path (- for stdout, empty to disable) |
-| pgadmin.gunicorn.limitRequestLine | int | `8190` | Maximum size of HTTP request line in bytes (0 for unlimited, not recommended) |
-| pgadmin.gunicorn.threads | int | `25` | Number of threads per Gunicorn worker |
-| pgadmin.ldap | object | `{"bindDN":"","bindPassword":"","enabled":false,"groupBaseDN":"","server":"","userBaseDN":""}` | LDAP/OAuth integration configuration |
-| pgadmin.ldap.bindDN | string | `""` | LDAP bind DN |
-| pgadmin.ldap.bindPassword | string | `""` | LDAP bind password |
-| pgadmin.ldap.enabled | bool | `false` | Enable LDAP authentication |
-| pgadmin.ldap.groupBaseDN | string | `""` | LDAP group base DN |
-| pgadmin.ldap.server | string | `""` | LDAP server URI |
-| pgadmin.ldap.userBaseDN | string | `""` | LDAP user base DN |
-| pgadmin.password | string | (must be set or use existingSecret) | Default pgAdmin login password (required if existingSecret is not set) |
-| pgadmin.pgpassFile | string | `""` | pgpass file content for automatic PostgreSQL authentication Format: hostname:port:database:username:password (one entry per line) Example: pgpassFile: |   postgresql.default.svc.cluster.local:5432:*:postgres:password123   postgresql-prod.database.svc:5432:production:dbuser:secret |
-| pgadmin.replaceServersOnStartup | bool | `false` | Replace server definitions on every startup (not just first launch) When true, server definitions from serverDefinitions or existingServerDefinitionsConfigMap are reloaded on each start |
-| pgadmin.scriptName | string | `""` | Script name for reverse proxy subdirectory hosting Set this when hosting pgAdmin under a subdirectory (e.g., /pgadmin4) This sets the SCRIPT_NAME environment variable |
-| pgadmin.serverDefinitions | object | `{}` | Pre-configured PostgreSQL server definitions This will create a servers.json file mounted into pgAdmin Example: serverDefinitions:   servers:     1:       Name: "Production PostgreSQL"       Group: "Production"       Host: "postgresql.default.svc.cluster.local"       Port: 5432       MaintenanceDB: "postgres"       Username: "postgres"       SSLMode: "prefer" |
-| pgadmin.smtp | object | `{"enabled":false,"existingSecret":"","existingSecretPasswordKey":"smtp-password","existingSecretUsernameKey":"smtp-username","fromAddress":"pgadmin@example.com","password":"","port":587,"server":"","useSSL":false,"useTLS":true,"username":""}` | SMTP/Email configuration for notifications and user management |
-| pgadmin.smtp.enabled | bool | `false` | Enable SMTP configuration |
-| pgadmin.smtp.existingSecret | string | `""` | Name of existing secret containing SMTP credentials |
-| pgadmin.smtp.existingSecretPasswordKey | string | `"smtp-password"` | Key in existingSecret for SMTP password |
-| pgadmin.smtp.existingSecretUsernameKey | string | `"smtp-username"` | Key in existingSecret for SMTP username |
-| pgadmin.smtp.fromAddress | string | `"pgadmin@example.com"` | Email sender address |
-| pgadmin.smtp.password | string | `""` | SMTP password |
-| pgadmin.smtp.port | int | `587` | SMTP server port |
-| pgadmin.smtp.server | string | `""` | SMTP server host |
-| pgadmin.smtp.useSSL | bool | `false` | Use SSL for SMTP |
-| pgadmin.smtp.useTLS | bool | `true` | Use TLS for SMTP |
-| pgadmin.smtp.username | string | `""` | SMTP username |
 | podAnnotations | object | `{}` | Pod annotations |
 | podLabels | object | `{}` | Pod labels |
-| podSecurityContext | object | `{"fsGroup":5050,"fsGroupChangePolicy":"OnRootMismatch","runAsNonRoot":true,"runAsUser":5050,"seccompProfile":{"type":"RuntimeDefault"}}` | Pod security context pgAdmin runs as user 5050 by default |
+| podSecurityContext | object | `{"fsGroup":1000,"runAsGroup":1000,"runAsNonRoot":true,"runAsUser":1000}` | Pod security context |
 | priorityClassName | string | `""` | Priority class name for the pod |
 | rbac.create | bool | `true` | Create RBAC resources |
 | rbac.rules | list | `[]` | Additional RBAC rules |
-| readinessProbe | object | `{"enabled":true,"failureThreshold":3,"httpGet":{"path":"/misc/ping","port":"http"},"initialDelaySeconds":15,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Readiness probe configuration |
-| resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource limits and requests |
+| readinessProbe | object | `{"enabled":true,"failureThreshold":3,"httpGet":{"path":"/","port":"http"},"initialDelaySeconds":15,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Readiness probe configuration |
+| resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resource limits and requests Downloads can be CPU intensive during transcoding Minimal requests to allow scheduling, no limits to allow bursting |
 | runtimeClassName | string | `""` | Runtime class name |
-| securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsNonRoot":true,"runAsUser":5050}` | Container security context |
+| securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":false}` | Container security context |
 | service.annotations | object | `{}` | Service annotations |
 | service.clusterIP | string | `""` | Cluster IP (set to None for headless service) |
 | service.externalTrafficPolicy | string | `""` | External traffic policy (only used if type is LoadBalancer or NodePort) |
@@ -240,15 +145,19 @@ See the [examples/](examples/) directory for complete configuration examples:
 | service.loadBalancerIP | string | `""` | Load balancer IP (only used if type is LoadBalancer) |
 | service.loadBalancerSourceRanges | list | `[]` | Load balancer source ranges (only used if type is LoadBalancer) |
 | service.nodePort | string | `""` | Node port (only used if type is NodePort) |
-| service.port | int | `80` | Service port |
+| service.port | int | `8081` | Service port |
 | service.sessionAffinity | string | `"None"` | Session affinity |
 | service.sessionAffinityConfig | object | `{}` | Session affinity config |
-| service.targetPort | int | `80` | Service target port (container port) |
+| service.targetPort | int | `8081` | Service target port (container port) |
 | service.type | string | `"ClusterIP"` | Service type |
 | serviceAccount.annotations | object | `{}` | Service account annotations |
 | serviceAccount.create | bool | `true` | Create a service account |
 | serviceAccount.name | string | `""` | Service account name (generated if not set and create is true) |
-| startupProbe | object | `{"enabled":true,"failureThreshold":30,"httpGet":{"path":"/misc/ping","port":"http"},"initialDelaySeconds":10,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Startup probe configuration |
+| startupProbe | object | `{"enabled":true,"failureThreshold":30,"httpGet":{"path":"/","port":"http"},"initialDelaySeconds":10,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Startup probe configuration |
+| storage.audioDownloadDir | string | `""` | Audio-only download directory (empty = same as downloadDir) |
+| storage.downloadDir | string | `"/downloads"` | Main download directory path inside container |
+| storage.stateDir | string | /downloads/.metube | State directory for queue persistence |
+| storage.tempDir | string | `""` | Temporary directory for intermediate files Consider using tmpfs for better performance |
 | tolerations | list | `[]` | Tolerations for pod assignment |
 | topologySpreadConstraints | list | `[]` | Topology spread constraints for pod distribution |
 

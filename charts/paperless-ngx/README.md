@@ -1,624 +1,487 @@
-# Paperless-ngx Helm Chart
-
-A Helm chart for deploying [Paperless-ngx](https://github.com/paperless-ngx/paperless-ngx), a community-supported supercharged version of paperless based on paperless-ng. This chart provides a production-ready deployment with support for external PostgreSQL and Redis dependencies, separate worker deployments, and comprehensive configuration options.
-
-## Features
-
-- 🚀 **Production-ready deployment** with security best practices
-- 🔄 **Separate worker deployment** for Celery task processing
-- 🧱 **Bundled Bitnami PostgreSQL & Redis subcharts** or switch to fully external services at any time
-- 💾 **Multiple persistence volumes** (data, media, consume, export)
-- 🤖 **Paperless-AI companion service** (optional) for automated tagging, classification, and RAG chat backed by OpenAI/Ollama
-- 🧠 **Paperless-GPT conversational service** (optional) for summarization, chat, and GPT-powered workflows
-- 🔐 **Flexible secret management** (inline or existing secrets)
-- 📊 **Monitoring support** with Prometheus ServiceMonitor
-- 🌐 **Ingress support** with modern networking.k8s.io/v1 API
-- 🛡️ **Network policies** for enhanced security
-- ⚡ **Autoscaling** with HorizontalPodAutoscaler
-- 🎯 **Pod disruption budgets** for high availability
-
-## Prerequisites
-
-- Kubernetes 1.21+
-- Helm 3.0+
-- PV provisioner support in the underlying infrastructure
-- PostgreSQL 12+ **or** enable the bundled Bitnami PostgreSQL subchart (enabled by default)
-- Redis 6.0+ **or** enable the bundled Bitnami Redis subchart (enabled by default)
-
-## Installing the Chart
-
-### With External Database (Recommended)
-
-First, ensure you have PostgreSQL and Redis running (or disable the bundled subcharts). Then install the chart:
-
-```bash
-helm install paperless-ngx ./paperless-ngx \
-  --set database.postgresql.host=postgresql.default.svc.cluster.local \
-  --set database.postgresql.password=your-db-password \
-  --set redis.host=redis.default.svc.cluster.local \
-  --set config.secretKey=your-secret-key
-```
-
-### Using Existing Secrets
-
-```bash
-# Create secret with required keys
-kubectl create secret generic paperless-secrets \
-  --from-literal=secret-key=your-secret-key \
-  --from-literal=database-password=your-db-password \
-  --from-literal=redis-password=your-redis-password
-
-# Install chart with existing secret
-helm install paperless-ngx ./paperless-ngx \
-  --set config.existingSecret=paperless-secrets \
-  --set database.postgresql.host=postgresql.default.svc.cluster.local \
-  --set database.postgresql.existingSecret=paperless-secrets \
-  --set redis.host=redis.default.svc.cluster.local \
-  --set redis.existingSecret=paperless-secrets
-```
-
-### With Ingress
-
-```bash
-helm install paperless-ngx ./paperless-ngx \
-  --set ingress.enabled=true \
-  --set ingress.className=nginx \
-  --set "ingress.hosts[0].host=paperless.example.com" \
-  --set "ingress.hosts[0].paths[0].path=/" \
-  --set "ingress.hosts[0].paths[0].pathType=Prefix" \
-  --set config.url=https://paperless.example.com \
-  --set "config.csrfTrustedOrigins[0]=https://paperless.example.com"
-```
-
-## Uninstalling the Chart
-
-```bash
-helm uninstall paperless-ngx
-```
-
-This removes all Kubernetes components associated with the chart and deletes the release. Note that PersistentVolumeClaims are not deleted automatically.
-
-## Configuration
-
-The chart aims to expose the same breadth of configuration described in the [upstream Paperless-ngx documentation](https://docs.paperless-ngx.com/configuration/). The highlights below are grouped similarly to the upstream docs. Refer to `values.yaml` for the authoritative/complete list of options.
-
-### Global Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `global.imageRegistry` | Global Docker image registry | `""` |
-| `global.imagePullSecrets` | Global Docker registry secret names as an array | `[]` |
-
-### Common Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `nameOverride` | String to partially override paperless-ngx.name | `""` |
-| `fullnameOverride` | String to fully override paperless-ngx.fullname | `""` |
-| `commonLabels` | Labels to add to all deployed objects | `{}` |
-| `commonAnnotations` | Annotations to add to all deployed objects | `{}` |
-
-### Image Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `image.registry` | Paperless-ngx image registry | `ghcr.io` |
-| `image.repository` | Paperless-ngx image repository | `paperless-ngx/paperless-ngx` |
-| `image.tag` | Paperless-ngx image tag | `""` (uses Chart.AppVersion) |
-| `image.pullPolicy` | Paperless-ngx image pull policy | `IfNotPresent` |
-| `image.pullSecrets` | Paperless-ngx image pull secrets | `[]` |
-
-### Paperless-ngx Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `config.secretKey` | Secret key for Django application | `""` (auto-generated) |
-| `config.existingSecret` | Name of existing secret | `""` |
-| `config.adminUser` | Admin username | `"admin"` |
-| `config.adminMail` | Admin email | `"admin@localhost"` |
-| `config.adminPassword` | Admin password | `""` |
-| `config.url` | Paperless-ngx URL | `""` |
-| `config.csrfTrustedOrigins` | CSRF trusted origins | `[]` |
-| `config.allowedHosts` | Django allowed hosts | `[]` |
-| `config.corsAllowedHosts` | CORS allowed hosts | `[]` |
-| `config.timeZone` | Timezone | `"UTC"` |
-| `config.ocrLanguage` | OCR language | `"eng"` |
-| `config.ocrMode` | OCR mode | `"skip"` |
-| `config.enableHttpRemoteUser` | Enable HTTP remote user auth | `false` |
-| `config.enableHttpRemoteUserAPI` | Enable remote user auth for API | `false` |
-| `config.httpRemoteUserHeaderName` | Remote user header name | `HTTP_REMOTE_USER` |
-| `config.cookiePrefix` | Cookie prefix (multi-instance auth) | `""` |
-| `config.enableFlowerDebug` | Start Flower dashboard | `false` |
-| `config.logrotateMaxSize` | Max log size before rotation | `"1024k"` |
-| `config.logrotateMaxBackups` | Number of rotated logs to keep | `20` |
-
-### Path & Storage Overrides
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `config.dataDir` | Override PAPERLESS_DATA_DIR | `""` |
-| `config.mediaRoot` | Override PAPERLESS_MEDIA_ROOT | `""` |
-| `config.consumptionDir` | Override PAPERLESS_CONSUMPTION_DIR | `""` |
-| `config.exportDir` | Override PAPERLESS_EXPORT_DIR | `""` |
-| `config.staticDir` | Override PAPERLESS_STATICDIR | `""` |
-| `config.emptyTrashDir` | Override PAPERLESS_EMPTY_TRASH_DIR | `""` |
-| `config.loggingDir` | Override PAPERLESS_LOGGING_DIR | `""` |
-| `config.nltkDir` | Override PAPERLESS_NLTK_DIR | `""` |
-| `config.modelFile` | Override PAPERLESS_MODEL_FILE | `""` |
-
-### Authentication, Hosting & SSO
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `config.autoLoginUsername` | Auto-login username (kiosk setups) | `""` |
-| `config.disableRegularLogin` | Disable username/password login | `false` |
-| `config.redirectLoginToSSO` | Auto-redirect to SSO | `false` |
-| `config.trustedProxies` | Trusted proxy list | `[]` |
-| `config.logoutRedirectUrl` | Post-logout redirect URL | `""` |
-| `config.forceScriptName` | Host Paperless under sub-path | `""` |
-| `config.staticUrl` | Custom STATIC_URL | `/static/` |
-| `config.useXForwardedHost` | Respect X-Forwarded-Host | `false` |
-| `config.useXForwardedPort` | Respect X-Forwarded-Port | `false` |
-| `config.proxySslHeader` | SECURE_PROXY_SSL_HEADER tuple | `[]` |
-| `config.accountAllowSignups` | Enable local signup | `false` |
-| `config.accountDefaultGroups` | Default groups for signups | `[]` |
-| `config.socialAccountAllowSignups` | Allow social signups | `true` |
-| `config.socialAutoSignup` | Auto-create social accounts | `false` |
-| `config.socialAccountSyncGroups` | Sync IdP groups | `false` |
-| `config.socialAccountDefaultGroups` | Groups for social signups | `[]` |
-| `config.accountSessionRemember` | Persistent sessions | `true` |
-| `config.sessionCookieAge` | Session cookie age (seconds) | `1209600` |
-| `config.accountEmailVerification` | Email verification mode | `optional` |
-| `config.accountEmailUnknownAccounts` | Allow password reset for unknown accounts | `true` |
-| `config.accountDefaultHttpProtocol` | Preferred protocol for auth callbacks | `https` |
-
-### OCR, Workers & Runtime
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `config.ocrOutputType` | OCR output type | `"pdfa"` |
-| `config.ocrPages` | Max pages to OCR (0 = all) | `0` |
-| `config.ocrImageDpi` | OCR preprocessing DPI | `300` |
-| `config.taskWorkers` | Paperless task workers | `1` |
-| `config.threadsPerWorker` | Threads per worker | `1` |
-| `config.workerTimeout` | Worker timeout (seconds) | `1800` |
-| `config.enableCompression` | Enable document compression | `true` |
-| `config.convertMemoryLimit` | ImageMagick memory limit | `"0"` |
-| `config.convertTmpdir` | Temp dir for conversions | `""` |
-| `config.optimize` | Optimize converted files | `true` |
-| `config.webserverWorkers` | Gunicorn workers | `1` |
-| `config.bindAddr` | Gunicorn bind address | `"0.0.0.0"` |
-| `config.port` | Gunicorn port | `8000` |
-
-### Document Consumption & NLP
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `config.enableNltk` | Enable NLP matching | `true` |
-| `config.dateParserLanguages` | Date parser languages | `""` |
-| `config.dateOrder` | Preferred date order | `""` |
-| `config.numberOfSuggestedDates` | Suggested dates in UI | `3` |
-| `config.ignoreDates` | Dates to ignore during parsing | `""` |
-| `config.enableGpgDecryptor` | Enable GPG decryptor | `false` |
-| `config.consumerDisable` | Disable filesystem consumer | `false` |
-| `config.consumerDeleteDuplicates` | Delete duplicates on consume | `false` |
-| `config.consumerRecursive` | Recurse consume directory | `false` |
-| `config.consumerSubdirsAsTags` | Use subdirectories as tags | `false` |
-| `config.consumerPolling` | Polling interval (seconds) | `0` |
-| `config.consumerPollingRetryCount` | Polling retries before consume | `5` |
-| `config.consumerPollingDelay` | Delay between retries | `5` |
-| `config.consumerInotifyDelay` | Inotify debounce (seconds) | `0.5` |
-
-### Filenames & Formatting
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `config.filenameFormat` | Filename template for stored docs | `""` |
-| `config.filenameFormatRemoveNone` | Strip "none" placeholder segments | `false` |
-
-### Database Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `database.type` | Database engine (`postgresql` or `mariadb`) | `postgresql` |
-| `database.postgresql.host` | PostgreSQL host (when subchart disabled) | `""` |
-| `database.postgresql.port` | PostgreSQL port | `5432` |
-| `database.postgresql.database` | PostgreSQL database name | `"paperless"` |
-| `database.postgresql.username` | PostgreSQL username | `"paperless"` |
-| `database.postgresql.password` | PostgreSQL password | `""` |
-| `database.postgresql.existingSecret` | Existing secret for PostgreSQL password | `""` |
-| `database.postgresql.passwordKey` | Secret key for PostgreSQL password | `"password"` |
-| `database.postgresql.sslMode` | PostgreSQL SSL mode | `"prefer"` |
-| `database.mariadb.host` | MariaDB host (when `database.type=mariadb`) | `""` |
-| `database.mariadb.port` | MariaDB port | `3306` |
-| `database.mariadb.database` | MariaDB database name | `"paperless"` |
-| `database.mariadb.username` | MariaDB username | `"paperless"` |
-| `database.mariadb.password` | MariaDB password | `""` |
-| `database.mariadb.existingSecret` | Existing secret for MariaDB password | `""` |
-| `database.mariadb.passwordKey` | Secret key for MariaDB password | `"password"` |
-| `database.mariadb.sslMode` | MariaDB SSL mode | `"PREFERRED"` |
-| `database.timeout` | DB connection timeout | `""` |
-| `database.poolSize` | DB connection pool size | `""` |
-| `database.sslRootCert` | Path to SSL root cert | `""` |
-| `database.sslCert` | Path to SSL client cert | `""` |
-| `database.sslKey` | Path to SSL client key | `""` |
-| `database.readCache.enabled` | Enable Redis read cache | `false` |
-| `database.readCache.ttl` | Read cache TTL (seconds) | `3600` |
-| `database.readCache.redisUrl` | Alternate Redis URL for cache | `""` |
-
-### Redis Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `redis.enabled` | Enable bundled Redis subchart | `true` |
-| `redis.host` | External Redis host (when subchart disabled) | `""` |
-| `redis.port` | Redis port | `6379` |
-| `redis.database` | Redis database number | `0` |
-| `redis.prefix` | Redis key prefix | `""` |
-| `redis.password` | Redis password | `""` |
-| `redis.existingSecret` | Name of existing secret | `""` |
-| `redis.passwordKey` | Key in existing secret | `"password"` |
-| `redis.ssl` | Enable SSL | `false` |
-| `redis.auth.enabled` | Enable auth for Bitnami subchart | `false` |
-| `redis.auth.password` | Subchart password (auto-generated by default) | `""` |
-| `redis.auth.existingSecret` | Subchart secret override | `""` |
-
-### Optional Services & Scheduled Tasks
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `emailParsing.defaultLayout` | Default email parsing layout | `1` |
-| `tika.enabled` | Enable Apache Tika/Gotenberg integration | `false` |
-| `tika.endpoint` | Tika endpoint URL | `http://localhost:9998` |
-| `tika.gotenbergEndpoint` | Gotenberg endpoint URL | `http://localhost:3000` |
-| `tasks.email` | Cron for email fetch | `*/10 * * * *` |
-| `tasks.train` | Cron for classifier training | `5 */1 * * *` |
-| `tasks.index` | Cron for index refresh | `0 0 * * *` |
-| `tasks.sanity` | Cron for sanity checks | `30 0 * * sun` |
-| `tasks.emptyTrash` | Cron for emptying trash | `0 1 * * *` |
-
-### Worker Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `worker.enabled` | Enable separate worker deployment | `true` |
-| `worker.replicaCount` | Number of worker replicas | `1` |
-| `worker.resources.limits` | Worker resource limits | `{cpu: 2000m, memory: 2Gi}` |
-| `worker.resources.requests` | Worker resource requests | `{cpu: 500m, memory: 512Mi}` |
-
-### Persistence Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `persistence.data.enabled` | Enable data persistence | `true` |
-| `persistence.data.size` | Data volume size | `8Gi` |
-| `persistence.media.enabled` | Enable media persistence | `true` |
-| `persistence.media.size` | Media volume size | `10Gi` |
-| `persistence.consume.enabled` | Enable consume persistence | `true` |
-| `persistence.consume.size` | Consume volume size | `5Gi` |
-
-### Service Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `service.type` | Kubernetes service type | `ClusterIP` |
-| `service.port` | Service HTTP port | `80` |
-| `service.annotations` | Service annotations | `{}` |
-
-### Paperless-AI Integration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `paperlessAi.enabled` | Deploy the optional Paperless-AI automation/RAG service | `false` |
-| `paperlessAi.configMode` | `managed` renders the `.env` file from Helm values, `ui` keeps the volume writable for in-app setup | `managed` |
-| `paperlessAi.env` | Key/value map written into the managed `.env` file (non-secret settings) | `{}` |
-| `paperlessAi.extraEnv` | Additional `env` entries (supports `valueFrom` for secrets) | `[]` |
-| `paperlessAi.extraEnvFrom` | Extra `envFrom` blocks (ConfigMap/Secret references) | `[]` |
-| `paperlessAi.persistence.enabled` | Enable a dedicated PVC for `/app/data` (Paperless-AI stores `.env`, DB + embeddings here) | `true` |
-| `paperlessAi.persistence.size` | Size of the Paperless-AI PVC | `5Gi` |
-| `paperlessAi.service.type` | Service type for the Paperless-AI UI/API | `ClusterIP` |
-| `paperlessAi.service.port` | UI/API service port | `3000` |
-| `paperlessAi.service.exposeRagPort` | Publish the internal RAG backend on its own service port | `false` |
-| `paperlessAi.ingress.enabled` | Create a dedicated ingress for the Paperless-AI UI/API | `false` |
-| `paperlessAi.resources.requests` | Resource requests for the Paperless-AI pod | `{}` |
-| `paperlessAi.resources.limits` | Resource limits for the Paperless-AI pod | `{}` |
-
-#### Managed vs UI configuration
-
-Applies to both Paperless-AI and Paperless-GPT companion services.
-
-- `managed` mode mounts a read-only `.env` file that Helm keeps in sync with `paperlessAi.env`. This is ideal for GitOps-style rollouts where configuration is declarative. Sensitive values should still come from Kubernetes Secrets via `paperlessAi.extraEnv`/`paperlessAi.extraEnvFrom`.
-- `ui` mode skips the managed `.env` and leaves `/app/data/.env` writable so you can complete setup inside the Paperless-AI web UI. Provide the Paperless API token (and optional LLM API keys) via `paperlessAi.extraEnv`/Secrets so the service can talk to Paperless immediately.
-
-### Paperless-GPT Integration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `paperlessGpt.enabled` | Deploy the optional Paperless-GPT conversational/RAG service | `false` |
-| `paperlessGpt.configMode` | `managed` renders the `.env` file, `ui` leaves it editable in the container | `managed` |
-| `paperlessGpt.env` | Key/value map written into the managed `.env` file (non-secret settings) | `{}` |
-| `paperlessGpt.extraEnv` | Additional container env entries (supports secret references) | `[]` |
-| `paperlessGpt.extraEnvFrom` | Extra `envFrom` blocks (ConfigMap/Secret refs) | `[]` |
-| `paperlessGpt.envFromSecrets` | Convenience list of Secret names to add to `envFrom` | `[]` |
-| `paperlessGpt.persistence.enabled` | Enable dedicated PVC for `/app/data` | `true` |
-| `paperlessGpt.service.port` | UI/API service port | `3100` |
-| `paperlessGpt.service.exposeRagPort` | Publish the internal RAG backend on an additional port | `false` |
-| `paperlessGpt.ingress.enabled` | Create a dedicated ingress for Paperless-GPT | `false` |
-| `paperlessGpt.resources.requests` | Resource requests for the Paperless-GPT pod | `{}` |
-| `paperlessGpt.resources.limits` | Resource limits for the Paperless-GPT pod | `{}` |
-
-### Ingress Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `ingress.enabled` | Enable ingress | `false` |
-| `ingress.className` | Ingress class name | `""` |
-| `ingress.annotations` | Ingress annotations | `{}` |
-| `ingress.hosts` | Ingress hosts configuration | `[{host: paperless-ngx.local, paths: [{path: /, pathType: Prefix}]}]` |
-| `ingress.tls` | Ingress TLS configuration | `[]` |
-
-### Security Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `podSecurityContext.enabled` | Enable pod security context | `true` |
-| `podSecurityContext.fsGroup` | Group ID for volumes | `1000` |
-| `containerSecurityContext.enabled` | Enable container security context | `true` |
-| `containerSecurityContext.runAsUser` | User ID to run container | `1000` |
-| `containerSecurityContext.runAsNonRoot` | Run as non-root | `true` |
-| `containerSecurityContext.readOnlyRootFilesystem` | Read-only root filesystem | `false` |
-
-### Resource Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `resources.limits.cpu` | CPU limit | `1000m` |
-| `resources.limits.memory` | Memory limit | `1Gi` |
-| `resources.requests.cpu` | CPU request | `250m` |
-| `resources.requests.memory` | Memory request | `512Mi` |
-
-### Autoscaling Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `autoscaling.enabled` | Enable autoscaling | `false` |
-| `autoscaling.minReplicas` | Minimum replicas | `1` |
-| `autoscaling.maxReplicas` | Maximum replicas | `10` |
-| `autoscaling.targetCPU` | Target CPU utilization | `80` |
-| `autoscaling.targetMemory` | Target memory utilization | `80` |
-
-### Monitoring Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `metrics.enabled` | Enable metrics | `false` |
-| `metrics.serviceMonitor.enabled` | Create ServiceMonitor | `false` |
-| `metrics.serviceMonitor.interval` | Scrape interval | `30s` |
-
-See `values.yaml` for the complete list of configurable parameters.
-
-## Examples
-
-### Minimal Configuration
-
-```yaml
-config:
-  secretKey: "your-long-random-secret-key"
-
-database:
-  postgresql:
-    host: postgresql.default.svc.cluster.local
-    password: your-db-password
-
-redis:
-  host: redis.default.svc.cluster.local
-```
-
-### Production Configuration
-
-```yaml
-replicaCount: 2
-
-config:
-  secretKey: "your-long-random-secret-key"
-  url: https://paperless.example.com
-  csrfTrustedOrigins:
-    - https://paperless.example.com
-  timeZone: America/New_York
-  ocrLanguage: eng+deu+fra
-
-database:
-  postgresql:
-    host: postgresql.prod.svc.cluster.local
-    existingSecret: paperless-secrets
-    passwordKey: database-password
-
-redis:
-  host: redis.prod.svc.cluster.local
-  existingSecret: paperless-secrets
-  passwordKey: redis-password
-
-worker:
-  enabled: true
-  replicaCount: 3
-  resources:
-    limits:
-      cpu: 4000m
-      memory: 4Gi
-    requests:
-      cpu: 1000m
-      memory: 1Gi
-
-persistence:
-  data:
-    size: 20Gi
-  media:
-    size: 100Gi
-  consume:
-    size: 20Gi
-
-ingress:
-  enabled: true
-  className: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/proxy-body-size: "0"
-  hosts:
-    - host: paperless.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: paperless-tls
-      hosts:
-        - paperless.example.com
-
-autoscaling:
-  enabled: true
-  minReplicas: 2
-  maxReplicas: 10
-  targetCPU: 70
-
-podDisruptionBudget:
-  enabled: true
-  minAvailable: 1
-
-networkPolicy:
-  enabled: true
-  allowExternal: true
-
-metrics:
-  enabled: true
-  serviceMonitor:
-    enabled: true
-```
-
-### Paperless-AI Companion
-
-```yaml
-paperlessAi:
-  enabled: true
-  configMode: managed
-  env:
-    AI_PROVIDER: "openai"
-    OPENAI_MODEL: "gpt-4o-mini"
-    SCAN_INTERVAL: "*/15 * * * *"
-  extraEnv:
-    - name: PAPERLESS_API_TOKEN
-      valueFrom:
-        secretKeyRef:
-          name: paperless-ai-secrets
-          key: paperless-api-token
-    - name: OPENAI_API_KEY
-      valueFrom:
-        secretKeyRef:
-          name: paperless-ai-secrets
-          key: openai-api-key
-  persistence:
-    enabled: true
-    storageClass: fast-ssd
-    size: 20Gi
-  ingress:
-    enabled: true
-    className: nginx
-    hosts:
-      - host: ai.paperless.example.com
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - secretName: paperless-ai-tls
-        hosts:
-          - ai.paperless.example.com
-```
-
-### Paperless-GPT Companion
-
-```yaml
-paperlessGpt:
-  enabled: true
-  configMode: managed
-  env:
-    GPT_PROVIDER: "openai"
-    GPT_MODEL: "gpt-4o-mini"
-    STREAMING_ENABLED: "true"
-    CHAT_HISTORY_WINDOW: "25"
-  extraEnv:
-    - name: PAPERLESS_API_TOKEN
-      valueFrom:
-        secretKeyRef:
-          name: paperless-gpt-secrets
-          key: paperless-api-token
-    - name: OPENAI_API_KEY
-      valueFrom:
-        secretKeyRef:
-          name: paperless-gpt-secrets
-          key: openai-api-key
-  persistence:
-    enabled: true
-    storageClass: fast-ssd
-    size: 20Gi
-  ingress:
-    enabled: true
-    className: nginx
-    hosts:
-      - host: gpt.paperless.example.com
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - secretName: paperless-gpt-tls
-        hosts:
-          - gpt.paperless.example.com
-```
-
-## Troubleshooting
-
-### Database Connection Issues
-
-Ensure PostgreSQL is accessible and credentials are correct:
-
-```bash
-kubectl exec -it <paperless-pod> -- env | grep PAPERLESS_DB
-```
-
-### Worker Not Processing Documents
-
-Check worker logs:
-
-```bash
-kubectl logs -l app.kubernetes.io/component=worker
-```
-
-Ensure Redis is accessible:
-
-```bash
-kubectl exec -it <paperless-pod> -- redis-cli -h <redis-host> ping
-```
-
-### OCR Languages
-
-To use additional OCR languages, update the configuration:
-
-```yaml
-config:
-  ocrLanguage: eng+deu+fra+spa
-```
-
-The image includes Tesseract with support for many languages.
-
-## Upgrading
-
-### To 0.2.0
-
-No breaking changes.
-
-## Support
-
-For issues specific to this Helm chart, please open an issue in the chart repository.
-
-For Paperless-ngx application issues, refer to the [official documentation](https://docs.paperless-ngx.com/).
-
-## License
-
-This Helm chart is licensed under the MIT License. See the Paperless-ngx project for its license.
+# paperless-ngx
+
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.13.5](https://img.shields.io/badge/AppVersion-2.13.5-informational?style=flat-square)
+
+A Helm chart for Paperless-ngx - A community-supported supercharged version of paperless based on paperless-ng
+
+**Homepage:** <https://github.com/paperless-ngx/paperless-ngx>
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| codefuturist |  | <https://github.com/codefuturist> |
+
+## Source Code
+
+* <https://github.com/paperless-ngx/paperless-ngx>
+* <https://github.com/codefuturist/helm-charts>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://charts.bitnami.com/bitnami | postgresql | 16.x.x |
+| https://charts.bitnami.com/bitnami | redis | 20.x.x |
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| affinity | object | `{}` |  |
+| autoscaling.enabled | bool | `false` |  |
+| autoscaling.maxReplicas | int | `10` |  |
+| autoscaling.minReplicas | int | `1` |  |
+| autoscaling.targetCPU | int | `80` |  |
+| autoscaling.targetMemory | int | `80` |  |
+| commonAnnotations | object | `{}` |  |
+| commonLabels | object | `{}` |  |
+| config.accountAllowSignups | bool | `false` |  |
+| config.accountDefaultGroups | list | `[]` |  |
+| config.accountDefaultHttpProtocol | string | `"https"` |  |
+| config.accountEmailUnknownAccounts | bool | `true` |  |
+| config.accountEmailVerification | string | `"optional"` |  |
+| config.accountSessionRemember | bool | `true` |  |
+| config.adminMail | string | `"admin@localhost"` |  |
+| config.adminPassword | string | `""` |  |
+| config.adminUser | string | `"admin"` |  |
+| config.allowedHosts | list | `[]` |  |
+| config.autoLoginUsername | string | `""` |  |
+| config.bindAddr | string | `"0.0.0.0"` |  |
+| config.consumerDeleteDuplicates | bool | `false` |  |
+| config.consumerDisable | bool | `false` |  |
+| config.consumerInotifyDelay | float | `0.5` |  |
+| config.consumerPolling | int | `0` |  |
+| config.consumerPollingDelay | int | `5` |  |
+| config.consumerPollingRetryCount | int | `5` |  |
+| config.consumerRecursive | bool | `false` |  |
+| config.consumerSubdirsAsTags | bool | `false` |  |
+| config.consumptionDir | string | `""` |  |
+| config.convertMemoryLimit | string | `"0"` |  |
+| config.convertTmpdir | string | `""` |  |
+| config.cookiePrefix | string | `""` |  |
+| config.corsAllowedHosts | list | `[]` |  |
+| config.csrfTrustedOrigins | list | `[]` |  |
+| config.dataDir | string | `""` |  |
+| config.dateOrder | string | `""` |  |
+| config.dateParserLanguages | string | `""` |  |
+| config.disableRegularLogin | bool | `false` |  |
+| config.emptyTrashDir | string | `""` |  |
+| config.enableCompression | bool | `true` |  |
+| config.enableFlowerDebug | bool | `false` |  |
+| config.enableGpgDecryptor | bool | `false` |  |
+| config.enableHttpRemoteUser | bool | `false` |  |
+| config.enableHttpRemoteUserAPI | bool | `false` |  |
+| config.enableNltk | bool | `true` |  |
+| config.existingSecret | string | `""` |  |
+| config.exportDir | string | `""` |  |
+| config.filenameFormat | string | `""` |  |
+| config.filenameFormatRemoveNone | bool | `false` |  |
+| config.forceScriptName | string | `""` |  |
+| config.httpRemoteUserHeaderName | string | `"HTTP_REMOTE_USER"` |  |
+| config.ignoreDates | string | `""` |  |
+| config.loggingDir | string | `""` |  |
+| config.logoutRedirectUrl | string | `""` |  |
+| config.logrotateMaxBackups | int | `20` |  |
+| config.logrotateMaxSize | string | `"1024k"` |  |
+| config.mediaRoot | string | `""` |  |
+| config.modelFile | string | `""` |  |
+| config.nltkDir | string | `""` |  |
+| config.numberOfSuggestedDates | int | `3` |  |
+| config.ocrImageDpi | int | `300` |  |
+| config.ocrLanguage | string | `"eng"` |  |
+| config.ocrMode | string | `"skip"` |  |
+| config.ocrOutputType | string | `"pdfa"` |  |
+| config.ocrPages | int | `0` |  |
+| config.optimize | bool | `true` |  |
+| config.port | int | `8000` |  |
+| config.proxySslHeader | list | `[]` |  |
+| config.redirectLoginToSSO | bool | `false` |  |
+| config.secretKey | string | `""` |  |
+| config.sessionCookieAge | int | `1209600` |  |
+| config.socialAccountAllowSignups | bool | `true` |  |
+| config.socialAccountDefaultGroups | list | `[]` |  |
+| config.socialAccountSyncGroups | bool | `false` |  |
+| config.socialAutoSignup | bool | `false` |  |
+| config.staticDir | string | `""` |  |
+| config.staticUrl | string | `"/static/"` |  |
+| config.taskWorkers | int | `1` |  |
+| config.threadsPerWorker | int | `1` |  |
+| config.timeZone | string | `"UTC"` |  |
+| config.trustedProxies | list | `[]` |  |
+| config.url | string | `""` |  |
+| config.useXForwardedHost | bool | `false` |  |
+| config.useXForwardedPort | bool | `false` |  |
+| config.webserverWorkers | int | `1` |  |
+| config.workerTimeout | int | `1800` |  |
+| containerSecurityContext.allowPrivilegeEscalation | bool | `false` |  |
+| containerSecurityContext.capabilities.drop[0] | string | `"ALL"` |  |
+| containerSecurityContext.enabled | bool | `true` |  |
+| containerSecurityContext.privileged | bool | `false` |  |
+| containerSecurityContext.readOnlyRootFilesystem | bool | `false` |  |
+| containerSecurityContext.runAsNonRoot | bool | `true` |  |
+| containerSecurityContext.runAsUser | int | `1000` |  |
+| containerSecurityContext.seccompProfile.type | string | `"RuntimeDefault"` |  |
+| database.mariadb.database | string | `"paperless"` |  |
+| database.mariadb.existingSecret | string | `""` |  |
+| database.mariadb.host | string | `""` |  |
+| database.mariadb.password | string | `""` |  |
+| database.mariadb.passwordKey | string | `"password"` |  |
+| database.mariadb.port | int | `3306` |  |
+| database.mariadb.sslMode | string | `"PREFERRED"` |  |
+| database.mariadb.username | string | `"paperless"` |  |
+| database.poolSize | string | `""` |  |
+| database.postgresql.database | string | `"paperless"` |  |
+| database.postgresql.existingSecret | string | `""` |  |
+| database.postgresql.host | string | `""` |  |
+| database.postgresql.password | string | `""` |  |
+| database.postgresql.passwordKey | string | `"password"` |  |
+| database.postgresql.port | int | `5432` |  |
+| database.postgresql.sslMode | string | `"prefer"` |  |
+| database.postgresql.username | string | `"paperless"` |  |
+| database.readCache.enabled | bool | `false` |  |
+| database.readCache.redisUrl | string | `""` |  |
+| database.readCache.ttl | int | `3600` |  |
+| database.sslCert | string | `""` |  |
+| database.sslKey | string | `""` |  |
+| database.sslRootCert | string | `""` |  |
+| database.timeout | string | `""` |  |
+| database.type | string | `"postgresql"` |  |
+| email.enabled | bool | `false` |  |
+| email.existingSecret | string | `""` |  |
+| email.from | string | `"paperless@localhost"` |  |
+| email.host | string | `""` |  |
+| email.password | string | `""` |  |
+| email.passwordKey | string | `"password"` |  |
+| email.port | int | `587` |  |
+| email.useSSL | bool | `false` |  |
+| email.useTLS | bool | `true` |  |
+| email.username | string | `""` |  |
+| emailParsing.defaultLayout | int | `1` |  |
+| extraEnvVars | list | `[]` |  |
+| extraEnvVarsCM | string | `""` |  |
+| extraEnvVarsSecret | string | `""` |  |
+| extraVolumeMounts | list | `[]` |  |
+| extraVolumes | list | `[]` |  |
+| fullnameOverride | string | `""` |  |
+| global.imagePullSecrets | list | `[]` |  |
+| global.imageRegistry | string | `""` |  |
+| image.pullPolicy | string | `"IfNotPresent"` |  |
+| image.pullSecrets | list | `[]` |  |
+| image.registry | string | `"ghcr.io"` |  |
+| image.repository | string | `"paperless-ngx/paperless-ngx"` |  |
+| image.tag | string | `""` |  |
+| ingress.annotations | object | `{}` |  |
+| ingress.className | string | `""` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.hosts[0].host | string | `"paperless-ngx.local"` |  |
+| ingress.hosts[0].paths[0].path | string | `"/"` |  |
+| ingress.hosts[0].paths[0].pathType | string | `"Prefix"` |  |
+| ingress.tls | list | `[]` |  |
+| initContainers | list | `[]` |  |
+| livenessProbe.enabled | bool | `true` |  |
+| livenessProbe.failureThreshold | int | `6` |  |
+| livenessProbe.initialDelaySeconds | int | `30` |  |
+| livenessProbe.periodSeconds | int | `10` |  |
+| livenessProbe.successThreshold | int | `1` |  |
+| livenessProbe.timeoutSeconds | int | `5` |  |
+| metrics.enabled | bool | `false` |  |
+| metrics.serviceMonitor.enabled | bool | `false` |  |
+| metrics.serviceMonitor.honorLabels | bool | `false` |  |
+| metrics.serviceMonitor.interval | string | `"30s"` |  |
+| metrics.serviceMonitor.jobLabel | string | `""` |  |
+| metrics.serviceMonitor.labels | object | `{}` |  |
+| metrics.serviceMonitor.metricRelabelings | list | `[]` |  |
+| metrics.serviceMonitor.namespace | string | `""` |  |
+| metrics.serviceMonitor.relabelings | list | `[]` |  |
+| metrics.serviceMonitor.scrapeTimeout | string | `"10s"` |  |
+| metrics.serviceMonitor.selector | object | `{}` |  |
+| nameOverride | string | `""` |  |
+| networkPolicy.allowExternal | bool | `true` |  |
+| networkPolicy.enabled | bool | `false` |  |
+| networkPolicy.extraEgress | list | `[]` |  |
+| networkPolicy.extraIngress | list | `[]` |  |
+| nodeSelector | object | `{}` |  |
+| paperlessAi.affinity | object | `{}` |  |
+| paperlessAi.configMode | string | `"managed"` |  |
+| paperlessAi.containerSecurityContext | object | `{}` |  |
+| paperlessAi.enabled | bool | `false` |  |
+| paperlessAi.env.ADD_AI_PROCESSED_TAG | string | `"no"` |  |
+| paperlessAi.env.AI_PROCESSED_TAG_NAME | string | `"ai-processed"` |  |
+| paperlessAi.env.AI_PROVIDER | string | `"openai"` |  |
+| paperlessAi.env.DISABLE_AUTOMATIC_PROCESSING | string | `"no"` |  |
+| paperlessAi.env.OLLAMA_API_URL | string | `"http://localhost:11434"` |  |
+| paperlessAi.env.OLLAMA_MODEL | string | `"llama3.2"` |  |
+| paperlessAi.env.OPENAI_API_KEY | string | `""` |  |
+| paperlessAi.env.OPENAI_MODEL | string | `"gpt-4o-mini"` |  |
+| paperlessAi.env.PAPERLESS_AI_INITIAL_SETUP | string | `"yes"` |  |
+| paperlessAi.env.PAPERLESS_API_TOKEN | string | `""` |  |
+| paperlessAi.env.PAPERLESS_API_URL | string | `""` |  |
+| paperlessAi.env.PAPERLESS_USERNAME | string | `"paperless-ai"` |  |
+| paperlessAi.env.PROCESS_PREDEFINED_DOCUMENTS | string | `"no"` |  |
+| paperlessAi.env.RAG_SERVICE_ENABLED | string | `"true"` |  |
+| paperlessAi.env.SCAN_INTERVAL | string | `"*/30 * * * *"` |  |
+| paperlessAi.env.TAGS | string | `""` |  |
+| paperlessAi.env.USE_EXISTING_DATA | string | `"no"` |  |
+| paperlessAi.envExtraLines | list | `[]` |  |
+| paperlessAi.envSecret.existingSecret | string | `""` |  |
+| paperlessAi.envSecret.key | string | `"paperless-ai.env"` |  |
+| paperlessAi.extraEnv | list | `[]` |  |
+| paperlessAi.extraEnvFrom | list | `[]` |  |
+| paperlessAi.extraVolumeMounts | list | `[]` |  |
+| paperlessAi.extraVolumes | list | `[]` |  |
+| paperlessAi.image.pullPolicy | string | `"IfNotPresent"` |  |
+| paperlessAi.image.pullSecrets | list | `[]` |  |
+| paperlessAi.image.registry | string | `"docker.io"` |  |
+| paperlessAi.image.repository | string | `"clusterzx/paperless-ai"` |  |
+| paperlessAi.image.tag | string | `""` |  |
+| paperlessAi.ingress.annotations | object | `{}` |  |
+| paperlessAi.ingress.className | string | `""` |  |
+| paperlessAi.ingress.enabled | bool | `false` |  |
+| paperlessAi.ingress.hosts[0].host | string | `"paperless-ai.local"` |  |
+| paperlessAi.ingress.hosts[0].paths[0].path | string | `"/"` |  |
+| paperlessAi.ingress.hosts[0].paths[0].pathType | string | `"Prefix"` |  |
+| paperlessAi.ingress.tls | list | `[]` |  |
+| paperlessAi.initContainers | list | `[]` |  |
+| paperlessAi.livenessProbe.enabled | bool | `true` |  |
+| paperlessAi.livenessProbe.failureThreshold | int | `6` |  |
+| paperlessAi.livenessProbe.initialDelaySeconds | int | `30` |  |
+| paperlessAi.livenessProbe.periodSeconds | int | `10` |  |
+| paperlessAi.livenessProbe.successThreshold | int | `1` |  |
+| paperlessAi.livenessProbe.timeoutSeconds | int | `5` |  |
+| paperlessAi.nodeSelector | object | `{}` |  |
+| paperlessAi.persistence.accessModes[0] | string | `"ReadWriteOnce"` |  |
+| paperlessAi.persistence.annotations | object | `{}` |  |
+| paperlessAi.persistence.enabled | bool | `true` |  |
+| paperlessAi.persistence.existingClaim | string | `""` |  |
+| paperlessAi.persistence.size | string | `"5Gi"` |  |
+| paperlessAi.persistence.storageClass | string | `""` |  |
+| paperlessAi.podAnnotations | object | `{}` |  |
+| paperlessAi.podLabels | object | `{}` |  |
+| paperlessAi.podSecurityContext | object | `{}` |  |
+| paperlessAi.priorityClassName | string | `""` |  |
+| paperlessAi.readinessProbe.enabled | bool | `true` |  |
+| paperlessAi.readinessProbe.failureThreshold | int | `6` |  |
+| paperlessAi.readinessProbe.initialDelaySeconds | int | `10` |  |
+| paperlessAi.readinessProbe.periodSeconds | int | `10` |  |
+| paperlessAi.readinessProbe.successThreshold | int | `1` |  |
+| paperlessAi.readinessProbe.timeoutSeconds | int | `5` |  |
+| paperlessAi.replicaCount | int | `1` |  |
+| paperlessAi.resources.limits | object | `{}` |  |
+| paperlessAi.resources.requests | object | `{}` |  |
+| paperlessAi.service.annotations | object | `{}` |  |
+| paperlessAi.service.exposeRagPort | bool | `false` |  |
+| paperlessAi.service.nodePort | string | `""` |  |
+| paperlessAi.service.port | int | `3000` |  |
+| paperlessAi.service.ragNodePort | string | `""` |  |
+| paperlessAi.service.ragPort | int | `8000` |  |
+| paperlessAi.service.type | string | `"ClusterIP"` |  |
+| paperlessAi.serviceAccount.annotations | object | `{}` |  |
+| paperlessAi.serviceAccount.automountServiceAccountToken | bool | `false` |  |
+| paperlessAi.serviceAccount.create | bool | `false` |  |
+| paperlessAi.serviceAccount.name | string | `""` |  |
+| paperlessAi.sidecars | list | `[]` |  |
+| paperlessAi.startupProbe.enabled | bool | `true` |  |
+| paperlessAi.startupProbe.failureThreshold | int | `30` |  |
+| paperlessAi.startupProbe.initialDelaySeconds | int | `0` |  |
+| paperlessAi.startupProbe.periodSeconds | int | `10` |  |
+| paperlessAi.startupProbe.successThreshold | int | `1` |  |
+| paperlessAi.startupProbe.timeoutSeconds | int | `5` |  |
+| paperlessAi.tolerations | list | `[]` |  |
+| paperlessGpt.affinity | object | `{}` |  |
+| paperlessGpt.configMode | string | `"managed"` |  |
+| paperlessGpt.containerSecurityContext | object | `{}` |  |
+| paperlessGpt.enabled | bool | `false` |  |
+| paperlessGpt.env.CHAT_HISTORY_WINDOW | string | `"25"` |  |
+| paperlessGpt.env.EMBEDDINGS_MODEL | string | `"text-embedding-3-large"` |  |
+| paperlessGpt.env.EMBEDDINGS_PROVIDER | string | `"openai"` |  |
+| paperlessGpt.env.GPT_MODEL | string | `"gpt-4o-mini"` |  |
+| paperlessGpt.env.GPT_PROVIDER | string | `"openai"` |  |
+| paperlessGpt.env.GPT_SYSTEM_PROMPT | string | `""` |  |
+| paperlessGpt.env.OPENAI_API_KEY | string | `""` |  |
+| paperlessGpt.env.PAPERLESS_API_TOKEN | string | `""` |  |
+| paperlessGpt.env.PAPERLESS_API_URL | string | `""` |  |
+| paperlessGpt.env.PAPERLESS_GPT_INITIAL_SETUP | string | `"yes"` |  |
+| paperlessGpt.env.PAPERLESS_USERNAME | string | `"paperless-gpt"` |  |
+| paperlessGpt.env.RAG_SERVICE_ENABLED | string | `"true"` |  |
+| paperlessGpt.env.RAG_SERVICE_URL | string | `""` |  |
+| paperlessGpt.env.STREAMING_ENABLED | string | `"true"` |  |
+| paperlessGpt.env.SUMMARIZATION_ENABLED | string | `"true"` |  |
+| paperlessGpt.env.WEBHOOK_URL | string | `""` |  |
+| paperlessGpt.envExtraLines | list | `[]` |  |
+| paperlessGpt.envFromSecrets | list | `[]` |  |
+| paperlessGpt.envSecret.existingSecret | string | `""` |  |
+| paperlessGpt.envSecret.key | string | `"paperless-gpt.env"` |  |
+| paperlessGpt.extraEnv | list | `[]` |  |
+| paperlessGpt.extraEnvFrom | list | `[]` |  |
+| paperlessGpt.extraVolumeMounts | list | `[]` |  |
+| paperlessGpt.extraVolumes | list | `[]` |  |
+| paperlessGpt.image.pullPolicy | string | `"IfNotPresent"` |  |
+| paperlessGpt.image.pullSecrets | list | `[]` |  |
+| paperlessGpt.image.registry | string | `"docker.io"` |  |
+| paperlessGpt.image.repository | string | `"clusterzx/paperless-gpt"` |  |
+| paperlessGpt.image.tag | string | `""` |  |
+| paperlessGpt.ingress.annotations | object | `{}` |  |
+| paperlessGpt.ingress.className | string | `""` |  |
+| paperlessGpt.ingress.enabled | bool | `false` |  |
+| paperlessGpt.ingress.hosts[0].host | string | `"paperless-gpt.local"` |  |
+| paperlessGpt.ingress.hosts[0].paths[0].path | string | `"/"` |  |
+| paperlessGpt.ingress.hosts[0].paths[0].pathType | string | `"Prefix"` |  |
+| paperlessGpt.ingress.tls | list | `[]` |  |
+| paperlessGpt.initContainers | list | `[]` |  |
+| paperlessGpt.livenessProbe.enabled | bool | `true` |  |
+| paperlessGpt.livenessProbe.failureThreshold | int | `6` |  |
+| paperlessGpt.livenessProbe.initialDelaySeconds | int | `30` |  |
+| paperlessGpt.livenessProbe.periodSeconds | int | `10` |  |
+| paperlessGpt.livenessProbe.successThreshold | int | `1` |  |
+| paperlessGpt.livenessProbe.timeoutSeconds | int | `5` |  |
+| paperlessGpt.nodeSelector | object | `{}` |  |
+| paperlessGpt.persistence.accessModes[0] | string | `"ReadWriteOnce"` |  |
+| paperlessGpt.persistence.annotations | object | `{}` |  |
+| paperlessGpt.persistence.enabled | bool | `true` |  |
+| paperlessGpt.persistence.existingClaim | string | `""` |  |
+| paperlessGpt.persistence.size | string | `"5Gi"` |  |
+| paperlessGpt.persistence.storageClass | string | `""` |  |
+| paperlessGpt.podAnnotations | object | `{}` |  |
+| paperlessGpt.podLabels | object | `{}` |  |
+| paperlessGpt.podSecurityContext | object | `{}` |  |
+| paperlessGpt.priorityClassName | string | `""` |  |
+| paperlessGpt.readinessProbe.enabled | bool | `true` |  |
+| paperlessGpt.readinessProbe.failureThreshold | int | `6` |  |
+| paperlessGpt.readinessProbe.initialDelaySeconds | int | `10` |  |
+| paperlessGpt.readinessProbe.periodSeconds | int | `10` |  |
+| paperlessGpt.readinessProbe.successThreshold | int | `1` |  |
+| paperlessGpt.readinessProbe.timeoutSeconds | int | `5` |  |
+| paperlessGpt.replicaCount | int | `1` |  |
+| paperlessGpt.resources.limits | object | `{}` |  |
+| paperlessGpt.resources.requests | object | `{}` |  |
+| paperlessGpt.service.annotations | object | `{}` |  |
+| paperlessGpt.service.exposeRagPort | bool | `false` |  |
+| paperlessGpt.service.nodePort | string | `""` |  |
+| paperlessGpt.service.port | int | `3100` |  |
+| paperlessGpt.service.ragNodePort | string | `""` |  |
+| paperlessGpt.service.ragPort | int | `8100` |  |
+| paperlessGpt.service.type | string | `"ClusterIP"` |  |
+| paperlessGpt.serviceAccount.annotations | object | `{}` |  |
+| paperlessGpt.serviceAccount.automountServiceAccountToken | bool | `false` |  |
+| paperlessGpt.serviceAccount.create | bool | `false` |  |
+| paperlessGpt.serviceAccount.name | string | `""` |  |
+| paperlessGpt.sidecars | list | `[]` |  |
+| paperlessGpt.startupProbe.enabled | bool | `true` |  |
+| paperlessGpt.startupProbe.failureThreshold | int | `30` |  |
+| paperlessGpt.startupProbe.initialDelaySeconds | int | `0` |  |
+| paperlessGpt.startupProbe.periodSeconds | int | `10` |  |
+| paperlessGpt.startupProbe.successThreshold | int | `1` |  |
+| paperlessGpt.startupProbe.timeoutSeconds | int | `5` |  |
+| paperlessGpt.tolerations | list | `[]` |  |
+| persistence.consume.accessModes[0] | string | `"ReadWriteOnce"` |  |
+| persistence.consume.annotations | object | `{}` |  |
+| persistence.consume.enabled | bool | `true` |  |
+| persistence.consume.existingClaim | string | `""` |  |
+| persistence.consume.size | string | `"5Gi"` |  |
+| persistence.consume.storageClass | string | `""` |  |
+| persistence.data.accessModes[0] | string | `"ReadWriteOnce"` |  |
+| persistence.data.annotations | object | `{}` |  |
+| persistence.data.enabled | bool | `true` |  |
+| persistence.data.existingClaim | string | `""` |  |
+| persistence.data.size | string | `"8Gi"` |  |
+| persistence.data.storageClass | string | `""` |  |
+| persistence.export.accessModes[0] | string | `"ReadWriteOnce"` |  |
+| persistence.export.annotations | object | `{}` |  |
+| persistence.export.enabled | bool | `false` |  |
+| persistence.export.existingClaim | string | `""` |  |
+| persistence.export.size | string | `"5Gi"` |  |
+| persistence.export.storageClass | string | `""` |  |
+| persistence.media.accessModes[0] | string | `"ReadWriteOnce"` |  |
+| persistence.media.annotations | object | `{}` |  |
+| persistence.media.enabled | bool | `true` |  |
+| persistence.media.existingClaim | string | `""` |  |
+| persistence.media.size | string | `"10Gi"` |  |
+| persistence.media.storageClass | string | `""` |  |
+| podAnnotations | object | `{}` |  |
+| podDisruptionBudget.enabled | bool | `false` |  |
+| podDisruptionBudget.maxUnavailable | string | `""` |  |
+| podDisruptionBudget.minAvailable | int | `1` |  |
+| podLabels | object | `{}` |  |
+| podSecurityContext.enabled | bool | `true` |  |
+| podSecurityContext.fsGroup | int | `1000` |  |
+| podSecurityContext.fsGroupChangePolicy | string | `"OnRootMismatch"` |  |
+| podSecurityContext.supplementalGroups | list | `[]` |  |
+| podSecurityContext.sysctls | list | `[]` |  |
+| postgresql.auth.database | string | `"paperless"` |  |
+| postgresql.auth.password | string | `"paperless"` |  |
+| postgresql.auth.username | string | `"paperless"` |  |
+| postgresql.enabled | bool | `true` |  |
+| postgresql.primary.persistence.enabled | bool | `true` |  |
+| postgresql.primary.persistence.size | string | `"8Gi"` |  |
+| readinessProbe.enabled | bool | `true` |  |
+| readinessProbe.failureThreshold | int | `6` |  |
+| readinessProbe.initialDelaySeconds | int | `10` |  |
+| readinessProbe.periodSeconds | int | `10` |  |
+| readinessProbe.successThreshold | int | `1` |  |
+| readinessProbe.timeoutSeconds | int | `5` |  |
+| redis.architecture | string | `"standalone"` |  |
+| redis.auth.enabled | bool | `false` |  |
+| redis.auth.existingSecret | string | `""` |  |
+| redis.auth.password | string | `""` |  |
+| redis.database | int | `0` |  |
+| redis.enabled | bool | `true` |  |
+| redis.existingSecret | string | `""` |  |
+| redis.host | string | `""` |  |
+| redis.master.persistence.enabled | bool | `false` |  |
+| redis.master.persistence.size | string | `"8Gi"` |  |
+| redis.password | string | `""` |  |
+| redis.passwordKey | string | `"password"` |  |
+| redis.port | int | `6379` |  |
+| redis.prefix | string | `""` |  |
+| redis.ssl | bool | `false` |  |
+| replicaCount | int | `1` |  |
+| resources.limits | object | `{}` |  |
+| resources.requests.cpu | string | `"10m"` |  |
+| resources.requests.memory | string | `"64Mi"` |  |
+| service.annotations | object | `{}` |  |
+| service.clusterIP | string | `""` |  |
+| service.externalTrafficPolicy | string | `"Cluster"` |  |
+| service.loadBalancerIP | string | `""` |  |
+| service.loadBalancerSourceRanges | list | `[]` |  |
+| service.nodePort | string | `""` |  |
+| service.port | int | `80` |  |
+| service.sessionAffinity | string | `"None"` |  |
+| service.sessionAffinityConfig | object | `{}` |  |
+| service.type | string | `"ClusterIP"` |  |
+| serviceAccount.annotations | object | `{}` |  |
+| serviceAccount.automountServiceAccountToken | bool | `false` |  |
+| serviceAccount.create | bool | `true` |  |
+| serviceAccount.name | string | `""` |  |
+| sidecars | list | `[]` |  |
+| startupProbe.enabled | bool | `true` |  |
+| startupProbe.failureThreshold | int | `30` |  |
+| startupProbe.initialDelaySeconds | int | `0` |  |
+| startupProbe.periodSeconds | int | `10` |  |
+| startupProbe.successThreshold | int | `1` |  |
+| startupProbe.timeoutSeconds | int | `5` |  |
+| strategy.rollingUpdate.maxSurge | int | `1` |  |
+| strategy.rollingUpdate.maxUnavailable | int | `0` |  |
+| strategy.type | string | `"RollingUpdate"` |  |
+| tasks.email | string | `"*/10 * * * *"` |  |
+| tasks.emptyTrash | string | `"0 1 * * *"` |  |
+| tasks.index | string | `"0 0 * * *"` |  |
+| tasks.sanity | string | `"30 0 * * sun"` |  |
+| tasks.train | string | `"5 */1 * * *"` |  |
+| tika.enabled | bool | `false` |  |
+| tika.endpoint | string | `"http://localhost:9998"` |  |
+| tika.gotenbergEndpoint | string | `"http://localhost:3000"` |  |
+| tolerations | list | `[]` |  |
+| worker.affinity | object | `{}` |  |
+| worker.enabled | bool | `true` |  |
+| worker.nodeSelector | object | `{}` |  |
+| worker.podAnnotations | object | `{}` |  |
+| worker.podLabels | object | `{}` |  |
+| worker.replicaCount | int | `1` |  |
+| worker.resources.limits | object | `{}` |  |
+| worker.resources.requests.cpu | string | `"10m"` |  |
+| worker.resources.requests.memory | string | `"64Mi"` |  |
+| worker.tolerations | list | `[]` |  |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

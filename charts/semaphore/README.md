@@ -1,6 +1,6 @@
 # semaphore
 
-![Version: 1.3.0](https://img.shields.io/badge/Version-1.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.10.32](https://img.shields.io/badge/AppVersion-2.10.32-informational?style=flat-square)
+![Version: 1.3.1](https://img.shields.io/badge/Version-1.3.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.10.32](https://img.shields.io/badge/AppVersion-2.10.32-informational?style=flat-square)
 
 Modern UI for Ansible, Terraform, OpenTofu, Bash, and Pulumi - task automation and infrastructure orchestration
 
@@ -86,14 +86,12 @@ Modern UI for Ansible, Terraform, OpenTofu, Bash, and Pulumi - task automation a
 | initContainers.dbMigration.image.repository | string | `"semaphoreui/semaphore"` |  |
 | initContainers.dbMigration.image.tag | string | `""` |  |
 | initContainers.dbMigration.image.tag | string | `""` |  |
-| initContainers.dbMigration.resources.limits.cpu | string | `"500m"` |  |
-| initContainers.dbMigration.resources.limits.cpu | string | `"500m"` |  |
-| initContainers.dbMigration.resources.limits.memory | string | `"512Mi"` |  |
-| initContainers.dbMigration.resources.limits.memory | string | `"512Mi"` |  |
-| initContainers.dbMigration.resources.requests.cpu | string | `"100m"` |  |
-| initContainers.dbMigration.resources.requests.cpu | string | `"100m"` |  |
-| initContainers.dbMigration.resources.requests.memory | string | `"128Mi"` |  |
-| initContainers.dbMigration.resources.requests.memory | string | `"128Mi"` |  |
+| initContainers.dbMigration.resources.limits | object | `{}` |  |
+| initContainers.dbMigration.resources.limits | object | `{}` |  |
+| initContainers.dbMigration.resources.requests.cpu | string | `"10m"` |  |
+| initContainers.dbMigration.resources.requests.cpu | string | `"10m"` |  |
+| initContainers.dbMigration.resources.requests.memory | string | `"64Mi"` |  |
+| initContainers.dbMigration.resources.requests.memory | string | `"64Mi"` |  |
 | initContainers.extra | list | `[]` |  |
 | livenessProbe.enabled | bool | `true` |  |
 | livenessProbe.failureThreshold | int | `6` |  |
@@ -212,10 +210,9 @@ Modern UI for Ansible, Terraform, OpenTofu, Bash, and Pulumi - task automation a
 | readinessProbe.periodSeconds | int | `10` |  |
 | readinessProbe.successThreshold | int | `1` |  |
 | readinessProbe.timeoutSeconds | int | `5` |  |
-| resources.limits.cpu | string | `"1000m"` |  |
-| resources.limits.memory | string | `"1Gi"` |  |
-| resources.requests.cpu | string | `"100m"` |  |
-| resources.requests.memory | string | `"256Mi"` |  |
+| resources.limits | object | `{}` |  |
+| resources.requests.cpu | string | `"10m"` |  |
+| resources.requests.memory | string | `"64Mi"` |  |
 | runnerDeployment.affinity | object | `{}` |  |
 | runnerDeployment.ansible.hostKeyChecking | bool | `false` |  |
 | runnerDeployment.config.alreadyRegistered | bool | `false` |  |
@@ -279,10 +276,9 @@ Modern UI for Ansible, Terraform, OpenTofu, Bash, and Pulumi - task automation a
 | runnerDeployment.readinessProbe.successThreshold | int | `1` |  |
 | runnerDeployment.readinessProbe.timeoutSeconds | int | `5` |  |
 | runnerDeployment.replicas | int | `1` |  |
-| runnerDeployment.resources.limits.cpu | string | `"2000m"` |  |
-| runnerDeployment.resources.limits.memory | string | `"2Gi"` |  |
-| runnerDeployment.resources.requests.cpu | string | `"500m"` |  |
-| runnerDeployment.resources.requests.memory | string | `"512Mi"` |  |
+| runnerDeployment.resources.limits | object | `{}` |  |
+| runnerDeployment.resources.requests.cpu | string | `"10m"` |  |
+| runnerDeployment.resources.requests.memory | string | `"64Mi"` |  |
 | runnerDeployment.runtimeClassName | string | `""` |  |
 | runnerDeployment.securityContext.allowPrivilegeEscalation | bool | `false` |  |
 | runnerDeployment.securityContext.capabilities.drop[0] | string | `"ALL"` |  |

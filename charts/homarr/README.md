@@ -1,6 +1,6 @@
 # homarr
 
-![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
+![Version: 1.0.2](https://img.shields.io/badge/Version-1.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
 A Helm chart for Homarr - A simple, yet powerful dashboard for your server
 
@@ -147,7 +147,7 @@ A Helm chart for Homarr - A simple, yet powerful dashboard for your server
 | deployment.readinessProbe.timeoutSeconds | int | `5` | Time before the probe times out. |
 | deployment.reloadOnChange | bool | `true` | Reload deployment if attached Secret/ConfigMap changes. |
 | deployment.replicas | int | `1` | Number of replicas. |
-| deployment.resources | object | `{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource limits and requests for the pod. |
+| deployment.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resource limits and requests for the pod. Minimal requests to allow scheduling, no limits to allow bursting |
 | deployment.revisionHistoryLimit | int | `2` | Number of ReplicaSet revisions to retain. |
 | deployment.securityContext | object | `{"fsGroup":0}` | Security Context for the pod. |
 | deployment.startupProbe | object | `{"enabled":true,"exec":{},"failureThreshold":30,"httpGet":{"path":"/api/health/live","port":"http"},"periodSeconds":10,"successThreshold":1,"tcpSocket":{},"timeoutSeconds":5}` | Startup probe. |

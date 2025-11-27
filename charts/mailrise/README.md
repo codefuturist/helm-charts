@@ -1,6 +1,6 @@
 # mailrise
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.4.0](https://img.shields.io/badge/AppVersion-1.4.0-informational?style=flat-square)
+![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.4.0](https://img.shields.io/badge/AppVersion-1.4.0-informational?style=flat-square)
 
 An SMTP gateway for Apprise notifications - convert emails to 60+ notification services
 
@@ -129,10 +129,9 @@ An SMTP gateway for Apprise notifications - convert emails to 60+ notification s
 | readinessProbe.successThreshold | int | `1` |  |
 | readinessProbe.tcpSocket.port | string | `"smtp"` |  |
 | readinessProbe.timeoutSeconds | int | `3` |  |
-| resources.limits.cpu | string | `"500m"` |  |
-| resources.limits.memory | string | `"256Mi"` |  |
-| resources.requests.cpu | string | `"100m"` |  |
-| resources.requests.memory | string | `"128Mi"` |  |
+| resources.limits | object | `{}` |  |
+| resources.requests.cpu | string | `"10m"` |  |
+| resources.requests.memory | string | `"32Mi"` |  |
 | runtimeClassName | string | `""` |  |
 | securityContext.allowPrivilegeEscalation | bool | `false` |  |
 | securityContext.capabilities.drop[0] | string | `"ALL"` |  |

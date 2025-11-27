@@ -1,6 +1,6 @@
 # pgadmin
 
-![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 9.10.0](https://img.shields.io/badge/AppVersion-9.10.0-informational?style=flat-square)
+![Version: 1.0.2](https://img.shields.io/badge/Version-1.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 9.10.0](https://img.shields.io/badge/AppVersion-9.10.0-informational?style=flat-square)
 
 A production-ready Helm chart for pgAdmin 4 - PostgreSQL management and administration tool
 
@@ -138,7 +138,7 @@ A production-ready Helm chart for pgAdmin 4 - PostgreSQL management and administ
 | rbac.create | bool | `true` | Create RBAC resources |
 | rbac.rules | list | `[]` | Additional RBAC rules |
 | readinessProbe | object | `{"enabled":true,"failureThreshold":3,"httpGet":{"path":"/misc/ping","port":"http"},"initialDelaySeconds":15,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Readiness probe configuration |
-| resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource limits and requests |
+| resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resource limits and requests Minimal requests to allow scheduling, no limits to allow bursting |
 | runtimeClassName | string | `""` | Runtime class name |
 | securityContext | object | `{}` | Container security context Note: Empty by default to maximize compatibility. Override with stricter settings if your cluster supports them. |
 | service.annotations | object | `{}` | Service annotations |
