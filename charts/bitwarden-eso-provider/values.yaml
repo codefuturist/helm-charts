@@ -138,16 +138,15 @@ securityContext:
   allowPrivilegeEscalation: false
   capabilities:
     drop:
-    - ALL
+      - ALL
   readOnlyRootFilesystem: true
 
 resources:
-  limits:
-    cpu: 200m
-    memory: 256Mi
+  # Minimal requests to allow scheduling, no limits to allow bursting
+  limits: {}
   requests:
-    cpu: 100m
-    memory: 128Mi
+    cpu: 10m
+    memory: 64Mi
 
 livenessProbe:
   httpGet:
@@ -197,15 +196,15 @@ topologySpreadConstraints: []
 affinity:
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 100
-      podAffinityTerm:
-        labelSelector:
-          matchExpressions:
-          - key: app.kubernetes.io/name
-            operator: In
-            values:
-            - bitwarden-eso-provider
-        topologyKey: kubernetes.io/hostname
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - bitwarden-eso-provider
+          topologyKey: kubernetes.io/hostname
 
 # Pod Disruption Budget
 podDisruptionBudget:
@@ -276,22 +275,22 @@ networkPolicy:
   # -- (list) Ingress rules
   ingress:
     - from:
-      - namespaceSelector: {}
+        - namespaceSelector: {}
 
   # -- (list) Egress rules (allow Bitwarden API)
   egress:
     - to:
-      - namespaceSelector: {}
+        - namespaceSelector: {}
       ports:
-      - protocol: TCP
-        port: 443
+        - protocol: TCP
+          port: 443
     - to:
-      - namespaceSelector: {}
+        - namespaceSelector: {}
       ports:
-      - protocol: TCP
-        port: 53
-      - protocol: UDP
-        port: 53
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
 
 # Monitoring
 metrics:

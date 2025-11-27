@@ -1,10 +1,10 @@
 # Helm chart values generated from Docker Compose
 # Generated on: 2025-11-10 19:58:10
 
-namespaceOverride: ''
-componentOverride: ''
-partOfOverride: ''
-applicationName: ''
+namespaceOverride: ""
+componentOverride: ""
+partOfOverride: ""
+applicationName: ""
 additionalLabels: {}
 mealie:
   enabled: true
@@ -29,16 +29,16 @@ mealie:
   image:
     repository: ghcr.io/mealie-recipes/mealie
     tag: v3.4.0
-    digest: ''
+    digest: ""
     imagePullPolicy: IfNotPresent
   env:
     # General Configuration
     ALLOW_SIGNUP:
-      value: 'false'
+      value: "false"
     PUID:
-      value: '1000'
+      value: "1000"
     PGID:
-      value: '1000'
+      value: "1000"
     TZ:
       value: America/Anchorage
     BASE_URL:
@@ -220,16 +220,15 @@ mealie:
     # THEME_DARK_ERROR:
     #   value: '#EF5350'
   ports:
-  - name: port-9000
-    containerPort: 9000
-    protocol: TCP
+    - name: port-9000
+      containerPort: 9000
+      protocol: TCP
+  # Minimal requests to allow scheduling, no limits to allow bursting
   resources:
     requests:
-      memory: 256Mi
-      cpu: 100m
-    limits:
-      memory: 1000Mi
-      cpu: 1000m
+      memory: 64Mi
+      cpu: 10m
+    limits: {}
   livenessProbe:
     httpGet:
       path: /api/app/about
@@ -247,10 +246,10 @@ mealie:
     timeoutSeconds: 3
     failureThreshold: 3
   volumes:
-  - name: mealie-data
-    type: persistentVolumeClaim
-    mountPath: /app/data/
-    readOnly: false
+    - name: mealie-data
+      type: persistentVolumeClaim
+      mountPath: /app/data/
+      readOnly: false
 
   # Logging Configuration
   # Custom logging configuration using Python logging config format
@@ -297,8 +296,8 @@ database:
   sqliteWalMode: false
 
   # PostgreSQL Configuration (used when postgres.enabled is true)
-  host: ''  # If empty and postgres.enabled=true, will use internal postgres service
-  port: '5432'
+  host: "" # If empty and postgres.enabled=true, will use internal postgres service
+  port: "5432"
   name: mealie
   user: mealie
   password: mealie
@@ -326,8 +325,8 @@ postgres:
   topologySpreadConstraints: []
   image:
     repository: postgres
-    tag: '17'
-    digest: ''
+    tag: "17"
+    digest: ""
     imagePullPolicy: IfNotPresent
   env:
     POSTGRES_PASSWORD:
@@ -339,15 +338,15 @@ postgres:
     POSTGRES_DB:
       value: mealie
   ports:
-  - name: postgresql
-    containerPort: 5432
-    protocol: TCP
+    - name: postgresql
+      containerPort: 5432
+      protocol: TCP
   livenessProbe:
     exec:
       command:
-      - pg_isready
-      - -U
-      - mealie
+        - pg_isready
+        - -U
+        - mealie
     initialDelaySeconds: 30
     periodSeconds: 30
     timeoutSeconds: 20
@@ -355,39 +354,38 @@ postgres:
   readinessProbe:
     exec:
       command:
-      - pg_isready
-      - -U
-      - mealie
+        - pg_isready
+        - -U
+        - mealie
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 3
+  # Minimal requests to allow scheduling, no limits to allow bursting
   resources:
     requests:
-      memory: 256Mi
-      cpu: 100m
-    limits:
-      memory: 512Mi
-      cpu: 500m
+      memory: 64Mi
+      cpu: 10m
+    limits: {}
   volumes:
-  - name: mealie-pgdata
-    type: persistentVolumeClaim
-    mountPath: /var/lib/postgresql/data
-    subPath: pgdata
-    readOnly: false
+    - name: mealie-pgdata
+      type: persistentVolumeClaim
+      mountPath: /var/lib/postgresql/data
+      subPath: pgdata
+      readOnly: false
 persistence:
   mealie-data:
     enabled: true
-    storageClass: ''
+    storageClass: ""
     accessModes:
-    - ReadWriteOnce
+      - ReadWriteOnce
     size: 10Gi
     annotations: {}
   mealie-pgdata:
-    enabled: false  # Only needed when postgres.enabled is true
-    storageClass: ''
+    enabled: false # Only needed when postgres.enabled is true
+    storageClass: ""
     accessModes:
-    - ReadWriteOnce
+      - ReadWriteOnce
     size: 10Gi
     annotations: {}
 service:
@@ -396,7 +394,7 @@ service:
   annotations: {}
 ingress:
   enabled: false
-  className: ''
+  className: ""
   annotations: {}
   hosts: []
   tls: []

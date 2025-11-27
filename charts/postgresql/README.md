@@ -1,6 +1,6 @@
 # postgresql
 
-![Version: 1.7.0](https://img.shields.io/badge/Version-1.7.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 16.4](https://img.shields.io/badge/AppVersion-16.4-informational?style=flat-square)
+![Version: 1.7.1](https://img.shields.io/badge/Version-1.7.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 16.4](https://img.shields.io/badge/AppVersion-16.4-informational?style=flat-square)
 
 A production-ready Helm chart for PostgreSQL database with advanced features including replication, backups, monitoring, and security
 
@@ -39,12 +39,12 @@ A production-ready Helm chart for PostgreSQL database with advanced features inc
 | backup.failedJobsHistoryLimit | int | `1` | Number of failed backups to keep |
 | backup.image | object | `{"pullPolicy":"IfNotPresent","repository":"postgres","tag":"16.4-alpine"}` | Backup image configuration |
 | backup.persistence | object | `{"accessModes":["ReadWriteOnce"],"annotations":{},"enabled":true,"mountPath":"/backups","size":"10Gi","storageClass":""}` | Backup persistence configuration |
-| backup.resources | object | `{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}` | Backup resources |
+| backup.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"64Mi"}}` | Backup resources Minimal requests to allow scheduling, no limits to allow bursting |
 | backup.retentionDays | string | `7` | Backup retention (days) |
 | backup.s3 | object | `{"accessKeyId":"","bucket":"","enabled":false,"endpoint":"","existingSecret":"","region":"us-east-1","secretAccessKey":""}` | S3 backup configuration |
 | backup.schedule | string | `"0 2 * * *"` | Backup schedule (cron format) |
 | backup.successfulJobsHistoryLimit | int | `3` | Number of successful backups to keep |
-| backup.wal | object | `{"archiveCommand":"","cleanup":{"enabled":true,"failedJobsHistoryLimit":1,"schedule":"0 3 * * *","successfulJobsHistoryLimit":1},"compression":"gzip","enabled":false,"method":"simple","persistence":{"accessModes":["ReadWriteOnce"],"annotations":{},"enabled":true,"mountPath":"/wal-archive","size":"20Gi","storageClass":""},"pgbackrest":{"config":{},"image":{"pullPolicy":"IfNotPresent","repository":"pgbackrest/pgbackrest","tag":"2.49"},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}},"restoreCommand":"","retentionDays":14,"storage":{"azure":{"container":"","existingSecret":"","prefix":"wal-archive","storageAccount":""},"gcs":{"bucket":"","credentialsSecret":"","prefix":"wal-archive"},"s3":{"accessKeyId":"","bucket":"","endpoint":"","existingSecret":"","prefix":"wal-archive","region":"us-east-1","secretAccessKey":""},"type":"s3"},"walg":{"env":{},"image":{"pullPolicy":"IfNotPresent","repository":"wal-g/wal-g","tag":"v3.0.0"},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}}}` | WAL (Write-Ahead Log) archiving for incremental backups |
+| backup.wal | object | `{"archiveCommand":"","cleanup":{"enabled":true,"failedJobsHistoryLimit":1,"schedule":"0 3 * * *","successfulJobsHistoryLimit":1},"compression":"gzip","enabled":false,"method":"simple","persistence":{"accessModes":["ReadWriteOnce"],"annotations":{},"enabled":true,"mountPath":"/wal-archive","size":"20Gi","storageClass":""},"pgbackrest":{"config":{},"image":{"pullPolicy":"IfNotPresent","repository":"pgbackrest/pgbackrest","tag":"2.49"},"resources":{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}},"restoreCommand":"","retentionDays":14,"storage":{"azure":{"container":"","existingSecret":"","prefix":"wal-archive","storageAccount":""},"gcs":{"bucket":"","credentialsSecret":"","prefix":"wal-archive"},"s3":{"accessKeyId":"","bucket":"","endpoint":"","existingSecret":"","prefix":"wal-archive","region":"us-east-1","secretAccessKey":""},"type":"s3"},"walg":{"env":{},"image":{"pullPolicy":"IfNotPresent","repository":"wal-g/wal-g","tag":"v3.0.0"},"resources":{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}}}` | WAL (Write-Ahead Log) archiving for incremental backups |
 
 ### Deployment Parameters
 
@@ -64,7 +64,7 @@ A production-ready Helm chart for PostgreSQL database with advanced features inc
 | deployment.priorityClassName | string | `""` | Priority class name |
 | deployment.readinessProbe | object | `{"enabled":true,"exec":{"command":["/bin/sh","-c","exec pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -q"]},"failureThreshold":6,"initialDelaySeconds":5,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Readiness probe configuration |
 | deployment.replicas | int | `1` | Number of PostgreSQL replicas |
-| deployment.resources | object | `{"limits":{"cpu":"1000m","memory":"1Gi"},"requests":{"cpu":"250m","memory":"256Mi"}}` | Resource limits and requests |
+| deployment.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"128Mi"}}` | Resource limits and requests Minimal requests to allow scheduling, no limits to allow bursting |
 | deployment.securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsGroup":999,"runAsNonRoot":true,"runAsUser":999}` | Security context for the container |
 | deployment.serviceAccountName | string | `""` | Service account name |
 | deployment.sidecarContainers | array | `[]` | Sidecar containers |
@@ -107,7 +107,7 @@ A production-ready Helm chart for PostgreSQL database with advanced features inc
 | metrics.enabled | bool | `false` | Enable PostgreSQL metrics exporter |
 | metrics.image | object | `{"pullPolicy":"IfNotPresent","repository":"quay.io/prometheuscommunity/postgres-exporter","tag":"v0.18.1"}` | Metrics exporter image |
 | metrics.port | int | `9187` | Metrics port |
-| metrics.resources | object | `{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}` | Metrics exporter resources |
+| metrics.resources | object | `{"limits":{},"requests":{"cpu":"5m","memory":"32Mi"}}` | Metrics exporter resources Minimal requests to allow scheduling, no limits to allow bursting |
 
 ### Monitoring Parameters
 
@@ -169,7 +169,7 @@ A production-ready Helm chart for PostgreSQL database with advanced features inc
 | pgbouncer.image | object | `{"pullPolicy":"IfNotPresent","repository":"edoburu/pgbouncer","tag":"1.21.0"}` | PgBouncer image |
 | pgbouncer.port | int | `5432` | PgBouncer port |
 | pgbouncer.replicas | int | `1` | Number of PgBouncer replicas |
-| pgbouncer.resources | object | `{"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}` | PgBouncer resources |
+| pgbouncer.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}` | PgBouncer resources Minimal requests to allow scheduling, no limits to allow bursting |
 
 ### PostgreSQL Parameters
 
@@ -298,7 +298,7 @@ A production-ready Helm chart for PostgreSQL database with advanced features inc
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| userManagement.dynamicSync | object | `{"configMapName":"","enabled":false,"failedJobsHistoryLimit":3,"podAnnotations":{},"resources":{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"32Mi"}},"schedule":"*/15 * * * *","successfulJobsHistoryLimit":3,"suspend":false,"watchExternalResources":{"configMaps":[],"enabled":false}}` | Dynamic user synchronization without pod restart |
+| userManagement.dynamicSync | object | `{"configMapName":"","enabled":false,"failedJobsHistoryLimit":3,"podAnnotations":{},"resources":{"limits":{},"requests":{"cpu":"5m","memory":"16Mi"}},"schedule":"*/15 * * * *","successfulJobsHistoryLimit":3,"suspend":false,"watchExternalResources":{"configMaps":[],"enabled":false}}` | Dynamic user synchronization without pod restart |
 
 ### VPA Parameters
 
@@ -322,10 +322,10 @@ A production-ready Helm chart for PostgreSQL database with advanced features inc
 | backup.wal.enabled | bool | `false` | Enable WAL archiving for incremental backups |
 | backup.wal.method | string | `"simple"` | WAL archive method: 'simple' (cp command), 'wal-g', 'wal-e', 'pgbackrest' simple: Copy WAL files to PVC storage wal-g: Modern tool with cloud storage support (recommended) wal-e: Legacy tool with S3 support pgbackrest: Advanced backup and restore tool |
 | backup.wal.persistence | object | `{"accessModes":["ReadWriteOnce"],"annotations":{},"enabled":true,"mountPath":"/wal-archive","size":"20Gi","storageClass":""}` | WAL archive persistence (used with 'simple' method) |
-| backup.wal.pgbackrest | object | `{"config":{},"image":{"pullPolicy":"IfNotPresent","repository":"pgbackrest/pgbackrest","tag":"2.49"},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}}` | pgBackRest specific configuration |
+| backup.wal.pgbackrest | object | `{"config":{},"image":{"pullPolicy":"IfNotPresent","repository":"pgbackrest/pgbackrest","tag":"2.49"},"resources":{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}}` | pgBackRest specific configuration |
 | backup.wal.pgbackrest.config | object | `{}` | pgBackRest configuration |
 | backup.wal.pgbackrest.image | string | `{"pullPolicy":"IfNotPresent","repository":"pgbackrest/pgbackrest","tag":"2.49"}` | pgBackRest image |
-| backup.wal.pgbackrest.resources | object | `{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}` | pgBackRest resources |
+| backup.wal.pgbackrest.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}` | pgBackRest resources Minimal requests to allow scheduling, no limits to allow bursting |
 | backup.wal.restoreCommand | string | `""` | Restore command override (advanced users) Leave empty to use method-specific default |
 | backup.wal.retentionDays | int | `14` | WAL retention period in days |
 | backup.wal.storage | object | `{"azure":{"container":"","existingSecret":"","prefix":"wal-archive","storageAccount":""},"gcs":{"bucket":"","credentialsSecret":"","prefix":"wal-archive"},"s3":{"accessKeyId":"","bucket":"","endpoint":"","existingSecret":"","prefix":"wal-archive","region":"us-east-1","secretAccessKey":""},"type":"s3"}` | Cloud storage configuration (for wal-g, wal-e, pgbackrest) |
@@ -333,10 +333,10 @@ A production-ready Helm chart for PostgreSQL database with advanced features inc
 | backup.wal.storage.gcs | object | `{"bucket":"","credentialsSecret":"","prefix":"wal-archive"}` | GCS configuration |
 | backup.wal.storage.s3 | object | `{"accessKeyId":"","bucket":"","endpoint":"","existingSecret":"","prefix":"wal-archive","region":"us-east-1","secretAccessKey":""}` | S3 configuration |
 | backup.wal.storage.type | string | `"s3"` | Storage type: 's3', 'gcs', 'azure', 'file' |
-| backup.wal.walg | object | `{"env":{},"image":{"pullPolicy":"IfNotPresent","repository":"wal-g/wal-g","tag":"v3.0.0"},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}}` | WAL-G specific configuration |
+| backup.wal.walg | object | `{"env":{},"image":{"pullPolicy":"IfNotPresent","repository":"wal-g/wal-g","tag":"v3.0.0"},"resources":{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}}` | WAL-G specific configuration |
 | backup.wal.walg.env | object | `{}` | Additional environment variables for WAL-G |
 | backup.wal.walg.image | string | `{"pullPolicy":"IfNotPresent","repository":"wal-g/wal-g","tag":"v3.0.0"}` | WAL-G image |
-| backup.wal.walg.resources | object | `{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}` | WAL-G resources |
+| backup.wal.walg.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}` | WAL-G resources Minimal requests to allow scheduling, no limits to allow bursting |
 | diagnosticMode.args | array | `["infinity"]` | Args override for diagnostic mode |
 | diagnosticMode.command | array | `["sleep"]` | Command override for diagnostic mode |
 | diagnosticMode.enabled | bool | `false` | Enable diagnostic mode (disables probes, overrides command) Useful for debugging container startup issues |
@@ -382,7 +382,7 @@ A production-ready Helm chart for PostgreSQL database with advanced features inc
 | userManagement.dynamicSync.enabled | bool | `false` | Enable dynamic user/database synchronization via CronJob |
 | userManagement.dynamicSync.failedJobsHistoryLimit | int | `3` | Number of failed jobs to keep |
 | userManagement.dynamicSync.podAnnotations | object | `{}` | Pod annotations for the sync job |
-| userManagement.dynamicSync.resources | object | `{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"32Mi"}}` | Resources for the sync job container |
+| userManagement.dynamicSync.resources | object | `{"limits":{},"requests":{"cpu":"5m","memory":"16Mi"}}` | Resources for the sync job container Minimal requests to allow scheduling, no limits to allow bursting |
 | userManagement.dynamicSync.schedule | string | `"*/15 * * * *"` | Cron schedule for sync job Examples: - "*/5 * * * *" - Every 5 minutes - "0 * * * *" - Every hour - "@hourly" - Every hour Can also be triggered manually: kubectl create job --from=cronjob/<name> <job-name> |
 | userManagement.dynamicSync.successfulJobsHistoryLimit | int | `3` | Number of successful jobs to keep |
 | userManagement.dynamicSync.suspend | bool | `false` | Suspend the CronJob (useful for manual-only execution) |

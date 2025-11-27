@@ -5,7 +5,7 @@ description: A production-ready Helm chart for PostgreSQL database with advanced
 type: application
 
 # Helm chart Version
-version: 1.7.0
+version: 1.7.1
 
 # Application version
 appVersion: "16.4"

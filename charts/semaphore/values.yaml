@@ -272,13 +272,12 @@ runnerDeployment:
         - ALL
 
   # Resources
+  # Minimal requests to allow scheduling, no limits to allow bursting
   resources:
-    limits:
-      cpu: 2000m
-      memory: 2Gi
+    limits: {}
     requests:
-      cpu: 500m
-      memory: 512Mi
+      cpu: 10m
+      memory: 64Mi
 
   # Health Probes
   livenessProbe:
@@ -550,13 +549,12 @@ securityContext:
 # Resources
 # =============================================================================
 
+# Minimal requests to allow scheduling, no limits to allow bursting
 resources:
-  limits:
-    cpu: 1000m
-    memory: 1Gi
+  limits: {}
   requests:
-    cpu: 100m
-    memory: 256Mi
+    cpu: 10m
+    memory: 64Mi
 
 # =============================================================================
 # Health Probes
@@ -803,13 +801,12 @@ initContainers:
       - migrate
       - --config
       - /etc/semaphore/config.json
+    # Minimal requests to allow scheduling, no limits to allow bursting
     resources:
-      limits:
-        cpu: 500m
-        memory: 512Mi
+      limits: {}
       requests:
-        cpu: 100m
-        memory: 128Mi
+        cpu: 10m
+        memory: 64Mi
 
 # =============================================================================
 # Extra Configuration
@@ -854,13 +851,12 @@ initContainers:
       - migrate
       - --config
       - /etc/semaphore/config.json
+    # Minimal requests to allow scheduling, no limits to allow bursting
     resources:
-      limits:
-        cpu: 500m
-        memory: 512Mi
+      limits: {}
       requests:
-        cpu: 100m
-        memory: 128Mi
+        cpu: 10m
+        memory: 64Mi
   # Additional init containers
   extra: []
     # - name: init-db

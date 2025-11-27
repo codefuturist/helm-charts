@@ -1,53 +1,54 @@
 apiVersion: v2
-name: pgadmin
-description: A production-ready Helm chart for pgAdmin 4 - PostgreSQL management and administration tool
+name: metube
+description: A production-ready Helm chart for MeTube - YouTube downloader with web interface powered by yt-dlp
 type: application
-version: 1.0.2
-appVersion: "9.10.0"
+version: 1.0.0
+appVersion: "latest"
 
 keywords:
-  - pgadmin
-  - postgresql
-  - database
-  - admin
-  - management
-  - gui
+  - metube
+  - youtube
+  - downloader
+  - yt-dlp
+  - youtube-dl
+  - video
+  - media
   - kubernetes
 
-home: https://www.pgadmin.org/
+home: https://github.com/alexta69/metube
 sources:
-  - https://github.com/pgadmin-org/pgadmin4
+  - https://github.com/alexta69/metube
   - https://github.com/codefuturist/helm-charts
 
 maintainers:
   - name: codefuturist
     email: 58808821+codefuturist@users.noreply.github.com
 
-icon: https://www.pgadmin.org/static/img/logos/pgAdmin.svg
+icon: https://raw.githubusercontent.com/alexta69/metube/master/favicon/android-chrome-192x192.png
 
 annotations:
   artifacthub.io/changes: |
-    - kind: changed
-      description: Updated pgAdmin to version 9.10.0
     - kind: added
-      description: Initial release of pgAdmin 4 Helm chart v1.0.0
+      description: Initial release of MeTube Helm chart v1.0.0
     - kind: added
-      description: Support for Deployment and StatefulSet controller types
+      description: Support for Deployment and StatefulSet controller types (Deployment default)
     - kind: added
-      description: PostgreSQL server definitions for pre-configured connections
+      description: Comprehensive download directory management with 10Gi default storage
+    - kind: added
+      description: Full yt-dlp configuration support via YTDL_OPTIONS
+    - kind: added
+      description: Cookie authentication support for restricted content
     - kind: added
       description: Comprehensive security with pod security contexts, RBAC, and network policies
     - kind: added
       description: Monitoring support with ServiceMonitor and PrometheusRule
     - kind: added
-      description: All official pgAdmin environment variables (SMTP, LDAP, Gunicorn, etc.)
+      description: All official MeTube environment variables (download mode, output templates, etc.)
     - kind: added
-      description: Support for pgpass file and config_local.py customization
-    - kind: added
-      description: Reverse proxy configuration with SCRIPT_NAME support
+      description: Reverse proxy configuration with URL_PREFIX support
     - kind: added
       description: High availability features (HPA, PDB, anti-affinity)
-    - kind: changed
+    - kind: added
       description: Minimal security context for maximum Kubernetes distribution compatibility (K3s, K8s, etc.)
     - kind: changed
       description: Fixed PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION setting for proper startup

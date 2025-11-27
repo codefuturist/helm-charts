@@ -1,6 +1,6 @@
 # uptime-kuma
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.0](https://img.shields.io/badge/AppVersion-2.0.0-informational?style=flat-square)
+![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.0](https://img.shields.io/badge/AppVersion-2.0.0-informational?style=flat-square)
 
 A self-hosted monitoring tool - monitor uptime for HTTP(s) / TCP / HTTP(s) Keyword / Ping / DNS Record / Push / Steam Game Server
 
@@ -155,10 +155,9 @@ A self-hosted monitoring tool - monitor uptime for HTTP(s) / TCP / HTTP(s) Keywo
 | readinessProbe.periodSeconds | int | `5` |  |
 | readinessProbe.successThreshold | int | `1` |  |
 | readinessProbe.timeoutSeconds | int | `3` |  |
-| resources.limits.cpu | string | `"1000m"` |  |
-| resources.limits.memory | string | `"512Mi"` |  |
-| resources.requests.cpu | string | `"250m"` |  |
-| resources.requests.memory | string | `"256Mi"` |  |
+| resources.limits | object | `{}` |  |
+| resources.requests.cpu | string | `"10m"` |  |
+| resources.requests.memory | string | `"64Mi"` |  |
 | runtimeClassName | string | `""` |  |
 | securityContext.allowPrivilegeEscalation | bool | `false` |  |
 | securityContext.capabilities.drop[0] | string | `"ALL"` |  |

@@ -1,6 +1,6 @@
 # mealie
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
+![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
 
 A Helm chart for mealie
 
@@ -72,10 +72,9 @@ A Helm chart for mealie
 | mealie.readinessProbe.timeoutSeconds | int | `3` |  |
 | mealie.reloadOnChange | bool | `true` |  |
 | mealie.replicas | int | `1` |  |
-| mealie.resources.limits.cpu | string | `"1000m"` |  |
-| mealie.resources.limits.memory | string | `"1000Mi"` |  |
-| mealie.resources.requests.cpu | string | `"100m"` |  |
-| mealie.resources.requests.memory | string | `"256Mi"` |  |
+| mealie.resources.limits | object | `{}` |  |
+| mealie.resources.requests.cpu | string | `"10m"` |  |
+| mealie.resources.requests.memory | string | `"64Mi"` |  |
 | mealie.strategy.type | string | `"RollingUpdate"` |  |
 | mealie.tolerations | list | `[]` |  |
 | mealie.topologySpreadConstraints | list | `[]` |  |
@@ -134,10 +133,9 @@ A Helm chart for mealie
 | postgres.readinessProbe.timeoutSeconds | int | `5` |  |
 | postgres.reloadOnChange | bool | `true` |  |
 | postgres.replicas | int | `1` |  |
-| postgres.resources.limits.cpu | string | `"500m"` |  |
-| postgres.resources.limits.memory | string | `"512Mi"` |  |
-| postgres.resources.requests.cpu | string | `"100m"` |  |
-| postgres.resources.requests.memory | string | `"256Mi"` |  |
+| postgres.resources.limits | object | `{}` |  |
+| postgres.resources.requests.cpu | string | `"10m"` |  |
+| postgres.resources.requests.memory | string | `"64Mi"` |  |
 | postgres.strategy.type | string | `"RollingUpdate"` |  |
 | postgres.tolerations | list | `[]` |  |
 | postgres.topologySpreadConstraints | list | `[]` |  |

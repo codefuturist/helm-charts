@@ -49,7 +49,7 @@ mailrise:
 
     # TLS configuration (disabled by default)
     tls:
-      mode: "off"  # off, onconnect, starttls, starttlsrequire
+      mode: "off" # off, onconnect, starttls, starttlsrequire
       # certfile: "/path/to/cert.pem"
       # keyfile: "/path/to/key.pem"
 
@@ -203,13 +203,12 @@ securityContext:
 # Resources
 # =============================================================================
 
+# Minimal requests to allow scheduling, no limits to allow bursting
 resources:
-  limits:
-    cpu: 500m
-    memory: 256Mi
+  limits: {}
   requests:
-    cpu: 100m
-    memory: 128Mi
+    cpu: 10m
+    memory: 32Mi
 
 # =============================================================================
 # Health Probes

@@ -1,6 +1,6 @@
 # redisinsight
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
+![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
 A production-ready Helm chart for Redis Insight - Redis database management and administration tool
 
@@ -119,7 +119,7 @@ A production-ready Helm chart for Redis Insight - Redis database management and 
 | redisInsight.tls.existingSecretCertKey | string | `"tls.crt"` | Key in existingSecret for TLS certificate |
 | redisInsight.tls.existingSecretKeyKey | string | `"tls.key"` | Key in existingSecret for TLS private key |
 | redisInsight.tls.key | string | `""` | TLS private key (PEM format) Can be a path to a file or a string in PEM format |
-| resources | object | `{"limits":{"cpu":"1000m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource limits and requests |
+| resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resource limits and requests Minimal requests to allow scheduling, no limits to allow bursting |
 | runtimeClassName | string | `""` | Runtime class name |
 | securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsNonRoot":true,"runAsUser":1000}` | Container security context |
 | service.annotations | object | `{}` | Service annotations |

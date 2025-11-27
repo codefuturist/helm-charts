@@ -267,13 +267,12 @@ securityContext:
 # =============================================================================
 
 # -- Resource limits and requests
+# Minimal requests to allow scheduling, no limits to allow bursting
 resources:
-  limits:
-    cpu: 2000m
-    memory: 2Gi
+  limits: {}
   requests:
-    cpu: 500m
-    memory: 1Gi
+    cpu: 10m
+    memory: 128Mi
 
 # =============================================================================
 # Probes

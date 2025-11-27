@@ -1,6 +1,6 @@
 # home-assistant
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2024.11.1](https://img.shields.io/badge/AppVersion-2024.11.1-informational?style=flat-square)
+![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2024.11.1](https://img.shields.io/badge/AppVersion-2024.11.1-informational?style=flat-square)
 
 A comprehensive Helm chart for Home Assistant - Open source home automation that puts local control and privacy first
 
@@ -42,7 +42,7 @@ A comprehensive Helm chart for Home Assistant - Open source home automation that
 | codeserver.ingress.hosts[0].paths[0].pathType | string | `"Prefix"` |  |
 | codeserver.ingress.tls | list | `[]` |  |
 | codeserver.port | int | `8080` | Code server port |
-| codeserver.resources | object | `{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resources for code-server |
+| codeserver.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resources for code-server Minimal requests to allow scheduling, no limits to allow bursting |
 | configuration.enabled | bool | `false` | Enable automated configuration setup When enabled, creates ConfigMaps and init container to manage HA config files |
 | configuration.forceInit | bool | `false` | Force initialization on every start Merges default config with existing config.yaml (keeps 10 most recent backups) |
 | configuration.initContainer | object | `{"image":"mikefarah/yq:4","name":"setup-config","securityContext":{"runAsUser":0},"volumeMounts":[]}` | Init container configuration |
@@ -104,7 +104,7 @@ A comprehensive Helm chart for Home Assistant - Open source home automation that
 | mqtt.persistence.enabled | bool | `false` | Enable MQTT persistence |
 | mqtt.persistence.size | string | `"1Gi"` |  |
 | mqtt.port | int | `1883` | MQTT port |
-| mqtt.resources | object | `{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}` | Resources for MQTT |
+| mqtt.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}` | Resources for MQTT Minimal requests to allow scheduling, no limits to allow bursting |
 | nameOverride | string | `""` | Override the name |
 | namespaceOverride | string | `""` | Override the namespace for all resources. |
 | nodeSelector | object | `{}` |  |
@@ -143,8 +143,8 @@ A comprehensive Helm chart for Home Assistant - Open source home automation that
 | readinessProbe.periodSeconds | int | `10` |  |
 | readinessProbe.timeoutSeconds | int | `5` |  |
 | replicaCount | int | `1` | Number of replicas (Home Assistant is typically single instance due to state) |
-| resources.limits | object | `{"cpu":"2000m","memory":"2Gi"}` | Resource limits |
-| resources.requests | object | `{"cpu":"500m","memory":"512Mi"}` | Resource requests |
+| resources.limits | object | `{}` | Resource limits |
+| resources.requests | object | `{"cpu":"10m","memory":"128Mi"}` | Resource requests |
 | securityContext.allowPrivilegeEscalation | bool | `false` | Allow privilege escalation |
 | securityContext.capabilities | object | `{"add":["NET_ADMIN","NET_RAW","SYS_ADMIN"],"drop":["ALL"]}` | Capabilities |
 | securityContext.privileged | bool | `false` | Run as privileged container (grants all capabilities) WARNING: Only enable if you need Bluetooth or full D-Bus system access SECURITY: This grants extensive permissions - use specific capabilities instead To enable privileged mode, set: privileged: true and capabilities.add: [] |

@@ -2,7 +2,7 @@ apiVersion: v2
 name: semaphore
 description: Modern UI for Ansible, Terraform, OpenTofu, Bash, and Pulumi - task automation and infrastructure orchestration
 type: application
-version: 1.3.0
+version: 1.3.1
 appVersion: "2.10.32"
 
 keywords:

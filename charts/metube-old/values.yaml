@@ -25,11 +25,11 @@ additionalAnnotations: {}
 # =============================================================================
 
 image:
-  # -- Redis Insight Docker image repository
-  repository: redis/redisinsight
-  # -- Redis Insight Docker image tag
+  # -- MeTube Docker image repository
+  repository: ghcr.io/alexta69/metube
+  # -- MeTube Docker image tag
   # @default -- Chart appVersion
-  tag: "latest"
+  tag: ""
   # -- Image pull policy
   pullPolicy: IfNotPresent
   # -- Image digest (overrides tag if set)
@@ -39,87 +39,143 @@ image:
 imagePullSecrets: []
 
 # =============================================================================
-# Redis Insight Configuration
-# @section -- Redis Insight Configuration
+# MeTube Configuration
+# @section -- MeTube Configuration
 # =============================================================================
 
-redisInsight:
-  # -- Application port that Redis Insight listens on
-  port: 5540
+metube:
+  # -- Download behavior mode (sequential, concurrent, limited)
+  # sequential: One download at a time
+  # concurrent: Unlimited simultaneous downloads
+  # limited: Controlled concurrency (see maxConcurrentDownloads)
+  downloadMode: "limited"
 
-  # -- Application host that Redis Insight binds to
-  host: "0.0.0.0"
+  # -- Maximum concurrent downloads (only used with downloadMode: limited)
+  maxConcurrentDownloads: 3
 
-  # -- Log level for the application
-  # Supported levels: error, warn, info, http, verbose, debug, silly
-  logLevel: "info"
+  # -- Delete files from server when trashed in UI
+  deleteFileOnTrashcan: false
 
-  # -- Enable file logging
-  filesLogger: true
+  # -- Enable strict playlist mode by default
+  # In strict mode, playlists download only if URL strictly points to playlist
+  defaultOptionPlaylistStrictMode: false
 
-  # -- Enable stdout logging
-  stdoutLogger: true
+  # -- Maximum playlist items to download (0 = no limit)
+  defaultOptionPlaylistItemLimit: 0
 
-  # -- Proxy path for reverse proxy subdirectory hosting
-  # Set this when hosting Redis Insight under a subdirectory (e.g., /redisinsight)
-  proxyPath: ""
+  # -- Enable custom directories for organizing downloads
+  customDirs: true
 
-  # -- Enable/disable database connection management
-  # When false, disables the ability to add, edit, or delete database connections
-  databaseManagement: true
+  # -- Allow creating new custom directories on the fly
+  createCustomDirs: true
 
-  # -- Encryption key for sensitive data
-  # Redis Insight stores sensitive information (passwords, history, etc.) encrypted
-  # The same key should be provided for subsequent starts with the same volume
-  encryptionKey: ""
+  # -- Regular expression to exclude directories from dropdown
+  # Default excludes hidden directories and those starting with @
+  customDirsExcludeRegex: "(^|/)[.@].*$"
 
-  # -- Name of an existing secret containing the encryption key
-  # The secret must contain a key 'encryptionKey'
-  existingEncryptionKeySecret: ""
+  # -- Make download directories indexable on web server
+  downloadDirsIndexable: false
 
-  # -- Key in existingEncryptionKeySecret that contains the encryption key
-  existingEncryptionKeySecretKey: "encryptionKey"
+  # -- Output filename template for yt-dlp
+  # See: https://github.com/yt-dlp/yt-dlp#output-template
+  outputTemplate: "%(title)s.%(ext)s"
 
-  # -- TLS/SSL configuration for HTTPS
-  tls:
-    # -- Enable TLS/SSL
+  # -- Output filename template for chapters
+  outputTemplateChapter: "%(title)s - %(section_number)s %(section_title)s.%(ext)s"
+
+  # -- Output filename template for playlists (empty uses outputTemplate)
+  outputTemplatePlaylist: "%(playlist_title)s/%(title)s.%(ext)s"
+
+  # -- Additional yt-dlp options in JSON format
+  # See: https://github.com/yt-dlp/yt-dlp#usage-and-options
+  # Example: '{"format": "bestvideo+bestaudio", "writesubtitles": true}'
+  ytdlOptions: ""
+
+  # -- Path to JSON file with yt-dlp options (mounted via ConfigMap)
+  # Takes precedence over ytdlOptions if both are set
+  ytdlOptionsFile: ""
+
+  # -- Name of existing ConfigMap containing ytdl_options.json
+  existingYtdlOptionsConfigMap: ""
+
+  # -- URL prefix for reverse proxy subdirectory hosting
+  # Example: /metube for hosting at https://example.com/metube
+  urlPrefix: "/"
+
+  # -- Base URL for download links in the UI
+  # Leave empty to serve files through MeTube itself
+  publicHostUrl: ""
+
+  # -- Base URL for audio download links
+  publicHostAudioUrl: ""
+
+  # -- Enable HTTPS mode (requires certFile and keyFile)
+  https: false
+
+  # -- Path to SSL certificate file (mounted via secret)
+  certFile: ""
+
+  # -- Path to SSL key file (mounted via secret)
+  keyFile: ""
+
+  # -- Name of existing secret containing SSL certificate and key
+  # Secret must contain keys: tls.crt and tls.key
+  existingTlsSecret: ""
+
+  # -- Path to robots.txt file (mounted via ConfigMap)
+  robotsTxt: ""
+
+  # -- Name of existing ConfigMap containing robots.txt
+  existingRobotsTxtConfigMap: ""
+
+  # -- User ID to run MeTube as
+  uid: 1000
+
+  # -- Group ID to run MeTube as
+  gid: 1000
+
+  # -- Umask for created files and directories
+  umask: "022"
+
+  # -- Default UI theme (light, dark, auto)
+  defaultTheme: "auto"
+
+  # -- Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL, NONE)
+  loglevel: "INFO"
+
+  # -- Enable access log
+  enableAccesslog: false
+
+  # -- Cookie file support for authenticated downloads
+  cookies:
+    # -- Enable cookie file support
     enabled: false
-    # -- TLS private key (PEM format)
-    # Can be a path to a file or a string in PEM format
-    key: ""
-    # -- TLS certificate (PEM format)
-    # Can be a path to a file or a string in PEM format
-    cert: ""
-    # -- Name of an existing secret containing TLS key and cert
+    # -- Cookie file content (cookies.txt format)
+    # Format: Netscape cookie file
+    cookieFile: ""
+    # -- Name of existing secret containing cookies.txt
+    # Secret must contain key: cookies.txt
     existingSecret: ""
-    # -- Key in existingSecret for TLS private key
-    existingSecretKeyKey: "tls.key"
-    # -- Key in existingSecret for TLS certificate
-    existingSecretCertKey: "tls.crt"
 
-  # -- Pre-configured Redis database connections
-  # Configure Redis connections using environment variables
-  # Each connection needs a unique ID (replace * with a number)
-  # Example:
-  # connections:
-  #   - id: "1"
-  #     host: "redis.default.svc.cluster.local"
-  #     port: 6379
-  #     alias: "Production Redis"
-  #     username: "default"
-  #     password: "password123"
-  #     tls: false
-  #   - id: "2"
-  #     host: "redis-cluster.database.svc"
-  #     port: 6379
-  #     alias: "Redis Cluster"
-  #     tls: true
-  #     tlsCaBase64: "LS0tLS1CRUdJTi..."
-  connections: []
+# =============================================================================
+# Storage Paths
+# @section -- Storage Configuration
+# =============================================================================
 
-  # -- Name of an existing secret containing Redis connection passwords
-  # Expected format: secret with keys like "password-1", "password-2", etc.
-  existingConnectionPasswordsSecret: ""
+storage:
+  # -- Main download directory path inside container
+  downloadDir: "/downloads"
+
+  # -- Audio-only download directory (empty = same as downloadDir)
+  audioDownloadDir: ""
+
+  # -- State directory for queue persistence
+  # @default -- /downloads/.metube
+  stateDir: ""
+
+  # -- Temporary directory for intermediate files
+  # Consider using tmpfs for better performance
+  tempDir: ""
 
 # =============================================================================
 # Controller Configuration
@@ -130,7 +186,8 @@ controller:
   # -- Controller type (deployment or statefulset)
   type: deployment
 
-  # -- Number of Redis Insight replicas
+  # -- Number of MeTube replicas
+  # Note: Multiple replicas share the same storage, ensure your storage supports ReadWriteMany if scaling
   replicas: 1
 
   # -- Deployment update strategy
@@ -175,10 +232,10 @@ service:
   type: ClusterIP
 
   # -- Service port
-  port: 5540
+  port: 8081
 
   # -- Service target port (container port)
-  targetPort: 5540
+  targetPort: 8081
 
   # -- Node port (only used if type is NodePort)
   nodePort: ""
@@ -224,12 +281,13 @@ ingress:
   # annotations:
   #   cert-manager.io/cluster-issuer: "letsencrypt-prod"
   #   nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+  #   nginx.ingress.kubernetes.io/proxy-body-size: "0"
   annotations: {}
 
   # -- Ingress hosts configuration
   # Example:
   # hosts:
-  #   - host: redisinsight.example.com
+  #   - host: metube.example.com
   #     paths:
   #       - path: /
   #         pathType: Prefix
@@ -238,9 +296,9 @@ ingress:
   # -- Ingress TLS configuration
   # Example:
   # tls:
-  #   - secretName: redisinsight-tls
+  #   - secretName: metube-tls
   #     hosts:
-  #       - redisinsight.example.com
+  #       - metube.example.com
   tls: []
 
 # =============================================================================
@@ -249,19 +307,20 @@ ingress:
 # =============================================================================
 
 persistence:
-  # -- Enable persistent storage for Redis Insight data
-  # Data includes connections, preferences, and history
-  enabled: false
+  # -- Enable persistent storage for downloads
+  enabled: true
 
   # -- Storage class name
   # @default -- Default storage class
   storageClassName: ""
 
   # -- Access mode for the persistent volume
+  # Use ReadWriteMany if running multiple replicas
   accessMode: ReadWriteOnce
 
-  # -- Size of the persistent volume
-  size: 1Gi
+  # -- Size of the persistent volume for downloads
+  # Recommended: 50Gi-100Gi for typical usage
+  size: 10Gi
 
   # -- Name of an existing PVC to use
   existingClaim: ""
@@ -269,26 +328,30 @@ persistence:
   # -- Annotations for the PVC
   annotations: {}
 
+  # -- Additional volumes for specific use cases
+  additionalVolumes: []
+    # - name: audio-downloads
+    #   enabled: false
+    #   mountPath: /audio
+    #   size: 10Gi
+    #   storageClassName: ""
+    #   accessMode: ReadWriteOnce
+
 # =============================================================================
 # Security Context
 # @section -- Security Context
 # =============================================================================
 
 # -- Pod security context
-# Redis Insight runs as user 1000 by default
 podSecurityContext:
-  runAsNonRoot: true
   runAsUser: 1000
+  runAsGroup: 1000
   fsGroup: 1000
-  fsGroupChangePolicy: "OnRootMismatch"
-  seccompProfile:
-    type: RuntimeDefault
+  runAsNonRoot: true
 
 # -- Container security context
 securityContext:
   allowPrivilegeEscalation: false
-  runAsNonRoot: true
-  runAsUser: 1000
   readOnlyRootFilesystem: false
   capabilities:
     drop:
@@ -300,6 +363,7 @@ securityContext:
 # =============================================================================
 
 # -- Resource limits and requests
+# Downloads can be CPU intensive during transcoding
 # Minimal requests to allow scheduling, no limits to allow bursting
 resources:
   limits: {}
@@ -316,7 +380,7 @@ resources:
 livenessProbe:
   enabled: true
   httpGet:
-    path: /api/health/
+    path: /
     port: http
   initialDelaySeconds: 30
   periodSeconds: 10
@@ -328,7 +392,7 @@ livenessProbe:
 readinessProbe:
   enabled: true
   httpGet:
-    path: /api/health/
+    path: /
     port: http
   initialDelaySeconds: 15
   periodSeconds: 10
@@ -340,7 +404,7 @@ readinessProbe:
 startupProbe:
   enabled: true
   httpGet:
-    path: /api/health/
+    path: /
     port: http
   initialDelaySeconds: 10
   periodSeconds: 10
@@ -378,16 +442,26 @@ topologySpreadConstraints: []
   #   whenUnsatisfiable: ScheduleAnyway
   #   labelSelector:
   #     matchLabels:
-  #       app.kubernetes.io/name: redisinsight
+  #       app.kubernetes.io/name: metube
 
 # -- DNS policy
 dnsPolicy: ClusterFirst
 
 # -- DNS config
 dnsConfig: {}
+  # nameservers:
+  #   - 1.1.1.1
+  # searches:
+  #   - default.svc.cluster.local
+  # options:
+  #   - name: ndots
+  #     value: "2"
 
 # -- Host aliases
 hostAliases: []
+  # - ip: "192.168.1.100"
+  #   hostnames:
+  #     - "video-source.local"
 
 # -- Runtime class name
 runtimeClassName: ""
@@ -396,13 +470,17 @@ runtimeClassName: ""
 initContainers: []
   # - name: init-permissions
   #   image: busybox:latest
-  #   command: ['sh', '-c', 'chown -R 1000:1000 /data']
+  #   command: ['sh', '-c', 'chown -R 1000:1000 /downloads']
   #   volumeMounts:
-  #     - name: redisinsight-data
-  #       mountPath: /data
+  #     - name: downloads
+  #       mountPath: /downloads
 
 # -- Extra sidecar containers
 extraContainers: []
+  # - name: exporter
+  #   image: metrics-exporter:latest
+  #   ports:
+  #     - containerPort: 9090
 
 # -- Extra environment variables
 extraEnv: []
@@ -411,12 +489,25 @@ extraEnv: []
 
 # -- Extra environment variables from ConfigMaps or Secrets
 extraEnvFrom: []
+  # - configMapRef:
+  #     name: metube-config
+  # - secretRef:
+  #     name: metube-secrets
 
 # -- Extra volumes
 extraVolumes: []
+  # - name: ytdl-config
+  #   configMap:
+  #     name: ytdl-custom-config
+  # - name: ssl-certs
+  #   secret:
+  #     secretName: metube-tls
 
 # -- Extra volume mounts
 extraVolumeMounts: []
+  # - name: ytdl-config
+  #   mountPath: /config
+  #   readOnly: true
 
 # =============================================================================
 # Monitoring
@@ -461,14 +552,22 @@ monitoring:
 
     # -- Alert rules
     rules: []
-      # - alert: RedisInsightDown
-      #   expr: up{job="redisinsight"} == 0
+      # - alert: MeTubeDown
+      #   expr: up{job="metube"} == 0
       #   for: 5m
       #   labels:
       #     severity: critical
       #   annotations:
-      #     summary: "Redis Insight is down"
-      #     description: "Redis Insight instance {{ $labels.instance }} is down"
+      #     summary: "MeTube is down"
+      #     description: "MeTube instance {{ $labels.instance }} is down"
+      # - alert: MeTubeHighMemory
+      #   expr: container_memory_usage_bytes{pod=~"metube-.*"} / container_spec_memory_limit_bytes > 0.9
+      #   for: 10m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: "MeTube high memory usage"
+      #     description: "MeTube memory usage is above 90%"
 
 # =============================================================================
 # High Availability
@@ -486,6 +585,7 @@ pdb:
   maxUnavailable: ""
 
 # -- Horizontal Pod Autoscaler configuration
+# Note: HPA may not be ideal for MeTube as downloads benefit from consistent resources
 hpa:
   # -- Enable HorizontalPodAutoscaler
   enabled: false
@@ -542,16 +642,28 @@ networkPolicy:
     - Egress
 
   # -- Ingress rules
+  # Example to allow traffic from ingress controller:
+  # ingress:
+  #   - from:
+  #     - namespaceSelector:
+  #         matchLabels:
+  #           name: ingress-nginx
+  #     ports:
+  #     - protocol: TCP
+  #       port: 8081
   ingress: []
 
   # -- Egress rules
-  # By default, allow egress to Redis port
+  # MeTube needs internet access to download videos
   egress:
+    # Allow all outbound traffic (for video downloads)
     - to:
         - namespaceSelector: {}
       ports:
         - protocol: TCP
-          port: 6379
+          port: 443
+        - protocol: TCP
+          port: 80
     # Allow DNS
     - to:
         - namespaceSelector: {}
@@ -566,6 +678,7 @@ networkPolicy:
 
 diagnosticMode:
   # -- Enable diagnostic mode (disables probes, overrides command)
+  # Useful for debugging container startup issues
   enabled: false
 
   # -- Command override for diagnostic mode
