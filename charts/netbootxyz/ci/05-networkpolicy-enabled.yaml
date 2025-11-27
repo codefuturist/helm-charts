@@ -1,0 +1,14 @@
+# CI Test: NetworkPolicy configuration
+# Tests NetworkPolicy resource creation
+
+replicaCount: 1
+persistence:
+  config:
+    enabled: false
+  assets:
+    enabled: false
+
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: true

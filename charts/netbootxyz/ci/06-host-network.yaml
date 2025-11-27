@@ -1,0 +1,19 @@
+# CI Test: Host network mode
+# Tests bare-metal deployment scenario with host network
+
+replicaCount: 1
+persistence:
+  config:
+    enabled: false
+  assets:
+    enabled: false
+
+hostNetwork: true
+dnsPolicy: ClusterFirstWithHostNet
+
+tftp:
+  service:
+    enabled: false
+  hostPort:
+    enabled: true
+    port: 6969 # Non-standard port for CI to avoid conflicts

@@ -1,6 +1,6 @@
 # postgresql
 
-![Version: 1.7.0](https://img.shields.io/badge/Version-1.7.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 16.4](https://img.shields.io/badge/AppVersion-16.4-informational?style=flat-square)
+![Version: 1.7.1](https://img.shields.io/badge/Version-1.7.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 16.4](https://img.shields.io/badge/AppVersion-16.4-informational?style=flat-square)
 
 A production-ready Helm chart for PostgreSQL database with advanced features including replication, backups, monitoring, and security
 
@@ -387,4 +387,3 @@ A production-ready Helm chart for PostgreSQL database with advanced features inc
 | userManagement.dynamicSync.watchExternalResources | object | `{"configMaps":[],"enabled":false}` | Watch external ConfigMaps for user/database definitions (cross-namespace) |
 | userManagement.dynamicSync.podAnnotations | object | `{}` | Pod annotations for the sync job |
 | userManagement.dynamicSync.resources | object | `{"limits":{},"requests":{"cpu":"5m","memory":"16Mi"}}` | Resources for the sync job container Minimal requests to allow scheduling, no limits to allow bursting |
-

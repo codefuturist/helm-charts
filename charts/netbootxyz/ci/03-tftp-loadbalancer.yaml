@@ -1,0 +1,16 @@
+# CI Test: TFTP LoadBalancer service
+# Tests TFTP service as LoadBalancer type
+
+replicaCount: 1
+persistence:
+  config:
+    enabled: false
+  assets:
+    enabled: false
+
+tftp:
+  service:
+    enabled: true
+    type: LoadBalancer
+    loadBalancerSourceRanges:
+      - 10.0.0.0/8

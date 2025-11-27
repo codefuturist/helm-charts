@@ -1,0 +1,30 @@
+{{/*
+Copyright codefuturist
+SPDX-License-Identifier: MIT
+*/}}
+
+{{- if and .Values.persistence.assets.enabled (not .Values.persistence.assets.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "netbootxyz.assetsPvcName" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: assets
+  {{- if or .Values.persistence.assets.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.persistence.assets.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+  {{- range .Values.persistence.assets.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.assets.size | quote }}
+  {{- include "common.storage.class" (dict "persistence" .Values.persistence.assets "global" .Values.global) | nindent 2 }}
+  {{- if .Values.persistence.assets.selector }}
+  selector: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.assets.selector "context" $) | nindent 4 }}
+  {{- end }}
+{{- end }}

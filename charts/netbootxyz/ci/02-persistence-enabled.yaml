@@ -1,0 +1,10 @@
+# CI Test: Persistence configuration
+# Tests deployment with config persistence enabled
+
+replicaCount: 1
+persistence:
+  config:
+    enabled: true
+    size: 100Mi
+  assets:
+    enabled: false

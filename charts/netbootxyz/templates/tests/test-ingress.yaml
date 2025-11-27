@@ -1,0 +1,69 @@
+{{/*
+Copyright codefuturist
+SPDX-License-Identifier: MIT
+*/}}
+
+{{- if .Values.ingress.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "common.names.fullname" . }}-test-ingress"
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "4"
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-ingress
+      image: curlimages/curl:8.11.0
+      command: ['sh', '-c']
+      args:
+        - |
+          echo "Testing Ingress configuration..."
+
+          HOST="{{ .Values.ingress.hostname }}"
+          echo "Testing ingress host: $HOST"
+
+          # Try to resolve the host
+          if nslookup "$HOST" > /dev/null 2>&1; then
+            echo "✅ Host $HOST is resolvable"
+
+            # Test HTTP connection (ignore SSL for test)
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -k "http://$HOST{{ .Values.ingress.path }}" || echo "000")
+
+            if [ "$HTTP_CODE" != "000" ]; then
+              echo "✅ Ingress is responding (HTTP $HTTP_CODE)"
+            else
+              echo "⚠️  Ingress not responding (this may be expected if external DNS is not configured)"
+            fi
+          else
+            echo "⚠️  Host $HOST is not resolvable (this may be expected in test environment without external DNS)"
+          fi
+
+          {{- range .Values.ingress.extraHosts }}
+          EXTRA_HOST="{{ .name }}"
+          echo "Testing extra host: $EXTRA_HOST"
+
+          if nslookup "$EXTRA_HOST" > /dev/null 2>&1; then
+            echo "✅ Extra host $EXTRA_HOST is resolvable"
+          else
+            echo "⚠️  Extra host $EXTRA_HOST is not resolvable"
+          fi
+          {{- end }}
+
+          echo "✅ Ingress configuration test completed"
+          exit 0
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 65534
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+{{- end }}

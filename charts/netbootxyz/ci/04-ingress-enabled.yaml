@@ -1,0 +1,16 @@
+# CI Test: Ingress configuration
+# Tests ingress with hostname
+
+replicaCount: 1
+persistence:
+  config:
+    enabled: false
+  assets:
+    enabled: false
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hostname: netboot.local
+  path: /
+  pathType: Prefix

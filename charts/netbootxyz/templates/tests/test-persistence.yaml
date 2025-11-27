@@ -1,0 +1,99 @@
+{{/*
+Copyright codefuturist
+SPDX-License-Identifier: MIT
+*/}}
+
+{{- if or .Values.persistence.config.enabled .Values.persistence.assets.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "common.names.fullname" . }}-test-persistence"
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "3"
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-persistence
+      image: busybox:1.36
+      command: ['sh', '-c']
+      args:
+        - |
+          echo "Testing persistence configuration..."
+
+          {{- if .Values.persistence.config.enabled }}
+          # Test config volume
+          if [ -d "/test-config" ]; then
+            echo "✅ Config volume is mounted at /test-config"
+
+            # Test write permissions
+            TEST_FILE="/test-config/helm-test-$(date +%s).txt"
+            if echo "test" > "$TEST_FILE" 2>/dev/null; then
+              echo "✅ Config volume is writable"
+              rm -f "$TEST_FILE"
+            else
+              echo "❌ Config volume is not writable"
+              exit 1
+            fi
+          else
+            echo "❌ Config volume is not mounted"
+            exit 1
+          fi
+          {{- end }}
+
+          {{- if .Values.persistence.assets.enabled }}
+          # Test assets volume
+          if [ -d "/test-assets" ]; then
+            echo "✅ Assets volume is mounted at /test-assets"
+
+            # Test write permissions
+            TEST_FILE="/test-assets/helm-test-$(date +%s).txt"
+            if echo "test" > "$TEST_FILE" 2>/dev/null; then
+              echo "✅ Assets volume is writable"
+              rm -f "$TEST_FILE"
+            else
+              echo "❌ Assets volume is not writable"
+              exit 1
+            fi
+          else
+            echo "❌ Assets volume is not mounted"
+            exit 1
+          fi
+          {{- end }}
+
+          echo "✅ All persistence tests passed"
+          exit 0
+      volumeMounts:
+        {{- if .Values.persistence.config.enabled }}
+        - name: config
+          mountPath: /test-config
+        {{- end }}
+        {{- if .Values.persistence.assets.enabled }}
+        - name: assets
+          mountPath: /test-assets
+        {{- end }}
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 65534
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+  volumes:
+    {{- if .Values.persistence.config.enabled }}
+    - name: config
+      persistentVolumeClaim:
+        claimName: {{ include "netbootxyz.configPvcName" . }}
+    {{- end }}
+    {{- if .Values.persistence.assets.enabled }}
+    - name: assets
+      persistentVolumeClaim:
+        claimName: {{ include "netbootxyz.assetsPvcName" . }}
+    {{- end }}
+{{- end }}

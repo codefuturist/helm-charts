@@ -1,0 +1,42 @@
+{{/*
+Copyright codefuturist
+SPDX-License-Identifier: MIT
+*/}}
+
+{{- if .Values.tftp.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "netbootxyz.tftpServiceName" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: tftp
+  {{- if or .Values.tftp.service.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.tftp.service.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.tftp.service.type }}
+  {{- if or (eq .Values.tftp.service.type "LoadBalancer") (eq .Values.tftp.service.type "NodePort") }}
+  externalTrafficPolicy: {{ .Values.tftp.service.externalTrafficPolicy | quote }}
+  {{- end }}
+  {{- if and (eq .Values.tftp.service.type "LoadBalancer") (not (empty .Values.tftp.service.loadBalancerSourceRanges)) }}
+  loadBalancerSourceRanges: {{- toYaml .Values.tftp.service.loadBalancerSourceRanges | nindent 4 }}
+  {{- end }}
+  {{- if and (eq .Values.tftp.service.type "LoadBalancer") (not (empty .Values.tftp.service.loadBalancerIP)) }}
+  loadBalancerIP: {{ .Values.tftp.service.loadBalancerIP }}
+  {{- end }}
+  {{- if and (eq .Values.tftp.service.type "LoadBalancer") .Values.tftp.service.loadBalancerClass }}
+  loadBalancerClass: {{ .Values.tftp.service.loadBalancerClass }}
+  {{- end }}
+  ports:
+    - name: tftp
+      port: {{ .Values.tftp.service.port }}
+      targetPort: tftp
+      protocol: UDP
+      {{- if and (eq .Values.tftp.service.type "NodePort") (not (empty .Values.tftp.service.nodePort)) }}
+      nodePort: {{ .Values.tftp.service.nodePort }}
+      {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.podLabels .Values.commonLabels) "context" .) }}
+  selector: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 4 }}
+{{- end }}

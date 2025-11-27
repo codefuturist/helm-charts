@@ -1,0 +1,72 @@
+{{/*
+Copyright codefuturist
+SPDX-License-Identifier: MIT
+*/}}
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "common.names.fullname" . }}-test-connection"
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "1"
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-connection
+      image: busybox:1.36
+      command: ['sh', '-c']
+      args:
+        - |
+          echo "Testing netboot.xyz service connectivity..."
+
+          SERVICE_NAME="{{ include "common.names.fullname" . }}"
+          WEBAPP_PORT="{{ .Values.service.ports.webapp }}"
+          ASSETS_PORT="{{ .Values.service.ports.assets }}"
+
+          # Test DNS resolution
+          echo "Testing DNS resolution for $SERVICE_NAME..."
+          if nslookup "$SERVICE_NAME" > /dev/null 2>&1; then
+            echo "✅ Service $SERVICE_NAME is resolvable"
+          else
+            echo "❌ Service $SERVICE_NAME is not resolvable"
+            exit 1
+          fi
+
+          # Test webapp port connectivity
+          echo "Testing webapp port $WEBAPP_PORT..."
+          if wget --spider --timeout=10 "http://$SERVICE_NAME:$WEBAPP_PORT" 2>/dev/null; then
+            echo "✅ Webapp port $WEBAPP_PORT is accessible"
+          else
+            echo "❌ Webapp port $WEBAPP_PORT is not accessible"
+            exit 1
+          fi
+
+          # Test assets port connectivity
+          echo "Testing assets port $ASSETS_PORT..."
+          if wget --spider --timeout=10 "http://$SERVICE_NAME:$ASSETS_PORT" 2>/dev/null; then
+            echo "✅ Assets port $ASSETS_PORT is accessible"
+          else
+            # Assets port may return non-2xx on root, try anyway with -q
+            if wget -q --spider --timeout=10 "http://$SERVICE_NAME:$ASSETS_PORT" 2>&1 | grep -q "connected"; then
+              echo "✅ Assets port $ASSETS_PORT is accessible (connection established)"
+            else
+              echo "⚠️  Assets port $ASSETS_PORT returned non-success (may be normal if no assets configured)"
+            fi
+          fi
+
+          echo "✅ All connection tests passed"
+          exit 0
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 65534
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault

@@ -1,0 +1,9 @@
+# CI Test: Default configuration with minimal settings
+# Tests basic deployment without persistence for fast CI execution
+
+replicaCount: 1
+persistence:
+  config:
+    enabled: false
+  assets:
+    enabled: false

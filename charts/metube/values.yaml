@@ -230,8 +230,12 @@ startupProbe:
   failureThreshold: 30
   successThreshold: 1
 
-## MeTube resource requests and limits
+## Container resource requests and limits
 ## @param resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set.
+## Note: MeTube is an I/O-bound YouTube downloader (yt-dlp wrapper). CPU usage is minimal; workload is network/disk intensive.
+## Recommended: "micro" for minimal single-concurrent-download deployments, "small" for concurrent operations.
+## - micro: 250m CPU / 256Mi memory (request), 375m CPU / 384Mi memory (limit) - single/low concurrency
+## - small: 500m CPU / 512Mi memory (request), 750m CPU / 768Mi memory (limit) - multiple concurrent downloads
 ## @param resources Set container requests and limits for different resources like CPU or memory
 resourcesPreset: "small"
 resources: {}

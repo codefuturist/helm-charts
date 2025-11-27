@@ -1,0 +1,16 @@
+# CI Test: Diagnostic mode
+# Tests diagnostic mode that disables probes and overrides command
+
+replicaCount: 1
+persistence:
+  config:
+    enabled: false
+  assets:
+    enabled: false
+
+diagnosticMode:
+  enabled: true
+  command:
+    - sleep
+  args:
+    - infinity
