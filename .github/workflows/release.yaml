@@ -32,6 +32,12 @@ jobs:
         with:
           version: v3.13.0
 
+      - name: Add Helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add stakater https://stakater.github.io/stakater-charts
+          helm repo update
+
       - name: Add dependencies
         run: |
           for dir in charts/*/; do
