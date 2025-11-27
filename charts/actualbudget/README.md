@@ -145,7 +145,7 @@ A Helm chart for MeTube - YouTube downloader with web interface powered by yt-dl
 | readinessProbe.timeoutSeconds | int | `3` |  |
 | replicaCount | int | `1` |  |
 | resources | object | `{}` |  |
-| resourcesPreset | string | `"small"` |  |
+| resourcesPreset | string | `"micro"` |  |
 | service.annotations | object | `{}` |  |
 | service.clusterIP | string | `""` |  |
 | service.externalTrafficPolicy | string | `"Cluster"` |  |

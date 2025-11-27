@@ -1,0 +1,26 @@
+apiVersion: v2
+name: netbootxyz
+description: netboot.xyz is a network boot environment that allows PXE booting various operating system installers or utilities from a central location.
+type: application
+version: 0.1.0
+appVersion: "0.7.6-nbxyz10"
+home: https://netboot.xyz
+icon: https://netboot.xyz/images/netboot.xyz-logo.svg
+sources:
+  - https://github.com/netbootxyz/netboot.xyz
+  - https://github.com/netbootxyz/docker-netbootxyz
+keywords:
+  - netboot
+  - pxe
+  - tftp
+  - network-boot
+  - ipxe
+maintainers:
+  - name: codefuturist
+    url: https://github.com/codefuturist
+dependencies:
+  - name: common
+    repository: file://../common
+    version: 2.x.x
+    tags:
+      - helm-charts-common

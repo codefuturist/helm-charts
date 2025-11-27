@@ -230,10 +230,14 @@ startupProbe:
   failureThreshold: 30
   successThreshold: 1
 
-## MeTube resource requests and limits
+## Container resource requests and limits
 ## @param resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set.
+## Note: Actual Budget is a lightweight web application (Node.js/Python CRUD operations, no heavy computation).
+## Recommended: "micro" for minimal resource-constrained clusters.
+## - micro: 250m CPU / 256Mi memory (request), 375m CPU / 384Mi memory (limit)
+## - small: 500m CPU / 512Mi memory (request), 750m CPU / 768Mi memory (limit) - for higher concurrency
 ## @param resources Set container requests and limits for different resources like CPU or memory
-resourcesPreset: "small"
+resourcesPreset: "micro"
 resources: {}
 
 ## @param command Override default container command (useful when using custom images)
