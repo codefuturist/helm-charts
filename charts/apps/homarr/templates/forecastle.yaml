@@ -3,10 +3,10 @@
 apiVersion: forecastle.stakater.com/v1alpha1
 kind: ForecastleApp
 metadata:
-  name: {{ template "application.name" . }}
-  namespace: {{ include "application.namespace" . }}
+  name: {{ template "homarr.name" . }}
+  namespace: {{ include "homarr.namespace" . }}
   labels:
-  {{- include "application.labels" $ | nindent 4 }}
+  {{- include "homarr.labels" $ | nindent 4 }}
 {{- if .Values.forecastle.additionalLabels }}
 {{ toYaml .Values.forecastle.additionalLabels | indent 4 }}
 {{- end }}
@@ -17,10 +17,10 @@ spec:
   urlFrom:
   {{- if .Values.ingress.enabled }}
     ingressRef:
-      name: {{ template "application.name" . }}
+      name: {{ template "homarr.name" . }}
   {{- else }}
     routeRef:
-      name: {{ template "application.name" . }}
+      name: {{ template "homarr.name" . }}
   {{- end }}
   networkRestricted: {{ .Values.forecastle.networkRestricted }}
   {{- if .Values.forecastle.properties }}

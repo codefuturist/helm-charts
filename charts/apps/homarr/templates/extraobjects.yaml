@@ -1,6 +1,6 @@
 {{- define "application.defaultExtraObject" -}}
 metadata:
-  labels: {{- include "application.labels" $ | nindent 4 }}
+  labels: {{- include "homarr.labels" $ | nindent 4 }}
 {{- end }}
 {{- $defaultExtraObject := fromYaml (include "application.defaultExtraObject" .) -}}
 

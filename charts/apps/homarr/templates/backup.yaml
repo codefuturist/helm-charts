@@ -3,9 +3,9 @@ apiVersion: velero.io/v1
 kind: Backup
 metadata:
   name: {{ printf "%s-backup" .Values.applicationName | trunc 63 | quote }}
-  namespace: {{ .Values.backup.namespace | default ( include "application.namespace" . ) | quote }}
+  namespace: {{ .Values.backup.namespace | default ( include "homarr.namespace" . ) | quote }}
   labels:
-  {{- include "application.labels" $ | nindent 4 }}
+  {{- include "homarr.labels" $ | nindent 4 }}
 {{- if .Values.backup.additionalLabels }}
 {{ toYaml .Values.backup.additionalLabels | indent 4 }}
 {{- end }}
@@ -16,11 +16,11 @@ metadata:
 spec:
   labelSelector:
     matchLabels:
-       app.kubernetes.io/part-of: {{ include "application.name" . }}
+       app.kubernetes.io/part-of: {{ include "homarr.name" . }}
   {{- if not (kindIs "invalid" .Values.backup.includedNamespaces) }}
   includedNamespaces:
     {{- range $namespace := .Values.backup.includedNamespaces }}
-    - {{ include "application.tplvalues.render" ( dict "value" $namespace "context" $ ) }}
+    - {{ include "homarr.tplvalues.render" ( dict "value" $namespace "context" $ ) }}
     {{- end }}
   {{- end }}
   defaultVolumesToRestic: {{  .Values.backup.defaultVolumesToRestic }}

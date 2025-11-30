@@ -1,30 +1,29 @@
 apiVersion: v2
-name: metube
-description: A Helm chart for MeTube - YouTube downloader with web interface powered by yt-dlp
+name: actualbudget
+description: A Helm chart for Actual Budget - A local-first personal finance app
 type: application
 version: 1.0.0
-appVersion: "latest"
+appVersion: "25.11.0"
 
 keywords:
-  - metube
-  - youtube
-  - downloader
-  - yt-dlp
-  - youtube-dl
-  - video
-  - media
+  - actualbudget
+  - actual
+  - budget
+  - finance
+  - personal-finance
+  - money
   - kubernetes
 
-home: https://github.com/alexta69/metube
+home: https://actualbudget.org
 sources:
-  - https://github.com/alexta69/metube
+  - https://github.com/actualbudget/actual
   - https://github.com/codefuturist/helm-charts
 
 maintainers:
   - name: codefuturist
     email: 58808821+codefuturist@users.noreply.github.com
 
-icon: https://raw.githubusercontent.com/alexta69/metube/master/favicon/android-chrome-192x192.png
+icon: https://actualbudget.org/img/actual.png
 
 dependencies:
   - name: common
@@ -35,23 +34,7 @@ dependencies:
 
 annotations:
   artifacthub.io/changes: |
-    - kind: added
-      description: Initial release of MeTube Helm chart v1.0.0
-    - kind: added
-      description: Uses common chart library for enhanced maintainability
-    - kind: added
-      description: Support for Deployment and StatefulSet controller types
-    - kind: added
-      description: Comprehensive download directory management with 10Gi default storage
-    - kind: added
-      description: Full yt-dlp configuration support via YTDL_OPTIONS
-    - kind: added
-      description: Cookie authentication support for restricted content
-    - kind: added
-      description: Comprehensive security with pod security contexts, RBAC, and network policies
-    - kind: added
-      description: Monitoring support with ServiceMonitor and PrometheusRule
-    - kind: added
-      description: Reverse proxy configuration with URL_PREFIX support
-    - kind: added
-      description: High availability features (HPA, PDB, anti-affinity)
+    - kind: changed
+      description: Fixed Chart.yaml metadata (was incorrectly copied from metube)
+    - kind: changed
+      description: Updated appVersion to pinned version 25.11.0

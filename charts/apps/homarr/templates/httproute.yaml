@@ -6,10 +6,10 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ template "application.name" . }}
-  namespace: {{ include "application.namespace" . }}
+  name: {{ template "homarr.name" . }}
+  namespace: {{ include "homarr.namespace" . }}
   labels:
-    {{- include "application.labels" $ | nindent 4 }}
+    {{- include "homarr.labels" $ | nindent 4 }}
     {{- if .Values.httpRoute.additionalLabels }}
       {{ toYaml .Values.httpRoute.additionalLabels | nindent 4 }}
     {{- end }}
@@ -17,10 +17,10 @@ metadata:
   annotations: {{- toYaml .Values.httpRoute.annotations | nindent 4 }}
   {{- end }}
 spec:
-  parentRefs: {{- include "application.tplvalues.render" ( dict "value" .Values.httpRoute.parentRefs "context" $ ) | nindent 4 }}
+  parentRefs: {{- include "homarr.tplvalues.render" ( dict "value" .Values.httpRoute.parentRefs "context" $ ) | nindent 4 }}
   {{- if .Values.httpRoute.useDefaultGateways }}
   useDefaultGateways: {{ .Values.httpRoute.useDefaultGateways }}
   {{- end }}
-  hostnames: {{- include "application.tplvalues.render" ( dict "value" .Values.httpRoute.hostnames "context" $ ) | nindent 4 }}
-  rules: {{- include "application.tplvalues.render" ( dict "value" .Values.httpRoute.rules "context" $ ) | nindent 4 }}
+  hostnames: {{- include "homarr.tplvalues.render" ( dict "value" .Values.httpRoute.hostnames "context" $ ) | nindent 4 }}
+  rules: {{- include "homarr.tplvalues.render" ( dict "value" .Values.httpRoute.rules "context" $ ) | nindent 4 }}
 {{- end }}

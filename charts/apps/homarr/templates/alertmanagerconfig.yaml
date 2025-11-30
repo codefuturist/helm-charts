@@ -3,10 +3,10 @@
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: AlertmanagerConfig
 metadata:
-  name: {{ template "application.name" . }}
-  namespace: {{ include "application.namespace" . }}
+  name: {{ template "homarr.name" . }}
+  namespace: {{ include "homarr.namespace" . }}
   labels:
-  {{- include "application.labels" $ | nindent 4 }}
+  {{- include "homarr.labels" $ | nindent 4 }}
 {{ toYaml .Values.alertmanagerConfig.selectionLabels | indent 4 }}
 spec:
 {{- if .Values.alertmanagerConfig.spec.route }}

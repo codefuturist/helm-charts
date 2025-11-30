@@ -5,11 +5,11 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: {{ $name }}
-  namespace: {{ template "application.namespace" $ }}
+  namespace: {{ template "homarr.namespace" $ }}
   labels:
     # this label is used as dashboard selector by grafana operator
     grafanaDashboard: grafana-operator
-  {{- include "application.labels" $ | nindent 4 }}
+  {{- include "homarr.labels" $ | nindent 4 }}
 {{- if $.Values.grafanaDashboard.additionalLabels }}
 {{ toYaml $.Values.grafanaDashboard.additionalLabels | indent 4 }}
 {{- end }}

@@ -4,10 +4,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ template "application.name" $ }}-{{ $nameSuffix }}
-  namespace: {{ template "application.namespace" $ }}
+  name: {{ template "homarr.name" $ }}-{{ $nameSuffix }}
+  namespace: {{ template "homarr.namespace" $ }}
   labels:
-  {{- include "application.labels" $ | nindent 4 }}
+  {{- include "homarr.labels" $ | nindent 4 }}
 {{- if $.Values.configMap.additionalLabels }}
 {{ toYaml $.Values.configMap.additionalLabels | indent 4 }}
 {{- end }}
@@ -16,6 +16,6 @@ metadata:
 {{ toYaml $.Values.configMap.annotations | indent 4 }}
 {{- end }}
 data:
-{{ include "application.tplvalues.render" ( dict "value" $data "context" $ ) | indent 2 }}
+{{ include "homarr.tplvalues.render" ( dict "value" $data "context" $ ) | indent 2 }}
 {{- end }}
 {{- end }}

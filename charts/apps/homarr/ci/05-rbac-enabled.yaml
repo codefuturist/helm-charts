@@ -1,0 +1,21 @@
+# CI Test: Service Account and RBAC
+# Tests service account creation and RBAC configuration
+
+deployment:
+  enabled: true
+  replicas: 1
+  image:
+    tag: "1.45.0"
+
+serviceAccount:
+  enabled: true
+  create: true
+  name: homarr-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/homarr-role
+
+rbac:
+  enabled: true
+
+persistence:
+  enabled: false

@@ -1,0 +1,15 @@
+# CI Test: Pod Disruption Budget
+# Tests PDB configuration for high availability
+
+deployment:
+  enabled: true
+  replicas: 3
+  image:
+    tag: "1.45.0"
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+persistence:
+  enabled: false

@@ -6,11 +6,11 @@ metadata:
 {{- if .Values.persistence.name }}
   name: "{{ .Values.persistence.name }}"
 {{- else }}
-  name: {{ template "application.name" . }}-data
+  name: {{ template "homarr.name" . }}-data
 {{- end }}
-  namespace: {{ include "application.namespace" . }}
+  namespace: {{ include "homarr.namespace" . }}
   labels:
-  {{- include "application.labels" $ | nindent 4 }}
+  {{- include "homarr.labels" $ | nindent 4 }}
 {{- if .Values.persistence.additionalLabels }}
 {{ toYaml .Values.persistence.additionalLabels | indent 4 }}
 {{- end }}

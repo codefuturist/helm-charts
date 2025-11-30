@@ -3,16 +3,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "application.name" . }}
-  namespace: {{ template "application.namespace" $ }}
+  name: {{ template "homarr.name" . }}
+  namespace: {{ template "homarr.namespace" $ }}
   labels:
-  {{- include "application.labels" $ | nindent 4 }}
+  {{- include "homarr.labels" $ | nindent 4 }}
   {{- if .Values.service.additionalLabels }}
     {{- toYaml .Values.service.additionalLabels | nindent 4 }}
   {{- end }}
   {{- if .Values.service.annotations }}
   annotations:
-    {{- include "application.tplvalues.render" ( dict "value" .Values.service.annotations  "context" $ ) | nindent 4 }}
+    {{- include "homarr.tplvalues.render" ( dict "value" .Values.service.annotations  "context" $ ) | nindent 4 }}
 {{- end }}
 spec:
   type: {{ .Values.service.type }}
@@ -36,7 +36,7 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   selector:
-{{ include "application.selectorLabels" . | indent 4 }}
+{{ include "homarr.selectorLabels" . | indent 4 }}
   ports:
   {{- if .Values.deployment.openshiftOAuthProxy.enabled }}
   - name: proxy

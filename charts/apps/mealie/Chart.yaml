@@ -2,14 +2,23 @@ apiVersion: v2
 name: mealie
 description: A Helm chart for mealie
 type: application
-version: 0.1.1
-appVersion: 1.0.0
+version: 1.0.0
+appVersion: "3.5.0"
 keywords:
-- mealie
-- kubernetes
+  - mealie
+  - recipes
+  - recipe-manager
+  - meal-planning
+  - kubernetes
+
+home: https://mealie.io
+sources:
+  - https://github.com/mealie-recipes/mealie
+  - https://github.com/codefuturist/helm-charts
+
 maintainers:
-- name: Your Name
-  email: your.email@example.com
+  - name: codefuturist
+    email: 58808821+codefuturist@users.noreply.github.com
 
 dependencies:
   - name: common

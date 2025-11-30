@@ -1,0 +1,13 @@
+# CI Test: Persistence enabled
+# Tests deployment with persistent storage for data
+
+deployment:
+  enabled: true
+  replicas: 1
+  image:
+    tag: "1.45.0"
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 5Gi

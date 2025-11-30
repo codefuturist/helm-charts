@@ -371,3 +371,55 @@ docs-chart: ## Generate documentation for a specific chart (usage: make docs-cha
 	fi
 	helm-docs --chart-search-root=$(CHARTS_DIR)/$(CHART)
 	@echo "Documentation generated for $(CHART)!"
+
+# ============================================================================
+# Local CI Integration Testing
+# ============================================================================
+
+KIND_CLUSTER_NAME := helm-charts-test
+KIND_IMAGE := kindest/node:v1.29.0
+
+.PHONY: ci-local
+ci-local: ci-check-deps ci-cluster-create ci-install ci-cluster-delete ## Run full CI pipeline locally (lint + kind + ct install)
+	@echo "✅ Local CI completed successfully!"
+
+.PHONY: ci-check-deps
+ci-check-deps: ## Check that CI dependencies are installed
+	@echo "🔍 Checking CI dependencies..."
+	@command -v kind >/dev/null 2>&1 || (echo "❌ kind not found. Install: brew install kind"; exit 1)
+	@command -v ct >/dev/null 2>&1 || (echo "❌ chart-testing not found. Install: brew install chart-testing"; exit 1)
+	@command -v helm >/dev/null 2>&1 || (echo "❌ helm not found. Install: brew install helm"; exit 1)
+	@command -v kubectl >/dev/null 2>&1 || (echo "❌ kubectl not found. Install: brew install kubectl"; exit 1)
+	@echo "✓ All dependencies available"
+
+.PHONY: ci-cluster-create
+ci-cluster-create: ## Create a kind cluster for testing
+	@echo "🔧 Creating kind cluster: $(KIND_CLUSTER_NAME)..."
+	@if kind get clusters 2>/dev/null | grep -q "^$(KIND_CLUSTER_NAME)$$"; then \
+		echo "ℹ️  Cluster already exists, reusing..."; \
+	else \
+		kind create cluster --name $(KIND_CLUSTER_NAME) --image $(KIND_IMAGE) --wait 60s; \
+	fi
+	@kubectl cluster-info --context kind-$(KIND_CLUSTER_NAME)
+	@echo "✓ Cluster ready"
+
+.PHONY: ci-install
+ci-install: ## Run ct install against the kind cluster
+	@echo "📦 Adding Helm repositories..."
+	@helm repo add bitnami https://charts.bitnami.com/bitnami 2>/dev/null || true
+	@helm repo update
+	@echo "🔨 Running ct lint..."
+	@ct lint --config ct.yaml --all
+	@echo "🚀 Running ct install..."
+	@ct install --config ct.yaml --all
+
+.PHONY: ci-cluster-delete
+ci-cluster-delete: ## Delete the kind test cluster
+	@echo "🧹 Deleting kind cluster: $(KIND_CLUSTER_NAME)..."
+	@kind delete cluster --name $(KIND_CLUSTER_NAME) 2>/dev/null || true
+	@echo "✓ Cluster deleted"
+
+.PHONY: ci-cluster-keep
+ci-cluster-keep: ci-check-deps ci-cluster-create ci-install ## Run CI but keep the cluster for debugging
+	@echo "✅ CI completed. Cluster $(KIND_CLUSTER_NAME) kept for debugging."
+	@echo "   Delete with: make ci-cluster-delete"

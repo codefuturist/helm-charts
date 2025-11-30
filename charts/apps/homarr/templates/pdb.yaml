@@ -1,16 +1,12 @@
 {{- if or .Values.pdb.minAvailable .Values.pdb.maxUnavailable | and .Values.pdb.enabled }}
 ---
-{{- if .Capabilities.APIVersions.Has "policy/v1/PodDisruptionBudget" }}
 apiVersion: policy/v1
-{{- else }}
-apiVersion: policy/v1beta1
-{{- end }}
 kind: PodDisruptionBudget
 metadata:
   labels:
-    {{- include "application.labels" $ | nindent 4 }}
-  name: {{ template "application.name" . }}
-  namespace: {{ include "application.namespace" . }}
+    {{- include "homarr.labels" $ | nindent 4 }}
+  name: {{ template "homarr.name" . }}
+  namespace: {{ include "homarr.namespace" . }}
 spec:
   {{- if .Values.pdb.minAvailable }}
   minAvailable: {{ .Values.pdb.minAvailable }}
@@ -19,5 +15,5 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "application.selectorLabels" . | nindent 6 }}
+      {{- include "homarr.selectorLabels" . | nindent 6 }}
 {{- end }}

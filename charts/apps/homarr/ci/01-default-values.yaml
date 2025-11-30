@@ -1,0 +1,11 @@
+# CI Test: Default configuration with minimal settings
+# Tests basic deployment with all defaults
+
+deployment:
+  enabled: true
+  replicas: 1
+  image:
+    tag: "1.45.0"
+
+persistence:
+  enabled: false

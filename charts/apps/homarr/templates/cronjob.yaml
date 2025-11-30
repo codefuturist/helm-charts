@@ -1,15 +1,11 @@
 {{- if (.Values.cronJob).enabled }}
 {{- range $name, $job := .Values.cronJob.jobs }}
 ---
-{{ if $.Capabilities.APIVersions.Has "batch/v1/CronJob" -}}
 apiVersion: batch/v1
-{{- else -}}
-apiVersion: batch/v1beta1
-{{- end }}
 kind: CronJob
 metadata:
   labels:
-  {{- include "application.labels" $ | nindent 4 }}
+  {{- include "homarr.labels" $ | nindent 4 }}
 {{- with $job.additionalLabels }}
 {{ toYaml . | indent 4 }}
 {{- end }}
@@ -17,17 +13,15 @@ metadata:
   annotations: {{ toYaml . | nindent 4 }}
 {{- end }}
   name: {{ $name }}
-  namespace: {{ template "application.namespace" $ }}
+  namespace: {{ template "homarr.namespace" $ }}
 spec:
   schedule: {{ $job.schedule | quote }}
 {{- if $job.suspend }}
   suspend: {{ $job.suspend | default "false" }}
 {{ end }}
-{{- if ge (int $.Capabilities.KubeVersion.Minor) 27  }}
 {{- if $job.timeZone }}
   timeZone: {{ $job.timeZone }}
 {{ end }}
-{{- end }}
 {{- if $job.successfulJobsHistoryLimit }}
   successfulJobsHistoryLimit: {{ $job.successfulJobsHistoryLimit }}
 {{ end }}
@@ -51,7 +45,7 @@ spec:
       template:
         metadata:
           labels:
-          {{- include "application.labels" $ | nindent 12 }}
+          {{- include "homarr.labels" $ | nindent 12 }}
             application.stakater.com/workload-class: scheduled
           {{- with $job.additionalPodLabels }}
           {{- toYaml . | nindent 12 }}
@@ -64,23 +58,23 @@ spec:
           {{- if $.Values.rbac.serviceAccount.name }}
           serviceAccountName: {{ $.Values.rbac.serviceAccount.name }}
             {{- else }}
-          serviceAccountName: {{ template "application.name" $ }}
+          serviceAccountName: {{ template "homarr.name" $ }}
           {{- end }}
           {{- end }}
           {{- with $job.initContainers }}
           initContainers:
           {{- range $key, $value := . }}
           - name: {{ $key }}
-            {{- dict "value" (omit $value "name") "context" $ | include "application.tplvalues.render" | nindent 12 }}
+            {{- dict "value" (omit $value "name") "context" $ | include "homarr.tplvalues.render" | nindent 12 }}
           {{- end }}
           {{- end }}
           containers:
           - name: {{ $name }}
-            {{- $repo := include "application.tplvalues.render" (dict "value" $job.image.repository "context" $) -}}
+            {{- $repo := include "homarr.tplvalues.render" (dict "value" $job.image.repository "context" $) -}}
             {{- $repo = required (printf "Undefined image repo for container '%s'" $name) $repo -}}
 
-            {{- $tag    := include "application.tplvalues.render" (dict "value" $job.image.tag "context" $) -}}
-            {{- $digest := include "application.tplvalues.render" (dict "value" $job.image.digest "context" $) -}}
+            {{- $tag    := include "homarr.tplvalues.render" (dict "value" $job.image.tag "context" $) -}}
+            {{- $digest := include "homarr.tplvalues.render" (dict "value" $job.image.digest "context" $) -}}
 
             {{- $image := $repo -}}
             {{- with $tag    }} {{- $image = print $image ":" . }} {{- end }}
@@ -92,8 +86,8 @@ spec:
             {{- with $job.env }}
             env:
             {{- range $key, $value := $job.env }}
-            - name: {{ include "application.tplvalues.render" ( dict "value" $key "context" $ ) }}
-{{ include "application.tplvalues.render" ( dict "value" $value "context" $ ) | indent 14 }}
+            - name: {{ include "homarr.tplvalues.render" ( dict "value" $key "context" $ ) }}
+{{ include "homarr.tplvalues.render" ( dict "value" $value "context" $ ) | indent 14 }}
             {{- end }}
             {{- end }}
             {{- with $job.envFrom }}

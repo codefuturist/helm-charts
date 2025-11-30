@@ -5,10 +5,10 @@ description: A Helm chart for Homarr - A simple, yet powerful dashboard for your
 type: application
 
 # Helm chart Version
-version: 1.0.2
+version: 2.0.0
 
 # Application version
-appVersion: "latest"
+appVersion: "1.45.0"
 
 keywords:
   - homarr
@@ -22,8 +22,8 @@ sources:
   - https://github.com/homarr-labs/homarr
 
 maintainers:
-- name: codefuturist
-  email: 58808821+codefuturist@users.noreply.github.com
+  - name: codefuturist
+    email: 58808821+codefuturist@users.noreply.github.com
 
 icon: https://homarr.dev/img/logo.png
 
