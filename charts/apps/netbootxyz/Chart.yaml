@@ -20,7 +20,7 @@ maintainers:
     url: https://github.com/codefuturist
 dependencies:
   - name: common
-    repository: file://../common
+    repository: file://../libs/common
     version: 2.x.x
     tags:
-      - helm-charts-common
+      - bitnami-common

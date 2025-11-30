@@ -28,10 +28,10 @@ icon: https://raw.githubusercontent.com/alexta69/metube/master/favicon/android-c
 
 dependencies:
   - name: common
-    repository: file://../common
+    repository: file://../libs/common
     version: 2.x.x
     tags:
-      - helm-charts-common
+      - bitnami-common
 
 annotations:
   artifacthub.io/changes: |
