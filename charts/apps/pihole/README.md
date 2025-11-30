@@ -17,6 +17,12 @@ A Helm chart for Pi-hole DNS ad blocker with Kubernetes best practices
 * <https://github.com/pi-hole/pi-hole>
 * <https://docs.pi-hole.net/docker/configuration/>
 
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| file://../../../libs/common | common | 2.x.x |
+
 ## Values
 
 | Key | Type | Default | Description |
@@ -51,16 +57,6 @@ A Helm chart for Pi-hole DNS ad blocker with Kubernetes best practices
 | networkPolicy.egress[1].ports[0].port | int | `53` |  |
 | podDisruptionBudget.enabled | bool | `false` |  |
 | podDisruptionBudget.maxUnavailable | int | `1` |  |
-| serviceMonitor.enabled | bool | `false` |  |
-| serviceMonitor.additionalLabels | object | `{}` |  |
-| serviceMonitor.interval | string | `"30s"` |  |
-| serviceMonitor.scrapeTimeout | string | `"10s"` |  |
-| serviceMonitor.path | string | `"/admin/api.php?summaryRaw"` |  |
-| serviceMonitor.portName | string | `"port-80-tcp"` |  |
-| serviceMonitor.scheme | string | `"http"` |  |
-| serviceMonitor.tlsConfig | object | `{}` |  |
-| serviceMonitor.relabelings | list | `[]` |  |
-| serviceMonitor.metricRelabelings | list | `[]` |  |
 | deployment.enabled | bool | `true` |  |
 | deployment.additionalLabels | object | `{}` |  |
 | deployment.podLabels | object | `{}` |  |
@@ -218,3 +214,4 @@ A Helm chart for Pi-hole DNS ad blocker with Kubernetes best practices
 | secretProviderClass.provider | string | `""` |  |
 | secretProviderClass.parameters | object | `{}` |  |
 | secretProviderClass.secretObjects | list | `[]` |  |
+

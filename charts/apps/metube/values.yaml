@@ -356,17 +356,6 @@ serviceAccount:
 ## @param autoscaling.maxReplicas Maximum number of MeTube replicas
 ## @param autoscaling.targetCPU Target CPU utilization percentage
 ## @param autoscaling.targetMemory Target Memory utilization percentage
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 3
-  targetCPU: 80
-  targetMemory: 80
-
-## Configure Pods Disruption Budget
-## @param pdb.enabled Enable pod disruption budget
-## @param pdb.minAvailable Minimum number of pods that must be available
-## @param pdb.maxUnavailable Maximum number of pods that can be unavailable
 pdb:
   enabled: false
   minAvailable: 1

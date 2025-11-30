@@ -4,7 +4,7 @@
 Define the name of the chart/application.
 */}}
 {{- define "application.name" -}}
-{{- default .Chart.Name .Values.applicationName | trunc 63 | trimSuffix "-" -}}
+{{- include "common.names.name" . -}}
 {{- end -}}
 
 {{/*
@@ -21,18 +21,14 @@ Usage:
 {{ include "application.tplvalues.render" ( dict "value" .Values.path.to.the.Value "context" $) }}
 */}}
 {{- define "application.tplvalues.render" -}}
-    {{- if typeIs "string" .value }}
-        {{- tpl .value .context }}
-    {{- else }}
-        {{- tpl (.value | toYaml) .context }}
-    {{- end }}
+{{- include "common.tplvalues.render" . -}}
 {{- end -}}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "application.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- include "common.names.chart" . -}}
 {{- end }}
 
 {{/*
@@ -79,7 +75,7 @@ application.stakater.com/workload-class: serving
 Allow the release namespace to be overridden
 */}}
 {{- define "application.namespace" -}}
-{{- default .Release.Namespace .Values.namespaceOverride -}}
+{{- include "common.names.namespace" . -}}
 {{- end -}}
 
 {{- define "application.sa.oauth-redirectreference" }}

@@ -2,7 +2,7 @@
 Expand the name of the chart.
 */}}
 {{- define "paperless-ngx.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- include "common.names.name" . -}}
 {{- end }}
 
 {{/*
@@ -11,46 +11,28 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 */}}
 {{- define "paperless-ngx.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
+{{- include "common.names.fullname" . -}}
 {{- end }}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "paperless-ngx.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- include "common.names.chart" . -}}
 {{- end }}
 
 {{/*
 Common labels
 */}}
 {{- define "paperless-ngx.labels" -}}
-helm.sh/chart: {{ include "paperless-ngx.chart" . }}
-{{ include "paperless-ngx.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- with .Values.commonLabels }}
-{{ toYaml . }}
-{{- end }}
+{{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) -}}
 {{- end }}
 
 {{/*
 Selector labels
 */}}
 {{- define "paperless-ngx.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "paperless-ngx.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{- include "common.labels.matchLabels" . -}}
 {{- end }}
 
 {{/*

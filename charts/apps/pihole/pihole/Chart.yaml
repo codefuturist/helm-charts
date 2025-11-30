@@ -5,12 +5,6 @@ type: application
 version: 0.2.0
 appVersion: 2024.07.0
 keywords:
-- pihole
-- dns
-- ad-blocker
-- network
-- security
-- kubernetes
 home: https://pi-hole.net/
 sources:
 - https://github.com/pi-hole/pi-hole
@@ -18,6 +12,14 @@ sources:
 maintainers:
 - name: Your Name
   email: your.email@example.com
+
+dependencies:
+  - name: common
+    repository: file://../../../libs/common
+    version: 2.x.x
+    tags:
+      - bitnami-common
+
 annotations:
   artifacthub.io/category: networking
   artifacthub.io/license: MIT

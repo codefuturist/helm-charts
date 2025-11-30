@@ -2,53 +2,35 @@
 Expand the name of the chart.
 */}}
 {{- define "redisinsight.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- include "common.names.name" . -}}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 */}}
 {{- define "redisinsight.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
+{{- include "common.names.fullname" . -}}
 {{- end }}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "redisinsight.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- include "common.names.chart" . -}}
 {{- end }}
 
 {{/*
 Common labels
 */}}
 {{- define "redisinsight.labels" -}}
-helm.sh/chart: {{ include "redisinsight.chart" . }}
-{{ include "redisinsight.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- with .Values.additionalLabels }}
-{{ toYaml . }}
-{{- end }}
+{{- include "common.labels.standard" (dict "customLabels" .Values.additionalLabels "context" $) -}}
 {{- end }}
 
 {{/*
 Selector labels
 */}}
 {{- define "redisinsight.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "redisinsight.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{- include "common.labels.matchLabels" . -}}
 {{- end }}
 
 {{/*
@@ -66,7 +48,7 @@ Create the name of the service account to use
 Return the proper namespace
 */}}
 {{- define "redisinsight.namespace" -}}
-{{- default .Release.Namespace .Values.namespaceOverride | trunc 63 | trimSuffix "-" }}
+{{- include "common.names.namespace" . -}}
 {{- end }}
 
 {{/*

@@ -4,53 +4,35 @@
 Expand the name of the chart.
 */}}
 {{- define "pbs.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- include "common.names.name" . -}}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 */}}
 {{- define "pbs.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
+{{- include "common.names.fullname" . -}}
 {{- end }}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "pbs.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- include "common.names.chart" . -}}
 {{- end }}
 
 {{/*
 Common labels
 */}}
 {{- define "pbs.labels" -}}
-helm.sh/chart: {{ include "pbs.chart" . }}
-{{ include "pbs.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- with .Values.additionalLabels }}
-{{ toYaml . }}
-{{- end }}
+{{- include "common.labels.standard" (dict "customLabels" .Values.additionalLabels "context" $) -}}
 {{- end }}
 
 {{/*
 Selector labels
 */}}
 {{- define "pbs.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "pbs.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{- include "common.labels.matchLabels" . -}}
 {{- end }}
 
 {{/*
@@ -68,7 +50,7 @@ Create the name of the service account to use
 Return the namespace
 */}}
 {{- define "pbs.namespace" -}}
-{{- default .Release.Namespace .Values.namespaceOverride | trunc 63 | trimSuffix "-" }}
+{{- include "common.names.namespace" . -}}
 {{- end }}
 
 {{/*

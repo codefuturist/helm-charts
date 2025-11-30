@@ -27,6 +27,11 @@ maintainers:
 icon: https://shlink.io/images/shlink-logo-blue.svg
 
 dependencies:
+  - name: common
+    repository: file://../../libs/common
+    version: 2.x.x
+    tags:
+      - bitnami-common
   - name: postgresql
     version: "~16.2.0"
     repository: "https://charts.bitnami.com/bitnami"

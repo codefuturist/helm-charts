@@ -28,3 +28,10 @@ maintainers:
     email: 58808821+codefuturist@users.noreply.github.com
 
 icon: https://www.home-assistant.io/images/home-assistant-logo.svg
+
+dependencies:
+  - name: common
+    repository: file://../../libs/common
+    version: 2.x.x
+    tags:
+      - bitnami-common

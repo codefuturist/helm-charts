@@ -183,7 +183,6 @@ deployment:
   startupProbe:
     # -- (bool) Enable Startup probe.
     # @section -- Deployment Parameters
-    enabled: false
     # -- (int) Number of retries before marking the pod as failed.
     # @section -- Deployment Parameters
     failureThreshold: 30
@@ -207,97 +206,67 @@ deployment:
     tcpSocket: {}
   # -- (object) Startup probe.
   # @section -- Deployment Parameters
-  startupProbe:
     # -- (bool) Enable Startup probe.
     # @section -- Deployment Parameters
-    enabled: true
     # -- (int) Number of retries before marking the pod as failed.
     # @section -- Deployment Parameters
-    failureThreshold: 30
     # -- (int) Time between retries.
     # @section -- Deployment Parameters
-    periodSeconds: 10
     # -- (int) Number of successful probes before marking the pod as ready.
     # @section -- Deployment Parameters
-    successThreshold: 1
     # -- (int) Time before the probe times out.
     # @section -- Deployment Parameters
-    timeoutSeconds: 5
     # -- (object) HTTP Get probe.
     # @section -- Deployment Parameters
-    httpGet:
       path: /api/health/live
       port: http
     # -- (object) Exec probe.
     # @section -- Deployment Parameters
-    exec: {}
     # -- (object) TCP Socket probe.
     # @section -- Deployment Parameters
-    tcpSocket: {}
   # -- (object) Readiness probe.
   # @section -- Deployment Parameters
   readinessProbe:
     # -- (bool) Enable Readiness probe.
     # @section -- Deployment Parameters
-    enabled: true
     # -- (int) Number of retries before marking the pod as failed.
     # @section -- Deployment Parameters
-    failureThreshold: 3
     # -- (int) Time between retries.
     # @section -- Deployment Parameters
-    periodSeconds: 10
     # -- (int) Number of successful probes before marking the pod as ready.
     # @section -- Deployment Parameters
-    successThreshold: 1
     # -- (int) Time before the probe times out.
     # @section -- Deployment Parameters
-    timeoutSeconds: 5
     # -- (int) Initial delay before probe starts.
     # @section -- Deployment Parameters
     initialDelaySeconds: 10
     # -- (object) HTTP Get probe.
     # @section -- Deployment Parameters
-    httpGet:
-      path: /api/health/ready
-      port: http
     # -- (object) Exec probe.
     # @section -- Deployment Parameters
-    exec: {}
     # -- (object) TCP Socket probe.
     # @section -- Deployment Parameters
-    tcpSocket: {}
   # -- (object) Liveness probe.
   # @section -- Deployment Parameters
   livenessProbe:
     # -- (bool) Enable Liveness probe.
     # @section -- Deployment Parameters
-    enabled: true
     # -- (int) Number of retries before marking the pod as failed.
     # @section -- Deployment Parameters
-    failureThreshold: 3
     # -- (int) Time between retries.
     # @section -- Deployment Parameters
-    periodSeconds: 20
     # -- (int) Number of successful probes before marking the pod as ready.
     # @section -- Deployment Parameters
-    successThreshold: 1
     # -- (int) Time before the probe times out.
     # @section -- Deployment Parameters
-    timeoutSeconds: 5
     # -- (int) Initial delay before probe starts.
     # @section -- Deployment Parameters
-    initialDelaySeconds: 10
     # -- (object) HTTP Get probe.
     # @section -- Deployment Parameters
-    httpGet:
-      path: /api/health/live
-      port: http
     # -- (object) Exec probe.
     # @section -- Deployment Parameters
-    exec: {}
     # -- (object) TCP Socket probe.
     # @section -- Deployment Parameters
-    tcpSocket: {}
   # -- (object) Resource limits and requests for the pod.
   # @section -- Deployment Parameters
   # Minimal requests to allow scheduling, no limits to allow bursting
@@ -332,10 +301,7 @@ deployment:
   # -- (object) OpenShift OAuth Proxy configuration.
   # @section -- Deployment Parameters
   openshiftOAuthProxy:
-    enabled: false
-    port: 7575
     secretName: "openshift-oauth-proxy-tls"
-    image: openshift/oauth-proxy:latest
     disableTLSArg: false
   # -- (object) Init containers.
   # @section -- Deployment Parameters
@@ -471,7 +437,6 @@ rbac:
   serviceAccount:
     # -- (bool) Deploy Service Account.
     # @section -- RBAC Parameters
-    enabled: true
     # -- (string) Service Account Name.
     # @default -- `{{ include "application.name" $ }}`
     # @section -- RBAC Parameters
@@ -513,38 +478,6 @@ secret:
   # -- (object) Map of Secrets.
   # @section -- Secret Parameters
   files: {}
-
-autoscaling:
-  # -- (bool) Enable Horizontal Pod Autoscaling.
-  # @section -- Autoscaling Parameters
-  enabled: false
-  # -- (int) Minimum number of replicas.
-  # @section -- Autoscaling Parameters
-  minReplicas: 1
-  # -- (int) Maximum number of replicas.
-  # @section -- Autoscaling Parameters
-  maxReplicas: 10
-  # -- (list) Metrics used for autoscaling.
-  # @section -- Autoscaling Parameters
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 60
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: 60
-  # -- (object) Additional labels for HPA.
-  # @section -- Autoscaling Parameters
-  additionalLabels: {}
-  # -- (object) Annotations for HPA.
-  # @section -- Autoscaling Parameters
-  annotations: {}
 
 vpa:
   # -- (bool) Enable Vertical Pod Autoscaling.
@@ -695,7 +628,6 @@ alertmanagerConfig:
   # -- (object) Labels to be picked up by Alertmanager.
   # @section -- AlertmanagerConfig Parameters
   selectionLabels:
-    alertmanagerConfig: workload
   # -- (object) AlertmanagerConfig spec.
   # @section -- AlertmanagerConfig Parameters
   spec:

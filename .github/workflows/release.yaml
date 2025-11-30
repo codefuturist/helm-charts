@@ -30,7 +30,7 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.13.0
+          version: v3.16.2
 
       - name: Add Helm repositories
         run: |
@@ -38,12 +38,22 @@ jobs:
           helm repo add stakater https://stakater.github.io/stakater-charts
           helm repo update
 
-      - name: Add dependencies
+      - name: Build chart dependencies
         run: |
-          for dir in charts/*/; do
-            if [ -f "$dir/Chart.yaml" ]; then
-              echo "Checking dependencies for $dir"
-              helm dependency update "$dir" || true
+          # Build dependencies for all charts recursively
+          find charts -name "Chart.yaml" -type f | while read chart_file; do
+            chart_dir=$(dirname "$chart_file")
+            # Skip example charts
+            if [[ "$chart_dir" == *"/examples/"* ]]; then
+              echo "Skipping example chart: $chart_dir"
+              continue
+            fi
+            if grep -q "^dependencies:" "$chart_file" 2>/dev/null; then
+              echo "Building dependencies for $chart_dir"
+              helm dependency build "$chart_dir" || {
+                echo "ERROR: Failed to build dependencies for $chart_dir"
+                exit 1
+              }
             fi
           done
 

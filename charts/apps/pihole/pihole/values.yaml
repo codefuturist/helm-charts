@@ -69,28 +69,6 @@ podDisruptionBudget:
   # Kubernetes 1.26+ feature
   # unhealthyPodEvictionPolicy: IfHealthyBudget
 
-# ServiceMonitor for Prometheus monitoring
-serviceMonitor:
-  enabled: false
-  # Additional labels for ServiceMonitor
-  additionalLabels: {}
-  # Scrape interval
-  interval: 30s
-  # Scrape timeout
-  scrapeTimeout: 10s
-  # HTTP path to scrape metrics from
-  path: /admin/api.php?summaryRaw
-  # Port name to scrape
-  portName: port-80-tcp
-  # Scheme http or https
-  scheme: http
-  # TLS configuration
-  tlsConfig: {}
-  # Relabeling configs
-  relabelings: []
-  # Metric relabeling configs
-  metricRelabelings: []
-
 deployment:
   enabled: true
   additionalLabels: {}

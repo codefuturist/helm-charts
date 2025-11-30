@@ -4,14 +4,14 @@
 Define the name of the chart/application.
 */}}
 {{- define "restic-backup.name" -}}
-{{- default .Chart.Name .Values.applicationName | trunc 63 | trimSuffix "-" -}}
+{{- include "common.names.name" . -}}
 {{- end -}}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "restic-backup.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- include "common.names.chart" . -}}
 {{- end }}
 
 {{/*
@@ -20,11 +20,7 @@ Usage:
 {{ include "restic-backup.tplvalues.render" ( dict "value" .Values.path.to.the.Value "context" $) }}
 */}}
 {{- define "restic-backup.tplvalues.render" -}}
-    {{- if typeIs "string" .value }}
-        {{- tpl .value .context }}
-    {{- else }}
-        {{- tpl (.value | toYaml) .context }}
-    {{- end }}
+{{- include "common.tplvalues.render" . -}}
 {{- end -}}
 
 {{/*
@@ -63,8 +59,7 @@ app.kubernetes.io/part-of: {{ include "restic-backup.name" . }}
 Selector labels
 */}}
 {{- define "restic-backup.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "restic-backup.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{- include "common.labels.matchLabels" . -}}
 {{- end }}
 
 {{/*
@@ -82,11 +77,7 @@ Create the name of the service account to use
 Define the namespace
 */}}
 {{- define "restic-backup.namespace" -}}
-{{- if .Values.namespaceOverride }}
-{{- .Values.namespaceOverride }}
-{{- else }}
-{{- .Release.Namespace }}
-{{- end }}
+{{- include "common.names.namespace" . -}}
 {{- end }}
 
 {{/*

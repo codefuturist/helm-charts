@@ -22,5 +22,12 @@ maintainers:
   - name: codefuturist
     email: 58808821+codefuturist@users.noreply.github.com
 
+dependencies:
+  - name: common
+    repository: file://../../libs/common
+    version: 2.x.x
+    tags:
+      - bitnami-common
+
 annotations:
   category: Security

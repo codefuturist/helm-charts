@@ -29,6 +29,13 @@ maintainers:
 
 icon: https://raw.githubusercontent.com/semaphoreui/semaphore/main/web/public/img/logo.png
 
+dependencies:
+  - name: common
+    repository: file://../../libs/common
+    version: 2.x.x
+    tags:
+      - bitnami-common
+
 annotations:
   artifacthub.io/changes: |
     - kind: added

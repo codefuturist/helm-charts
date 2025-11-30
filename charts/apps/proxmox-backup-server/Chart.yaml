@@ -25,6 +25,13 @@ maintainers:
 
 icon: https://www.proxmox.com/images/proxmox/Proxmox_symbol_standard_hex_400px.png
 
+dependencies:
+  - name: common
+    repository: file://../../libs/common
+    version: 2.x.x
+    tags:
+      - bitnami-common
+
 annotations:
   artifacthub.io/changes: |
     - kind: added

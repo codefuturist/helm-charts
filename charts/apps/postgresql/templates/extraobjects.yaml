@@ -1,4 +1,0 @@
-{{- range .Values.extraObjects.objects }}
----
-{{ include "postgresql.tplvalues.render" (dict "value" . "context" $) }}
-{{- end }}

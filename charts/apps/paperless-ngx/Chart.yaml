@@ -17,6 +17,11 @@ maintainers:
   - name: codefuturist
     url: https://github.com/codefuturist
 dependencies:
+  - name: common
+    repository: file://../../libs/common
+    version: 2.x.x
+    tags:
+      - bitnami-common
   - name: postgresql
     version: "16.x.x"
     repository: "https://charts.bitnami.com/bitnami"

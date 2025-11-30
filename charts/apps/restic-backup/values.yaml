@@ -524,52 +524,6 @@ networkPolicy:
 # Monitoring Configuration
 # =============================================================================
 
-serviceMonitor:
-  # -- (bool) Enable Prometheus ServiceMonitor.
-  # @section -- Monitoring Parameters
-  # Requires metrics.enabled to be true
-  enabled: false
-
-  # -- (object) Additional labels for ServiceMonitor.
-  # @section -- Monitoring Parameters
-  additionalLabels: {}
-
-  # -- (string) Namespace for ServiceMonitor (defaults to release namespace).
-  # @section -- Monitoring Parameters
-  namespace: ""
-
-  # -- (string) Scrape interval.
-  # @section -- Monitoring Parameters
-  interval: 30s
-
-  # -- (string) Scrape timeout.
-  # @section -- Monitoring Parameters
-  scrapeTimeout: 10s
-
-  # -- (string) Metrics path (optional).
-  # @section -- Monitoring Parameters
-  path: /metrics
-
-  # -- (string) Scheme (http or https).
-  # @section -- Monitoring Parameters
-  scheme: http
-
-  # -- (object) TLS configuration (optional).
-  # @section -- Monitoring Parameters
-  tlsConfig: {}
-
-  # -- (list) Relabeling rules (optional).
-  # @section -- Monitoring Parameters
-  relabelings: []
-
-  # -- (list) Metric relabeling rules (optional).
-  # @section -- Monitoring Parameters
-  metricRelabelings: []
-
-# =============================================================================
-# Notifications Configuration
-# =============================================================================
-
 notifications:
   # -- (bool) Enable notifications on backup completion/failure.
   # @section -- Notifications Parameters

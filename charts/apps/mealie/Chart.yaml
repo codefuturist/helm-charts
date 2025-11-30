@@ -10,3 +10,10 @@ keywords:
 maintainers:
 - name: Your Name
   email: your.email@example.com
+
+dependencies:
+  - name: common
+    repository: file://../../libs/common
+    version: 2.x.x
+    tags:
+      - bitnami-common
