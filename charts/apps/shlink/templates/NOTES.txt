@@ -32,13 +32,13 @@
     🔍 Get the Node IP and NodePort:
        export NODE_IP=$(kubectl get nodes --selector=kubernetes.io/role!=master -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')
        export NODE_PORT=$(kubectl get svc {{ include "shlink.fullname" . }} -n {{ include "shlink.namespace" . }} -o jsonpath='{.spec.ports[0].nodePort}')
-    
+
     🔗 Access Shlink at http://$NODE_IP:$NODE_PORT
 {{- else }}
   📍 Shlink API (Backend):
     💡 Port-forward to access locally:
        kubectl port-forward -n {{ include "shlink.namespace" . }} svc/{{ include "shlink.fullname" . }} 8080:{{ .Values.service.backend.port }}
-    
+
     🔗 Then access Shlink at http://localhost:8080
 {{- end }}
 
@@ -60,13 +60,13 @@
     🔍 Get the Node IP and NodePort:
        export NODE_IP=$(kubectl get nodes --selector=kubernetes.io/role!=master -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')
        export NODE_PORT=$(kubectl get svc {{ include "shlink.fullname" . }}-webclient -n {{ include "shlink.namespace" . }} -o jsonpath='{.spec.ports[0].nodePort}')
-    
+
     🔗 Access Web UI at http://$NODE_IP:$NODE_PORT
 {{- else }}
   📱 Shlink Web Client (UI):
     💡 Port-forward to access locally:
        kubectl port-forward -n {{ include "shlink.namespace" . }} svc/{{ include "shlink.fullname" . }}-webclient 8081:{{ .Values.service.webClient.port }}
-    
+
     🔗 Then access Web UI at http://localhost:8081
 {{- end }}
 {{- end }}
@@ -79,10 +79,10 @@
   🗄️  Database:
     PostgreSQL has been deployed as a subchart.
     {{- if eq .Values.postgresql.auth.password "changeme" }}
-    
+
     ⚠️  WARNING: You are using the default database password 'changeme'
     🔒 IMPORTANT: Change this password immediately in production!
-    
+
     Update with:
       --set postgresql.auth.password=YOUR_SECURE_PASSWORD
     {{- end }}

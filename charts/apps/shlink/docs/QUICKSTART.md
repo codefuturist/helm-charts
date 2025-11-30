@@ -106,7 +106,7 @@ ingress:
       - secretName: shlink-api-tls
         hosts:
           - go.yourcompany.com
-  
+
   webClient:
     enabled: true
     className: "nginx"
