@@ -46,7 +46,7 @@ extraDeploy: []
 image:
   registry: ghcr.io
   repository: netbootxyz/netbootxyz
-  tag: "" # Defaults to appVersion
+  tag: "0.7.6-nbxyz10" # Defaults to appVersion
   digest: ""
   pullPolicy: IfNotPresent
   pullSecrets: []

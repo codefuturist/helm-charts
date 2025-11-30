@@ -14,7 +14,7 @@ additionalAnnotations: {}
 
 image:
   repository: louislam/uptime-kuma
-  tag: "2"
+  tag: "2.0.2"
   pullPolicy: IfNotPresent
   digest: ""
 

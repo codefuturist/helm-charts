@@ -448,7 +448,7 @@ image:
 
   # -- (string) Image tag (overrides appVersion from Chart.yaml).
   # @section -- Image Parameters
-  tag: ""
+  tag: "0.18.1"
 
   # -- (list) Image pull secrets.
   # @section -- Image Parameters

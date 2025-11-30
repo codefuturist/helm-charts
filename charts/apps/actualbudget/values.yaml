@@ -54,7 +54,7 @@ diagnosticMode:
 image:
   registry: ghcr.io
   repository: alexta69/metube
-  tag: latest
+  tag: "2025.11.29"
   digest: ""
   pullPolicy: IfNotPresent
   pullSecrets: []
