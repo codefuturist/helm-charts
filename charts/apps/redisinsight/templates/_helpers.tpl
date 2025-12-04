@@ -55,12 +55,7 @@ Return the proper namespace
 Return the proper image name
 */}}
 {{- define "redisinsight.image" -}}
-{{- if .Values.image.digest }}
-{{- printf "%s@%s" .Values.image.repository .Values.image.digest }}
-{{- else }}
-{{- $tag := .Values.image.tag | default .Chart.AppVersion }}
-{{- printf "%s:%s" .Values.image.repository $tag }}
-{{- end }}
+{{- include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global "chart" .Chart) -}}
 {{- end }}
 
 {{/*

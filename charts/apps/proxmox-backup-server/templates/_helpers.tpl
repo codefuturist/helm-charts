@@ -57,14 +57,7 @@ Return the namespace
 Return the PBS image
 */}}
 {{- define "pbs.image" -}}
-{{- $registry := .Values.image.repository -}}
-{{- $tag := .Values.image.tag | toString -}}
-{{- $digest := .Values.image.digest | toString -}}
-{{- if $digest }}
-{{- printf "%s@%s" $registry $digest -}}
-{{- else }}
-{{- printf "%s:%s" $registry $tag -}}
-{{- end }}
+{{- include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global "chart" .Chart) -}}
 {{- end }}
 
 {{/*

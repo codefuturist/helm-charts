@@ -84,8 +84,7 @@ Define the namespace
 Return the restic image
 */}}
 {{- define "restic-backup.image" -}}
-{{- $tag := .Values.image.tag | default .Chart.AppVersion -}}
-{{- printf "%s:%s" .Values.image.repository $tag -}}
+{{- include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global "chart" .Chart) -}}
 {{- end }}
 
 {{/*

@@ -70,6 +70,5 @@ Get the API token secret name
 Image name
 */}}
 {{- define "bitwarden-eso-provider.image" -}}
-{{- $tag := .Values.image.tag | default .Chart.AppVersion }}
-{{- printf "%s:%s" .Values.image.repository $tag }}
+{{- include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global "chart" .Chart) -}}
 {{- end }}

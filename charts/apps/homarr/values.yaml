@@ -1,3 +1,4 @@
+---
 # -- (string) Override the namespace for all resources.
 # @section -- Parameters
 namespaceOverride: ""
@@ -163,9 +164,9 @@ deployment:
     # -- (tpl/string) Repository.
     # @section -- Deployment Parameters
     repository: ghcr.io/homarr-labs/homarr
-    # -- (tpl/string) Tag.
+    # -- (tpl/string) Tag. Defaults to appVersion from Chart.yaml.
     # @section -- Deployment Parameters
-    tag: "latest"
+    tag: ""
     # -- (tpl/string) Image digest. If resolved to a non-empty value, digest takes precedence on the tag.
     # @section -- Deployment Parameters
     digest: ""
@@ -183,6 +184,7 @@ deployment:
   startupProbe:
     # -- (bool) Enable Startup probe.
     # @section -- Deployment Parameters
+    enabled: false
     # -- (int) Number of retries before marking the pod as failed.
     # @section -- Deployment Parameters
     failureThreshold: 30
@@ -197,33 +199,15 @@ deployment:
     timeoutSeconds: 1
     # -- (object) HTTP Get probe.
     # @section -- Deployment Parameters
-    httpGet: {}
+    httpGet:
+      path: /api/health/live
+      port: http
     # -- (object) Exec probe.
     # @section -- Deployment Parameters
     exec: {}
     # -- (object) TCP Socket probe.
     # @section -- Deployment Parameters
     tcpSocket: {}
-  # -- (object) Startup probe.
-  # @section -- Deployment Parameters
-    # -- (bool) Enable Startup probe.
-    # @section -- Deployment Parameters
-    # -- (int) Number of retries before marking the pod as failed.
-    # @section -- Deployment Parameters
-    # -- (int) Time between retries.
-    # @section -- Deployment Parameters
-    # -- (int) Number of successful probes before marking the pod as ready.
-    # @section -- Deployment Parameters
-    # -- (int) Time before the probe times out.
-    # @section -- Deployment Parameters
-    # -- (object) HTTP Get probe.
-    # @section -- Deployment Parameters
-      path: /api/health/live
-      port: http
-    # -- (object) Exec probe.
-    # @section -- Deployment Parameters
-    # -- (object) TCP Socket probe.
-    # @section -- Deployment Parameters
   # -- (object) Readiness probe.
   # @section -- Deployment Parameters
   readinessProbe:
@@ -379,12 +363,12 @@ ingress:
       # @section -- Ingress Parameters
       host: homarr.local
       paths:
-      - # -- (string) Path.
-        # @section -- Ingress Parameters
-        path: /
-        # -- (string) Path type.
-        # @section -- Ingress Parameters
-        pathType: Prefix
+        - # -- (string) Path.
+          # @section -- Ingress Parameters
+          path: /
+          # -- (string) Path type.
+          # @section -- Ingress Parameters
+          pathType: Prefix
   # -- (object) Additional labels for ingress.
   # @section -- Ingress Parameters
   additionalLabels: {}

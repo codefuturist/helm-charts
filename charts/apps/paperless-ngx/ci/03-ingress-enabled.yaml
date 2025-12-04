@@ -1,0 +1,37 @@
+---
+# CI Test: Ingress configuration
+# Tests ingress with TLS
+
+config:
+  secretKey: "test-secret-key-for-ci-only-not-for-production-use"
+
+database:
+  postgresql:
+    host: postgresql.default.svc.cluster.local
+    password: test-password
+
+redis:
+  host: redis.default.svc.cluster.local
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: paperless.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: paperless-tls
+      hosts:
+        - paperless.example.com
+
+persistence:
+  data:
+    enabled: false
+  media:
+    enabled: false
+  consume:
+    enabled: false

@@ -1,0 +1,28 @@
+---
+# CI Test: PostgreSQL database configuration
+# Tests external PostgreSQL database connection
+
+mealie:
+  enabled: true
+  replicas: 1
+  image:
+    tag: "v3.5.0"
+  env:
+    ALLOW_SIGNUP:
+      value: "false"
+    TZ:
+      value: "UTC"
+    DB_ENGINE:
+      value: "postgres"
+    POSTGRES_SERVER:
+      value: "postgresql.database.svc.cluster.local"
+    POSTGRES_PORT:
+      value: "5432"
+    POSTGRES_DB:
+      value: "mealie"
+    POSTGRES_USER:
+      value: "mealie"
+
+persistence:
+  enabled: true
+  size: 2Gi

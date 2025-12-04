@@ -119,8 +119,7 @@ Get the image tag
 Return the proper image name
 */}}
 {{- define "home-assistant.image" -}}
-{{- $tag := include "home-assistant.imageTag" . -}}
-{{- printf "%s:%s" .Values.image.repository $tag -}}
+{{- include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global "chart" .Chart) -}}
 {{- end -}}
 
 {{/*

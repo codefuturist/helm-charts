@@ -1,0 +1,36 @@
+---
+# CI Test: Worker configuration
+# Tests with worker processes enabled
+
+config:
+  secretKey: "test-secret-key-for-ci-only-not-for-production-use"
+
+database:
+  postgresql:
+    host: postgresql.default.svc.cluster.local
+    password: test-password
+
+redis:
+  host: redis.default.svc.cluster.local
+
+worker:
+  enabled: true
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+persistence:
+  data:
+    enabled: true
+    size: 1Gi
+  media:
+    enabled: true
+    size: 2Gi
+  consume:
+    enabled: true
+    size: 1Gi

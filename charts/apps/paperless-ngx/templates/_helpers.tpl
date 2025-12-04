@@ -59,40 +59,14 @@ Create the name of the service account to use
 Return the proper Paperless-ngx image name
 */}}
 {{- define "paperless-ngx.image" -}}
-{{- $registryName := .Values.image.registry -}}
-{{- $repositoryName := .Values.image.repository -}}
-{{- $tag := .Values.image.tag | default .Chart.AppVersion -}}
-{{- if .Values.global }}
-    {{- if .Values.global.imageRegistry }}
-     {{- $registryName = .Values.global.imageRegistry -}}
-    {{- end -}}
-{{- end -}}
-{{- if $registryName }}
-{{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
-{{- else -}}
-{{- printf "%s:%s" $repositoryName $tag -}}
-{{- end -}}
+{{- include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global "chart" .Chart) -}}
 {{- end -}}
 
 {{/*
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "paperless-ngx.imagePullSecrets" -}}
-{{- $pullSecrets := list }}
-{{- if .Values.global }}
-  {{- range .Values.global.imagePullSecrets -}}
-    {{- $pullSecrets = append $pullSecrets . -}}
-  {{- end -}}
-{{- end -}}
-{{- range .Values.image.pullSecrets -}}
-  {{- $pullSecrets = append $pullSecrets . -}}
-{{- end -}}
-{{- if (not (empty $pullSecrets)) }}
-imagePullSecrets:
-{{- range $pullSecrets }}
-  - name: {{ . }}
-{{- end }}
-{{- end }}
+{{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) -}}
 {{- end -}}
 
 {{/*
@@ -303,42 +277,16 @@ app.kubernetes.io/component: paperless-ai
 Return the Paperless-AI image reference
 */}}
 {{- define "paperless-ngx.paperlessAi.image" -}}
-{{- $vals := default (dict) .Values.paperlessAi -}}
-{{- $image := default (dict) $vals.image -}}
-{{- $registry := default "" $image.registry -}}
-{{- $repository := default "clusterzx/paperless-ai" $image.repository -}}
-{{- $tag := default "" $image.tag -}}
-{{- if and (not $tag) .Chart.AppVersion -}}
-  {{- $tag = .Chart.AppVersion -}}
-{{- end -}}
-{{- if $registry -}}
-{{- if $tag }}{{ printf "%s/%s:%s" $registry $repository $tag }}{{ else }}{{ printf "%s/%s" $registry $repository }}{{ end -}}
-{{- else -}}
-{{- if $tag }}{{ printf "%s:%s" $repository $tag }}{{ else }}{{ $repository }}{{ end -}}
-{{- end -}}
+{{- $imageRoot := .Values.paperlessAi.image | default dict -}}
+{{- include "common.images.image" (dict "imageRoot" $imageRoot "global" .Values.global "chart" .Chart) -}}
 {{- end }}
 
 {{/*
 Return Paperless-AI imagePullSecrets
 */}}
 {{- define "paperless-ngx.paperlessAi.imagePullSecrets" -}}
-{{- $pullSecrets := list -}}
-{{- if .Values.global -}}
-  {{- range .Values.global.imagePullSecrets -}}
-    {{- $pullSecrets = append $pullSecrets . -}}
-  {{- end -}}
-{{- end -}}
-{{- if .Values.paperlessAi.image.pullSecrets -}}
-  {{- range .Values.paperlessAi.image.pullSecrets -}}
-    {{- $pullSecrets = append $pullSecrets . -}}
-  {{- end -}}
-{{- end -}}
-{{- if $pullSecrets -}}
-imagePullSecrets:
-{{- range $pullSecrets }}
-  - name: {{ . }}
-{{- end -}}
-{{- end -}}
+{{- $imageRoot := .Values.paperlessAi.image | default dict -}}
+{{- include "common.images.renderPullSecrets" (dict "images" (list $imageRoot) "context" $) -}}
 {{- end }}
 
 {{/*
@@ -491,42 +439,16 @@ app.kubernetes.io/component: paperless-gpt
 Return the Paperless-GPT image reference
 */}}
 {{- define "paperless-ngx.paperlessGpt.image" -}}
-{{- $vals := default (dict) .Values.paperlessGpt -}}
-{{- $image := default (dict) $vals.image -}}
-{{- $registry := default "" $image.registry -}}
-{{- $repository := default "clusterzx/paperless-gpt" $image.repository -}}
-{{- $tag := default "" $image.tag -}}
-{{- if and (not $tag) .Chart.AppVersion -}}
-  {{- $tag = .Chart.AppVersion -}}
-{{- end -}}
-{{- if $registry -}}
-  {{- if $tag }}{{ printf "%s/%s:%s" $registry $repository $tag }}{{ else }}{{ printf "%s/%s" $registry $repository }}{{ end -}}
-{{- else -}}
-  {{- if $tag }}{{ printf "%s:%s" $repository $tag }}{{ else }}{{ $repository }}{{ end -}}
-{{- end -}}
+{{- $imageRoot := .Values.paperlessGpt.image | default dict -}}
+{{- include "common.images.image" (dict "imageRoot" $imageRoot "global" .Values.global "chart" .Chart) -}}
 {{- end }}
 
 {{/*
 Return Paperless-GPT imagePullSecrets
 */}}
 {{- define "paperless-ngx.paperlessGpt.imagePullSecrets" -}}
-{{- $pullSecrets := list -}}
-{{- if .Values.global -}}
-  {{- range .Values.global.imagePullSecrets -}}
-    {{- $pullSecrets = append $pullSecrets . -}}
-  {{- end -}}
-{{- end -}}
-{{- if .Values.paperlessGpt.image.pullSecrets -}}
-  {{- range .Values.paperlessGpt.image.pullSecrets -}}
-    {{- $pullSecrets = append $pullSecrets . -}}
-  {{- end -}}
-{{- end -}}
-{{- if $pullSecrets -}}
-imagePullSecrets:
-{{- range $pullSecrets }}
-  - name: {{ . }}
-{{- end -}}
-{{- end -}}
+{{- $imageRoot := .Values.paperlessGpt.image | default dict -}}
+{{- include "common.images.renderPullSecrets" (dict "images" (list $imageRoot) "context" $) -}}
 {{- end }}
 
 {{/*

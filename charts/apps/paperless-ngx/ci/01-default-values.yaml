@@ -1,0 +1,22 @@
+---
+# CI Test: Default configuration
+# Tests basic deployment with minimal settings
+
+config:
+  secretKey: "test-secret-key-for-ci-only-not-for-production-use"
+
+database:
+  postgresql:
+    host: postgresql.default.svc.cluster.local
+    password: test-password
+
+redis:
+  host: redis.default.svc.cluster.local
+
+persistence:
+  data:
+    enabled: false
+  media:
+    enabled: false
+  consume:
+    enabled: false

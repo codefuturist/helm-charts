@@ -19,6 +19,7 @@ rules:
 ignore:
   - .sops.yaml
   - charts/*/templates/
+  - charts/apps/*/templates/
   - templates/*/templates/
   - charts/*/examples/repos/
   - "**/.helmignore"

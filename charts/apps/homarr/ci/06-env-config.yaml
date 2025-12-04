@@ -1,0 +1,20 @@
+---
+# CI Test: Environment variables configuration
+# Tests environment variables and secrets
+
+deployment:
+  enabled: true
+  replicas: 1
+  image:
+    tag: "1.45.0"
+  env:
+    SECRET_ENCRYPTION_KEY:
+      value: "test-encryption-key-for-ci-only-32chars"
+    LOG_LEVEL:
+      value: "info"
+    DB_DRIVER:
+      value: "better-sqlite3"
+
+persistence:
+  enabled: true
+  size: 2Gi

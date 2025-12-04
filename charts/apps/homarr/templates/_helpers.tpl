@@ -18,7 +18,7 @@ Define the fullname of the chart/application.
 Define the version label.
 */}}
 {{- define "homarr.version" -}}
-  {{- $version := default "" .Values.deployment.image.tag -}}
+  {{- $version := default .Chart.AppVersion .Values.deployment.image.tag -}}
   {{- regexReplaceAll "[^a-zA-Z0-9_\\.\\-]" $version "-" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 

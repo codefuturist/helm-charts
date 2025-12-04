@@ -1,0 +1,19 @@
+---
+# CI Test: Persistence enabled
+# Tests deployment with persistent storage for data
+
+mealie:
+  enabled: true
+  replicas: 1
+  image:
+    tag: "v3.5.0"
+  env:
+    ALLOW_SIGNUP:
+      value: "false"
+    TZ:
+      value: "UTC"
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 5Gi
