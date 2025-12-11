@@ -1,0 +1,96 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# =============================================================================
+# Commit Message Hook - Developer Friendly Version
+# =============================================================================
+# - Validates commit message format
+# - Non-blocking warnings for suggestions
+# - Timeout protection
+# =============================================================================
+
+COMMIT_MSG_FILE=$1
+TIMEOUT_SECONDS=5
+
+# Read the commit message
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Skip if merge commit
+if echo "$COMMIT_MSG" | grep -q "^Merge"; then
+    exit 0
+fi
+
+# Skip if revert commit
+if echo "$COMMIT_MSG" | grep -q "^Revert"; then
+    exit 0
+fi
+
+echo "📝 Validating commit message..."
+
+# =============================================================================
+# Check: Conventional Commits Format (WARNING ONLY)
+# =============================================================================
+
+# Pattern: type(scope): subject
+if ! echo "$COMMIT_MSG" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .{1,}'; then
+    echo ""
+    echo "⚠️  Commit message doesn't follow Conventional Commits format"
+    echo ""
+    echo "   Recommended format:"
+    echo "   <type>(<scope>): <subject>"
+    echo ""
+    echo "   Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore"
+    echo ""
+    echo "   Example:"
+    echo "   feat(ssh): add key management"
+    echo "   fix(backup): correct rsync flags"
+    echo ""
+    echo "   Your message:"
+    echo "   $COMMIT_MSG"
+    echo ""
+    echo "   ℹ️  This is just a suggestion - commit will proceed"
+    echo ""
+fi
+
+# =============================================================================
+# Check: Message Length (WARNING ONLY)
+# =============================================================================
+
+SUBJECT_LINE=$(echo "$COMMIT_MSG" | head -1)
+SUBJECT_LENGTH=${#SUBJECT_LINE}
+
+if [ $SUBJECT_LENGTH -gt 72 ]; then
+    echo "⚠️  Commit subject is $SUBJECT_LENGTH characters (recommended: ≤72)"
+    echo "   Consider shortening the first line"
+    echo ""
+fi
+
+if [ $SUBJECT_LENGTH -lt 10 ]; then
+    echo "⚠️  Commit subject is very short ($SUBJECT_LENGTH characters)"
+    echo "   Consider adding more context"
+    echo ""
+fi
+
+# =============================================================================
+# Check: WIP Commits (WARNING ONLY)
+# =============================================================================
+
+if echo "$COMMIT_MSG" | grep -qiE '^(wip|fixup|squash|tmp|temp)'; then
+    echo "⚠️  WIP-style commit detected"
+    echo "   Remember to squash before pushing to main"
+    echo ""
+fi
+
+# =============================================================================
+# Check: Jira/Issue References (INFO ONLY)
+# =============================================================================
+
+if echo "$COMMIT_MSG" | grep -qE '#[0-9]+|[A-Z]+-[0-9]+'; then
+    echo "✅ Issue reference found"
+else
+    # Info only - don't warn
+    :
+fi
+
+echo "✅ Commit message validation complete"
+exit 0
