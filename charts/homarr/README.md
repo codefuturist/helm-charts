@@ -1,29 +1,18 @@
-# application
+# homarr
 
-![Version: 6.14.1](https://img.shields.io/badge/Version-6.14.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 5.2.12](https://img.shields.io/badge/Version-5.2.12-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Generic helm chart for all kind of applications
 
-**Homepage:** <https://github.com/stakater/application>
+**Homepage:** <https://github.com/codefuturist/application>
 
 ## Maintainers
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| Stakater | <hello@stakater.com> |  |
+| codefuturist | <hello@allcloud.trade> |  |
 
 ## Values
-
-### Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| additionalLabels | tpl/object | `nil` | Additional labels for all resources. |
-| applicationName | string | `{{ .Chart.Name }}` | Application name. |
-| componentOverride | string | `""` | Override the component label for all resources. |
-| extraObjects | [list or object] of [tpl/object or tpl/string] | `nil` | Extra K8s manifests to deploy. Can be of type list or object. If object, keys are ignored and only values are used. The used values can be defined as object or string and are passed through tpl to render. |
-| namespaceOverride | string | `""` | Override the namespace for all resources. |
-| partOfOverride | string | `""` | Override the partOf label for all resources. |
 
 ### AlertmanagerConfig Parameters
 
@@ -35,6 +24,15 @@ Generic helm chart for all kind of applications
 | alertmanagerConfig.spec.inhibitRules | list | `[]` | Inhibition rules that allows to mute alerts when other alerts are already firing. |
 | alertmanagerConfig.spec.receivers | list | `[]` | List of receivers. |
 | alertmanagerConfig.spec.route | object | `nil` | Route definition for alerts matching the resource’s namespace. It will be added to the generated Alertmanager configuration as a first-level route. |
+
+### Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| applicationName | string | `{{ .Chart.Name }}` | Application name. |
+| componentOverride | string | `""` | Override the component label for all resources. |
+| namespaceOverride | string | `""` | Override the namespace for all resources. |
+| partOfOverride | string | `""` | Override the partOf label for all resources. |
 
 ### Autoscaling - Horizontal Pod Autoscaling Parameters
 
@@ -56,7 +54,6 @@ Generic helm chart for all kind of applications
 | backup.defaultVolumesToRestic | bool | `true` | Whether to use Restic to take snapshots of all pod volumes by default. |
 | backup.enabled | bool | `false` | Deploy a [Velero/OADP Backup](https://velero.io/docs/main/api-types/backup/) resource. |
 | backup.excludedResources | list | `nil` | List of resource types to exclude from the backup. |
-| backup.includedNamespaces | tpl/list | `[ {{ include "application.namespace" $ }} ]` | List of namespaces to include objects from. |
 | backup.includedResources | list | `nil` | List of resource types to include in the backup. |
 | backup.namespace | string | `{{ .Release.Namespace }}` | Namespace for Backup. |
 | backup.snapshotVolumes | bool | `true` | Whether to take snapshots of persistent volumes as part of the backup. |
@@ -69,7 +66,7 @@ Generic helm chart for all kind of applications
 |-----|------|---------|-------------|
 | certificate.additionalLabels | object | `nil` | Additional labels for Certificate. |
 | certificate.annotations | object | `nil` | Annotations for Certificate. |
-| certificate.commonName | tpl/string | `nil` | Common name as specified on the DER encoded CSR. This field is not recommended in cases when this certificate is an end-entity certificate. More information can be found in the [cert-manager documentation](https://cert-manager.io/docs/usage/certificate/#:~:text=%23%20Avoid%20using%20commonName,%3A%20example.com). |
+| certificate.commonName | string | `"admin-app"` | Common name as specified on the DER encoded CSR. |
 | certificate.dnsNames | tpl/list | `nil` | List of DNS subjectAltNames to be set on the certificate. |
 | certificate.duration | string | `"8760h0m0s"` | The requested "duration" (i.e. lifetime) of the Certificate. |
 | certificate.emailSANs | list | `nil` | List of email subjectAltNames to be set on the Certificate. |
@@ -126,17 +123,16 @@ Generic helm chart for all kind of applications
 | deployment.command | list | `[]` | Command for the app container. |
 | deployment.containerSecurityContext | object | `{"readOnlyRootFilesystem":true,"runAsNonRoot":true}` | Security Context at Container Level. |
 | deployment.dnsConfig | object | `nil` | DNS config for the pods. |
-| deployment.dnsPolicy | string | `""` | DNS Policy. |
 | deployment.enabled | bool | `true` | Enable Deployment. |
-| deployment.env | object | `nil` | Environment variables to be added to the pod. See the README "Consuming environment variable in application chart" section for more details. |
-| deployment.envFrom | object | `nil` | Mount environment variables from ConfigMap or Secret to the pod. See the README "Consuming environment variable in application chart" section for more details. |
+| deployment.env | object | `nil` | Environment variables to be added to the pod. |
+| deployment.envFrom | object | `nil` | Mount environment variables from ConfigMap or Secret to the pod. |
 | deployment.fluentdConfigAnnotations | object | `nil` | Configuration details for fluentdConfigurations. Only works for specific setup, see <https://medium.com/stakater/dynamic-log-processing-with-fluentd-konfigurator-and-slack-935a5de4eddb>. |
-| deployment.hostAliases | list | `nil` | Mapping between IP and hostnames that will be injected as entries in the pod's hosts files. |
+| deployment.hostAliases | list | `nil` | Add host aliases to the pods. |
 | deployment.hostNetwork | bool | `nil` | Host network connectivity. |
-| deployment.image.digest | tpl/string | `""` | Image digest. If resolved to a non-empty value, digest takes precedence on the tag. |
+| deployment.image.digest | string | `""` | Image digest. If set to a non-empty value, digest takes precedence on the tag. |
 | deployment.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy. |
-| deployment.image.repository | tpl/string | `""` | Repository. |
-| deployment.image.tag | tpl/string | `""` | Tag. |
+| deployment.image.repository | string | `"nginx"` | Repository. |
+| deployment.image.tag | string | `"latest"` | Tag. |
 | deployment.imagePullSecrets | list | `[]` | List of secrets to be used for pulling the images. |
 | deployment.initContainers | object | `nil` | Add init containers to the pods. |
 | deployment.lifecycle | object | `{}` | Lifecycle configuration for the pod. |
@@ -150,7 +146,6 @@ Generic helm chart for all kind of applications
 | deployment.livenessProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
 | deployment.livenessProbe.tcpSocket | object | `{}` | TCP Socket probe. |
 | deployment.livenessProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
-| deployment.minReadySeconds | int | `nil` | Minimum number of seconds for which a newly created Pod should be ready without any of its containers crashing. |
 | deployment.nodeSelector | object | `nil` | Select the node where the pods should be scheduled. |
 | deployment.openshiftOAuthProxy.disableTLSArg | bool | `false` | If disabled `--http-address=:8081` will be used instead of `--https-address=:8443`. It can be useful when an ingress is enabled for the application. |
 | deployment.openshiftOAuthProxy.enabled | bool | `false` | Enable [OpenShift OAuth Proxy](https://github.com/openshift/oauth-proxy). |
@@ -172,9 +167,8 @@ Generic helm chart for all kind of applications
 | deployment.readinessProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
 | deployment.reloadOnChange | bool | `true` | Reload deployment if attached Secret/ConfigMap changes. |
 | deployment.replicas | int | `nil` | Number of replicas. |
-| deployment.resources | object | `{}` | Resource limits and requests for the pod. |
+| deployment.resources | object | `{"limits":{"cpu":0.5,"memory":"256Mi"},"requests":{"cpu":0.1,"memory":"128Mi"}}` | Resource limits and requests for the pod. |
 | deployment.revisionHistoryLimit | int | `2` | Number of ReplicaSet revisions to retain. |
-| deployment.runtimeClassName | string | `""` | Set the runtimeClassName for the deployment's pods. |
 | deployment.securityContext | object | `nil` | Security Context for the pod. |
 | deployment.startupProbe | object | See below | Startup probe. Must specify either one of the following field when enabled: httpGet, exec, tcpSocket, grpc |
 | deployment.startupProbe.enabled | bool | `false` | Enable Startup probe. |
@@ -186,6 +180,8 @@ Generic helm chart for all kind of applications
 | deployment.startupProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
 | deployment.startupProbe.tcpSocket | object | `{}` | TCP Socket probe. |
 | deployment.startupProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
+| deployment.strategy.rollingUpdate.maxSurge | string | `"25%"` | Max surge pods during update. |
+| deployment.strategy.rollingUpdate.maxUnavailable | string | `"25%"` | Max unavailable pods during update. |
 | deployment.strategy.type | string | `"RollingUpdate"` | Type of deployment strategy. |
 | deployment.terminationGracePeriodSeconds | int | `nil` | Gracefull termination period. |
 | deployment.tolerations | list | `nil` | Taint tolerations for the pods. |
@@ -245,19 +241,6 @@ Generic helm chart for all kind of applications
 | grafanaDashboard.annotations | object | `nil` | Annotations for GrafanaDashboard. |
 | grafanaDashboard.contents | object | `nil` | List of GrafanaDashboard entries. Key will be used as a name suffix for the GrafanaDashboard. Value is the GrafanaDashboard content. According to GrafanaDashboard behavior, `url` field takes precedence on the `json` field. |
 | grafanaDashboard.enabled | bool | `false` | Deploy [GrafanaDashboard](https://github.com/grafana/grafana-operator) resources. |
-
-### HTTPRoute Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| httpRoute.additionalLabels | object | `{}` | Additional labels for HTTPRoute. |
-| httpRoute.annotations | object | `{}` | Annotations for HTTPRoute. |
-| httpRoute.enabled | bool | `false` | Enable HTTPRoute (Gateway API). |
-| httpRoute.gatewayNamespace | string | `""` | Namespace of the Gateway to attach this HTTPRoute to. If not set, the HTTPRoute will be attached to the Gateway in the same namespace as the HTTPRoute. |
-| httpRoute.hostnames | tpl/list | `nil` | Hostnames for the HTTPRoute. |
-| httpRoute.parentRefs | tpl/list | `nil` | Parent references for the HTTPRoute. |
-| httpRoute.rules | tpl/list | `[{"backendRefs":[{"name":"{{ include \"application.name\" $ }}","port":"{{ (first $.Values.service.ports).port | int }}"}],"matches":[{"path":{"type":"PathPrefix","value":"/"}}]}]` | Rules for HTTPRoute. |
-| httpRoute.useDefaultGateways | string | `nil` | The default Gateway scope to use for this Route. If unset (the default) or set to None, the Route will not be attached to any default Gateway; if set, it will be attached to any default Gateway supporting the named scope, subject to the usual rules about which Routes a Gateway is allowed to claim. |
 
 ### Ingress Parameters
 
@@ -372,7 +355,6 @@ Generic helm chart for all kind of applications
 | service.annotations | object | `nil` | Annotations for service. |
 | service.clusterIP | string | `nil` | Fixed IP for a ClusterIP service. Set to `None` for an headless service |
 | service.enabled | bool | `true` | Enable Service. |
-| service.loadBalancerClass | string | `nil` | LoadBalancer class name for LoadBalancer type services. |
 | service.ports | list | `[{"name":"http","port":8080,"protocol":"TCP","targetPort":8080}]` | Ports for applications service. |
 | service.type | string | `"ClusterIP"` | Type of service. |
 
