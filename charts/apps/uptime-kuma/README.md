@@ -1,6 +1,6 @@
 # uptime-kuma
 
-![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.0](https://img.shields.io/badge/AppVersion-2.0.0-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.0](https://img.shields.io/badge/AppVersion-2.0.0-informational?style=flat-square)
 
 A self-hosted monitoring tool - monitor uptime for HTTP(s) / TCP / HTTP(s) Keyword / Ping / DNS Record / Push / Steam Game Server
 
@@ -16,6 +16,12 @@ A self-hosted monitoring tool - monitor uptime for HTTP(s) / TCP / HTTP(s) Keywo
 
 * <https://github.com/louislam/uptime-kuma>
 * <https://github.com/codefuturist/helm-charts>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| file://../../libs/common | common | 2.x.x |
 
 ## Values
 
@@ -55,7 +61,7 @@ A self-hosted monitoring tool - monitor uptime for HTTP(s) / TCP / HTTP(s) Keywo
 | image.digest | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"louislam/uptime-kuma"` |  |
-| image.tag | string | `"2"` |  |
+| image.tag | string | `"2.0.2"` |  |
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.className | string | `""` |  |

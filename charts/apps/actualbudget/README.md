@@ -1,10 +1,10 @@
-# metube
+# actualbudget
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 25.11.0](https://img.shields.io/badge/AppVersion-25.11.0-informational?style=flat-square)
 
-A Helm chart for MeTube - YouTube downloader with web interface powered by yt-dlp
+A Helm chart for Actual Budget - A local-first personal finance app
 
-**Homepage:** <https://github.com/alexta69/metube>
+**Homepage:** <https://actualbudget.org>
 
 ## Maintainers
 
@@ -14,25 +14,20 @@ A Helm chart for MeTube - YouTube downloader with web interface powered by yt-dl
 
 ## Source Code
 
-* <https://github.com/alexta69/metube>
+* <https://github.com/actualbudget/actual>
 * <https://github.com/codefuturist/helm-charts>
 
 ## Requirements
 
 | Repository | Name | Version |
 |------------|------|---------|
-| file://../common | common | 2.x.x |
+| file://../../libs/common | common | 2.x.x |
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | args | list | `[]` |  |
-| autoscaling.enabled | bool | `false` |  |
-| autoscaling.maxReplicas | int | `3` |  |
-| autoscaling.minReplicas | int | `1` |  |
-| autoscaling.targetCPU | int | `80` |  |
-| autoscaling.targetMemory | int | `80` |  |
 | clusterDomain | string | `"cluster.local"` |  |
 | command | list | `[]` |  |
 | commonAnnotations | object | `{}` |  |
@@ -84,7 +79,7 @@ A Helm chart for MeTube - YouTube downloader with web interface powered by yt-dl
 | image.pullSecrets | list | `[]` |  |
 | image.registry | string | `"ghcr.io"` |  |
 | image.repository | string | `"alexta69/metube"` |  |
-| image.tag | string | `"latest"` |  |
+| image.tag | string | `"2025.11.29"` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.apiVersion | string | `""` |  |
 | ingress.enabled | bool | `false` |  |

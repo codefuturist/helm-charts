@@ -1,6 +1,6 @@
 # restic-backup
 
-![Version: 1.2.1](https://img.shields.io/badge/Version-1.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.3](https://img.shields.io/badge/AppVersion-0.17.3-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.3](https://img.shields.io/badge/AppVersion-0.17.3-informational?style=flat-square)
 
 A user-friendly Helm chart for automated Kubernetes volume backups using restic with support for multiple storage backends and flexible scheduling
 
@@ -16,6 +16,12 @@ A user-friendly Helm chart for automated Kubernetes volume backups using restic 
 
 * <https://github.com/restic/restic>
 * <https://github.com/codefuturist/helm-charts>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| file://../../libs/common | common | 2.x.x |
 
 ## Values
 
@@ -87,7 +93,7 @@ A user-friendly Helm chart for automated Kubernetes volume backups using restic 
 | image.imagePullSecrets | list | `[]` | Image pull secrets. |
 | image.pullPolicy | string | `"IfNotPresent"` | Image pull policy. |
 | image.repository | string | `"restic/restic"` | Restic image repository. |
-| image.tag | string | `""` | Image tag (overrides appVersion from Chart.yaml). |
+| image.tag | string | `"0.18.1"` | Image tag (overrides appVersion from Chart.yaml). |
 
 ### Metrics Parameters
 
@@ -175,21 +181,6 @@ A user-friendly Helm chart for automated Kubernetes volume backups using restic 
 | serviceAccount.automountServiceAccountToken | bool | `true` | Automount service account token. |
 | serviceAccount.create | bool | `true` | Create service account. |
 | serviceAccount.name | string | `""` | Name of existing service account to use. |
-
-### Monitoring Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| serviceMonitor.additionalLabels | object | `{}` | Additional labels for ServiceMonitor. |
-| serviceMonitor.enabled | bool | `false` | Enable Prometheus ServiceMonitor. Requires metrics.enabled to be true |
-| serviceMonitor.interval | string | `"30s"` | Scrape interval. |
-| serviceMonitor.metricRelabelings | list | `[]` | Metric relabeling rules (optional). |
-| serviceMonitor.namespace | string | `""` | Namespace for ServiceMonitor (defaults to release namespace). |
-| serviceMonitor.path | string | `"/metrics"` | Metrics path (optional). |
-| serviceMonitor.relabelings | list | `[]` | Relabeling rules (optional). |
-| serviceMonitor.scheme | string | `"http"` | Scheme (http or https). |
-| serviceMonitor.scrapeTimeout | string | `"10s"` | Scrape timeout. |
-| serviceMonitor.tlsConfig | object | `{}` | TLS configuration (optional). |
 
 ### Volumes Configuration
 

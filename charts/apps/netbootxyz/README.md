@@ -1,6 +1,6 @@
 # netbootxyz
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.7.6-nbxyz10](https://img.shields.io/badge/AppVersion-0.7.6--nbxyz10-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.7.6-nbxyz10](https://img.shields.io/badge/AppVersion-0.7.6--nbxyz10-informational?style=flat-square)
 
 netboot.xyz is a network boot environment that allows PXE booting various operating system installers or utilities from a central location.
 
@@ -21,7 +21,7 @@ netboot.xyz is a network boot environment that allows PXE booting various operat
 
 | Repository | Name | Version |
 |------------|------|---------|
-| file://../common | common | 2.x.x |
+| file://../../libs/common | common | 2.x.x |
 
 ## Values
 
@@ -74,7 +74,7 @@ netboot.xyz is a network boot environment that allows PXE booting various operat
 | image.pullSecrets | list | `[]` |  |
 | image.registry | string | `"ghcr.io"` |  |
 | image.repository | string | `"netbootxyz/netbootxyz"` |  |
-| image.tag | string | `""` |  |
+| image.tag | string | `"0.7.6-nbxyz10"` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.extraHosts | list | `[]` |  |

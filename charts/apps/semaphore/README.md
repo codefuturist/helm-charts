@@ -1,6 +1,6 @@
 # semaphore
 
-![Version: 1.3.1](https://img.shields.io/badge/Version-1.3.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.10.32](https://img.shields.io/badge/AppVersion-2.10.32-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.10.32](https://img.shields.io/badge/AppVersion-2.10.32-informational?style=flat-square)
 
 Modern UI for Ansible, Terraform, OpenTofu, Bash, and Pulumi - task automation and infrastructure orchestration
 
@@ -16,6 +16,12 @@ Modern UI for Ansible, Terraform, OpenTofu, Bash, and Pulumi - task automation a
 
 * <https://github.com/semaphoreui/semaphore>
 * <https://github.com/codefuturist/helm-charts>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| file://../../libs/common | common | 2.x.x |
 
 ## Values
 

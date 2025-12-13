@@ -1,14 +1,27 @@
 # mealie
 
-![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.5.0](https://img.shields.io/badge/AppVersion-3.5.0-informational?style=flat-square)
 
 A Helm chart for mealie
+
+**Homepage:** <https://mealie.io>
 
 ## Maintainers
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| Your Name | <your.email@example.com> |  |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
+
+## Source Code
+
+* <https://github.com/mealie-recipes/mealie>
+* <https://github.com/codefuturist/helm-charts>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| file://../../libs/common | common | 2.x.x |
 
 ## Values
 

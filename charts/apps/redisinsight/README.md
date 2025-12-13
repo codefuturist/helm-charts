@@ -1,6 +1,6 @@
 # redisinsight
 
-![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.70.1](https://img.shields.io/badge/AppVersion-2.70.1-informational?style=flat-square)
 
 A production-ready Helm chart for Redis Insight - Redis database management and administration tool
 
@@ -16,6 +16,12 @@ A production-ready Helm chart for Redis Insight - Redis database management and 
 
 * <https://github.com/RedisInsight/RedisInsight>
 * <https://github.com/codefuturist/helm-charts>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| file://../../libs/common | common | 2.x.x |
 
 ## Values
 

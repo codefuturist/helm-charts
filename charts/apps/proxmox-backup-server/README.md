@@ -1,6 +1,6 @@
 # proxmox-backup-server
 
-![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.0.12](https://img.shields.io/badge/AppVersion-4.0.12-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.0.12](https://img.shields.io/badge/AppVersion-4.0.12-informational?style=flat-square)
 
 A production-ready Helm chart for Proxmox Backup Server - Enterprise backup solution for virtual environments
 
@@ -16,6 +16,12 @@ A production-ready Helm chart for Proxmox Backup Server - Enterprise backup solu
 
 * <https://github.com/ayufan/pve-backup-server-dockerfiles>
 * <https://github.com/codefuturist/helm-charts>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| file://../../libs/common | common | 2.x.x |
 
 ## Values
 
