@@ -1,0 +1,15 @@
+# CI Test: StatefulSet controller type
+# Tests StatefulSet deployment with volumeClaimTemplates
+
+controller:
+  type: statefulset
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: OrderedReady
+
+persistence:
+  enabled: true
+  size: 1Gi
+  mountPath: /data
+

@@ -1,0 +1,54 @@
+suite: statefulset tests
+templates:
+  - statefulset.yaml
+tests:
+  - it: should not render when controller type is deployment
+    set:
+      controller.type: deployment
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render statefulset when controller type is statefulset
+    set:
+      controller.type: statefulset
+    asserts:
+      - isKind:
+          of: StatefulSet
+
+  - it: should create volumeClaimTemplate when persistence enabled
+    set:
+      controller.type: statefulset
+      persistence:
+        enabled: true
+        size: 10Gi
+        storageClassName: fast-storage
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 10Gi
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.storageClassName
+          value: fast-storage
+
+  - it: should set pod management policy
+    set:
+      controller:
+        type: statefulset
+        podManagementPolicy: Parallel
+    asserts:
+      - equal:
+          path: spec.podManagementPolicy
+          value: Parallel
+
+  - it: should set update strategy
+    set:
+      controller:
+        type: statefulset
+        updateStrategy:
+          type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
+

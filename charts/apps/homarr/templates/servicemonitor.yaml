@@ -1,0 +1,28 @@
+{{- if and .Values.servicemonitor.enabled (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1") }}
+{{- if .Values.servicemonitor.endpoints }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "homarr.name" . }}-svc-monitor
+  namespace: {{ template "homarr.namespace" . }}
+  labels:
+    {{- include "homarr.labels" . | nindent 4 }}
+    {{- with .Values.servicemonitor.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.servicemonitor.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "homarr.selectorLabels" . | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+      - {{ template "homarr.namespace" . }}
+  endpoints:
+    {{- toYaml .Values.servicemonitor.endpoints | nindent 4 }}
+{{- end }}
+{{- end }}

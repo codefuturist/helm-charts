@@ -2,7 +2,7 @@ apiVersion: v2
 name: shlink
 description: A production-ready Helm chart for Shlink - Self-hosted URL shortener with analytics and web UI
 type: application
-version: 1.0.1
+version: 1.0.0
 appVersion: "4.2.4"
 
 keywords:

@@ -2,7 +2,7 @@ apiVersion: v2
 name: uptime-kuma
 description: A self-hosted monitoring tool - monitor uptime for HTTP(s) / TCP / HTTP(s) Keyword / Ping / DNS Record / Push / Steam Game Server
 type: application
-version: 1.0.1
+version: 1.0.0
 appVersion: "2.0.0"
 
 keywords:

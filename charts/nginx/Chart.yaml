@@ -1,0 +1,27 @@
+apiVersion: v2
+name: nginx
+description: Helm chart for deploying NGINX web server with customizable configuration
+
+type: application
+
+version: 0.1.2
+
+keywords:
+  - nginx
+  - web-server
+  - proxy
+  - kubernetes
+  - ingress
+
+home: https://github.com/codefuturist/helm-charts
+sources:
+  - https://github.com/codefuturist/helm-charts/tree/main/charts/nginx
+  - https://nginx.org
+
+maintainers:
+  - name: codefuturist
+    email: hello@allcloud.trade
+
+icon: https://raw.githubusercontent.com/codefuturist/helm-charts/main/.github/icon.png
+
+appVersion: "1.27.0"

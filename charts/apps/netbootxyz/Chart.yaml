@@ -2,7 +2,7 @@ apiVersion: v2
 name: netbootxyz
 description: netboot.xyz is a network boot environment that allows PXE booting various operating system installers or utilities from a central location.
 type: application
-version: 0.1.0
+version: 1.0.0
 appVersion: "0.7.6-nbxyz10"
 home: https://netboot.xyz
 icon: https://netboot.xyz/images/netboot.xyz-logo.svg

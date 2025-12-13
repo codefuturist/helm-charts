@@ -2,7 +2,7 @@ apiVersion: v2
 name: metube
 description: A Helm chart for MeTube - YouTube downloader with web interface powered by yt-dlp
 type: application
-version: 1.1.0
+version: 1.0.0
 appVersion: "2025.11.29"
 
 keywords:

@@ -27,4 +27,4 @@ Chart.lock
 # Chart dependencies
 **/charts/*.tgz
 
-# End of https://www.toptal.com/developers/gitignore/api/helmindex.yaml
+# End of https://www.toptal.com/developers/gitignore/api/helm

@@ -1,0 +1,143 @@
+suite: deployment tests
+templates:
+  - deployment.yaml
+tests:
+  - it: should not render when controller type is statefulset
+    set:
+      controller.type: statefulset
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render deployment with default values
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.strategy.type
+          value: RollingUpdate
+
+  - it: should use correct image
+    set:
+      image.repository: myrepo/myapp
+      image.tag: "1.0.0"
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: myrepo/myapp:1.0.0
+
+  - it: should set resource limits and requests
+    set:
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 500m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 128Mi
+
+  - it: should configure liveness probe when enabled
+    set:
+      livenessProbe:
+        enabled: true
+        httpGet:
+          path: /health
+          port: http
+        initialDelaySeconds: 30
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /health
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.initialDelaySeconds
+          value: 30
+
+  - it: should disable probes in diagnostic mode
+    set:
+      diagnosticMode.enabled: true
+      livenessProbe.enabled: true
+      readinessProbe.enabled: true
+    asserts:
+      - isNull:
+          path: spec.template.spec.containers[0].livenessProbe
+      - isNull:
+          path: spec.template.spec.containers[0].readinessProbe
+
+  - it: should use diagnostic mode command when enabled
+    set:
+      diagnosticMode:
+        enabled: true
+        command:
+          - sleep
+        args:
+          - infinity
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - sleep
+      - equal:
+          path: spec.template.spec.containers[0].args
+          value:
+            - infinity
+
+  - it: should mount persistence volume when enabled
+    set:
+      persistence:
+        enabled: true
+        mountPath: /data
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: data
+            mountPath: /data
+
+  - it: should set pod security context
+    set:
+      podSecurityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1000
+
+  - it: should set container security context
+    set:
+      securityContext:
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
+  - it: should add extra environment variables
+    set:
+      extraEnv:
+        - name: CUSTOM_VAR
+          value: custom-value
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CUSTOM_VAR
+            value: custom-value
+

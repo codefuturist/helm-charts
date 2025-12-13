@@ -2,86 +2,153 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-|---------|--------------------|
-| Latest  | :white_check_mark: |
-| < Latest | :x:               |
+We release patches for security vulnerabilities in the following versions:
 
-We only provide security updates for the latest version of each chart. Please ensure you are running the most recent version.
+| Version | Supported          |
+| ------- | ------------------ |
+| 5.x.x   | :white_check_mark: |
+| < 5.0   | :x:                |
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in any of our Helm charts, please report it responsibly:
+We take the security of our Helm charts seriously. If you believe you have found a security vulnerability in any of our charts, please report it to us as described below.
 
-1. **Do NOT** open a public GitHub issue for security vulnerabilities
-2. Email the maintainer directly at: <58808821+codefuturist@users.noreply.github.com>
-3. Include the following information:
-   - Chart name and version affected
-   - Description of the vulnerability
-   - Steps to reproduce
-   - Potential impact
-   - Any suggested fixes (optional)
+### Where to Report
 
-### Response Timeline
+**Please do NOT report security vulnerabilities through public GitHub issues.**
 
-- **Acknowledgment**: Within 48 hours
-- **Initial Assessment**: Within 1 week
-- **Fix/Patch**: Depends on severity (critical: ASAP, high: 1-2 weeks, medium/low: next release)
+Instead, please report them via email to: **hello@allcloud.trade**
 
-## Security Practices
+### What to Include
 
-### Container Images
+Please include the following information in your report:
 
-- Charts use **official upstream images** whenever available
-- Image tags are pinned to specific versions (not `latest`) in default values
-- Users are encouraged to use image digests for production deployments
+- Type of issue (e.g., buffer overflow, SQL injection, cross-site scripting, etc.)
+- Full paths of source file(s) related to the manifestation of the issue
+- The location of the affected source code (tag/branch/commit or direct URL)
+- Any special configuration required to reproduce the issue
+- Step-by-step instructions to reproduce the issue
+- Proof-of-concept or exploit code (if possible)
+- Impact of the issue, including how an attacker might exploit it
+
+### What to Expect
+
+- **Acknowledgment**: You should receive an acknowledgment within 48 hours
+- **Initial Assessment**: We will provide an initial assessment within 7 days
+- **Updates**: We will keep you informed about the progress toward a fix and announcement
+- **Credit**: We will credit you in the security advisory (unless you prefer to remain anonymous)
+
+### Security Update Process
+
+1. The security report is received and assigned to a maintainer
+2. The problem is confirmed and affected versions are determined
+3. Code is audited to find any similar problems
+4. Fixes are prepared for all supported versions
+5. New versions are released and announcements are made
+
+## Security Best Practices
+
+When using our Helm charts:
+
+### 1. Keep Charts Updated
+
+Always use the latest chart versions to ensure you have the latest security patches:
+
+```bash
+helm repo update
+helm upgrade <release-name> codefuturist/<chart-name>
+```
+
+### 2. Review Values Before Deployment
+
+- Never commit sensitive data (passwords, tokens, keys) to values files
+- Use Kubernetes Secrets or external secret management tools
+- Review all exposed services and ingress configurations
+
+### 3. Use Image Digests
+
+When possible, specify image digests instead of tags for immutability:
+
+```yaml
+image:
+  repository: myapp
+  digest: sha256:abc123...
+```
+
+### 4. Enable Security Features
+
+Configure security contexts, pod security policies/standards, and network policies:
+
+```yaml
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+```
+
+### 5. Scan Images
+
+Regularly scan container images for vulnerabilities using tools like:
+- Trivy
+- Clair
+- Anchore
+
+### 6. Network Policies
+
+Enable network policies to restrict pod-to-pod communication:
+
+```yaml
+networkPolicy:
+  enabled: true
+```
+
+### 7. RBAC
+
+Use minimal RBAC permissions required for your application.
+
+## Known Security Considerations
 
 ### Secrets Management
 
-- Sensitive values (passwords, API keys) should be provided via:
-  - Kubernetes Secrets (referenced in values)
-  - External Secrets Operator integration (where supported)
-  - Environment variables from ConfigMaps/Secrets
-- Default values never contain real credentials
-- Charts support existing secret references to avoid storing secrets in values files
+Our charts support multiple secret management approaches:
+- Kubernetes native secrets
+- Sealed Secrets
+- External Secrets Operator
+- Azure Key Vault CSI Driver
 
-### RBAC and Permissions
+Choose the method appropriate for your security requirements.
 
-- Charts create minimal RBAC permissions required for operation
-- ServiceAccounts are created per-release by default
-- PodSecurityContext and SecurityContext are configurable
-- Many charts support running as non-root by default
+### Service Exposure
 
-### Network Security
+By default, services are not exposed externally. When enabling ingress:
+- Always use TLS/HTTPS
+- Configure proper authentication
+- Review ingress annotations for security implications
 
-- NetworkPolicies are available for charts that support them
-- Ingress resources use TLS configuration where applicable
-- Service exposure is configurable (ClusterIP, NodePort, LoadBalancer)
+## Vulnerability Disclosure Timeline
 
-## Kubernetes Version Support
+- **Day 0**: Vulnerability reported
+- **Day 1-7**: Maintainers assess and confirm the vulnerability
+- **Day 7-14**: Fix is developed and tested
+- **Day 14-21**: Fix is released and security advisory published
+- **Day 21+**: Public disclosure (after users have time to update)
 
-Charts are tested against:
+## Security Advisories
 
-- Kubernetes 1.25+
-- Helm 3.8+
+Published security advisories can be found at:
+- GitHub Security Advisories: https://github.com/codefuturist/helm-charts/security/advisories
+- Release Notes: https://github.com/codefuturist/helm-charts/releases
 
-Older versions may work but are not officially supported.
+## Additional Resources
 
-## Dependency Security
+- [Kubernetes Security Best Practices](https://kubernetes.io/docs/concepts/security/)
+- [Helm Security Best Practices](https://helm.sh/docs/topics/provenance/)
+- [OWASP Kubernetes Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Kubernetes_Security_Cheat_Sheet.html)
 
-- Chart dependencies are regularly updated via Dependabot
-- Third-party chart dependencies are pinned to specific versions
-- The `charts/libs/common` library is maintained internally
+## Contact
 
-## Best Practices for Users
+For security-related questions or concerns, contact: hello@allcloud.trade
 
-1. **Always review values before deploying** - Understand what you're enabling
-2. **Use namespaces** - Isolate workloads appropriately
-3. **Enable NetworkPolicies** - Restrict network access where supported
-4. **Use external secret management** - Don't store secrets in Git
-5. **Keep charts updated** - Apply security patches promptly
-6. **Scan images** - Use tools like Trivy to scan container images
+---
 
-## Changelog
-
-Security-related changes are noted in chart release notes and GitHub releases.
+Thank you for helping keep our Helm charts and users secure!

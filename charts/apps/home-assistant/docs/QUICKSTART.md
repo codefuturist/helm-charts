@@ -25,7 +25,7 @@ Before you begin, ensure you have:
 ### 1. Add the Helm Repository
 
 ```bash
-helm repo add codefuturist https://codefuturist.github.io/helm-charts
+helm repo add pandia https://charts.pandia.io
 helm repo update
 ```
 

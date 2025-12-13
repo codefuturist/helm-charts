@@ -1,0 +1,60 @@
+suite: rbac tests
+templates:
+  - serviceaccount.yaml
+  - rbac.yaml
+tests:
+  - it: should create service account when enabled
+    template: serviceaccount.yaml
+    set:
+      serviceAccount.create: true
+    asserts:
+      - isKind:
+          of: ServiceAccount
+
+  - it: should not create service account when disabled
+    template: serviceaccount.yaml
+    set:
+      serviceAccount.create: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should add service account annotations
+    template: serviceaccount.yaml
+    set:
+      serviceAccount:
+        create: true
+        annotations:
+          eks.amazonaws.com/role-arn: arn:aws:iam::123456789:role/my-role
+    asserts:
+      - equal:
+          path: metadata.annotations["eks.amazonaws.com/role-arn"]
+          value: arn:aws:iam::123456789:role/my-role
+
+  - it: should not create rbac when disabled
+    template: rbac.yaml
+    set:
+      rbac.create: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create role and rolebinding when rbac enabled
+    template: rbac.yaml
+    set:
+      rbac:
+        create: true
+        rules:
+          - apiGroups: [""]
+            resources: ["configmaps"]
+            verbs: ["get", "list"]
+    asserts:
+      - hasDocuments:
+          count: 2
+      - isKind:
+          of: Role
+        documentIndex: 0
+      - isKind:
+          of: RoleBinding
+        documentIndex: 1
+

@@ -1,0 +1,81 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    🚀 {{ .Chart.Name }} Successfully Deployed! 🎉              ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+📋 QUICK REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Release Name:    {{ .Release.Name }}
+  Namespace:       {{ include "app.namespace" . }}
+  Chart Version:   {{ .Chart.Version }}
+  App Version:     {{ .Chart.AppVersion }}
+  Controller:      {{ .Values.controller.type }}
+{{- if .Values.persistence.enabled }}
+  Persistence:     ✓ Enabled ({{ .Values.persistence.size }})
+{{- else }}
+  Persistence:     ✗ Disabled
+{{- end }}
+
+🌐 ACCESS YOUR APPLICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+
+  🔗 http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+
+  Run these commands to get the URL:
+
+  export NODE_PORT=$(kubectl get --namespace {{ include "app.namespace" . }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "app.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ include "app.namespace" . }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "🔗 http://$NODE_IP:$NODE_PORT"
+{{- else if contains "LoadBalancer" .Values.service.type }}
+
+  ⏳ Waiting for LoadBalancer IP (this may take a few minutes)...
+
+  Watch status: kubectl get --namespace {{ include "app.namespace" . }} svc -w {{ include "app.fullname" . }}
+
+  Get URL:
+  export SERVICE_IP=$(kubectl get svc --namespace {{ include "app.namespace" . }} {{ include "app.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "🔗 http://$SERVICE_IP:{{ .Values.service.port }}"
+{{- else if contains "ClusterIP" .Values.service.type }}
+
+  Port-forward to access locally:
+
+  export POD_NAME=$(kubectl get pods --namespace {{ include "app.namespace" . }} -l "app.kubernetes.io/name={{ include "app.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ include "app.namespace" . }} port-forward $POD_NAME 8080:{{ .Values.service.targetPort }}
+
+  Then visit: http://localhost:8080
+{{- end }}
+
+📊 USEFUL COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  # Check pod status
+  kubectl get pods -n {{ include "app.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+  # View logs
+  kubectl logs -n {{ include "app.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }} -f
+
+  # Describe deployment
+  kubectl describe {{ .Values.controller.type }} -n {{ include "app.namespace" . }} {{ include "app.fullname" . }}
+
+{{- if .Values.diagnosticMode.enabled }}
+
+⚠️  DIAGNOSTIC MODE ENABLED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  The container is running in diagnostic mode with:
+    Command: {{ .Values.diagnosticMode.command | join " " }}
+    Args: {{ .Values.diagnosticMode.args | join " " }}
+
+  All probes are disabled. Use this for debugging only.
+
+  Connect to the container:
+  kubectl exec -it -n {{ include "app.namespace" . }} $(kubectl get pods -n {{ include "app.namespace" . }} -l app.kubernetes.io/instance={{ .Release.Name }} -o jsonpath="{.items[0].metadata.name}") -- /bin/sh
+{{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Thank you for using {{ .Chart.Name }}!
+

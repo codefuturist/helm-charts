@@ -1,0 +1,57 @@
+# CI Test: Advanced scheduling
+# Tests topology spread, affinity, tolerations, and DNS config
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: app
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: app
+          topologyKey: kubernetes.io/hostname
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/os
+              operator: In
+              values:
+                - linux
+
+tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "app"
+    effect: "NoSchedule"
+
+nodeSelector:
+  kubernetes.io/os: linux
+
+priorityClassName: high-priority
+
+dnsPolicy: ClusterFirstWithHostNet
+
+dnsConfig:
+  nameservers:
+    - 1.1.1.1
+  searches:
+    - my-namespace.svc.cluster.local
+  options:
+    - name: ndots
+      value: "2"
+
+hostAliases:
+  - ip: "192.168.1.100"
+    hostnames:
+      - "db.example.com"
+      - "database.local"
+

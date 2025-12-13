@@ -1,0 +1,49 @@
+# CI Test: Extra containers and volumes
+# Tests init containers, sidecars, and custom volume mounts
+
+initContainers:
+  - name: init-permissions
+    image: busybox:latest
+    command: ['sh', '-c', 'echo "Initializing..."']
+    volumeMounts:
+      - name: data
+        mountPath: /data
+
+extraContainers:
+  - name: sidecar
+    image: busybox:latest
+    command: ['sh', '-c', 'while true; do echo "sidecar running"; sleep 60; done']
+    resources:
+      requests:
+        cpu: 10m
+        memory: 16Mi
+
+extraVolumes:
+  - name: custom-config
+    configMap:
+      name: custom-config
+  - name: certificates
+    secret:
+      secretName: ssl-certs
+
+extraVolumeMounts:
+  - name: custom-config
+    mountPath: /etc/app/custom
+    readOnly: true
+  - name: certificates
+    mountPath: /etc/ssl/certs
+    readOnly: true
+
+extraEnv:
+  - name: CUSTOM_VAR
+    value: "custom-value"
+  - name: SECRET_VAR
+    valueFrom:
+      secretKeyRef:
+        name: my-secret
+        key: secret-key
+
+extraEnvFrom:
+  - configMapRef:
+      name: extra-config
+

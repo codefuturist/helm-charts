@@ -2,7 +2,7 @@ apiVersion: v2
 name: pihole
 description: A Helm chart for Pi-hole DNS ad blocker with Kubernetes best practices
 type: application
-version: 0.2.0
+version: 1.0.0
 appVersion: 2024.07.0
 keywords:
 home: https://pi-hole.net/

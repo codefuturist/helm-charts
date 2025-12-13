@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "charts/**"
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -30,30 +29,14 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.16.2
+          version: v3.13.0
 
-      - name: Add Helm repositories
+      - name: Add dependencies
         run: |
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo add stakater https://stakater.github.io/stakater-charts
-          helm repo update
-
-      - name: Build chart dependencies
-        run: |
-          # Build dependencies for all charts recursively
-          find charts -name "Chart.yaml" -type f | while read chart_file; do
-            chart_dir=$(dirname "$chart_file")
-            # Skip example charts
-            if [[ "$chart_dir" == *"/examples/"* ]]; then
-              echo "Skipping example chart: $chart_dir"
-              continue
-            fi
-            if grep -q "^dependencies:" "$chart_file" 2>/dev/null; then
-              echo "Building dependencies for $chart_dir"
-              helm dependency build "$chart_dir" || {
-                echo "ERROR: Failed to build dependencies for $chart_dir"
-                exit 1
-              }
+          for dir in charts/*/; do
+            if [ -f "$dir/Chart.yaml" ]; then
+              echo "Checking dependencies for $dir"
+              helm dependency update "$dir" || true
             fi
           done
 

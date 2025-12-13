@@ -187,10 +187,10 @@ Releases are automated via GitHub Actions:
 # Package chart
 helm package charts/chart-name
 
-# Update index
-helm repo index . --url https://codefuturist.github.io/helm-charts
+# Update index in site folder
+helm repo index site/ --url https://charts.pandia.io --merge site/index.yaml
 
-# Commit and push to gh-pages branch
+# Commit and push changes
 ```
 
 ## Questions?

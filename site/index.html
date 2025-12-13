@@ -250,18 +250,18 @@ helm repo update</div>
             <h2>Usage Examples</h2>
 
             <h3>Install Homarr Chart</h3>
-            <div class="code-block">helm install my-homarr codefuturist/homarr</div>
+            <div class="code-block">helm install my-homarr pandia/homarr</div>
 
             <h3>Install Application Chart</h3>
-            <div class="code-block">helm install my-app codefuturist/application \
+            <div class="code-block">helm install my-app pandia/application \
   --set replicaCount=3 \
   --set service.type=LoadBalancer</div>
 
             <h3>Install from Values File</h3>
-            <div class="code-block">helm install my-homarr codefuturist/homarr -f custom-values.yaml</div>
+            <div class="code-block">helm install my-homarr pandia/homarr -f custom-values.yaml</div>
 
             <h3>Upgrade Release</h3>
-            <div class="code-block">helm upgrade my-homarr codefuturist/homarr --version 1.0.0</div>
+            <div class="code-block">helm upgrade my-homarr pandia/homarr --version 1.0.0</div>
         </div>
 
         <div class="info-box">
@@ -281,7 +281,7 @@ helm repo update</div>
                 </div>
                 <div class="link-card">
                     <h4>📖 Documentation</h4>
-                    <p><a href="README.md">Read the README</a></p>
+                    <p><a href="https://github.com/codefuturist/helm-charts#readme">Read the README</a></p>
                 </div>
             </div>
         </div>
@@ -290,10 +290,10 @@ helm repo update</div>
             <h2>Chart Versions</h2>
             <p>All charts follow <a href="https://semver.org/">Semantic Versioning</a>. Check the <a href="https://github.com/codefuturist/helm-charts/releases">releases page</a> for full changelog.</p>
             <div class="code-block"># List all versions of a specific chart
-helm search repo codefuturist/homarr --versions
+helm search repo pandia/homarr --versions
 
 # Install specific version
-helm install my-homarr codefuturist/homarr --version 1.0.0</div>
+helm install my-homarr pandia/homarr --version 1.0.0</div>
         </div>
 
         <div class="info-box">

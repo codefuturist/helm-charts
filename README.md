@@ -11,39 +11,34 @@ This repository contains production-ready Helm charts for various applications a
 
 ## Available Charts
 
-### Application Charts (`charts/apps/`)
+### 🚀 [Application](charts/application/)
 
-| Chart | Description | Version |
-|-------|-------------|---------|
-| [bitwarden-eso-provider](charts/apps/bitwarden-eso-provider/) | Bitwarden webhook provider for External Secrets Operator | 1.0.2 |
-| [compass-web](charts/apps/compass-web/) | MongoDB Compass Web - database management tool | 1.0.1 |
-| [homarr](charts/apps/homarr/) | Simple, powerful dashboard for your server | 1.0.2 |
-| [home-assistant](charts/apps/home-assistant/) | Open source home automation platform | 1.0.1 |
-| [mailrise](charts/apps/mailrise/) | SMTP gateway for Apprise notifications | 1.0.1 |
-| [mealie](charts/apps/mealie/) | Self-hosted recipe manager and meal planner | 0.1.1 |
-| [metube](charts/apps/metube/) | YouTube downloader with web interface (yt-dlp) | 1.0.0 |
-| [netbootxyz](charts/apps/netbootxyz/) | Network boot environment for PXE booting | 0.1.0 |
-| [paperless-ngx](charts/apps/paperless-ngx/) | Document management system with OCR | 0.1.0 |
-| [pgadmin](charts/apps/pgadmin/) | PostgreSQL management and administration tool | 1.0.2 |
-| [pihole](charts/apps/pihole/pihole/) | Pi-hole DNS ad blocker | 0.2.0 |
-| [proxmox-backup-server](charts/apps/proxmox-backup-server/) | Enterprise backup solution for VMs | 1.0.1 |
-| [redisinsight](charts/apps/redisinsight/) | Redis database management tool | 1.0.1 |
-| [restic-backup](charts/apps/restic-backup/) | Automated Kubernetes volume backups using restic | 1.2.1 |
-| [semaphore](charts/apps/semaphore/) | Modern UI for Ansible, Terraform, and more | 1.3.1 |
-| [shlink](charts/apps/shlink/) | Self-hosted URL shortener with analytics | 1.0.1 |
-| [uptime-kuma](charts/apps/uptime-kuma/) | Self-hosted monitoring tool | 1.0.1 |
+A generic, highly flexible Helm chart for deploying various types of applications on Kubernetes. Supports deployments, jobs, and cronjobs with extensive configuration options including:
 
-### Libraries (`charts/libs/`)
+- Multiple deployment strategies (Deployment, Job, CronJob)
+- Comprehensive probe configurations (startup, readiness, liveness)
+- Service mesh integration (Istio, Linkerd)
+- Monitoring (ServiceMonitor, PrometheusRule, Grafana Dashboards)
+- Security features (NetworkPolicy, PodDisruptionBudget, RBAC)
+- Auto-scaling (HPA, VPA)
+- Certificate management
+- And much more...
 
-| Chart | Description |
-|-------|-------------|
-| [common](charts/libs/common/) | Shared library chart with common templates and helpers |
+**Version:** 5.1.4
 
-### Vendored Charts (`charts/vendors/`)
+### 📊 [Homarr](charts/homarr/)
 
-| Chart | Description |
-|-------|-------------|
-| [nginx](charts/vendors/nginx/) | Vendored NGINX chart |
+Helm chart for deploying [Homarr](https://github.com/ajnart/homarr) - a modern, customizable dashboard that puts all of your apps and services at your fingertips. Perfect for homelabs and self-hosted environments.
+
+**Version:** 5.2.11
+**App Version:** 0.15.0
+
+### 🌐 [NGINX](charts/nginx/)
+
+Helm chart for deploying NGINX web server with customizable configuration options.
+
+**Version:** 0.1.1
+**App Version:** 1.27.0
 
 ## Quick Start
 
@@ -56,7 +51,7 @@ This repository contains production-ready Helm charts for various applications a
 ### Adding the Repository
 
 ```bash
-helm repo add pandia https://charts.pandia.io/
+helm repo add pandia https://charts.pandia.io
 helm repo update
 ```
 
@@ -88,13 +83,15 @@ helm uninstall my-release
 ## Chart Documentation
 
 Each chart has its own detailed README with:
-
 - Complete parameter documentation
 - Usage examples
 - Configuration guides
 - Troubleshooting tips
 
-Visit the individual chart directories for more information.
+Visit the individual chart directories for more information:
+- [Application Chart Documentation](charts/application/README.md)
+- [Homarr Chart Documentation](charts/homarr/README.md)
+- [NGINX Chart Documentation](charts/nginx/README.md)
 
 ## Development
 
@@ -103,46 +100,43 @@ Visit the individual chart directories for more information.
 - [Helm](https://helm.sh/docs/intro/install/) v3.8+
 - [helm-docs](https://github.com/norwoodj/helm-docs) (for documentation generation)
 - [chart-testing](https://github.com/helm/chart-testing) (for linting and testing)
-- [yamllint](https://github.com/adrienvergo/yamllint)
-- [kind](https://kind.sigs.k8s.io/) (for local integration testing)
+- [yamllint](https://github.com/adrienverge/yamllint)
 
 ### Local Testing
 
 ```bash
 # Lint all charts
-make lint
+ct lint --config ct.yaml --all
 
 # Lint a specific chart
-make lint-chart CHART=apps/home-assistant
-
-# Run unit tests
-make test
-
-# Run full CI locally (requires kind)
-make ci-local
+helm lint charts/<chart-name>
 
 # Template and validate
-make template CHART=apps/home-assistant
+helm template test charts/<chart-name> --values charts/<chart-name>/values.yaml
+
+# Dry run installation
+helm install test-release charts/<chart-name> --dry-run --debug
 ```
 
 ### Building Documentation
 
 ```bash
 # Generate README files for all charts
-make docs
+make build-docs
 
-# Generate docs for a specific chart
-make docs-chart CHART=apps/home-assistant
+# Or manually with helm-docs
+helm-docs charts/<chart-name>
 ```
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](docs/CONTRIBUTING.md) for details on:
-
+We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for details on:
 - How to submit issues and pull requests
-- Code standards and testing requirements
-- Development workflow
-- Release process
+- Development setup and workflow
+- Chart development guidelines
+- Testing requirements
+
+## Security
 
 For security concerns, please review our [Security Policy](docs/SECURITY.md) and report vulnerabilities responsibly.
 
@@ -161,29 +155,33 @@ Release artifacts and changelogs are available in the [Releases](https://github.
 
 ## Repository Structure
 
-```text
+```
 helm-charts/
 ├── .github/
-│   ├── workflows/           # CI/CD workflows (release, lint-test)
-│   └── dependabot.yml       # Dependency update configuration
-├── charts/
-│   ├── apps/                # Application charts (home-assistant, pgadmin, etc.)
-│   ├── libs/                # Shared library charts (common)
-│   └── vendors/             # Vendored third-party charts (nginx)
-├── docs/                    # Documentation (CONTRIBUTING, SECURITY)
-├── templates/               # Chart templates and documentation
-├── tools/
-│   └── compose-converter/   # Docker Compose to Helm converter utility
-├── ct.yaml                  # Chart testing configuration
-├── artifacthub-repo.yaml    # Artifact Hub metadata
-├── Makefile                 # Development commands
-└── README.md                # This file
+│   ├── workflows/       # CI/CD workflows
+│   └── ct-lint.yaml     # Chart testing linting configuration
+├── charts/              # All Helm charts
+│   ├── application/     # Generic application chart
+│   ├── homarr/         # Homarr dashboard chart
+│   └── nginx/          # NGINX chart
+├── docs/               # Documentation
+│   ├── CHANGELOG.md    # Version history
+│   ├── CONTRIBUTING.md # Contribution guidelines
+│   ├── SECURITY.md     # Security policy
+│   └── ...             # Additional documentation
+├── site/               # GitHub Pages content
+│   ├── index.html      # Landing page
+│   └── index.yaml      # Helm repository index
+├── ct.yaml             # Chart testing configuration
+├── LICENSE            # MIT License
+└── README.md          # This file
 ```
 
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/codefuturist/helm-charts/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/codefuturist/helm-charts/discussions)
+- **Email**: hello@allcloud.trade
 
 ## License
 
@@ -196,5 +194,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Maintained by:** [@codefuturist](https://github.com/codefuturist)  
+**Maintained by:** [@codefuturist](https://github.com/codefuturist)
 **Repository:** [github.com/codefuturist/helm-charts](https://github.com/codefuturist/helm-charts)

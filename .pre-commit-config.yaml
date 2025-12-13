@@ -1,11 +1,4 @@
 repos:
-  # Commitizen - Conventional Commits validation
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.1.0
-    hooks:
-      - id: commitizen
-        stages: [commit-msg]
-
   - repo: https://github.com/norwoodj/helm-docs
     rev: v1.14.2
     hooks:
@@ -16,33 +9,3 @@ repos:
           - --output-file=./../README.md
           - --template-files=./README.md.gotmpl
           - --sort-values-order=file
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
-    hooks:
-      - id: requirements-txt-fixer
-      - id: sort-simple-yaml
-      - id: detect-private-key
-        exclude: ^(charts/semaphore/values\.yaml|charts/redisinsight/ci/08-with-tls\.yaml)$
-      - id: check-merge-conflict
-      - id: end-of-file-fixer
-      - id: mixed-line-ending
-      - id: trailing-whitespace
-        args: [--markdown-linebreak-ext=md]
-  - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.37.1
-    hooks:
-      - id: yamllint
-        args: [-c=.yamllint]
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1
-    hooks:
-      - id: shellcheck
-  - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.5.5
-    hooks:
-      - id: remove-crlf
-      - id: remove-tabs
-  - repo: https://github.com/sirosen/texthooks
-    rev: 0.7.1
-    hooks:
-      - id: fix-smartquotes

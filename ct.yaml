@@ -19,7 +19,7 @@ validate-chart-schema: true
 
 # Additional YAML linters
 additional-commands:
-  - helm lint {{ .Path }}
+  - helm lint {chart}
 
 # Excluded charts (if any)
 excluded-charts: []

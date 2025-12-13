@@ -1,0 +1,83 @@
+suite: service tests
+templates:
+  - service.yaml
+tests:
+  - it: should render service with default values
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0].port
+          value: 80
+
+  - it: should use NodePort type when specified
+    set:
+      service:
+        type: NodePort
+        port: 80
+        nodePort: 30080
+    asserts:
+      - equal:
+          path: spec.type
+          value: NodePort
+      - equal:
+          path: spec.ports[0].nodePort
+          value: 30080
+
+  - it: should use LoadBalancer type with source ranges
+    set:
+      service:
+        type: LoadBalancer
+        loadBalancerIP: 10.0.0.100
+        loadBalancerSourceRanges:
+          - 10.0.0.0/8
+          - 192.168.0.0/16
+    asserts:
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+      - equal:
+          path: spec.loadBalancerIP
+          value: 10.0.0.100
+      - contains:
+          path: spec.loadBalancerSourceRanges
+          content: "10.0.0.0/8"
+
+  - it: should add service annotations
+    set:
+      service:
+        annotations:
+          service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    asserts:
+      - equal:
+          path: metadata.annotations["service.beta.kubernetes.io/aws-load-balancer-type"]
+          value: nlb
+
+  - it: should add service labels
+    set:
+      service:
+        labels:
+          custom-label: custom-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: custom-value
+
+  - it: should set session affinity
+    set:
+      service:
+        sessionAffinity: ClientIP
+        sessionAffinityConfig:
+          clientIP:
+            timeoutSeconds: 10800
+    asserts:
+      - equal:
+          path: spec.sessionAffinity
+          value: ClientIP
+      - equal:
+          path: spec.sessionAffinityConfig.clientIP.timeoutSeconds
+          value: 10800
+

@@ -1,0 +1,18 @@
+# CI Test: Diagnostic mode
+# Tests diagnostic mode for debugging
+
+diagnosticMode:
+  enabled: true
+  command:
+    - sleep
+  args:
+    - infinity
+
+# Probes should be disabled automatically in diagnostic mode
+livenessProbe:
+  enabled: true
+readinessProbe:
+  enabled: true
+startupProbe:
+  enabled: true
+

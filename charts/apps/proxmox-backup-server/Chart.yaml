@@ -2,7 +2,7 @@ apiVersion: v2
 name: proxmox-backup-server
 description: A production-ready Helm chart for Proxmox Backup Server - Enterprise backup solution for virtual environments
 type: application
-version: 1.0.1
+version: 1.0.0
 appVersion: "4.0.12"
 
 keywords:

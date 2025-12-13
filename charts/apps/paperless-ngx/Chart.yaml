@@ -2,7 +2,7 @@ apiVersion: v2
 name: paperless-ngx
 description: A Helm chart for Paperless-ngx - A community-supported supercharged version of paperless based on paperless-ng
 type: application
-version: 0.1.0
+version: 1.0.0
 appVersion: "2.13.5"
 keywords:
   - paperless

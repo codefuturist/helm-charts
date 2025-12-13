@@ -1,0 +1,73 @@
+suite: pvc and pdb tests
+templates:
+  - pvc.yaml
+  - pdb.yaml
+tests:
+  - it: should not create pvc when persistence disabled
+    template: pvc.yaml
+    set:
+      persistence.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not create pvc when using statefulset
+    template: pvc.yaml
+    set:
+      persistence.enabled: true
+      controller.type: statefulset
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create pvc for deployment with persistence
+    template: pvc.yaml
+    set:
+      persistence:
+        enabled: true
+        size: 5Gi
+        storageClassName: standard
+      controller.type: deployment
+    asserts:
+      - isKind:
+          of: PersistentVolumeClaim
+      - equal:
+          path: spec.resources.requests.storage
+          value: 5Gi
+      - equal:
+          path: spec.storageClassName
+          value: standard
+
+  - it: should not create pdb when disabled
+    template: pdb.yaml
+    set:
+      pdb.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create pdb with minAvailable
+    template: pdb.yaml
+    set:
+      pdb:
+        enabled: true
+        minAvailable: 1
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: spec.minAvailable
+          value: 1
+
+  - it: should create pdb with maxUnavailable
+    template: pdb.yaml
+    set:
+      pdb:
+        enabled: true
+        minAvailable: ""
+        maxUnavailable: 1
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+

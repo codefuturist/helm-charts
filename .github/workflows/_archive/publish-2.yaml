@@ -106,10 +106,10 @@ jobs:
           NEW_CHART_VERSION=$(echo "$CHART_TEXT" | grep version: | cut -d ' ' -f 2)
           RELEASE_LIST=$(curl -fs https://api.github.com/repos/${{ github.repository }}/releases  | jq .[].tag_name | grep homarr | cut -d '"' -f 2 | cut -d '-' -f 4)
           LATEST_RELEASED_CHART_VERSION=$(echo $RELEASE_LIST | cut -d ' ' -f 1)
-
+          
           echo "CHART_VERSION_IN_MASTER=$NEW_CHART_VERSION" >> $GITHUB_ENV
           echo "LATEST_CHART_VERSION=$LATEST_RELEASED_CHART_VERSION" >> $GITHUB_ENV
-
+          
           # Always publish if force is true
           if [[ $NEW_CHART_VERSION != $LATEST_RELEASED_CHART_VERSION || "${{ inputs.force }}" == "true" ]]; then
             echo "publish=true" >> $GITHUB_OUTPUT
@@ -168,7 +168,7 @@ jobs:
           cr package \
             ${{ github.workspace }}/charts/homarr/ \
             --package-path .cr-release-packages
-
+          
           cr upload \
             --owner "$(echo ${{ github.repository }} | cut -d '/' -f 1)" \
             --git-repo "$(echo ${{ github.repository }} | cut -d '/' -f 2)" \
