@@ -1,16 +1,15 @@
 #!/usr/bin/env sh
+# shellcheck disable=SC1091
 . "$(dirname -- "$0")/_/husky.sh"
 
 # =============================================================================
 # Commit Message Hook - Developer Friendly Version
 # =============================================================================
-# - Validates commit message format
+# - Validates commit message format using commitizen (if available) or regex
 # - Non-blocking warnings for suggestions
-# - Timeout protection
 # =============================================================================
 
 COMMIT_MSG_FILE=$1
-TIMEOUT_SECONDS=5
 
 # Read the commit message
 COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
@@ -28,28 +27,57 @@ fi
 echo "📝 Validating commit message..."
 
 # =============================================================================
-# Check: Conventional Commits Format (WARNING ONLY)
+# Check: Use Commitizen if available, otherwise fallback to regex
 # =============================================================================
 
-# Pattern: type(scope): subject
-if ! echo "$COMMIT_MSG" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .{1,}'; then
-    echo ""
-    echo "⚠️  Commit message doesn't follow Conventional Commits format"
-    echo ""
-    echo "   Recommended format:"
-    echo "   <type>(<scope>): <subject>"
-    echo ""
-    echo "   Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore"
-    echo ""
-    echo "   Example:"
-    echo "   feat(ssh): add key management"
-    echo "   fix(backup): correct rsync flags"
-    echo ""
-    echo "   Your message:"
-    echo "   $COMMIT_MSG"
-    echo ""
-    echo "   ℹ️  This is just a suggestion - commit will proceed"
-    echo ""
+# Find commitizen (prefer pipx installation to avoid conflicts with git aliases)
+CZ_CMD=""
+if [ -x "$HOME/.local/bin/cz" ]; then
+    CZ_CMD="$HOME/.local/bin/cz"
+elif command -v cz >/dev/null 2>&1 && cz version >/dev/null 2>&1; then
+    CZ_CMD="cz"
+fi
+
+if [ -n "$CZ_CMD" ]; then
+    # Use commitizen for validation (non-blocking)
+    if ! $CZ_CMD check --commit-msg-file "$COMMIT_MSG_FILE" 2>/dev/null; then
+        echo ""
+        echo "⚠️  Commit message doesn't follow Conventional Commits format"
+        echo ""
+        echo "   💡 Tip: Use 'make commit' or '$CZ_CMD commit' for an interactive guide"
+        echo ""
+        echo "   Your message:"
+        echo "   $COMMIT_MSG"
+        echo ""
+        echo "   ℹ️  This is just a suggestion - commit will proceed"
+        echo ""
+    fi
+else
+    # Fallback: Regex-based validation (WARNING ONLY)
+    # Pattern: type(scope): subject
+    if ! echo "$COMMIT_MSG" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .{1,}'; then
+        echo ""
+        echo "⚠️  Commit message doesn't follow Conventional Commits format"
+        echo ""
+        echo "   Recommended format:"
+        echo "   <type>(<scope>): <subject>"
+        echo ""
+        echo "   Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore"
+        echo ""
+        echo "   Example:"
+        echo "   feat(ssh): add key management"
+        echo "   fix(backup): correct rsync flags"
+        echo ""
+        echo "   💡 Tip: Install commitizen for interactive commits:"
+        echo "      pipx install commitizen"
+        echo "      cz commit"
+        echo ""
+        echo "   Your message:"
+        echo "   $COMMIT_MSG"
+        echo ""
+        echo "   ℹ️  This is just a suggestion - commit will proceed"
+        echo ""
+    fi
 fi
 
 # =============================================================================
@@ -59,13 +87,13 @@ fi
 SUBJECT_LINE=$(echo "$COMMIT_MSG" | head -1)
 SUBJECT_LENGTH=${#SUBJECT_LINE}
 
-if [ $SUBJECT_LENGTH -gt 72 ]; then
+if [ "$SUBJECT_LENGTH" -gt 72 ]; then
     echo "⚠️  Commit subject is $SUBJECT_LENGTH characters (recommended: ≤72)"
     echo "   Consider shortening the first line"
     echo ""
 fi
 
-if [ $SUBJECT_LENGTH -lt 10 ]; then
+if [ "$SUBJECT_LENGTH" -lt 10 ]; then
     echo "⚠️  Commit subject is very short ($SUBJECT_LENGTH characters)"
     echo "   Consider adding more context"
     echo ""

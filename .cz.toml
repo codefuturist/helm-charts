@@ -1,0 +1,24 @@
+# Commitizen Configuration
+# https://commitizen-tools.github.io/commitizen/
+#
+# Install: pipx install commitizen
+# Usage:   cz commit  (or: make commit)
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+version_scheme = "semver"
+update_changelog_on_bump = false
+major_version_zero = true
+
+# Custom commit message template
+message_template = "{{change_type}}{% if scope %}({{scope}}){% endif %}{% if is_breaking %}!{% endif %}: {{subject}}{% if body %}\n\n{{body}}{% endif %}{% if footer %}\n\n{{footer}}{% endif %}"
+
+# Allowed commit types (Conventional Commits)
+[tool.commitizen.customize]
+bump_pattern = "^(feat|fix|refactor|perf|BREAKING CHANGE)"
+bump_map = { "feat" = "MINOR", "fix" = "PATCH", "refactor" = "PATCH", "perf" = "PATCH", "BREAKING CHANGE" = "MAJOR" }
+
+# Chart-specific scopes for helm-charts repository
+# Add new charts here as they're created
+schema_pattern = "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\\(.+\\))?!?:\\s.+"

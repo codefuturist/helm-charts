@@ -1,4 +1,11 @@
 repos:
+  # Commitizen - Conventional Commits validation
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.1.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
   - repo: https://github.com/norwoodj/helm-docs
     rev: v1.14.2
     hooks:

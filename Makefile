@@ -8,6 +8,64 @@ help: ## Display this help message
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-20s %s\n", $$1, $$2}'
 
+# ============================================================================
+# Commitizen - Interactive Commits & Versioning
+# ============================================================================
+# Note: Uses 'cz' command from pipx-installed commitizen
+# If you have a conflicting 'cz' alias, use the full path: ~/.local/bin/cz
+
+CZ := $(shell command -v ~/.local/bin/cz 2>/dev/null || command -v cz 2>/dev/null)
+
+.PHONY: commit
+commit: ## Interactive conventional commit (usage: make commit)
+	@if [ -z "$(CZ)" ] || ! $(CZ) version >/dev/null 2>&1; then \
+		echo "❌ commitizen not found. Install with: make setup-commitizen"; \
+		exit 1; \
+	fi
+	$(CZ) commit
+
+.PHONY: commit-retry
+commit-retry: ## Retry last failed commit
+	@if [ -z "$(CZ)" ] || ! $(CZ) version >/dev/null 2>&1; then \
+		echo "❌ commitizen not found. Install with: make setup-commitizen"; \
+		exit 1; \
+	fi
+	$(CZ) commit --retry
+
+.PHONY: check-commit
+check-commit: ## Validate last commit message format
+	@if [ -z "$(CZ)" ] || ! $(CZ) version >/dev/null 2>&1; then \
+		echo "❌ commitizen not found. Install with: make setup-commitizen"; \
+		exit 1; \
+	fi
+	$(CZ) check --rev-range HEAD~1..HEAD
+
+.PHONY: changelog-chart
+changelog-chart: ## Generate changelog for a chart (usage: make changelog-chart CHART=nginx)
+	@test -n "$(CHART)" || { echo "CHART is not set. Usage: make changelog-chart CHART=nginx"; exit 1; }
+	@echo "📝 Recent commits for $(CHART):"
+	@git log --oneline --grep="($(CHART))" --pretty=format:"  - %s (%h)" -20
+	@echo ""
+
+.PHONY: setup-commitizen
+setup-commitizen: ## Install commitizen via pipx
+	@echo "📦 Installing commitizen via pipx..."
+	@command -v pipx >/dev/null 2>&1 || { echo "❌ pipx not found. Install with: brew install pipx && pipx ensurepath"; exit 1; }
+	pipx install commitizen
+	@echo ""
+	@echo "✅ Commitizen installed!"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make commit      - Interactive commit wizard"
+	@echo "  make commit-retry - Retry failed commit"
+	@echo "  make check-commit - Validate last commit"
+	@echo ""
+	@echo "Or run directly: ~/.local/bin/cz commit"
+
+# ============================================================================
+# Pre-commit & Hooks
+# ============================================================================
+
 .PHONY: install-hooks
 install-hooks: ## Install pre-commit hooks
 	command -v pre-commit 2>&1 >/dev/null || pip install pre-commit
