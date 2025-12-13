@@ -1,4 +1,4 @@
-name: Auto-update Home Assistant version
+name: Auto Update Home Assistant Version
 
 on:
     schedule:
