@@ -5,7 +5,10 @@ on:
     branches:
       - main
     paths:
-      - "charts/**"
+      - "charts/apps/**"
+      - "charts/libs/**"
+      - "charts/vendors/**"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -29,21 +32,44 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.13.0
+          version: v3.16.0
 
-      - name: Add dependencies
+      - name: Add Helm repositories
         run: |
-          for dir in charts/*/; do
-            if [ -f "$dir/Chart.yaml" ]; then
-              echo "Checking dependencies for $dir"
-              helm dependency update "$dir" || true
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      - name: Build chart dependencies
+        run: |
+          # Build dependencies for charts in apps, libs, and vendors
+          for chart_dir in charts/apps charts/libs charts/vendors; do
+            if [ -d "$chart_dir" ]; then
+              find "$chart_dir" -maxdepth 2 -name "Chart.yaml" -type f | while read chart_file; do
+                dir=$(dirname "$chart_file")
+                # Skip if it's a subchart dependency
+                if [[ "$dir" == */charts/* ]]; then
+                  continue
+                fi
+                if grep -q "^dependencies:" "$chart_file" 2>/dev/null; then
+                  echo "Building dependencies for $dir"
+                  helm dependency build "$dir" || echo "Warning: Failed to build deps for $dir"
+                fi
+              done
             fi
           done
 
-      - name: Run chart-releaser
+      - name: Run chart-releaser for apps
         uses: helm/chart-releaser-action@v1.7.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
-          charts_dir: charts
+          charts_dir: charts/apps
+          skip_existing: true
+
+      - name: Run chart-releaser for libs
+        uses: helm/chart-releaser-action@v1.7.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          charts_dir: charts/libs
           skip_existing: true

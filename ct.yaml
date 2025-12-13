@@ -1,9 +1,11 @@
 # Chart Testing Configuration
 # See: https://github.com/helm/chart-testing/blob/main/doc/ct_lint.md
 
-# Directory containing Helm charts
+# Directories containing Helm charts
 chart-dirs:
-  - charts
+  - charts/apps
+  - charts/libs
+  - charts/vendors
 
 # Additional Helm arguments
 helm-extra-args: --timeout 600s
@@ -21,8 +23,9 @@ validate-chart-schema: true
 additional-commands:
   - helm lint {chart}
 
-# Excluded charts (if any)
-excluded-charts: []
+# Excluded charts (examples and test charts)
+excluded-charts:
+  - test-final
 
 # Target branch for detecting changes
-target-branch: develop
+target-branch: main

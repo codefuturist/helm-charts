@@ -5,9 +5,11 @@ on:
     branches:
       - main
     paths:
-      - "charts/**/Chart.yaml"
-      - "charts/**/values.yaml"
-      - "charts/**/README.md.gotmpl"
+      - "charts/apps/**/Chart.yaml"
+      - "charts/apps/**/values.yaml"
+      - "charts/apps/**/README.md.gotmpl"
+      - "charts/libs/**/Chart.yaml"
+      - "charts/libs/**/values.yaml"
       - ".github/workflows/docs.yaml"
   workflow_dispatch:
 
@@ -34,19 +36,20 @@ jobs:
       - name: Generate chart documentation
         run: |
           echo "Generating documentation for all charts..."
-          helm-docs --chart-search-root=charts
+          helm-docs --chart-search-root=charts/apps
+          helm-docs --chart-search-root=charts/libs
 
       - name: Check for documentation changes
         id: git-check
         run: |
-          git diff --exit-code charts/*/README.md || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --exit-code charts/apps/*/README.md charts/libs/*/README.md || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit documentation to main
         if: steps.git-check.outputs.changed == 'true'
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-          git add charts/*/README.md
+          git add charts/apps/*/README.md charts/libs/*/README.md
           git commit -m "docs: auto-update chart documentation [skip ci]"
           git push origin main
           echo "✓ Chart documentation updated"

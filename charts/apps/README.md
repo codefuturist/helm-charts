@@ -1,10 +1,10 @@
-# actualbudget
+# pgadmin
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 25.11.0](https://img.shields.io/badge/AppVersion-25.11.0-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 9.10.0](https://img.shields.io/badge/AppVersion-9.10.0-informational?style=flat-square)
 
-A Helm chart for Actual Budget - A local-first personal finance app
+A production-ready Helm chart for pgAdmin 4 - PostgreSQL management and administration tool
 
-**Homepage:** <https://actualbudget.org>
+**Homepage:** <https://www.pgadmin.org/>
 
 ## Maintainers
 
@@ -14,7 +14,7 @@ A Helm chart for Actual Budget - A local-first personal finance app
 
 ## Source Code
 
-* <https://github.com/actualbudget/actual>
+* <https://github.com/pgadmin-org/pgadmin4>
 * <https://github.com/codefuturist/helm-charts>
 
 ## Requirements
@@ -27,146 +27,142 @@ A Helm chart for Actual Budget - A local-first personal finance app
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| global.imageRegistry | string | `""` |  |
-| global.imagePullSecrets | list | `[]` |  |
-| nameOverride | string | `""` |  |
-| fullnameOverride | string | `""` |  |
-| namespaceOverride | string | `""` |  |
-| kubeVersion | string | `""` |  |
-| clusterDomain | string | `"cluster.local"` |  |
-| commonLabels | object | `{}` |  |
-| commonAnnotations | object | `{}` |  |
-| diagnosticMode.enabled | bool | `false` |  |
-| diagnosticMode.command[0] | string | `"sleep"` |  |
-| diagnosticMode.args[0] | string | `"infinity"` |  |
-| image.registry | string | `"ghcr.io"` |  |
-| image.repository | string | `"alexta69/metube"` |  |
-| image.tag | string | `"2025.11.29"` |  |
-| image.digest | string | `""` |  |
-| image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.pullSecrets | list | `[]` |  |
-| image.debug | bool | `false` |  |
-| config.downloadMode | string | `"limited"` |  |
-| config.maxConcurrentDownloads | int | `3` |  |
-| config.deleteFileOnTrashcan | bool | `false` |  |
-| config.defaultOptionPlaylistStrictMode | bool | `false` |  |
-| config.defaultOptionPlaylistItemLimit | int | `0` |  |
-| config.customDirs | bool | `true` |  |
-| config.createCustomDirs | bool | `true` |  |
-| config.customDirsExcludeRegex | string | `"(^|/)[.@].*$"` |  |
-| config.downloadDirsIndexable | bool | `false` |  |
-| config.outputTemplate | string | `"%(title)s.%(ext)s"` |  |
-| config.outputTemplateChapter | string | `"%(title)s - %(section_number)s %(section_title)s.%(ext)s"` |  |
-| config.outputTemplatePlaylist | string | `"%(playlist_title)s/%(title)s.%(ext)s"` |  |
-| config.ytdlOptions | string | `""` |  |
-| config.urlPrefix | string | `"/"` |  |
-| config.publicHostUrl | string | `""` |  |
-| config.publicHostAudioUrl | string | `""` |  |
-| config.uid | int | `1000` |  |
-| config.gid | int | `1000` |  |
-| config.umask | string | `"022"` |  |
-| config.defaultTheme | string | `"auto"` |  |
-| config.loglevel | string | `"INFO"` |  |
-| config.enableAccesslog | bool | `false` |  |
-| storage.downloadDir | string | `"/downloads"` |  |
-| storage.audioDownloadDir | string | `""` |  |
-| storage.stateDir | string | `""` |  |
-| storage.tempDir | string | `""` |  |
-| cookies.enabled | bool | `false` |  |
-| cookies.content | string | `""` |  |
-| cookies.existingSecret | string | `""` |  |
-| tls.enabled | bool | `false` |  |
-| tls.certFile | string | `""` |  |
-| tls.keyFile | string | `""` |  |
-| tls.existingSecret | string | `""` |  |
-| replicaCount | int | `1` |  |
-| updateStrategy.type | string | `"Recreate"` |  |
-| podLabels | object | `{}` |  |
-| podAnnotations | object | `{}` |  |
-| podSecurityContext.enabled | bool | `true` |  |
-| podSecurityContext.fsGroup | int | `1000` |  |
-| podSecurityContext.fsGroupChangePolicy | string | `"Always"` |  |
-| containerSecurityContext.enabled | bool | `true` |  |
-| containerSecurityContext.runAsUser | int | `1000` |  |
-| containerSecurityContext.runAsGroup | int | `1000` |  |
-| containerSecurityContext.runAsNonRoot | bool | `true` |  |
-| containerSecurityContext.allowPrivilegeEscalation | bool | `false` |  |
-| containerSecurityContext.capabilities.drop[0] | string | `"ALL"` |  |
-| containerPort | int | `8081` |  |
-| livenessProbe.enabled | bool | `true` |  |
-| livenessProbe.initialDelaySeconds | int | `30` |  |
-| livenessProbe.periodSeconds | int | `10` |  |
-| livenessProbe.timeoutSeconds | int | `5` |  |
-| livenessProbe.failureThreshold | int | `6` |  |
-| livenessProbe.successThreshold | int | `1` |  |
-| readinessProbe.enabled | bool | `true` |  |
-| readinessProbe.initialDelaySeconds | int | `15` |  |
-| readinessProbe.periodSeconds | int | `10` |  |
-| readinessProbe.timeoutSeconds | int | `3` |  |
-| readinessProbe.failureThreshold | int | `3` |  |
-| readinessProbe.successThreshold | int | `1` |  |
-| startupProbe.enabled | bool | `true` |  |
-| startupProbe.initialDelaySeconds | int | `10` |  |
-| startupProbe.periodSeconds | int | `10` |  |
-| startupProbe.timeoutSeconds | int | `3` |  |
-| startupProbe.failureThreshold | int | `30` |  |
-| startupProbe.successThreshold | int | `1` |  |
-| resourcesPreset | string | `"micro"` |  |
-| resources | object | `{}` |  |
-| command | list | `[]` |  |
-| args | list | `[]` |  |
-| extraEnvVars | list | `[]` |  |
-| extraEnvVarsCM | string | `""` |  |
-| extraEnvVarsSecret | string | `""` |  |
-| service.type | string | `"ClusterIP"` |  |
-| service.ports.http | int | `8081` |  |
-| service.nodePorts.http | string | `""` |  |
-| service.clusterIP | string | `""` |  |
-| service.loadBalancerIP | string | `""` |  |
-| service.loadBalancerSourceRanges | list | `[]` |  |
-| service.externalTrafficPolicy | string | `"Cluster"` |  |
-| service.annotations | object | `{}` |  |
-| service.sessionAffinity | string | `"None"` |  |
-| service.sessionAffinityConfig | object | `{}` |  |
-| ingress.enabled | bool | `false` |  |
-| ingress.pathType | string | `"ImplementationSpecific"` |  |
-| ingress.apiVersion | string | `""` |  |
-| ingress.ingressClassName | string | `""` |  |
-| ingress.hostname | string | `"metube.local"` |  |
-| ingress.path | string | `"/"` |  |
-| ingress.annotations | object | `{}` |  |
-| ingress.tls | bool | `false` |  |
-| ingress.selfSigned | bool | `false` |  |
-| ingress.extraHosts | list | `[]` |  |
-| ingress.extraPaths | list | `[]` |  |
-| ingress.extraTls | list | `[]` |  |
-| ingress.secrets | list | `[]` |  |
-| ingress.extraRules | list | `[]` |  |
-| persistence.enabled | bool | `true` |  |
-| persistence.storageClass | string | `""` |  |
-| persistence.annotations | object | `{}` |  |
-| persistence.accessModes[0] | string | `"ReadWriteOnce"` |  |
-| persistence.size | string | `"10Gi"` |  |
-| persistence.existingClaim | string | `""` |  |
-| persistence.selector | object | `{}` |  |
-| persistence.dataSource | object | `{}` |  |
-| serviceAccount.create | bool | `true` |  |
-| serviceAccount.name | string | `""` |  |
-| serviceAccount.automountServiceAccountToken | bool | `false` |  |
-| serviceAccount.annotations | object | `{}` |  |
-| pdb.enabled | bool | `false` |  |
-| pdb.minAvailable | int | `1` |  |
-| pdb.maxUnavailable | string | `""` |  |
-| networkPolicy.enabled | bool | `false` |  |
-| networkPolicy.ingress.enabled | bool | `true` |  |
-| networkPolicy.egress.enabled | bool | `true` |  |
-| networkPolicy.egress.allowExternal | bool | `true` |  |
-| metrics.enabled | bool | `false` |  |
-| metrics.serviceMonitor.enabled | bool | `false` |  |
-| metrics.serviceMonitor.namespace | string | `""` |  |
-| metrics.serviceMonitor.interval | string | `"30s"` |  |
-| metrics.serviceMonitor.scrapeTimeout | string | `"10s"` |  |
-| metrics.serviceMonitor.labels | object | `{}` |  |
-| metrics.serviceMonitor.selector | object | `{}` |  |
-| metrics.serviceMonitor.relabelings | list | `[]` |  |
-| metrics.serviceMonitor.metricRelabelings | list | `[]` |  |
+| namespaceOverride | string | `.Release.Namespace` | Override the namespace for all resources |
+| nameOverride | string | `""` | Override the name of the chart |
+| fullnameOverride | string | `""` | Override the full name of the chart |
+| additionalLabels | object | `{}` | Additional labels to add to all resources |
+| additionalAnnotations | object | `{}` | Additional annotations to add to all resources |
+| image.repository | string | `"dpage/pgadmin4"` | pgAdmin 4 Docker image repository |
+| image.tag | string | Chart appVersion | pgAdmin 4 Docker image tag |
+| image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
+| image.digest | string | `""` | Image digest (overrides tag if set) |
+| imagePullSecrets | list | `[]` | Image pull secrets for private registries |
+| pgadmin.email | string | `"admin@example.com"` | Default pgAdmin login email address (required if existingSecret is not set) |
+| pgadmin.password | string | "changeme" (MUST be changed in production) | Default pgAdmin login password (required if existingSecret is not set) IMPORTANT: Change this password before deploying to production! |
+| pgadmin.existingSecret | string | `""` | Name of an existing secret containing pgAdmin credentials The secret must contain keys for email and password (see existingSecretEmailKey and existingSecretPasswordKey) |
+| pgadmin.existingSecretEmailKey | string | `"email"` | Key in existingSecret that contains the email address |
+| pgadmin.existingSecretPasswordKey | string | `"password"` | Key in existingSecret that contains the password |
+| pgadmin.config | object | `{"PGADMIN_CONFIG_CONSOLE_LOG_LEVEL":"10","PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION":"False","PGADMIN_LISTEN_PORT":"80"}` | pgAdmin configuration settings as environment variables See https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html |
+| pgadmin.disablePostfix | bool | `false` | Disable internal Postfix server (set to any value to disable) Useful when using external SMTP server or in environments that prevent sudo |
+| pgadmin.replaceServersOnStartup | bool | `false` | Replace server definitions on every startup (not just first launch) When true, server definitions from serverDefinitions or existingServerDefinitionsConfigMap are reloaded on each start |
+| pgadmin.scriptName | string | `""` | Script name for reverse proxy subdirectory hosting Set this when hosting pgAdmin under a subdirectory (e.g., /pgadmin4) This sets the SCRIPT_NAME environment variable |
+| pgadmin.gunicorn | object | `{"accessLogfile":"-","limitRequestLine":8190,"threads":25}` | Gunicorn configuration |
+| pgadmin.gunicorn.threads | int | `25` | Number of threads per Gunicorn worker |
+| pgadmin.gunicorn.accessLogfile | string | `"-"` | Access log file path (- for stdout, empty to disable) |
+| pgadmin.gunicorn.limitRequestLine | int | `8190` | Maximum size of HTTP request line in bytes (0 for unlimited, not recommended) |
+| pgadmin.serverDefinitions | object | `{}` | Pre-configured PostgreSQL server definitions This will create a servers.json file mounted into pgAdmin Example: serverDefinitions:   servers:     1:       Name: "Production PostgreSQL"       Group: "Production"       Host: "postgresql.default.svc.cluster.local"       Port: 5432       MaintenanceDB: "postgres"       Username: "postgres"       SSLMode: "prefer" |
+| pgadmin.existingServerDefinitionsConfigMap | string | `""` | Name of an existing ConfigMap containing server definitions (servers.json) If set, this takes precedence over serverDefinitions |
+| pgadmin.pgpassFile | string | `""` | pgpass file content for automatic PostgreSQL authentication Format: hostname:port:database:username:password (one entry per line) Example: pgpassFile: |   postgresql.default.svc.cluster.local:5432:*:postgres:password123   postgresql-prod.database.svc:5432:production:dbuser:secret |
+| pgadmin.existingPgpassSecret | string | `""` | Name of an existing Secret containing pgpass file The secret must contain a key 'pgpass' with the pgpass file content |
+| pgadmin.configLocal | string | `""` | Custom config_local.py content for advanced pgAdmin configuration This Python file is loaded after config.py and can override any settings Example: configLocal: |   MASTER_PASSWORD_REQUIRED = False   SESSION_EXPIRATION_TIME = 1   ENHANCED_COOKIE_PROTECTION = True |
+| pgadmin.existingConfigLocalConfigMap | string | `""` | Name of an existing ConfigMap containing config_local.py |
+| pgadmin.smtp | object | `{"enabled":false,"existingSecret":"","existingSecretPasswordKey":"smtp-password","existingSecretUsernameKey":"smtp-username","fromAddress":"pgadmin@example.com","password":"","port":587,"server":"","useSSL":false,"useTLS":true,"username":""}` | SMTP/Email configuration for notifications and user management |
+| pgadmin.smtp.enabled | bool | `false` | Enable SMTP configuration |
+| pgadmin.smtp.server | string | `""` | SMTP server host |
+| pgadmin.smtp.port | int | `587` | SMTP server port |
+| pgadmin.smtp.useTLS | bool | `true` | Use TLS for SMTP |
+| pgadmin.smtp.useSSL | bool | `false` | Use SSL for SMTP |
+| pgadmin.smtp.username | string | `""` | SMTP username |
+| pgadmin.smtp.password | string | `""` | SMTP password |
+| pgadmin.smtp.existingSecret | string | `""` | Name of existing secret containing SMTP credentials |
+| pgadmin.smtp.existingSecretUsernameKey | string | `"smtp-username"` | Key in existingSecret for SMTP username |
+| pgadmin.smtp.existingSecretPasswordKey | string | `"smtp-password"` | Key in existingSecret for SMTP password |
+| pgadmin.smtp.fromAddress | string | `"pgadmin@example.com"` | Email sender address |
+| pgadmin.ldap | object | `{"bindDN":"","bindPassword":"","enabled":false,"groupBaseDN":"","server":"","userBaseDN":""}` | LDAP/OAuth integration configuration |
+| pgadmin.ldap.enabled | bool | `false` | Enable LDAP authentication |
+| pgadmin.ldap.server | string | `""` | LDAP server URI |
+| pgadmin.ldap.bindDN | string | `""` | LDAP bind DN |
+| pgadmin.ldap.bindPassword | string | `""` | LDAP bind password |
+| pgadmin.ldap.userBaseDN | string | `""` | LDAP user base DN |
+| pgadmin.ldap.groupBaseDN | string | `""` | LDAP group base DN |
+| controller.type | string | `"deployment"` | Controller type (deployment or statefulset) |
+| controller.replicas | int | `1` | Number of pgAdmin replicas |
+| controller.strategy | object | `{"type":"Recreate"}` | Deployment update strategy |
+| controller.updateStrategy | object | `{"type":"RollingUpdate"}` | StatefulSet update strategy (only used if controller.type is statefulset) |
+| controller.podManagementPolicy | string | `"OrderedReady"` | Pod management policy (only used if controller.type is statefulset) |
+| controller.command | list | `[]` | Command override for the main container |
+| controller.args | list | `[]` | Args override for the main container |
+| controller.workingDir | string | `""` | Working directory for the main container |
+| controller.terminationGracePeriodSeconds | int | `30` | Termination grace period in seconds |
+| controller.lifecycle | object | `{}` | Lifecycle hooks for the main container |
+| service.type | string | `"ClusterIP"` | Service type |
+| service.port | int | `80` | Service port |
+| service.targetPort | int | `80` | Service target port (container port) |
+| service.nodePort | string | `""` | Node port (only used if type is NodePort) |
+| service.loadBalancerIP | string | `""` | Load balancer IP (only used if type is LoadBalancer) |
+| service.loadBalancerSourceRanges | list | `[]` | Load balancer source ranges (only used if type is LoadBalancer) |
+| service.externalTrafficPolicy | string | `""` | External traffic policy (only used if type is LoadBalancer or NodePort) |
+| service.clusterIP | string | `""` | Cluster IP (set to None for headless service) |
+| service.sessionAffinity | string | `"None"` | Session affinity |
+| service.sessionAffinityConfig | object | `{}` | Session affinity config |
+| service.annotations | object | `{}` | Service annotations |
+| service.labels | object | `{}` | Service labels |
+| ingress.enabled | bool | `false` | Enable ingress |
+| ingress.className | string | `""` | Ingress class name |
+| ingress.annotations | object | `{}` | Ingress annotations Example for nginx ingress: annotations:   cert-manager.io/cluster-issuer: "letsencrypt-prod"   nginx.ingress.kubernetes.io/backend-protocol: "HTTP" |
+| ingress.hosts | list | `[]` | Ingress hosts configuration Example: hosts:   - host: pgadmin.example.com     paths:       - path: /         pathType: Prefix |
+| ingress.tls | list | `[]` | Ingress TLS configuration Example: tls:   - secretName: pgadmin-tls     hosts:       - pgadmin.example.com |
+| persistence.enabled | bool | `true` | Enable persistent storage for pgAdmin data Data includes user preferences, sessions, and saved queries |
+| persistence.storageClassName | string | Default storage class | Storage class name |
+| persistence.accessMode | string | `"ReadWriteOnce"` | Access mode for the persistent volume |
+| persistence.size | string | `"1Gi"` | Size of the persistent volume |
+| persistence.existingClaim | string | `""` | Name of an existing PVC to use |
+| persistence.annotations | object | `{}` | Annotations for the PVC |
+| podSecurityContext | object | `{"fsGroup":5050,"runAsGroup":5050,"runAsUser":5050}` | Pod security context pgAdmin runs as user 5050 by default Note: Minimal security context to ensure compatibility with various Kubernetes clusters |
+| securityContext | object | `{}` | Container security context Note: Empty by default to maximize compatibility. Override with stricter settings if your cluster supports them. |
+| resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"64Mi"}}` | Resource limits and requests Minimal requests to allow scheduling, no limits to allow bursting |
+| livenessProbe | object | `{"enabled":true,"failureThreshold":6,"httpGet":{"path":"/misc/ping","port":"http"},"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Liveness probe configuration |
+| readinessProbe | object | `{"enabled":true,"failureThreshold":3,"httpGet":{"path":"/misc/ping","port":"http"},"initialDelaySeconds":15,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Readiness probe configuration |
+| startupProbe | object | `{"enabled":true,"failureThreshold":30,"httpGet":{"path":"/misc/ping","port":"http"},"initialDelaySeconds":10,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3}` | Startup probe configuration |
+| podAnnotations | object | `{}` | Pod annotations |
+| podLabels | object | `{}` | Pod labels |
+| nodeSelector | object | `{}` | Node selector for pod assignment |
+| tolerations | list | `[]` | Tolerations for pod assignment |
+| affinity | object | `{}` | Affinity for pod assignment |
+| priorityClassName | string | `""` | Priority class name for the pod |
+| topologySpreadConstraints | list | `[]` | Topology spread constraints for pod distribution |
+| dnsPolicy | string | `"ClusterFirst"` | DNS policy |
+| dnsConfig | object | `{}` | DNS config |
+| hostAliases | list | `[]` | Host aliases |
+| runtimeClassName | string | `""` | Runtime class name |
+| initContainers | list | `[]` | Init containers to run before the main container |
+| extraContainers | list | `[]` | Extra sidecar containers |
+| extraEnv | list | `[]` | Extra environment variables |
+| extraEnvFrom | list | `[]` | Extra environment variables from ConfigMaps or Secrets |
+| extraVolumes | list | `[]` | Extra volumes |
+| extraVolumeMounts | list | `[]` | Extra volume mounts |
+| monitoring.serviceMonitor.enabled | bool | `false` | Enable ServiceMonitor for Prometheus Operator |
+| monitoring.serviceMonitor.namespace | string | `""` | Namespace for the ServiceMonitor (defaults to the release namespace) |
+| monitoring.serviceMonitor.interval | string | `"30s"` | Interval at which metrics should be scraped |
+| monitoring.serviceMonitor.scrapeTimeout | string | `"10s"` | Timeout for scraping metrics |
+| monitoring.serviceMonitor.labels | object | `{}` | Additional labels for the ServiceMonitor |
+| monitoring.serviceMonitor.annotations | object | `{}` | Additional annotations for the ServiceMonitor |
+| monitoring.serviceMonitor.metricRelabelings | list | `[]` | Metric relabelings |
+| monitoring.serviceMonitor.relabelings | list | `[]` | Relabelings |
+| monitoring.prometheusRule.enabled | bool | `false` | Enable PrometheusRule for alerting |
+| monitoring.prometheusRule.namespace | string | `""` | Namespace for the PrometheusRule (defaults to the release namespace) |
+| monitoring.prometheusRule.labels | object | `{}` | Additional labels for the PrometheusRule |
+| monitoring.prometheusRule.rules | list | `[]` | Alert rules |
+| pdb.enabled | bool | `false` | Enable PodDisruptionBudget |
+| pdb.minAvailable | int | `1` | Minimum number of pods that must be available |
+| pdb.maxUnavailable | string | `""` | Maximum number of pods that can be unavailable |
+| hpa | object | `{"customMetrics":[],"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80,"targetMemoryUtilizationPercentage":80}` | Horizontal Pod Autoscaler configuration Note: HPA is generally not recommended for pgAdmin as it's typically single-instance |
+| hpa.enabled | bool | `false` | Enable HorizontalPodAutoscaler |
+| hpa.minReplicas | int | `1` | Minimum number of replicas |
+| hpa.maxReplicas | int | `3` | Maximum number of replicas |
+| hpa.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization percentage |
+| hpa.targetMemoryUtilizationPercentage | int | `80` | Target memory utilization percentage |
+| hpa.customMetrics | list | `[]` | Custom metrics for autoscaling |
+| serviceAccount.create | bool | `true` | Create a service account |
+| serviceAccount.name | string | `""` | Service account name (generated if not set and create is true) |
+| serviceAccount.annotations | object | `{}` | Service account annotations |
+| rbac.create | bool | `true` | Create RBAC resources |
+| rbac.rules | list | `[]` | Additional RBAC rules |
+| networkPolicy.enabled | bool | `false` | Enable network policy |
+| networkPolicy.policyTypes | list | `["Ingress","Egress"]` | Policy types |
+| networkPolicy.ingress | list | `[]` | Ingress rules Example to allow traffic from specific namespaces: ingress:   - from:     - namespaceSelector:         matchLabels:           name: ingress-nginx     ports:     - protocol: TCP       port: 80 |
+| networkPolicy.egress | list | `[{"ports":[{"port":5432,"protocol":"TCP"}],"to":[{"namespaceSelector":{}}]},{"ports":[{"port":53,"protocol":"UDP"}],"to":[{"namespaceSelector":{}}]}]` | Egress rules By default, allow egress to PostgreSQL port |
+| diagnosticMode.enabled | bool | `false` | Enable diagnostic mode (disables probes, overrides command) Useful for debugging container startup issues |
+| diagnosticMode.command | list | `["sleep"]` | Command override for diagnostic mode |
+| diagnosticMode.args | list | `["infinity"]` | Args override for diagnostic mode |
+

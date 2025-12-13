@@ -6,9 +6,12 @@ on:
       - main
     paths:
       - "site/**"
-      - "charts/**/README.md"
-      - "charts/**/Chart.yaml"
-      - "charts/**/values.yaml"
+      - "charts/apps/**/README.md"
+      - "charts/apps/**/Chart.yaml"
+      - "charts/apps/**/values.yaml"
+      - "charts/libs/**/README.md"
+      - "charts/libs/**/Chart.yaml"
+      - "charts/libs/**/values.yaml"
       - ".github/workflows/pages.yaml"
   workflow_dispatch:
 
@@ -46,7 +49,8 @@ jobs:
       - name: Generate chart documentation
         run: |
           echo "Generating documentation for all charts..."
-          helm-docs --chart-search-root=charts
+          helm-docs --chart-search-root=charts/apps
+          helm-docs --chart-search-root=charts/libs
 
       - name: Build site with chart documentation
         run: |
@@ -55,38 +59,40 @@ jobs:
           # Create charts directory structure in site
           mkdir -p site/charts
 
-          # Copy each chart's documentation
-          for chart_dir in charts/*/; do
-            chart_name=$(basename "$chart_dir")
+          # Process charts from apps and libs directories
+          for chart_category in apps libs; do
+            for chart_dir in charts/$chart_category/*/; do
+              chart_name=$(basename "$chart_dir")
 
-            # Skip non-chart directories
-            if [ ! -f "$chart_dir/Chart.yaml" ]; then
-              echo "Skipping $chart_name (no Chart.yaml)"
-              continue
-            fi
+              # Skip non-chart directories
+              if [ ! -f "$chart_dir/Chart.yaml" ]; then
+                echo "Skipping $chart_name (no Chart.yaml)"
+                continue
+              fi
 
-            echo "Processing chart: $chart_name"
+              echo "Processing chart: $chart_name"
 
-            # Create chart directory in site
-            mkdir -p "site/charts/$chart_name"
+              # Create chart directory in site
+              mkdir -p "site/charts/$chart_name"
 
-            # Copy README if it exists
-            if [ -f "$chart_dir/README.md" ]; then
-              cp "$chart_dir/README.md" "site/charts/$chart_name/"
-              echo "✓ Copied README for $chart_name"
-            fi
+              # Copy README if it exists
+              if [ -f "$chart_dir/README.md" ]; then
+                cp "$chart_dir/README.md" "site/charts/$chart_name/"
+                echo "✓ Copied README for $chart_name"
+              fi
 
-            # Copy Chart.yaml for reference
-            if [ -f "$chart_dir/Chart.yaml" ]; then
-              cp "$chart_dir/Chart.yaml" "site/charts/$chart_name/"
-              echo "✓ Copied Chart.yaml for $chart_name"
-            fi
+              # Copy Chart.yaml for reference
+              if [ -f "$chart_dir/Chart.yaml" ]; then
+                cp "$chart_dir/Chart.yaml" "site/charts/$chart_name/"
+                echo "✓ Copied Chart.yaml for $chart_name"
+              fi
 
-            # Copy values.yaml for reference
-            if [ -f "$chart_dir/values.yaml" ]; then
-              cp "$chart_dir/values.yaml" "site/charts/$chart_name/"
-              echo "✓ Copied values.yaml for $chart_name"
-            fi
+              # Copy values.yaml for reference
+              if [ -f "$chart_dir/values.yaml" ]; then
+                cp "$chart_dir/values.yaml" "site/charts/$chart_name/"
+                echo "✓ Copied values.yaml for $chart_name"
+              fi
+            done
           done
 
           # Generate charts index page

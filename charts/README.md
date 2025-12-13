@@ -1,25 +1,20 @@
-# postgresql
+# application
 
-![Version: 1.7.1](https://img.shields.io/badge/Version-1.7.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 16.4](https://img.shields.io/badge/AppVersion-16.4-informational?style=flat-square)
+![Version: 6.14.1](https://img.shields.io/badge/Version-6.14.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
-A production-ready Helm chart for PostgreSQL database with advanced features including replication, backups, monitoring, and security
+Generic helm chart for all kind of applications
 
-**Homepage:** <https://www.postgresql.org/>
+**Homepage:** <https://github.com/stakater/application>
 
 ## Maintainers
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
-
-## Source Code
-
-* <https://github.com/postgres/postgres>
-* <https://github.com/codefuturist/helm-charts>
+| Stakater | <hello@stakater.com> |  |
 
 ## Values
 
-### Global Parameters
+### Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -27,363 +22,376 @@ A production-ready Helm chart for PostgreSQL database with advanced features inc
 | componentOverride | string | `""` | Override the component label for all resources. |
 | partOfOverride | string | `""` | Override the partOf label for all resources. |
 | applicationName | string | `{{ .Chart.Name }}` | Application name. |
-| additionalLabels | tpl/object | `{}` | Additional labels for all resources. |
-| additionalAnnotations | tpl/object | `{}` | Additional annotations for all resources. |
-| diagnosticMode | object | `{"args":["infinity"],"command":["sleep"],"enabled":false}` | Diagnostic mode configuration |
+| additionalLabels | tpl/object | `nil` | Additional labels for all resources. |
+| extraObjects | [list or object] of [tpl/object or tpl/string] | `nil` | Extra K8s manifests to deploy. Can be of type list or object. If object, keys are ignored and only values are used. The used values can be defined as object or string and are passed through tpl to render. |
 
-### PostgreSQL Parameters
+### CronJob Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| postgresql.version | string | `"16.4"` | PostgreSQL version/image tag |
-| postgresql.image | string | `{"digest":"","pullPolicy":"IfNotPresent","repository":"postgres","tag":"16.4-alpine"}` | PostgreSQL image repository |
-| postgresql.imagePullSecrets | object | `[]` | Image pull secrets |
-| postgresql.database | string | `"postgres"` | PostgreSQL database name |
-| postgresql.username | string | `"postgres"` | PostgreSQL username |
-| postgresql.password | string | `""` | PostgreSQL password (if not using existingSecret) |
-| postgresql.hostAuthMethod | string | `"scram-sha-256"` | PostgreSQL host authentication method Options: scram-sha-256, md5, password, trust |
-| postgresql.existingSecret | string | `""` | Reference to existing secret containing PostgreSQL password |
-| postgresql.existingSecretPasswordKey | string | `"postgresql-password"` | Key in existing secret containing the password |
-| postgresql.postgresPassword | string | `""` | PostgreSQL postgres user password (superuser) |
-| postgresql.existingPostgresSecret | string | `""` | Reference to existing secret containing postgres password |
-| postgresql.existingPostgresPasswordKey | string | `"postgresql-postgres-password"` | Key in existing secret containing the postgres password |
-| postgresql.auth | object | `{"passwordFilesPath":"/opt/bitnami/postgresql/secrets","usePasswordFiles":true}` | Password security configuration |
-| postgresql.preInitScripts | object | `{}` | Pre-initialization scripts (run BEFORE database initialization) |
-| postgresql.config | object | `{"checkpoint_completion_target":"0.9","default_statistics_target":"100","effective_cache_size":"1GB","effective_io_concurrency":"200","hot_standby":"on","hot_standby_feedback":"on","huge_pages":"try","log_autovacuum_min_duration":"0","log_checkpoints":"on","log_connections":"on","log_destination":"stderr","log_disconnections":"on","log_error_verbosity":"default","log_line_prefix":"%m [%p] %q%u@%d ","log_lock_waits":"on","log_min_duration_statement":"1000","log_temp_files":"0","logging_collector":"off","maintenance_work_mem":"64MB","max_connections":"100","max_parallel_maintenance_workers":"2","max_parallel_workers":"4","max_parallel_workers_per_gather":"2","max_replication_slots":"10","max_wal_senders":"10","max_wal_size":"4GB","max_worker_processes":"4","min_wal_size":"1GB","password_encryption":"scram-sha-256","random_page_cost":"1.1","shared_buffers":"256MB","ssl":"off","wal_buffers":"16MB","wal_level":"replica","work_mem":"2621kB"}` | PostgreSQL configuration parameters IMPORTANT: For dynamic user sync (CronJob) or external connections, set listen_addresses: "*" |
-| postgresql.customConfig | string | `""` | Custom PostgreSQL configuration (postgresql.conf) |
-| postgresql.customPgHba | string | `""` | Custom pg_hba.conf configuration |
-| postgresql.extensions | array | `["pg_stat_statements","pgcrypto"]` | PostgreSQL extensions to enable |
-| postgresql.initScripts | array | `{}` | Init scripts to run on first boot |
-| postgresql.additionalDatabases | array | `[]` | Additional databases to create on first boot |
-| postgresql.additionalUsers | array | `[]` | Additional users to create on first boot |
-| postgresql.externalResources | object | `{"databasesConfigMap":{"key":"databases.yaml","name":"","namespace":""},"enabled":false,"usersConfigMap":{"key":"users.yaml","name":"","namespace":""},"usersSecret":{"name":"","namespace":"","passwordKeys":{}}}` | External Kubernetes resources to read databases/users from |
-| postgresql.env | array | `[]` | Additional environment variables |
-| postgresql.envFrom | object | `[]` | Additional environment variables from secrets or configmaps |
+| cronJob.enabled | bool | `false` | Deploy CronJob resources. |
+| cronJob.jobs | object | `nil` | Map of CronJob resources. Key will be used as a name suffix for the CronJob. Value is the CronJob configuration. See values for more details. |
+
+### Job Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| job.enabled | bool | `false` | Deploy Job resources. |
+| job.jobs | object | `nil` | Map of Job resources. Key will be used as a name suffix for the Job. Value is the Job configuration. See values for more details. |
 
 ### Deployment Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| deployment.replicas | int | `1` | Number of PostgreSQL replicas |
-| deployment.strategy | string | `{"type":"Recreate"}` | Deployment strategy |
-| deployment.podAnnotations | object | `{"configmap.reloader.stakater.com/reload":"postgresql-config","prometheus.io/path":"/metrics","prometheus.io/port":"9187","prometheus.io/scrape":"false","secret.reloader.stakater.com/reload":"postgresql"}` | Pod annotations |
-| deployment.podLabels | object | `{"app.kubernetes.io/component":"database","app.kubernetes.io/part-of":"postgresql"}` | Pod labels |
-| deployment.podSecurityContext | object | `{"fsGroup":999,"fsGroupChangePolicy":"OnRootMismatch"}` | Security context for the pod |
-| deployment.securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":false,"runAsGroup":999,"runAsNonRoot":true,"runAsUser":999}` | Security context for the container |
-| deployment.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"128Mi"}}` | Resource limits and requests Minimal requests to allow scheduling, no limits to allow bursting |
-| deployment.livenessProbe | object | `{"enabled":true,"exec":{"command":["/bin/sh","-c","exec pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -q"]},"failureThreshold":6,"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Liveness probe configuration |
-| deployment.readinessProbe | object | `{"enabled":true,"exec":{"command":["/bin/sh","-c","exec pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -q"]},"failureThreshold":6,"initialDelaySeconds":5,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Readiness probe configuration |
-| deployment.startupProbe | object | `{"enabled":true,"exec":{"command":["/bin/sh","-c","exec pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -q"]},"failureThreshold":30,"initialDelaySeconds":0,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5}` | Startup probe configuration |
-| deployment.nodeSelector | object | `{}` | Node selector |
-| deployment.tolerations | array | `[]` | Tolerations |
-| deployment.affinity | object | `{}` | Affinity rules |
-| deployment.priorityClassName | string | `""` | Priority class name |
-| deployment.serviceAccountName | string | `""` | Service account name |
-| deployment.terminationGracePeriodSeconds | int | `30` | Termination grace period |
-| deployment.topologySpreadConstraints | array | `[]` | Topology spread constraints |
-| deployment.dnsPolicy | string | `"ClusterFirst"` | DNS policy |
-| deployment.dnsConfig | object | `{}` | DNS config |
-| deployment.hostAliases | array | `[]` | Host aliases |
-| deployment.initContainers | array | `[]` | Init containers |
-| deployment.sidecarContainers | array | `[]` | Sidecar containers |
-| deployment.lifecycle | object | `{"preStop":{"exec":{"command":["/bin/sh","-c","# Wait for active connections to close gracefully\npg_ctl stop -D ${PGDATA} -m smart -t 60 || pg_ctl stop -D ${PGDATA} -m fast -t 30\n"]}}}` | Lifecycle hooks for graceful shutdown |
-
-### StatefulSet Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| statefulset.enabled | bool | `false` | Use StatefulSet instead of Deployment |
-| statefulset.serviceName | string | `"postgresql"` | Service name for StatefulSet |
-| statefulset.podManagementPolicy | string | `"OrderedReady"` | Pod management policy |
-| statefulset.updateStrategy | object | `{"type":"RollingUpdate"}` | Update strategy |
-
-### Persistence Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| persistence.enabled | bool | `true` | Enable persistence using PVC |
-| persistence.existingClaim | string | `""` | Use existing PVC |
-| persistence.storageClass | string | `""` | Storage class name |
-| persistence.accessModes | array | `["ReadWriteOnce"]` | Access modes |
-| persistence.size | string | `"2Gi"` | Size of the volume |
-| persistence.annotations | object | `{}` | Annotations for PVC |
-| persistence.selector | object | `{}` | Selector for PVC |
-| persistence.mountPath | string | `"/var/lib/postgresql/data"` | Mount path for data |
-| persistence.subPath | string | `""` | Sub path inside the volume |
-| persistence.retentionPolicy | object | `{"enabled":false,"whenDeleted":"Retain","whenScaled":"Retain"}` | PVC retention policy (requires Kubernetes 1.23+) |
+| deployment.enabled | bool | `true` | Enable Deployment. |
+| deployment.additionalLabels | object | `nil` | Additional labels for Deployment. |
+| deployment.podLabels | object | `nil` | Additional pod labels which are used in Service's Label Selector. |
+| deployment.annotations | object | `nil` | Annotations for Deployment. |
+| deployment.additionalPodAnnotations | object | `nil` | Additional pod annotations. |
+| deployment.strategy.type | string | `"RollingUpdate"` | Type of deployment strategy. |
+| deployment.reloadOnChange | bool | `true` | Reload deployment if attached Secret/ConfigMap changes. |
+| deployment.nodeSelector | object | `nil` | Select the node where the pods should be scheduled. |
+| deployment.hostAliases | list | `nil` | Mapping between IP and hostnames that will be injected as entries in the pod's hosts files. |
+| deployment.initContainers | object | `nil` | Add init containers to the pods. |
+| deployment.fluentdConfigAnnotations | object | `nil` | Configuration details for fluentdConfigurations. Only works for specific setup, see <https://medium.com/stakater/dynamic-log-processing-with-fluentd-konfigurator-and-slack-935a5de4eddb>. |
+| deployment.replicas | int | `nil` | Number of replicas. |
+| deployment.imagePullSecrets | list | `[]` | List of secrets to be used for pulling the images. |
+| deployment.envFrom | object | `nil` | Mount environment variables from ConfigMap or Secret to the pod. See the README "Consuming environment variable in application chart" section for more details. |
+| deployment.env | object | `nil` | Environment variables to be added to the pod. See the README "Consuming environment variable in application chart" section for more details. |
+| deployment.volumes | object | `nil` | Volumes to be added to the pod. Key is the name of the volume. Value is the volume definition. |
+| deployment.volumeMounts | object | `nil` | Mount path for Volumes. Key is the name of the volume. Value is the volume mount definition. |
+| deployment.priorityClassName | string | `""` | Define the priority class for the pod. |
+| deployment.runtimeClassName | string | `""` | Set the runtimeClassName for the deployment's pods. |
+| deployment.tolerations | list | `nil` | Taint tolerations for the pods. |
+| deployment.affinity | object | `nil` | Affinity for the pods. |
+| deployment.topologySpreadConstraints | list | `nil` | Topology spread constraints for the pods. |
+| deployment.revisionHistoryLimit | int | `2` | Number of ReplicaSet revisions to retain. |
+| deployment.image.repository | tpl/string | `""` | Repository. |
+| deployment.image.tag | tpl/string | `""` | Tag. |
+| deployment.image.digest | tpl/string | `""` | Image digest. If resolved to a non-empty value, digest takes precedence on the tag. |
+| deployment.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy. |
+| deployment.dnsConfig | object | `nil` | DNS config for the pods. |
+| deployment.dnsPolicy | string | `""` | DNS Policy. |
+| deployment.startupProbe | object | See below | Startup probe. Must specify either one of the following field when enabled: httpGet, exec, tcpSocket, grpc |
+| deployment.startupProbe.enabled | bool | `false` | Enable Startup probe. |
+| deployment.startupProbe.failureThreshold | int | `30` | Number of retries before marking the pod as failed. |
+| deployment.startupProbe.periodSeconds | int | `10` | Time between retries. |
+| deployment.startupProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
+| deployment.startupProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
+| deployment.startupProbe.httpGet | object | `{}` | HTTP Get probe. |
+| deployment.startupProbe.exec | object | `{}` | Exec probe. |
+| deployment.startupProbe.tcpSocket | object | `{}` | TCP Socket probe. |
+| deployment.startupProbe.grpc | object | `{}` | gRPC probe. |
+| deployment.readinessProbe | object | See below | Readiness probe. Must specify either one of the following field when enabled: httpGet, exec, tcpSocket, grpc |
+| deployment.readinessProbe.enabled | bool | `false` | Enable Readiness probe. |
+| deployment.readinessProbe.failureThreshold | int | `30` | Number of retries before marking the pod as failed. |
+| deployment.readinessProbe.periodSeconds | int | `10` | Time between retries. |
+| deployment.readinessProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
+| deployment.readinessProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
+| deployment.readinessProbe.httpGet | object | `{}` | HTTP Get probe. |
+| deployment.readinessProbe.exec | object | `{}` | Exec probe. |
+| deployment.readinessProbe.tcpSocket | object | `{}` | TCP Socket probe. |
+| deployment.readinessProbe.grpc | object | `{}` | gRPC probe. |
+| deployment.livenessProbe | object | See below | Liveness probe. Must specify either one of the following field when enabled: httpGet, exec, tcpSocket, grpc |
+| deployment.livenessProbe.enabled | bool | `false` | Enable Liveness probe. |
+| deployment.livenessProbe.failureThreshold | int | `30` | Number of retries before marking the pod as failed. |
+| deployment.livenessProbe.periodSeconds | int | `10` | Time between retries. |
+| deployment.livenessProbe.successThreshold | int | `1` | Number of successful probes before marking the pod as ready. |
+| deployment.livenessProbe.timeoutSeconds | int | `1` | Time before the probe times out. |
+| deployment.livenessProbe.httpGet | object | `{}` | HTTP Get probe. |
+| deployment.livenessProbe.exec | object | `{}` | Exec probe. |
+| deployment.livenessProbe.tcpSocket | object | `{}` | TCP Socket probe. |
+| deployment.livenessProbe.grpc | object | `{}` | gRPC probe. |
+| deployment.resources | object | `{}` | Resource limits and requests for the pod. |
+| deployment.containerSecurityContext | object | `{"readOnlyRootFilesystem":true,"runAsNonRoot":true}` | Security Context at Container Level. |
+| deployment.openshiftOAuthProxy.enabled | bool | `false` | Enable [OpenShift OAuth Proxy](https://github.com/openshift/oauth-proxy). |
+| deployment.openshiftOAuthProxy.port | int | `8080` | Port on which application is running inside container. |
+| deployment.openshiftOAuthProxy.secretName | string | `"openshift-oauth-proxy-tls"` | Secret name for the OAuth Proxy TLS certificate. |
+| deployment.openshiftOAuthProxy.image | string | `"openshift/oauth-proxy:latest"` | Image for the OAuth Proxy. |
+| deployment.openshiftOAuthProxy.disableTLSArg | bool | `false` | If disabled `--http-address=:8081` will be used instead of `--https-address=:8443`. It can be useful when an ingress is enabled for the application. |
+| deployment.securityContext | object | `nil` | Security Context for the pod. |
+| deployment.command | list | `[]` | Command for the app container. |
+| deployment.args | list | `[]` | Args for the app container. |
+| deployment.ports | list | `nil` | List of ports for the app container. |
+| deployment.hostNetwork | bool | `nil` | Host network connectivity. |
+| deployment.terminationGracePeriodSeconds | int | `nil` | Gracefull termination period. |
+| deployment.minReadySeconds | int | `nil` | Minimum number of seconds for which a newly created Pod should be ready without any of its containers crashing. |
+| deployment.lifecycle | object | `{}` | Lifecycle configuration for the pod. |
+| deployment.additionalContainers | list | `nil` | Additional containers besides init and app containers (without templating). |
+| persistence.enabled | bool | `false` | Enable persistence. |
+| persistence.mountPVC | bool | `false` | Whether to mount the created PVC to the deployment. |
+| persistence.mountPath | string | `"/"` | If `persistence.mountPVC` is enabled, where to mount the volume in the containers. |
+| persistence.name | string | `{{ include "application.name" $ }}-data` | Name of the PVC. |
+| persistence.accessMode | string | `"ReadWriteOnce"` | Access mode for volume. |
+| persistence.storageClass | string | `nil` | Storage class for volume. If defined, use that value If set to "-" or "", disable dynamic provisioning If undefined or set to null (the default), no storageClass spec is   set, choosing the default provisioner. |
+| persistence.additionalLabels | object | `nil` | Additional labels for persistent volume. |
+| persistence.annotations | object | `nil` | Annotations for persistent volume. |
+| persistence.storageSize | string | `"8Gi"` | Size of the persistent volume. |
+| persistence.volumeMode | string | `""` | PVC Volume Mode. |
+| persistence.volumeName | string | `""` | Name of the volume. |
 
 ### Service Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| service.enabled | bool | `true` | Enable service |
-| service.type | string | `"ClusterIP"` | Service type |
-| service.port | int | `5432` | PostgreSQL service port |
-| service.targetPort | int | `5432` | PostgreSQL container port |
-| service.nodePort | int | `""` | Node port (if service type is NodePort) |
-| service.loadBalancerIP | string | `""` | Load balancer IP (if service type is LoadBalancer) |
-| service.loadBalancerSourceRanges | array | `[]` | Load balancer source ranges |
-| service.externalTrafficPolicy | string | `""` | External traffic policy |
-| service.clusterIP | string | `""` | Cluster IP |
-| service.annotations | object | `{}` | Service annotations |
-| service.labels | object | `{}` | Service labels |
-| service.sessionAffinity | string | `"None"` | Session affinity |
-| service.sessionAffinityConfig | object | `{}` | Session affinity config |
+| service.enabled | bool | `true` | Enable Service. |
+| service.additionalLabels | object | `nil` | Additional labels for service. |
+| service.annotations | object | `nil` | Annotations for service. |
+| service.ports | list | `[{"name":"http","port":8080,"protocol":"TCP","targetPort":8080}]` | Ports for applications service. |
+| service.type | string | `"ClusterIP"` | Type of service. |
+| service.clusterIP | string | `nil` | Fixed IP for a ClusterIP service. Set to `None` for an headless service |
+| service.loadBalancerClass | string | `nil` | LoadBalancer class name for LoadBalancer type services. |
 
-### ServiceAccount Parameters
+### Ingress Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| serviceAccount.create | bool | `true` | Create service account |
-| serviceAccount.name | string | `""` | Service account name |
-| serviceAccount.annotations | object | `{}` | Service account annotations |
-| serviceAccount.automountServiceAccountToken | bool | `false` | Automount service account token |
+| ingress.enabled | bool | `false` | Enable Ingress. |
+| ingress.ingressClassName | string | `""` | Name of the ingress class. |
+| ingress.hosts[0].host | tpl/string | `"chart-example.local"` | Hostname. |
+| ingress.hosts[0].paths[0].path | string | `"/"` | Path. |
+| ingress.hosts[0].paths[0].pathType | string | `ImplementationSpecific` | Path type. |
+| ingress.hosts[0].paths[0].serviceName | string | `{{ include "application.name" $ }}` | Service name. |
+| ingress.hosts[0].paths[0].servicePort | string | `http` | Service port. |
+| ingress.additionalLabels | object | `nil` | Additional labels for ingress. |
+| ingress.annotations | object | `nil` | Annotations for ingress. |
+| ingress.tls | list | `nil` | TLS configuration for ingress. Secrets must exist in the namespace. You may also configure Certificate resource to generate the secret. |
+
+### HTTPRoute Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| httpRoute.enabled | bool | `false` | Enable HTTPRoute (Gateway API). |
+| httpRoute.parentRefs | tpl/list | `nil` | Parent references for the HTTPRoute. |
+| httpRoute.useDefaultGateways | string | `nil` | The default Gateway scope to use for this Route. If unset (the default) or set to None, the Route will not be attached to any default Gateway; if set, it will be attached to any default Gateway supporting the named scope, subject to the usual rules about which Routes a Gateway is allowed to claim. |
+| httpRoute.gatewayNamespace | string | `""` | Namespace of the Gateway to attach this HTTPRoute to. If not set, the HTTPRoute will be attached to the Gateway in the same namespace as the HTTPRoute. |
+| httpRoute.hostnames | tpl/list | `nil` | Hostnames for the HTTPRoute. |
+| httpRoute.additionalLabels | object | `{}` | Additional labels for HTTPRoute. |
+| httpRoute.annotations | object | `{}` | Annotations for HTTPRoute. |
+| httpRoute.rules | tpl/list | `[{"backendRefs":[{"name":"{{ include \"application.name\" $ }}","port":"{{ (first $.Values.service.ports).port | int }}"}],"matches":[{"path":{"type":"PathPrefix","value":"/"}}]}]` | Rules for HTTPRoute. |
+
+### Route Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| route.enabled | bool | `false` | Deploy a Route (OpenShift) resource. |
+| route.additionalLabels | object | `nil` | Additional labels for Route. |
+| route.annotations | object | `nil` | Annotations for Route. |
+| route.host | string | `nil` | Explicit host. If no host is added then openshift inserts the default hostname. |
+| route.path | string | `nil` | Path. |
+| route.port | object | `{"targetPort":"http"}` | Service port. |
+| route.to.weight | int | `100` | Service weight. |
+| route.wildcardPolicy | string | `"None"` | Wildcard policy. |
+| route.tls.termination | string | `"edge"` | TLS termination strategy. |
+| route.tls.insecureEdgeTerminationPolicy | string | `"Redirect"` | TLS insecure termination policy. |
+| route.alternateBackends | list | `nil` | Alternate backend with it's weight. |
+
+### SecretProviderClass Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| secretProviderClass.enabled | bool | `false` | Deploy a [Secrets Store CSI Driver SecretProviderClass](https://secrets-store-csi-driver.sigs.k8s.io/) resource. |
+| secretProviderClass.name | string | `""` | Name of the SecretProviderClass. Required if `secretProviderClass.enabled` is set to `true`. |
+| secretProviderClass.provider | string | `""` | Name of the provider. Required if `secretProviderClass.enabled` is set to `true`. |
+| secretProviderClass.vaultAddress | string | `""` | Vault Address. Required if `secretProviderClass.provider` is set to `vault`. |
+| secretProviderClass.roleName | tpl/string | `""` | Vault Role Name. Required if `secretProviderClass.provider` is set to `vault`. |
+| secretProviderClass.objects | list | `nil` | Objects definitions. |
+| secretProviderClass.secretObjects | list | `nil` | Objects mapping. |
+
+### ForecastleApp Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| forecastle.enabled | bool | `false` | Deploy a [ForecastleApp](https://github.com/stakater/Forecastle) resource. |
+| forecastle.additionalLabels | object | `nil` | Additional labels for ForecastleApp. |
+| forecastle.icon | string | `"https://raw.githubusercontent.com/stakater/ForecastleIcons/master/stakater-big.png"` | Icon URL. |
+| forecastle.displayName | string | `""` | Application Name. Required if `forecastle.enabled` is set to `true`. |
+| forecastle.group | string | `{{ .Release.Namespace }}` | Application Group. |
+| forecastle.properties | object | `nil` | Custom properties. |
+| forecastle.networkRestricted | bool | `false` | Is application network restricted?. |
 
 ### RBAC Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| rbac.create | bool | `false` | Create RBAC resources |
-| rbac.rules | array | `[]` | Additional rules for the role |
+| rbac.enabled | bool | `true` | Enable RBAC. |
+| rbac.serviceAccount.enabled | bool | `false` | Deploy Service Account. |
+| rbac.serviceAccount.name | string | `{{ include "application.name" $ }}` | Service Account Name. |
+| rbac.serviceAccount.additionalLabels | object | `nil` | Additional labels for Service Account. |
+| rbac.serviceAccount.annotations | object | `nil` | Annotations for Service Account. |
+| rbac.roles | list | `nil` | Namespaced Roles. |
+
+### ConfigMap Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| configMap.enabled | bool | `false` | Deploy additional ConfigMaps. |
+| configMap.additionalLabels | object | `nil` | Additional labels for ConfigMaps. |
+| configMap.annotations | object | `nil` | Annotations for ConfigMaps. |
+| configMap.files | object | `nil` | List of ConfigMap entries. Key will be used as a name suffix for the ConfigMap. Value is the ConfigMap content. |
+
+### SealedSecret Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| sealedSecret.enabled | bool | `false` | Deploy [SealedSecret](https://github.com/bitnami-labs/sealed-secrets) resources. |
+| sealedSecret.additionalLabels | object | `nil` | Additional labels for SealedSecret. |
+| sealedSecret.annotations | object | `nil` | Annotations for SealedSecret. |
+| sealedSecret.files | object | `nil` | List of SealedSecret entries. Key will be used as a name suffix for the SealedSecret. Value is the SealedSecret content. |
+
+### Secret Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| secret.enabled | bool | `false` | Deploy additional Secret resources. |
+| secret.additionalLabels | object | `nil` | Additional labels for Secret. |
+| secret.annotations | object | `nil` | Annotations for Secret. |
+| secret.files | object | `nil` | List of Secrets entries. Key will be used as a name suffix for the Secret. There a three allowed modes: - `data`: Data is base64 encoded by the chart - `encodedData`: Use raw values (already base64ed) inside the data map - `stringData`: Use raw values inside the stringData map |
+
+### ServiceMonitor Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| serviceMonitor.enabled | bool | `false` | Deploy a ServiceMonitor (Prometheus Operator) resource. |
+| serviceMonitor.additionalLabels | object | `nil` | Additional labels for ServiceMonitor. |
+| serviceMonitor.annotations | object | `nil` | Annotations for ServiceMonitor. |
+| serviceMonitor.endpoints | list | `[{"interval":"5s","path":"/actuator/prometheus","port":"http"}]` | Service endpoints from which prometheus will scrape data. |
+
+### Autoscaling - Horizontal Pod Autoscaling Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| autoscaling.enabled | bool | `false` | Enable Horizontal Pod Autoscaling. |
+| autoscaling.additionalLabels | object | `nil` | Additional labels for HPA. |
+| autoscaling.annotations | object | `nil` | Annotations for HPA. |
+| autoscaling.minReplicas | int | `1` | Minimum number of replicas. |
+| autoscaling.maxReplicas | int | `10` | Maximum number of replicas. |
+| autoscaling.metrics | list | `[{"resource":{"name":"cpu","target":{"averageUtilization":60,"type":"Utilization"}},"type":"Resource"},{"resource":{"name":"memory","target":{"averageUtilization":60,"type":"Utilization"}},"type":"Resource"}]` | Metrics used for autoscaling. |
+
+### VPA - Vertical Pod Autoscaler Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| vpa.enabled | bool | `false` | Enable Vertical Pod Autoscaling. |
+| vpa.additionalLabels | object | `nil` | Additional labels for VPA. |
+| vpa.annotations | object | `nil` | Annotations for VPA. |
+| vpa.containerPolicies | list | `[]` | Container policies for individual containers. |
+| vpa.updatePolicy | object | `{"updateMode":"Auto"}` | Update policy. |
+
+### EndpointMonitor Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| endpointMonitor.enabled | bool | `false` | Deploy an [IMC EndpointMonitor](https://github.com/stakater/IngressMonitorController) resource. |
+| endpointMonitor.additionalLabels | object | `nil` | Additional labels for EndpointMonitor. |
+| endpointMonitor.annotations | object | `nil` | Annotations for EndpointMonitor. |
+
+### cert-manager Certificate Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| certificate.enabled | bool | `false` | Deploy a [cert-manager Certificate](https://cert-manager.io) resource. |
+| certificate.additionalLabels | object | `nil` | Additional labels for Certificate. |
+| certificate.annotations | object | `nil` | Annotations for Certificate. |
+| certificate.secretName | tpl/string | `"tls-cert"` | Name of the secret resource that will be automatically created and managed by this Certificate resource. |
+| certificate.duration | string | `"8760h0m0s"` | The requested "duration" (i.e. lifetime) of the Certificate. |
+| certificate.renewBefore | string | `"720h0m0s"` | The amount of time before the currently issued certificate's notAfter time that cert-manager will begin to attempt to renew the certificate. |
+| certificate.subject | tpl/object | `nil` | Full X509 name specification for certificate. |
+| certificate.commonName | tpl/string | `nil` | Common name as specified on the DER encoded CSR. This field is not recommended in cases when this certificate is an end-entity certificate. More information can be found in the [cert-manager documentation](https://cert-manager.io/docs/usage/certificate/#:~:text=%23%20Avoid%20using%20commonName,%3A%20example.com). |
+| certificate.keyAlgorithm | string | `"rsa"` | Private key algorithm of the corresponding private key for this certificate. |
+| certificate.keyEncoding | string | `"pkcs1"` | Private key cryptography standards (PKCS) for this certificate's private key to be encoded in. |
+| certificate.keySize | int | `2048` | Key bit size of the corresponding private key for this certificate. |
+| certificate.isCA | bool | `false` | Mark this Certificate as valid for certificate signing. |
+| certificate.usages | list | `nil` | Set of x509 usages that are requested for the certificate. |
+| certificate.dnsNames | tpl/list | `nil` | List of DNS subjectAltNames to be set on the certificate. |
+| certificate.ipAddresses | list | `nil` | List of IP address subjectAltNames to be set on the certificate. |
+| certificate.uriSANs | list | `nil` | List of URI subjectAltNames to be set on the certificate. |
+| certificate.emailSANs | list | `nil` | List of email subjectAltNames to be set on the Certificate. |
+| certificate.privateKey.enabled | bool | `false` | Enable Private Key for the certificate. |
+| certificate.privateKey.rotationPolicy | string | `"Always"` | Denotes how private keys should be generated or sourced when a certificate is being issued. |
+| certificate.issuerRef.name | string | `"ca-issuer"` | Reference to the issuer for this certificate. |
+| certificate.issuerRef.kind | string | `"ClusterIssuer"` | Kind of the issuer being referred to. |
+| certificate.issuerRef.group | string | `"cert-manager.io"` | Group of the issuer resource being refered to. |
+| certificate.keystores.enabled | bool | `false` | Enables keystore configuration. Keystores configures additional keystore output formats stored in the spec.secretName Secret resource. |
+| certificate.keystores.pkcs12.create | bool | `true` | Enables PKCS12 keystore creation for the Certificate. PKCS12 configures options for storing a PKCS12 keystore in the spec.secretName Secret resource. |
+| certificate.keystores.pkcs12.key | string | `"test_key"` | Key of the entry in the Secret resource's data field to be used. |
+| certificate.keystores.pkcs12.name | string | `"test-creds"` | Name of the Secret resource being referred to. |
+| certificate.keystores.jks.create | bool | `false` | Enables jks keystore creation for the Certificate. JKS configures options for storing a JKS keystore in the spec.secretName Secret resource. |
+| certificate.keystores.jks.key | tpl/string | `"test_key"` | Key of the entry in the Secret resource's data field to be used. |
+| certificate.keystores.jks.name | string | `"test-creds"` | Name of the Secret resource being referred to. |
+
+### AlertmanagerConfig Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| alertmanagerConfig.enabled | bool | `false` | Deploy an AlertmanagerConfig (Prometheus Operator) resource. |
+| alertmanagerConfig.selectionLabels | object | `{"alertmanagerConfig":"workload"}` | Labels to be picked up by Alertmanager to add it to base config. Read more about it at [https://docs.openshift.com/container-platform/4.7/rest_api/monitoring_apis/alertmanager-monitoring-coreos-com-v1.html](OpenShift's AlermanagerConfig documentation) under .spec.alertmanagerConfigSelector. |
+| alertmanagerConfig.spec | object | `{"inhibitRules":[],"receivers":[],"route":null}` | AlertmanagerConfig spec. Read more about it at [https://docs.openshift.com/container-platform/4.7/rest_api/monitoring_apis/alertmanagerconfig-monitoring-coreos-com-v1alpha1.html](OpenShift's AlermanagerConfig documentation). |
+| alertmanagerConfig.spec.route | object | `nil` | Route definition for alerts matching the resource’s namespace. It will be added to the generated Alertmanager configuration as a first-level route. |
+| alertmanagerConfig.spec.receivers | list | `[]` | List of receivers. |
+| alertmanagerConfig.spec.inhibitRules | list | `[]` | Inhibition rules that allows to mute alerts when other alerts are already firing. |
+
+### PrometheusRule Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| prometheusRule.enabled | bool | `false` | Deploy a PrometheusRule (Prometheus Operator) resource. |
+| prometheusRule.additionalLabels | object | `nil` | Additional labels for PrometheusRule. |
+| prometheusRule.groups | list | `[]` | Groups with alerting rules. Read more about it at [https://docs.openshift.com/container-platform/4.7/rest_api/monitoring_apis/prometheusrule-monitoring-coreos-com-v1.html](OpenShift's PrometheusRule documentation). |
+
+### ExternalSecret Parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| externalSecret.enabled | bool | `false` | Deploy [ExternalSecret](https://external-secrets.io/latest/) resources. |
+| externalSecret.additionalLabels | object | `nil` | Additional labels for ExternalSecret. |
+| externalSecret.annotations | object | `nil` | Annotations for ExternalSecret. |
+| externalSecret.secretStore | object | `{"kind":"SecretStore","name":"tenant-vault-secret-store"}` | Default values for the SecretStore. Can be overriden per ExternalSecret in the `externalSecret.files` object. |
+| externalSecret.secretStore.name | string | `"tenant-vault-secret-store"` | Name of the SecretStore to use. |
+| externalSecret.secretStore.kind | string | `"SecretStore"` | Kind of the SecretStore being refered to. |
+| externalSecret.refreshInterval | string | `"1m"` | RefreshInterval is the amount of time before the values are read again from the SecretStore provider. |
+| externalSecret.files | object | `nil` | List of ExternalSecret entries. Key will be used as a name suffix for the ExternalSecret. There a two allowed modes: - `data`: Data defines the connection between the Kubernetes Secret keys and the Provider data - `dataFrom`: Used to fetch all properties from the Provider key |
 
 ### NetworkPolicy Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| networkPolicy.enabled | bool | `false` | Enable network policy |
-| networkPolicy.ingress | array | `[]` | Ingress rules |
-| networkPolicy.egress | array | `[]` | Egress rules |
+| networkPolicy.enabled | bool | `false` | Enable Network Policy. |
+| networkPolicy.additionalLabels | object | `nil` | Additional labels for Network Policy. |
+| networkPolicy.annotations | object | `nil` | Annotations for Network Policy. |
+| networkPolicy.ingress | list | `nil` | Ingress rules for Network Policy. |
+| networkPolicy.egress | list | `nil` | Egress rules for Network Policy. |
 
-### PDB Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| pdb.enabled | bool | `false` | Enable PodDisruptionBudget |
-| pdb.minAvailable | int | `1` | Minimum available pods |
-| pdb.maxUnavailable | string | `""` | Maximum unavailable pods |
-
-### HPA Parameters
+### PodDisruptionBudget Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| hpa.enabled | bool | `false` | Enable HPA (not recommended for databases) |
-| hpa.minReplicas | int | `1` | Minimum replicas |
-| hpa.maxReplicas | int | `3` | Maximum replicas |
-| hpa.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization percentage |
-| hpa.targetMemoryUtilizationPercentage | int | `80` | Target memory utilization percentage |
+| pdb.enabled | bool | `false` | Enable Pod Disruption Budget. |
+| pdb.minAvailable | int | `1` | Minimum number of pods that must be available after eviction. |
+| pdb.maxUnavailable | int | `nil` | Maximum number of unavailable pods during voluntary disruptions. |
 
-### VPA Parameters
+### GrafanaDashboard Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| vpa.enabled | bool | `false` | Enable VPA |
-| vpa.updateMode | string | `"Auto"` | Update mode (Off, Initial, Recreate, Auto) |
-| vpa.resourcePolicy | object | `{}` | Resource policy |
-
-### Monitoring Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| monitoring.enabled | bool | `false` | Enable monitoring |
-| monitoring.serviceMonitor.enabled | bool | `false` | Enable ServiceMonitor for Prometheus Operator |
-| monitoring.serviceMonitor.namespace | string | `""` | Namespace for ServiceMonitor |
-| monitoring.serviceMonitor.interval | string | `"30s"` | Scrape interval |
-| monitoring.serviceMonitor.scrapeTimeout | string | `"10s"` | Scrape timeout |
-| monitoring.serviceMonitor.labels | object | `{}` | Additional labels |
-| monitoring.serviceMonitor.metricRelabelings | object | `[]` | Metric relabelings |
-| monitoring.serviceMonitor.relabelings | object | `[]` | Relabelings |
-| monitoring.prometheusRule.enabled | bool | `false` | Enable PrometheusRule for alerts |
-| monitoring.prometheusRule.namespace | string | `""` | Namespace for PrometheusRule |
-| monitoring.prometheusRule.labels | object | `{}` | Additional labels |
-| monitoring.prometheusRule.rules | array | `[]` | Alert rules |
-| monitoring.grafanaDashboard.enabled | bool | `false` | Enable Grafana Dashboard ConfigMap |
-| monitoring.grafanaDashboard.namespace | string | `""` | Namespace for Grafana Dashboard |
-| monitoring.grafanaDashboard.labels | object | `{"grafana_dashboard":"1"}` | Additional labels |
+| grafanaDashboard.enabled | bool | `false` | Deploy [GrafanaDashboard](https://github.com/grafana/grafana-operator) resources. |
+| grafanaDashboard.additionalLabels | object | `nil` | Additional labels for GrafanaDashboard. |
+| grafanaDashboard.annotations | object | `nil` | Annotations for GrafanaDashboard. |
+| grafanaDashboard.contents | object | `nil` | List of GrafanaDashboard entries. Key will be used as a name suffix for the GrafanaDashboard. Value is the GrafanaDashboard content. According to GrafanaDashboard behavior, `url` field takes precedence on the `json` field. |
 
 ### Backup Parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| backup.enabled | bool | `false` | Enable automated backups |
-| backup.schedule | string | `"0 2 * * *"` | Backup schedule (cron format) |
-| backup.successfulJobsHistoryLimit | int | `3` | Number of successful backups to keep |
-| backup.failedJobsHistoryLimit | int | `1` | Number of failed backups to keep |
-| backup.image | object | `{"pullPolicy":"IfNotPresent","repository":"postgres","tag":"16.4-alpine"}` | Backup image configuration |
-| backup.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"64Mi"}}` | Backup resources Minimal requests to allow scheduling, no limits to allow bursting |
-| backup.persistence | object | `{"accessModes":["ReadWriteOnce"],"annotations":{},"enabled":true,"mountPath":"/backups","size":"10Gi","storageClass":""}` | Backup persistence configuration |
-| backup.s3 | object | `{"accessKeyId":"","bucket":"","enabled":false,"endpoint":"","existingSecret":"","region":"us-east-1","secretAccessKey":""}` | S3 backup configuration |
-| backup.retentionDays | string | `7` | Backup retention (days) |
-| backup.wal | object | `{"archiveCommand":"","cleanup":{"enabled":true,"failedJobsHistoryLimit":1,"schedule":"0 3 * * *","successfulJobsHistoryLimit":1},"compression":"gzip","enabled":false,"method":"simple","persistence":{"accessModes":["ReadWriteOnce"],"annotations":{},"enabled":true,"mountPath":"/wal-archive","size":"20Gi","storageClass":""},"pgbackrest":{"config":{},"image":{"pullPolicy":"IfNotPresent","repository":"pgbackrest/pgbackrest","tag":"2.49"},"resources":{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}},"restoreCommand":"","retentionDays":14,"storage":{"azure":{"container":"","existingSecret":"","prefix":"wal-archive","storageAccount":""},"gcs":{"bucket":"","credentialsSecret":"","prefix":"wal-archive"},"s3":{"accessKeyId":"","bucket":"","endpoint":"","existingSecret":"","prefix":"wal-archive","region":"us-east-1","secretAccessKey":""},"type":"s3"},"walg":{"env":{},"image":{"pullPolicy":"IfNotPresent","repository":"wal-g/wal-g","tag":"v3.0.0"},"resources":{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}}}` | WAL (Write-Ahead Log) archiving for incremental backups |
+| backup.enabled | bool | `false` | Deploy a [Velero/OADP Backup](https://velero.io/docs/main/api-types/backup/) resource. |
+| backup.namespace | string | `{{ .Release.Namespace }}` | Namespace for Backup. |
+| backup.additionalLabels | object | `nil` | Additional labels for Backup. |
+| backup.annotations | object | `nil` | Annotations for Backup. |
+| backup.defaultVolumesToRestic | bool | `true` | Whether to use Restic to take snapshots of all pod volumes by default. |
+| backup.snapshotVolumes | bool | `true` | Whether to take snapshots of persistent volumes as part of the backup. |
+| backup.storageLocation | string | `nil` | Name of the backup storage location where the backup should be stored. |
+| backup.ttl | string | `"1h0m0s"` | How long the Backup should be retained for. |
+| backup.includedNamespaces | tpl/list | `[ {{ include "application.namespace" $ }} ]` | List of namespaces to include objects from. |
+| backup.includedResources | list | `nil` | List of resource types to include in the backup. |
+| backup.excludedResources | list | `nil` | List of resource types to exclude from the backup. |
 
-### Recovery Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| recovery.enabled | bool | `false` | Enable recovery mode WARNING: This will restore from backup on install/upgrade! |
-| recovery.mode | string | `"full"` | Recovery mode: 'full' or 'pitr' full: Restore from full backup only pitr: Point-in-Time Recovery using full backup + WAL archives |
-| recovery.source | string | `"backup"` | Recovery source: 'backup' (PVC) or 's3' |
-| recovery.backupFile | string | `""` | Specific backup file to restore (optional) If not specified, uses the latest backup Example: "backup-2024-11-12-02-00-00.sql.gz" |
-| recovery.targetTime | string | `""` | Target time for PITR (mode: pitr only) Format: 'YYYY-MM-DD HH:MM:SS' (UTC) Example: "2024-11-12 14:30:00" |
-| recovery.tempStorageSize | string | `"50Gi"` | Temporary storage size for recovery process Should be >= database size |
-| recovery.s3 | object | `{"backupFile":""}` | S3 recovery configuration (source: s3) |
-
-### TLS Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| tls.enabled | bool | `false` | Enable TLS |
-| tls.certificateSecret | string | `""` | Certificate secret name |
-| tls.certFile | string | `"tls.crt"` | Certificate file name in secret |
-| tls.certKeyFile | string | `"tls.key"` | Certificate key file name in secret |
-| tls.caCertFile | string | `"ca.crt"` | CA certificate file name in secret |
-| tls.certificate | object | `{"dnsNames":[],"duration":"2160h","enabled":false,"issuerRef":{"kind":"ClusterIssuer","name":""},"renewBefore":"360h"}` | Certificate configuration for cert-manager |
-
-### Replication Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| replication.enabled | bool | `false` | Enable replication (requires StatefulSet) |
-| replication.readReplicas | int | `1` | Number of read replicas |
-| replication.user | string | `"replicator"` | Replication user |
-| replication.password | string | `""` | Replication password |
-| replication.existingSecret | string | `""` | Existing secret for replication credentials |
-| replication.synchronousCommit | bool | `false` | Synchronous commit |
-| replication.numSynchronousReplicas | int | `0` | Number of synchronous replicas |
-| replication.slots | object | `{"autoCreate":true,"enabled":true,"prefix":"replica"}` | Replication slot configuration |
-| replication.replica | object | `{"hotStandbyFeedback":true,"maxStandbyArchiveDelay":30000,"maxStandbyStreamingDelay":30000,"walReceiverStatusInterval":10,"walReceiverTimeout":60000}` | Replica configuration |
-| replication.primary | object | `{"createService":true,"serviceName":"","servicePort":5432}` | Primary server configuration |
-| replication.replicaService | object | `{"annotations":{},"enabled":true,"labels":{},"loadBalancerSourceRanges":[],"nameSuffix":"read","port":5432,"type":"ClusterIP"}` | Replica service configuration |
-| replication.monitoring | object | `{"delayThresholdSeconds":30,"enabled":true,"lagThresholdMB":100}` | Replication monitoring |
-| replication.failover | object | `{"enabled":true,"triggerFileEnabled":false,"triggerFilePath":"/tmp/postgresql.trigger"}` | Automatic failover preparation |
-| replication.advanced | object | `{"archiveModeOnReplicas":false,"maxReplicationSlots":10,"maxWalSenders":10,"walKeepSize":1024}` | Advanced replication settings |
-
-### Metrics Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| metrics.enabled | bool | `false` | Enable PostgreSQL metrics exporter |
-| metrics.image | object | `{"pullPolicy":"IfNotPresent","repository":"quay.io/prometheuscommunity/postgres-exporter","tag":"v0.18.1"}` | Metrics exporter image |
-| metrics.port | int | `9187` | Metrics port |
-| metrics.resources | object | `{"limits":{},"requests":{"cpu":"5m","memory":"32Mi"}}` | Metrics exporter resources Minimal requests to allow scheduling, no limits to allow bursting |
-| metrics.customQueries | object | `{}` | Custom queries for metrics |
-
-### PgBouncer Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| pgbouncer.enabled | bool | `false` | Enable PgBouncer connection pooler |
-| pgbouncer.replicas | int | `1` | Number of PgBouncer replicas |
-| pgbouncer.image | object | `{"pullPolicy":"IfNotPresent","repository":"edoburu/pgbouncer","tag":"1.21.0"}` | PgBouncer image |
-| pgbouncer.port | int | `5432` | PgBouncer port |
-| pgbouncer.config | object | `{"default_pool_size":25,"max_client_conn":1000,"max_db_connections":100,"max_user_connections":100,"min_pool_size":5,"pool_mode":"transaction","reserve_pool_size":5,"reserve_pool_timeout":3}` | PgBouncer configuration |
-| pgbouncer.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}` | PgBouncer resources Minimal requests to allow scheduling, no limits to allow bursting |
-
-### Service Mesh Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| serviceMesh.enabled | bool | `false` | Enable service mesh integration |
-| serviceMesh.provider | string | `"istio"` | Service mesh provider (istio, linkerd, consul) |
-| serviceMesh.istio | object | `{"injection":true,"mtls":{"mode":"PERMISSIVE"},"trafficPolicy":{"connectionPool":{"http":{"http1MaxPendingRequests":100,"http2MaxRequests":100},"tcp":{"maxConnections":100}},"loadBalancer":{"simple":"LEAST_CONN"}}}` | Istio-specific configuration |
-| serviceMesh.linkerd | object | `{"injection":true,"skipInboundPorts":"","skipOutboundPorts":""}` | Linkerd-specific configuration |
-
-### Kubernetes Integration Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| kubernetesIntegration.autoReload | bool | `{"enabled":false}` | Enable automatic config reload on ConfigMap/Secret changes |
-| kubernetesIntegration.disruptionWindows | object | `{"enabled":false}` | Pod disruption windows for maintenance |
-| kubernetesIntegration.enhancedEvents | bool | `true` | Enable enhanced Kubernetes event generation |
-| kubernetesIntegration.resourceRecommendations | object | `{"enabled":false,"updateMode":"Off"}` | Resource recommendations via VPA |
-
-### User Management Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| userManagement.dynamicSync | object | `{"configMapName":"","enabled":false,"failedJobsHistoryLimit":3,"podAnnotations":{},"resources":{"limits":{},"requests":{"cpu":"5m","memory":"16Mi"}},"schedule":"*/15 * * * *","successfulJobsHistoryLimit":3,"suspend":false,"watchExternalResources":{"configMaps":[],"enabled":false}}` | Dynamic user synchronization without pod restart |
-
-### Extra Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| extraObjects.objects | array | `[]` | Extra Kubernetes objects to create |
-
-### Other Values
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| diagnosticMode.enabled | bool | `false` | Enable diagnostic mode (disables probes, overrides command) Useful for debugging container startup issues |
-| diagnosticMode.command | array | `["sleep"]` | Command override for diagnostic mode |
-| diagnosticMode.args | array | `["infinity"]` | Args override for diagnostic mode |
-| postgresql.auth.usePasswordFiles | bool | `true` | Use password files instead of environment variables (more secure) When enabled, passwords are mounted as files from secrets instead of being exposed as env vars This prevents password exposure in process lists and kubectl describe output |
-| postgresql.auth.passwordFilesPath | string | `"/opt/bitnami/postgresql/secrets"` | Path where password files will be mounted |
-| postgresql.externalResources.enabled | bool | `false` | Enable reading from external ConfigMaps/Secrets |
-| postgresql.externalResources.databasesConfigMap | object | `{"key":"databases.yaml","name":"","namespace":""}` | ConfigMap containing database definitions |
-| postgresql.externalResources.usersConfigMap | object | `{"key":"users.yaml","name":"","namespace":""}` | ConfigMap containing user definitions |
-| postgresql.externalResources.usersSecret | object | `{"name":"","namespace":"","passwordKeys":{}}` | Secret containing user passwords |
-| persistence.retentionPolicy.enabled | bool | `false` | Enable PVC retention policy |
-| persistence.retentionPolicy.whenScaled | string | `"Retain"` | Volume retention behavior when the replica count is reduced Options: Retain (keep PVCs), Delete (remove PVCs) |
-| persistence.retentionPolicy.whenDeleted | string | `"Retain"` | Volume retention behavior when the StatefulSet is deleted Options: Retain (keep PVCs), Delete (remove PVCs) |
-| backup.wal.enabled | bool | `false` | Enable WAL archiving for incremental backups |
-| backup.wal.method | string | `"simple"` | WAL archive method: 'simple' (cp command), 'wal-g', 'wal-e', 'pgbackrest' simple: Copy WAL files to PVC storage wal-g: Modern tool with cloud storage support (recommended) wal-e: Legacy tool with S3 support pgbackrest: Advanced backup and restore tool |
-| backup.wal.compression | string | `"gzip"` | Compression for WAL files: 'none', 'gzip', 'lz4', 'zstd' |
-| backup.wal.retentionDays | int | `14` | WAL retention period in days |
-| backup.wal.persistence | object | `{"accessModes":["ReadWriteOnce"],"annotations":{},"enabled":true,"mountPath":"/wal-archive","size":"20Gi","storageClass":""}` | WAL archive persistence (used with 'simple' method) |
-| backup.wal.storage | object | `{"azure":{"container":"","existingSecret":"","prefix":"wal-archive","storageAccount":""},"gcs":{"bucket":"","credentialsSecret":"","prefix":"wal-archive"},"s3":{"accessKeyId":"","bucket":"","endpoint":"","existingSecret":"","prefix":"wal-archive","region":"us-east-1","secretAccessKey":""},"type":"s3"}` | Cloud storage configuration (for wal-g, wal-e, pgbackrest) |
-| backup.wal.storage.type | string | `"s3"` | Storage type: 's3', 'gcs', 'azure', 'file' |
-| backup.wal.storage.s3 | object | `{"accessKeyId":"","bucket":"","endpoint":"","existingSecret":"","prefix":"wal-archive","region":"us-east-1","secretAccessKey":""}` | S3 configuration |
-| backup.wal.storage.gcs | object | `{"bucket":"","credentialsSecret":"","prefix":"wal-archive"}` | GCS configuration |
-| backup.wal.storage.azure | object | `{"container":"","existingSecret":"","prefix":"wal-archive","storageAccount":""}` | Azure configuration |
-| backup.wal.walg | object | `{"env":{},"image":{"pullPolicy":"IfNotPresent","repository":"wal-g/wal-g","tag":"v3.0.0"},"resources":{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}}` | WAL-G specific configuration |
-| backup.wal.walg.image | string | `{"pullPolicy":"IfNotPresent","repository":"wal-g/wal-g","tag":"v3.0.0"}` | WAL-G image |
-| backup.wal.walg.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}` | WAL-G resources Minimal requests to allow scheduling, no limits to allow bursting |
-| backup.wal.walg.env | object | `{}` | Additional environment variables for WAL-G |
-| backup.wal.pgbackrest | object | `{"config":{},"image":{"pullPolicy":"IfNotPresent","repository":"pgbackrest/pgbackrest","tag":"2.49"},"resources":{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}}` | pgBackRest specific configuration |
-| backup.wal.pgbackrest.image | string | `{"pullPolicy":"IfNotPresent","repository":"pgbackrest/pgbackrest","tag":"2.49"}` | pgBackRest image |
-| backup.wal.pgbackrest.resources | object | `{"limits":{},"requests":{"cpu":"10m","memory":"32Mi"}}` | pgBackRest resources Minimal requests to allow scheduling, no limits to allow bursting |
-| backup.wal.pgbackrest.config | object | `{}` | pgBackRest configuration |
-| backup.wal.archiveCommand | string | `""` | Archive command override (advanced users) Leave empty to use method-specific default |
-| backup.wal.restoreCommand | string | `""` | Restore command override (advanced users) Leave empty to use method-specific default |
-| backup.wal.cleanup | object | `{"enabled":true,"failedJobsHistoryLimit":1,"schedule":"0 3 * * *","successfulJobsHistoryLimit":1}` | WAL archiving job schedule (cleanup old WAL files) |
-| backup.wal.cleanup.enabled | bool | `true` | Enable WAL cleanup job |
-| backup.wal.cleanup.schedule | string | `"0 3 * * *"` | Cleanup schedule (cron format) |
-| backup.wal.cleanup.successfulJobsHistoryLimit | int | `1` | Number of successful cleanup jobs to keep |
-| backup.wal.cleanup.failedJobsHistoryLimit | int | `1` | Number of failed cleanup jobs to keep |
-| recovery.s3.backupFile | string | `""` | Specific S3 backup file (optional) |
-| replication.slots.enabled | bool | `true` | Enable replication slots for reliable streaming |
-| replication.slots.prefix | string | `"replica"` | Replication slot name prefix |
-| replication.slots.autoCreate | bool | `true` | Auto-create replication slots |
-| replication.replica.maxStandbyStreamingDelay | int | `30000` | Max standby streaming delay in milliseconds |
-| replication.replica.maxStandbyArchiveDelay | int | `30000` | Max standby archive delay in milliseconds |
-| replication.replica.hotStandbyFeedback | bool | `true` | Enable hot standby feedback |
-| replication.replica.walReceiverTimeout | int | `60000` | WAL receiver timeout in milliseconds |
-| replication.replica.walReceiverStatusInterval | int | `10` | WAL receiver status interval in seconds |
-| replication.primary.serviceName | string | `""` | Service name for primary server Leave empty to auto-generate based on release name |
-| replication.primary.servicePort | int | `5432` | Service port for primary server |
-| replication.primary.createService | bool | `true` | Create dedicated primary service |
-| replication.replicaService.enabled | bool | `true` | Create read-only service for replicas |
-| replication.replicaService.type | string | `"ClusterIP"` | Service type |
-| replication.replicaService.port | int | `5432` | Service port |
-| replication.replicaService.nameSuffix | string | `"read"` | Service name suffix Full name will be: <release-name>-postgresql-read |
-| replication.replicaService.annotations | object | `{}` | Service annotations |
-| replication.replicaService.labels | object | `{}` | Service labels |
-| replication.replicaService.loadBalancerSourceRanges | string | `[]` | Load balancer source ranges |
-| replication.monitoring.enabled | bool | `true` | Enable replication lag monitoring |
-| replication.monitoring.lagThresholdMB | int | `100` | Alert threshold for replication lag in MB |
-| replication.monitoring.delayThresholdSeconds | int | `30` | Alert threshold for replication delay in seconds |
-| replication.failover.enabled | bool | `true` | Enable automatic promotion configuration Configures replicas to be able to promote automatically |
-| replication.failover.triggerFileEnabled | bool | `false` | Create trigger file for manual promotion |
-| replication.failover.triggerFilePath | string | `"/tmp/postgresql.trigger"` | Trigger file path |
-| replication.advanced.maxReplicationSlots | int | `10` | Maximum number of replication slots |
-| replication.advanced.maxWalSenders | int | `10` | Maximum WAL senders |
-| replication.advanced.walKeepSize | int | `1024` | WAL keep size in MB |
-| replication.advanced.archiveModeOnReplicas | bool | `false` | Enable archive mode for replicas |
-| userManagement.dynamicSync.enabled | bool | `false` | Enable dynamic user/database synchronization via CronJob |
-| userManagement.dynamicSync.schedule | string | `"*/15 * * * *"` | Cron schedule for sync job Examples: - "*/5 * * * *" - Every 5 minutes - "0 * * * *" - Every hour - "@hourly" - Every hour Can also be triggered manually: kubectl create job --from=cronjob/<name> <job-name> |
-| userManagement.dynamicSync.suspend | bool | `false` | Suspend the CronJob (useful for manual-only execution) |
-| userManagement.dynamicSync.successfulJobsHistoryLimit | int | `3` | Number of successful jobs to keep |
-| userManagement.dynamicSync.failedJobsHistoryLimit | int | `3` | Number of failed jobs to keep |
-| userManagement.dynamicSync.configMapName | string | `""` | ConfigMap containing SQL scripts for user/database sync The ConfigMap should contain .sql files that will be executed Scripts should be idempotent (use IF NOT EXISTS checks) |
-| userManagement.dynamicSync.watchExternalResources | object | `{"configMaps":[],"enabled":false}` | Watch external ConfigMaps for user/database definitions (cross-namespace) |
-| userManagement.dynamicSync.podAnnotations | object | `{}` | Pod annotations for the sync job |
-| userManagement.dynamicSync.resources | object | `{"limits":{},"requests":{"cpu":"5m","memory":"16Mi"}}` | Resources for the sync job container Minimal requests to allow scheduling, no limits to allow bursting |
