@@ -42,20 +42,29 @@ class ChartDocsSync:
         
         if not self.charts_dir.exists():
             return charts
+        
+        # Check both top-level charts/ directory and charts/apps/ subdirectory
+        chart_locations = [self.charts_dir]
+        apps_dir = self.charts_dir / 'apps'
+        if apps_dir.exists():
+            chart_locations.append(apps_dir)
             
-        for item in self.charts_dir.iterdir():
-            if item.is_dir():
-                chart_yaml = item / 'Chart.yaml'
-                if chart_yaml.exists():
-                    # Read chart name from Chart.yaml
-                    with open(chart_yaml, 'r') as f:
-                        try:
-                            chart_meta = yaml.safe_load(f)
-                            chart_name = chart_meta.get('name', item.name)
-                            charts[chart_name] = item
-                        except yaml.YAMLError:
-                            print(f"⚠️  Warning: Could not parse {chart_yaml}")
-                            continue
+        for location in chart_locations:
+            for item in location.iterdir():
+                if item.is_dir():
+                    chart_yaml = item / 'Chart.yaml'
+                    if chart_yaml.exists():
+                        # Read chart name from Chart.yaml
+                        with open(chart_yaml, 'r') as f:
+                            try:
+                                chart_meta = yaml.safe_load(f)
+                                chart_name = chart_meta.get('name', item.name)
+                                # Top-level charts take precedence over apps/
+                                if chart_name not in charts:
+                                    charts[chart_name] = item
+                            except yaml.YAMLError:
+                                print(f"⚠️  Warning: Could not parse {chart_yaml}")
+                                continue
         
         return charts
     
