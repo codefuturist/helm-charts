@@ -2,45 +2,62 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+# -- Number of replicas for the deployment.
+# @section -- Deployment Parameters
 replicaCount: 3
 
-# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
+  # -- Container image repository.
+  # @section -- Image Parameters
   repository: nginx
-  # This sets the pull policy for images.
+  # -- Image pull policy.
+  # @section -- Image Parameters
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
+  # -- Overrides the image tag whose default is the chart appVersion.
+  # @section -- Image Parameters
   tag: ""
 
-# This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+# -- Secrets for pulling images from a private repository.
+# @section -- Image Parameters
 imagePullSecrets: []
-# This is to override the chart name.
+
+# -- Override the chart name.
+# @section -- General Parameters
 nameOverride: ""
+
+# -- Override the full name.
+# @section -- General Parameters
 fullnameOverride: ""
 
-# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created.
+  # @section -- ServiceAccount Parameters
   create: true
-  # Automatically mount a ServiceAccount's API credentials?
+  # -- Automatically mount a ServiceAccount's API credentials.
+  # @section -- ServiceAccount Parameters
   automount: true
-  # Annotations to add to the service account
+  # -- Annotations to add to the service account.
+  # @section -- ServiceAccount Parameters
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
+  # -- The name of the service account to use. If not set and create is true, a name is generated.
+  # @section -- ServiceAccount Parameters
   name: ""
 
-# This is for setting Kubernetes Annotations to a Pod.
-# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+# -- Annotations for pods.
+# @section -- Pod Parameters
 podAnnotations: {}
-# This is for setting Kubernetes Labels to a Pod.
-# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+
+# -- Labels for pods.
+# @section -- Pod Parameters
 podLabels: {}
 
+# -- Pod security context.
+# @section -- Pod Parameters
 podSecurityContext: {}
   # fsGroup: 2000
 
+# -- Container security context.
+# @section -- Pod Parameters
 securityContext: {}
   # capabilities:
   #   drop:
@@ -49,35 +66,43 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  # -- Service type (ClusterIP, NodePort, LoadBalancer).
+  # @section -- Service Parameters
   type: ClusterIP
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  # -- Service port.
+  # @section -- Service Parameters
   port: 80
 
-# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
+  # -- Enable ingress.
+  # @section -- Ingress Parameters
   enabled: false
+  # -- Ingress class name.
+  # @section -- Ingress Parameters
   className: ""
+  # -- Ingress annotations.
+  # @section -- Ingress Parameters
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
+  # -- Ingress hosts configuration.
+  # @section -- Ingress Parameters
   hosts:
     - host: chart-example.local
       paths:
         - path: /
           pathType: ImplementationSpecific
+  # -- Ingress TLS configuration.
+  # @section -- Ingress Parameters
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
 
+# -- Resource limits and requests.
+# @section -- Resource Parameters
 resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
   #   cpu: 100m
   #   memory: 128Mi
@@ -85,39 +110,58 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
-# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+# -- Liveness probe configuration.
+# @section -- Probe Parameters
 livenessProbe:
   httpGet:
     path: /
     port: http
+
+# -- Readiness probe configuration.
+# @section -- Probe Parameters
 readinessProbe:
   httpGet:
     path: /
     port: http
 
-# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
+  # -- Enable horizontal pod autoscaling.
+  # @section -- Autoscaling Parameters
   enabled: false
+  # -- Minimum number of replicas.
+  # @section -- Autoscaling Parameters
   minReplicas: 1
+  # -- Maximum number of replicas.
+  # @section -- Autoscaling Parameters
   maxReplicas: 100
+  # -- Target CPU utilization percentage.
+  # @section -- Autoscaling Parameters
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
-# Additional volumes on the output Deployment definition.
+# -- Additional volumes for the deployment.
+# @section -- Volume Parameters
 volumes: []
 # - name: foo
 #   secret:
 #     secretName: mysecret
 #     optional: false
 
-# Additional volumeMounts on the output Deployment definition.
+# -- Additional volume mounts for the deployment.
+# @section -- Volume Parameters
 volumeMounts: []
 # - name: foo
 #   mountPath: "/etc/foo"
 #   readOnly: true
 
+# -- Node selector for pod scheduling.
+# @section -- Scheduling Parameters
 nodeSelector: {}
 
+# -- Tolerations for pod scheduling.
+# @section -- Scheduling Parameters
 tolerations: []
 
+# -- Affinity rules for pod scheduling.
+# @section -- Scheduling Parameters
 affinity: {}

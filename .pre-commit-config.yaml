@@ -4,8 +4,22 @@ repos:
     hooks:
       - id: helm-docs-built
         args:
-          - --chart-search-root=.
+          - --chart-search-root=charts
           - --values-file=values.yaml
-          - --output-file=./../README.md
-          - --template-files=./README.md.gotmpl
+          - --template-files=../templates/_helpers.gotmpl
+          - --template-files=../templates/README.md.gotmpl
           - --sort-values-order=file
+          - --documentation-strict-mode
+          - --documentation-strict-ignore-absent-regex=.*\.enabled
+          - --documentation-strict-ignore-absent-regex=.*\.image\..*
+
+  - repo: local
+    hooks:
+      - id: sync-chart-docs
+        name: Sync Chart Documentation
+        description: Automatically sync charts with MkDocs documentation
+        entry: uv run python scripts/sync-chart-docs.py
+        language: system
+        files: ^(charts/.*/(Chart\.yaml|values\.yaml)|mkdocs\.yml)$
+        pass_filenames: false
+        stages: [pre-commit]

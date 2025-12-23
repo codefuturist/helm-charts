@@ -28,3 +28,12 @@ Chart.lock
 **/charts/*.tgz
 
 # End of https://www.toptal.com/developers/gitignore/api/helm
+
+# Python / uv
+.venv/
+__pycache__/
+*.pyc
+.python-version
+
+# MkDocs build output
+site-docs/

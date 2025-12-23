@@ -1,0 +1,153 @@
+site_name: Helm Charts Documentation
+site_description: Documentation for Helm Charts with searchable values reference
+site_url: https://codefuturist.github.io/helm-charts
+repo_url: https://github.com/codefuturist/helm-charts
+repo_name: codefuturist/helm-charts
+edit_uri: edit/main/
+
+theme:
+  name: material
+  language: en
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/kubernetes
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - content.action.view
+    - content.tabs.link
+    - toc.follow
+
+plugins:
+  - search:
+      separator: '[\s\-\._]+'
+      lang:
+        - en
+  - tags
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 4
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: codefuturist
+      repo: helm-charts
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/codefuturist/helm-charts
+  generator: false
+  version:
+    provider: mike
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+extra_javascript:
+  - assets/javascripts/extra.js
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+  - Charts:
+      - charts/index.md
+      - Actualbudget: charts/actualbudget.md
+      - Application: charts/application.md
+      - Bitwarden Eso Provider: charts/bitwarden-eso-provider.md
+      - Compass Web: charts/compass-web.md
+      - Homarr: charts/homarr.md
+      - Home Assistant: charts/home-assistant.md
+      - It Tools: charts/it-tools.md
+      - Mailrise: charts/mailrise.md
+      - Mealie: charts/mealie.md
+      - Metube: charts/metube.md
+      - Netbootxyz: charts/netbootxyz.md
+      - Nginx: charts/nginx.md
+      - Paperless Ngx: charts/paperless-ngx.md
+      - Pgadmin: charts/pgadmin.md
+      - Proxmox Backup Server: charts/proxmox-backup-server.md
+      - Redisinsight: charts/redisinsight.md
+      - Restic Backup: charts/restic-backup.md
+      - Semaphore: charts/semaphore.md
+      - Shlink: charts/shlink.md
+      - Test Final: charts/test-final.md
+      - Uptime Kuma: charts/uptime-kuma.md
+  - Reference:
+      - Values Search: reference/search.md
+      - All Values Index: reference/values-index.md
+  - Resources:
+      - Changelog: CHANGELOG.md
+      - Further Resources: FURTHER_RESOURCES.md
+      - Git Hooks: GIT_HOOKS.md
+      - Security: SECURITY.md
+  - Contributing: CONTRIBUTING.md

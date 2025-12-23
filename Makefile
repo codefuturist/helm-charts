@@ -3,6 +3,9 @@ CHARTS_DIR := charts
 CHART_TESTING_IMAGE := quay.io/helmpack/chart-testing
 CHART_TESTING_TAG := v3.10.0
 
+# Use uv for Python package management (faster, more reliable)
+UV := uv
+
 .PHONY: help
 help: ## Display this help message
 	@echo "Available targets:"
@@ -10,7 +13,8 @@ help: ## Display this help message
 
 .PHONY: install-hooks
 install-hooks: ## Install pre-commit hooks
-	command -v pre-commit 2>&1 >/dev/null || pip install pre-commit
+	@command -v $(UV) >/dev/null 2>&1 || (echo "❌ uv not found. Install it from https://docs.astral.sh/uv/"; exit 1)
+	$(UV) tool install pre-commit --quiet 2>/dev/null || true
 	pre-commit install
 
 .PHONY: lint
@@ -94,9 +98,71 @@ test-chart: ## Test a specific chart (usage: make test-chart CHART=application)
 clean: ## Clean up generated files
 	rm -rf .cr-release-packages
 	rm -rf .cr-index
+	rm -rf site-docs
 	find $(CHARTS_DIR) -name "Chart.lock" -delete
 	find $(CHARTS_DIR) -type d -name "charts" -mindepth 2 -maxdepth 2 -exec rm -rf {} + 2>/dev/null || true
 	@echo "Cleaned up generated files"
+
+# Documentation targets using uv
+DOCS_PORT ?= 8000
+
+.PHONY: docs-deps
+docs-deps: ## Install documentation dependencies
+	@command -v $(UV) >/dev/null 2>&1 || (echo "❌ uv not found. Install it from https://docs.astral.sh/uv/"; exit 1)
+	@echo "📥 Installing documentation dependencies..."
+	@$(UV) sync --quiet
+	@echo "✅ Dependencies installed"
+
+.PHONY: docs-generate
+docs-generate: ## Generate MkDocs pages from chart values
+	@echo "🔄 Generating documentation from charts..."
+	@$(UV) run python scripts/generate-docs.py
+
+.PHONY: docs-serve
+docs-serve: docs-deps docs-generate ## Serve documentation locally with live reload
+	@echo ""
+	@echo "🚀 Starting documentation server..."
+	@echo "   📖 Local:   http://localhost:$(DOCS_PORT)"
+	@echo "   🔄 Live reload enabled - changes will auto-refresh"
+	@echo "   ⌨️  Press Ctrl+C to stop"
+	@echo ""
+	@$(UV) run mkdocs serve -a localhost:$(DOCS_PORT)
+
+.PHONY: docs-build
+docs-build: docs-deps docs-generate ## Build documentation site
+	@echo "🏗️  Building documentation site..."
+	@$(UV) run mkdocs build -d site-docs
+	@echo "✅ Documentation built in site-docs/"
+
+.PHONY: docs
+docs: docs-build ## Full documentation build (alias for docs-build)
+	@echo "📚 Documentation ready at site-docs/index.html"
+
+.PHONY: docs-open
+docs-open: ## Open documentation in browser (macOS)
+	@if [ -f "site-docs/index.html" ]; then \
+		open site-docs/index.html; \
+	else \
+		echo "⚠️  Documentation not built yet. Run 'make docs-build' first."; \
+	fi
+
+.PHONY: docs-clean
+docs-clean: ## Clean documentation build artifacts
+	@echo "🧹 Cleaning documentation artifacts..."
+	@rm -rf site-docs
+	@rm -rf docs/charts/*.md
+	@rm -rf docs/reference/search.md docs/reference/values-index.md
+	@rm -f docs/assets/javascripts/values-index.json
+	@echo "✅ Documentation artifacts cleaned"
+
+.PHONY: docs-sync
+docs-sync: docs-deps ## Sync chart documentation (add new, remove deleted)
+	@echo "🔄 Syncing chart documentation..."
+	@$(UV) run python scripts/sync-chart-docs.py
+
+.PHONY: docs-check
+docs-check: docs-deps ## Check if chart documentation is in sync
+	@$(UV) run python scripts/sync-chart-docs.py --check
 
 .PHONY: validate
 validate: lint build-docs ## Validate all charts (lint + docs)

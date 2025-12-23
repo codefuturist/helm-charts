@@ -1,36 +1,26 @@
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+{{ template "custom.badges" . }}
 
-# Application
+# {{ template "chart.name" . }}
 
-Generic helm chart for applications which:
+{{ template "chart.deprecationWarning" . }}
 
-- are stateless
-- creates only namespace scoped resources (e.g. it doesn't need CRB - Cluster Role Bindings)
-- don't need privileged containers
-- don't call the underlying Kubernetes API or use the underlying etcd as a database by defining custom resources
-- run either as deployment, job or cronjob
+{{ template "chart.description" . }}
 
-## Installing the Chart
+{{ template "chart.homepageLine" . }}
 
-To install the chart with the release name `my-application` in namespace `test`:
+{{ template "chart.maintainersSection" . }}
 
-```shell
-helm repo add stakater https://stakater.github.io/stakater-charts
-helm repo update
-helm install my-application stakater/application --namespace test
-```
+{{ template "chart.sourcesSection" . }}
 
-## Uninstall the Chart
+{{ template "chart.requirementsSection" . }}
 
-To uninstall the chart:
+{{ template "custom.install" . }}
 
-```shell
-helm delete --namespace test my-application
-```
+{{ template "custom.uninstall" . }}
 
 {{ template "chart.valuesSection" . }}
 
-{{ template "helm-docs.versionFooter" . }}
+{{ template "custom.footer" . }}
 
 ## Naming convention for ConfigMap, Secret, SealedSecret and ExternalSecret
 

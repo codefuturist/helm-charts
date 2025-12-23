@@ -82,22 +82,30 @@ helm uninstall my-release
 
 ## Chart Documentation
 
+📚 **Full documentation with search**: [charts.pandia.io](https://charts.pandia.io)
+
 Each chart has its own detailed README with:
 - Complete parameter documentation
 - Usage examples
 - Configuration guides
 - Troubleshooting tips
 
-Visit the individual chart directories for more information:
-- [Application Chart Documentation](charts/application/README.md)
-- [Homarr Chart Documentation](charts/homarr/README.md)
-- [NGINX Chart Documentation](charts/nginx/README.md)
+### Quick Links
+
+| Chart | README | Search Values |
+|-------|--------|---------------|
+| Application | [README](charts/application/README.md) | [Search](https://charts.pandia.io/charts/application/) |
+| Homarr | [README](charts/homarr/README.md) | [Search](https://charts.pandia.io/charts/homarr/) |
+| NGINX | [README](charts/nginx/README.md) | [Search](https://charts.pandia.io/charts/nginx/) |
+
+**Search all values across all charts**: [Values Search](https://charts.pandia.io/reference/search/)
 
 ## Development
 
 ### Prerequisites for Development
 
 - [Helm](https://helm.sh/docs/intro/install/) v3.8+
+- [uv](https://docs.astral.sh/uv/) (fast Python package manager for documentation)
 - [helm-docs](https://github.com/norwoodj/helm-docs) (for documentation generation)
 - [chart-testing](https://github.com/helm/chart-testing) (for linting and testing)
 - [yamllint](https://github.com/adrienverge/yamllint)
@@ -120,12 +128,59 @@ helm install test-release charts/<chart-name> --dry-run --debug
 
 ### Building Documentation
 
-```bash
-# Generate README files for all charts
-make build-docs
+**Quick Start (Recommended):**
 
-# Or manually with helm-docs
-helm-docs charts/<chart-name>
+```bash
+# Start local documentation server with live reload
+./scripts/docs-dev.sh serve
+
+# Or use make
+make docs-serve
+```
+
+This will:
+- Create a virtual environment automatically
+- Install all dependencies
+- Generate documentation from chart values
+- Start a local server at http://localhost:8000
+- Auto-refresh when you make changes
+
+**Other Commands:**
+
+```bash
+# Using the dev script
+./scripts/docs-dev.sh help      # Show all commands
+./scripts/docs-dev.sh build     # Build static site
+./scripts/docs-dev.sh generate  # Regenerate from values only
+./scripts/docs-dev.sh sync      # Sync charts with docs (add/remove)
+./scripts/docs-dev.sh check     # Check if docs are in sync
+./scripts/docs-dev.sh clean     # Clean generated files
+
+# Using make
+make docs-deps      # Install dependencies only
+make docs-generate  # Generate MkDocs pages from charts  
+make docs-build     # Build documentation site
+make docs-sync      # Sync charts with docs
+make docs-check     # Check if docs are in sync
+make docs-open      # Open built docs in browser
+make docs-clean     # Clean documentation artifacts
+```
+
+**Automatic Sync:**
+
+Documentation is automatically synced when you commit via pre-commit hooks. If you add or remove a chart:
+
+1. The hook detects changes to `charts/*/Chart.yaml` or `charts/*/values.yaml`
+2. Generates/removes documentation pages automatically
+3. Updates `mkdocs.yml` navigation
+4. Updates the charts index page
+
+To manually sync after adding/removing charts:
+
+```bash
+./scripts/docs-dev.sh sync
+# or
+make docs-sync
 ```
 
 ## Contributing

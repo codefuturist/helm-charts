@@ -1,0 +1,7 @@
+# MkDocs dependencies for documentation site
+mkdocs>=1.5.0
+mkdocs-material>=9.5.0
+mkdocs-minify-plugin>=0.8.0
+pymdown-extensions>=10.0
+Pygments>=2.17.0
+PyYAML>=6.0

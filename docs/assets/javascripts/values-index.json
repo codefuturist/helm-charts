@@ -1,0 +1,4673 @@
+[
+  {
+    "key": "replicaCount",
+    "type": "int",
+    "default": "3",
+    "description": "Number of replicas for the deployment.",
+    "section": "Deployment Parameters",
+    "line_number": 7,
+    "chart": "nginx"
+  },
+  {
+    "key": "repository",
+    "type": "string",
+    "default": "nginx",
+    "description": "Container image repository.",
+    "section": "Image Parameters",
+    "line_number": 12,
+    "chart": "nginx"
+  },
+  {
+    "key": "pullPolicy",
+    "type": "string",
+    "default": "IfNotPresent",
+    "description": "Image pull policy.",
+    "section": "Image Parameters",
+    "line_number": 15,
+    "chart": "nginx"
+  },
+  {
+    "key": "tag",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Overrides the image tag whose default is the chart appVersion.",
+    "section": "Image Parameters",
+    "line_number": 18,
+    "chart": "nginx"
+  },
+  {
+    "key": "imagePullSecrets",
+    "type": "list",
+    "default": "[]",
+    "description": "Secrets for pulling images from a private repository.",
+    "section": "Image Parameters",
+    "line_number": 22,
+    "chart": "nginx"
+  },
+  {
+    "key": "nameOverride",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Override the chart name.",
+    "section": "General Parameters",
+    "line_number": 26,
+    "chart": "nginx"
+  },
+  {
+    "key": "fullnameOverride",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Override the full name.",
+    "section": "General Parameters",
+    "line_number": 30,
+    "chart": "nginx"
+  },
+  {
+    "key": "create",
+    "type": "bool",
+    "default": "true",
+    "description": "Specifies whether a service account should be created.",
+    "section": "ServiceAccount Parameters",
+    "line_number": 35,
+    "chart": "nginx"
+  },
+  {
+    "key": "automount",
+    "type": "bool",
+    "default": "true",
+    "description": "Automatically mount a ServiceAccount's API credentials.",
+    "section": "ServiceAccount Parameters",
+    "line_number": 38,
+    "chart": "nginx"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "{}",
+    "description": "Annotations to add to the service account.",
+    "section": "ServiceAccount Parameters",
+    "line_number": 41,
+    "chart": "nginx"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "\"\"",
+    "description": "The name of the service account to use. If not set and create is true, a name is generated.",
+    "section": "ServiceAccount Parameters",
+    "line_number": 44,
+    "chart": "nginx"
+  },
+  {
+    "key": "podAnnotations",
+    "type": "object",
+    "default": "{}",
+    "description": "Annotations for pods.",
+    "section": "Pod Parameters",
+    "line_number": 48,
+    "chart": "nginx"
+  },
+  {
+    "key": "podLabels",
+    "type": "object",
+    "default": "{}",
+    "description": "Labels for pods.",
+    "section": "Pod Parameters",
+    "line_number": 52,
+    "chart": "nginx"
+  },
+  {
+    "key": "podSecurityContext",
+    "type": "object",
+    "default": "{}",
+    "description": "Pod security context.",
+    "section": "Pod Parameters",
+    "line_number": 56,
+    "chart": "nginx"
+  },
+  {
+    "key": "securityContext",
+    "type": "object",
+    "default": "{}",
+    "description": "Container security context.",
+    "section": "Pod Parameters",
+    "line_number": 61,
+    "chart": "nginx"
+  },
+  {
+    "key": "type",
+    "type": "string",
+    "default": "ClusterIP",
+    "description": "Service type (ClusterIP, NodePort, LoadBalancer).",
+    "section": "Service Parameters",
+    "line_number": 72,
+    "chart": "nginx"
+  },
+  {
+    "key": "port",
+    "type": "int",
+    "default": "80",
+    "description": "Service port.",
+    "section": "Service Parameters",
+    "line_number": 75,
+    "chart": "nginx"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable ingress.",
+    "section": "Ingress Parameters",
+    "line_number": 80,
+    "chart": "nginx"
+  },
+  {
+    "key": "className",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Ingress class name.",
+    "section": "Ingress Parameters",
+    "line_number": 83,
+    "chart": "nginx"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "{}",
+    "description": "Ingress annotations.",
+    "section": "Ingress Parameters",
+    "line_number": 86,
+    "chart": "nginx"
+  },
+  {
+    "key": "hosts",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Ingress hosts configuration.",
+    "section": "Ingress Parameters",
+    "line_number": 91,
+    "chart": "nginx"
+  },
+  {
+    "key": "tls",
+    "type": "list",
+    "default": "[]",
+    "description": "Ingress TLS configuration.",
+    "section": "Ingress Parameters",
+    "line_number": 98,
+    "chart": "nginx"
+  },
+  {
+    "key": "resources",
+    "type": "object",
+    "default": "{}",
+    "description": "Resource limits and requests.",
+    "section": "Resource Parameters",
+    "line_number": 105,
+    "chart": "nginx"
+  },
+  {
+    "key": "livenessProbe",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Liveness probe configuration.",
+    "section": "Probe Parameters",
+    "line_number": 115,
+    "chart": "nginx"
+  },
+  {
+    "key": "readinessProbe",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Readiness probe configuration.",
+    "section": "Probe Parameters",
+    "line_number": 122,
+    "chart": "nginx"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable horizontal pod autoscaling.",
+    "section": "Autoscaling Parameters",
+    "line_number": 130,
+    "chart": "nginx"
+  },
+  {
+    "key": "minReplicas",
+    "type": "int",
+    "default": "1",
+    "description": "Minimum number of replicas.",
+    "section": "Autoscaling Parameters",
+    "line_number": 133,
+    "chart": "nginx"
+  },
+  {
+    "key": "maxReplicas",
+    "type": "int",
+    "default": "100",
+    "description": "Maximum number of replicas.",
+    "section": "Autoscaling Parameters",
+    "line_number": 136,
+    "chart": "nginx"
+  },
+  {
+    "key": "targetCPUUtilizationPercentage",
+    "type": "int",
+    "default": "80",
+    "description": "Target CPU utilization percentage.",
+    "section": "Autoscaling Parameters",
+    "line_number": 139,
+    "chart": "nginx"
+  },
+  {
+    "key": "volumes",
+    "type": "list",
+    "default": "[]",
+    "description": "Additional volumes for the deployment.",
+    "section": "Volume Parameters",
+    "line_number": 144,
+    "chart": "nginx"
+  },
+  {
+    "key": "volumeMounts",
+    "type": "list",
+    "default": "[]",
+    "description": "Additional volume mounts for the deployment.",
+    "section": "Volume Parameters",
+    "line_number": 152,
+    "chart": "nginx"
+  },
+  {
+    "key": "nodeSelector",
+    "type": "object",
+    "default": "{}",
+    "description": "Node selector for pod scheduling.",
+    "section": "Scheduling Parameters",
+    "line_number": 159,
+    "chart": "nginx"
+  },
+  {
+    "key": "tolerations",
+    "type": "list",
+    "default": "[]",
+    "description": "Tolerations for pod scheduling.",
+    "section": "Scheduling Parameters",
+    "line_number": 163,
+    "chart": "nginx"
+  },
+  {
+    "key": "affinity",
+    "type": "object",
+    "default": "{}",
+    "description": "Affinity rules for pod scheduling.",
+    "section": "Scheduling Parameters",
+    "line_number": 167,
+    "chart": "nginx"
+  },
+  {
+    "key": "namespaceOverride",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Override the namespace for all resources.",
+    "section": "Parameters",
+    "line_number": 3,
+    "chart": "application"
+  },
+  {
+    "key": "componentOverride",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Override the component label for all resources.",
+    "section": "Parameters",
+    "line_number": 7,
+    "chart": "application"
+  },
+  {
+    "key": "partOfOverride",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Override the partOf label for all resources.",
+    "section": "Parameters",
+    "line_number": 11,
+    "chart": "application"
+  },
+  {
+    "key": "applicationName",
+    "type": "string",
+    "default": "`{{ .Chart.Name }}`",
+    "description": "Application name.",
+    "section": "Parameters",
+    "line_number": 16,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "tpl/object",
+    "default": "`nil`",
+    "description": "Additional labels for all resources.",
+    "section": "Parameters",
+    "line_number": 20,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy CronJob resources.",
+    "section": "CronJob Parameters",
+    "line_number": 28,
+    "chart": "application"
+  },
+  {
+    "key": "jobs",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Map of CronJob resources.",
+    "section": "CronJob Parameters",
+    "line_number": 33,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy Job resources.",
+    "section": "Job Parameters",
+    "line_number": 77,
+    "chart": "application"
+  },
+  {
+    "key": "jobs",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Map of Job resources.",
+    "section": "Job Parameters",
+    "line_number": 82,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "true",
+    "description": "Enable Deployment.",
+    "section": "Deployment Parameters",
+    "line_number": 127,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Deployment.",
+    "section": "Deployment Parameters",
+    "line_number": 130,
+    "chart": "application"
+  },
+  {
+    "key": "podLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional pod labels which are used in Service's Label Selector.",
+    "section": "Deployment Parameters",
+    "line_number": 133,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Deployment.",
+    "section": "Deployment Parameters",
+    "line_number": 136,
+    "chart": "application"
+  },
+  {
+    "key": "additionalPodAnnotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional pod annotations.",
+    "section": "Deployment Parameters",
+    "line_number": 139,
+    "chart": "application"
+  },
+  {
+    "key": "type",
+    "type": "string",
+    "default": "RollingUpdate",
+    "description": "Type of deployment strategy.",
+    "section": "Deployment Parameters",
+    "line_number": 143,
+    "chart": "application"
+  },
+  {
+    "key": "reloadOnChange",
+    "type": "bool",
+    "default": "true",
+    "description": "Reload deployment if attached Secret/ConfigMap changes.",
+    "section": "Deployment Parameters",
+    "line_number": 149,
+    "chart": "application"
+  },
+  {
+    "key": "nodeSelector",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Select the node where the pods should be scheduled.",
+    "section": "Deployment Parameters",
+    "line_number": 152,
+    "chart": "application"
+  },
+  {
+    "key": "hostAliases",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Mapping between IP and hostnames that will be injected as entries in the pod's hosts files.",
+    "section": "Deployment Parameters",
+    "line_number": 155,
+    "chart": "application"
+  },
+  {
+    "key": "initContainers",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Add init containers to the pods.",
+    "section": "Deployment Parameters",
+    "line_number": 166,
+    "chart": "application"
+  },
+  {
+    "key": "fluentdConfigAnnotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Configuration details for fluentdConfigurations.",
+    "section": "Deployment Parameters",
+    "line_number": 174,
+    "chart": "application"
+  },
+  {
+    "key": "replicas",
+    "type": "int",
+    "default": "`nil`",
+    "description": "Number of replicas.",
+    "section": "Deployment Parameters",
+    "line_number": 186,
+    "chart": "application"
+  },
+  {
+    "key": "imagePullSecrets",
+    "type": "list",
+    "default": "[]",
+    "description": "List of secrets to be used for pulling the images.",
+    "section": "Deployment Parameters",
+    "line_number": 189,
+    "chart": "application"
+  },
+  {
+    "key": "envFrom",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Mount environment variables from ConfigMap or Secret to the pod. See the README \"Consuming environment variable in application chart\" section for more details.",
+    "section": "Deployment Parameters",
+    "line_number": 193,
+    "chart": "application"
+  },
+  {
+    "key": "env",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Environment variables to be added to the pod. See the README \"Consuming environment variable in application chart\" section for more details.",
+    "section": "Deployment Parameters",
+    "line_number": 207,
+    "chart": "application"
+  },
+  {
+    "key": "volumes",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Volumes to be added to the pod.",
+    "section": "Deployment Parameters",
+    "line_number": 218,
+    "chart": "application"
+  },
+  {
+    "key": "volumeMounts",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Mount path for Volumes.",
+    "section": "Deployment Parameters",
+    "line_number": 231,
+    "chart": "application"
+  },
+  {
+    "key": "priorityClassName",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Define the priority class for the pod.",
+    "section": "Deployment Parameters",
+    "line_number": 239,
+    "chart": "application"
+  },
+  {
+    "key": "runtimeClassName",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Set the runtimeClassName for the deployment's pods.",
+    "section": "Deployment Parameters",
+    "line_number": 242,
+    "chart": "application"
+  },
+  {
+    "key": "tolerations",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Taint tolerations for the pods.",
+    "section": "Deployment Parameters",
+    "line_number": 245,
+    "chart": "application"
+  },
+  {
+    "key": "affinity",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Affinity for the pods.",
+    "section": "Deployment Parameters",
+    "line_number": 252,
+    "chart": "application"
+  },
+  {
+    "key": "topologySpreadConstraints",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Topology spread constraints for the pods.",
+    "section": "Deployment Parameters",
+    "line_number": 263,
+    "chart": "application"
+  },
+  {
+    "key": "revisionHistoryLimit",
+    "type": "int",
+    "default": "2",
+    "description": "Number of ReplicaSet revisions to retain.",
+    "section": "Deployment Parameters",
+    "line_number": 284,
+    "chart": "application"
+  },
+  {
+    "key": "repository",
+    "type": "tpl/string",
+    "default": "\"\"",
+    "description": "Repository.",
+    "section": "Deployment Parameters",
+    "line_number": 288,
+    "chart": "application"
+  },
+  {
+    "key": "tag",
+    "type": "tpl/string",
+    "default": "\"\"",
+    "description": "Tag.",
+    "section": "Deployment Parameters",
+    "line_number": 291,
+    "chart": "application"
+  },
+  {
+    "key": "digest",
+    "type": "tpl/string",
+    "default": "\"\"",
+    "description": "Image digest. If resolved to a non-empty value, digest takes precedence on the tag.",
+    "section": "Deployment Parameters",
+    "line_number": 294,
+    "chart": "application"
+  },
+  {
+    "key": "pullPolicy",
+    "type": "string",
+    "default": "IfNotPresent",
+    "description": "Image pull policy.",
+    "section": "Deployment Parameters",
+    "line_number": 297,
+    "chart": "application"
+  },
+  {
+    "key": "dnsConfig",
+    "type": "object",
+    "default": "`nil`",
+    "description": "DNS config for the pods.",
+    "section": "Deployment Parameters",
+    "line_number": 300,
+    "chart": "application"
+  },
+  {
+    "key": "dnsPolicy",
+    "type": "string",
+    "default": "\"\"",
+    "description": "DNS Policy.",
+    "section": "Deployment Parameters",
+    "line_number": 306,
+    "chart": "application"
+  },
+  {
+    "key": "startupProbe",
+    "type": "object",
+    "default": "See below",
+    "description": "Startup probe.",
+    "section": "Deployment Parameters",
+    "line_number": 311,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Startup probe.",
+    "section": "Deployment Parameters",
+    "line_number": 314,
+    "chart": "application"
+  },
+  {
+    "key": "failureThreshold",
+    "type": "int",
+    "default": "30",
+    "description": "Number of retries before marking the pod as failed.",
+    "section": "Deployment Parameters",
+    "line_number": 317,
+    "chart": "application"
+  },
+  {
+    "key": "periodSeconds",
+    "type": "int",
+    "default": "10",
+    "description": "Time between retries.",
+    "section": "Deployment Parameters",
+    "line_number": 320,
+    "chart": "application"
+  },
+  {
+    "key": "successThreshold",
+    "type": "int",
+    "default": "1",
+    "description": "Number of successful probes before marking the pod as ready.",
+    "section": "Deployment Parameters",
+    "line_number": 323,
+    "chart": "application"
+  },
+  {
+    "key": "timeoutSeconds",
+    "type": "int",
+    "default": "1",
+    "description": "Time before the probe times out.",
+    "section": "Deployment Parameters",
+    "line_number": 326,
+    "chart": "application"
+  },
+  {
+    "key": "httpGet",
+    "type": "object",
+    "default": "{}",
+    "description": "HTTP Get probe.",
+    "section": "Deployment Parameters",
+    "line_number": 329,
+    "chart": "application"
+  },
+  {
+    "key": "exec",
+    "type": "object",
+    "default": "{}",
+    "description": "Exec probe.",
+    "section": "Deployment Parameters",
+    "line_number": 332,
+    "chart": "application"
+  },
+  {
+    "key": "tcpSocket",
+    "type": "object",
+    "default": "{}",
+    "description": "TCP Socket probe.",
+    "section": "Deployment Parameters",
+    "line_number": 335,
+    "chart": "application"
+  },
+  {
+    "key": "grpc",
+    "type": "object",
+    "default": "{}",
+    "description": "gRPC probe.",
+    "section": "Deployment Parameters",
+    "line_number": 338,
+    "chart": "application"
+  },
+  {
+    "key": "readinessProbe",
+    "type": "object",
+    "default": "See below",
+    "description": "Readiness probe.",
+    "section": "Deployment Parameters",
+    "line_number": 344,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Readiness probe.",
+    "section": "Deployment Parameters",
+    "line_number": 347,
+    "chart": "application"
+  },
+  {
+    "key": "failureThreshold",
+    "type": "int",
+    "default": "30",
+    "description": "Number of retries before marking the pod as failed.",
+    "section": "Deployment Parameters",
+    "line_number": 350,
+    "chart": "application"
+  },
+  {
+    "key": "periodSeconds",
+    "type": "int",
+    "default": "10",
+    "description": "Time between retries.",
+    "section": "Deployment Parameters",
+    "line_number": 353,
+    "chart": "application"
+  },
+  {
+    "key": "successThreshold",
+    "type": "int",
+    "default": "1",
+    "description": "Number of successful probes before marking the pod as ready.",
+    "section": "Deployment Parameters",
+    "line_number": 356,
+    "chart": "application"
+  },
+  {
+    "key": "timeoutSeconds",
+    "type": "int",
+    "default": "1",
+    "description": "Time before the probe times out.",
+    "section": "Deployment Parameters",
+    "line_number": 359,
+    "chart": "application"
+  },
+  {
+    "key": "httpGet",
+    "type": "object",
+    "default": "{}",
+    "description": "HTTP Get probe.",
+    "section": "Deployment Parameters",
+    "line_number": 362,
+    "chart": "application"
+  },
+  {
+    "key": "exec",
+    "type": "object",
+    "default": "{}",
+    "description": "Exec probe.",
+    "section": "Deployment Parameters",
+    "line_number": 365,
+    "chart": "application"
+  },
+  {
+    "key": "tcpSocket",
+    "type": "object",
+    "default": "{}",
+    "description": "TCP Socket probe.",
+    "section": "Deployment Parameters",
+    "line_number": 368,
+    "chart": "application"
+  },
+  {
+    "key": "grpc",
+    "type": "object",
+    "default": "{}",
+    "description": "gRPC probe.",
+    "section": "Deployment Parameters",
+    "line_number": 371,
+    "chart": "application"
+  },
+  {
+    "key": "livenessProbe",
+    "type": "object",
+    "default": "See below",
+    "description": "Liveness probe.",
+    "section": "Deployment Parameters",
+    "line_number": 377,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Liveness probe.",
+    "section": "Deployment Parameters",
+    "line_number": 380,
+    "chart": "application"
+  },
+  {
+    "key": "failureThreshold",
+    "type": "int",
+    "default": "30",
+    "description": "Number of retries before marking the pod as failed.",
+    "section": "Deployment Parameters",
+    "line_number": 383,
+    "chart": "application"
+  },
+  {
+    "key": "periodSeconds",
+    "type": "int",
+    "default": "10",
+    "description": "Time between retries.",
+    "section": "Deployment Parameters",
+    "line_number": 386,
+    "chart": "application"
+  },
+  {
+    "key": "successThreshold",
+    "type": "int",
+    "default": "1",
+    "description": "Number of successful probes before marking the pod as ready.",
+    "section": "Deployment Parameters",
+    "line_number": 389,
+    "chart": "application"
+  },
+  {
+    "key": "timeoutSeconds",
+    "type": "int",
+    "default": "1",
+    "description": "Time before the probe times out.",
+    "section": "Deployment Parameters",
+    "line_number": 392,
+    "chart": "application"
+  },
+  {
+    "key": "httpGet",
+    "type": "object",
+    "default": "{}",
+    "description": "HTTP Get probe.",
+    "section": "Deployment Parameters",
+    "line_number": 395,
+    "chart": "application"
+  },
+  {
+    "key": "exec",
+    "type": "object",
+    "default": "{}",
+    "description": "Exec probe.",
+    "section": "Deployment Parameters",
+    "line_number": 398,
+    "chart": "application"
+  },
+  {
+    "key": "tcpSocket",
+    "type": "object",
+    "default": "{}",
+    "description": "TCP Socket probe.",
+    "section": "Deployment Parameters",
+    "line_number": 401,
+    "chart": "application"
+  },
+  {
+    "key": "grpc",
+    "type": "object",
+    "default": "{}",
+    "description": "gRPC probe.",
+    "section": "Deployment Parameters",
+    "line_number": 404,
+    "chart": "application"
+  },
+  {
+    "key": "resources",
+    "type": "object",
+    "default": "{}",
+    "description": "Resource limits and requests for the pod.",
+    "section": "Deployment Parameters",
+    "line_number": 407,
+    "chart": "application"
+  },
+  {
+    "key": "containerSecurityContext",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Security Context at Container Level.",
+    "section": "Deployment Parameters",
+    "line_number": 416,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable [OpenShift OAuth Proxy](https://github.com/openshift/oauth-proxy).",
+    "section": "Deployment Parameters",
+    "line_number": 422,
+    "chart": "application"
+  },
+  {
+    "key": "port",
+    "type": "int",
+    "default": "8080",
+    "description": "Port on which application is running inside container.",
+    "section": "Deployment Parameters",
+    "line_number": 425,
+    "chart": "application"
+  },
+  {
+    "key": "secretName",
+    "type": "string",
+    "default": "\"openshift-oauth-proxy-tls\"",
+    "description": "Secret name for the OAuth Proxy TLS certificate.",
+    "section": "Deployment Parameters",
+    "line_number": 428,
+    "chart": "application"
+  },
+  {
+    "key": "image",
+    "type": "string",
+    "default": "openshift/oauth-proxy:latest",
+    "description": "Image for the OAuth Proxy.",
+    "section": "Deployment Parameters",
+    "line_number": 431,
+    "chart": "application"
+  },
+  {
+    "key": "disableTLSArg",
+    "type": "bool",
+    "default": "false",
+    "description": "If disabled `--http-address=:8081` will be used instead of `--https-address=:8443`.",
+    "section": "Deployment Parameters",
+    "line_number": 435,
+    "chart": "application"
+  },
+  {
+    "key": "securityContext",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Security Context for the pod.",
+    "section": "Deployment Parameters",
+    "line_number": 438,
+    "chart": "application"
+  },
+  {
+    "key": "command",
+    "type": "list",
+    "default": "[]",
+    "description": "Command for the app container.",
+    "section": "Deployment Parameters",
+    "line_number": 442,
+    "chart": "application"
+  },
+  {
+    "key": "args",
+    "type": "list",
+    "default": "[]",
+    "description": "Args for the app container.",
+    "section": "Deployment Parameters",
+    "line_number": 445,
+    "chart": "application"
+  },
+  {
+    "key": "ports",
+    "type": "list",
+    "default": "`nil`",
+    "description": "List of ports for the app container.",
+    "section": "Deployment Parameters",
+    "line_number": 448,
+    "chart": "application"
+  },
+  {
+    "key": "hostNetwork",
+    "type": "bool",
+    "default": "`nil`",
+    "description": "Host network connectivity.",
+    "section": "Deployment Parameters",
+    "line_number": 457,
+    "chart": "application"
+  },
+  {
+    "key": "terminationGracePeriodSeconds",
+    "type": "int",
+    "default": "`nil`",
+    "description": "Gracefull termination period.",
+    "section": "Deployment Parameters",
+    "line_number": 460,
+    "chart": "application"
+  },
+  {
+    "key": "minReadySeconds",
+    "type": "int",
+    "default": "`nil`",
+    "description": "Minimum number of seconds for which a newly created Pod should be ready without any of its containers crashing.",
+    "section": "Deployment Parameters",
+    "line_number": 463,
+    "chart": "application"
+  },
+  {
+    "key": "lifecycle",
+    "type": "object",
+    "default": "{}",
+    "description": "Lifecycle configuration for the pod.",
+    "section": "Deployment Parameters",
+    "line_number": 466,
+    "chart": "application"
+  },
+  {
+    "key": "additionalContainers",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Additional containers besides init and app containers (without templating).",
+    "section": "Deployment Parameters",
+    "line_number": 472,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable persistence.",
+    "section": "Deployment Parameters",
+    "line_number": 481,
+    "chart": "application"
+  },
+  {
+    "key": "mountPVC",
+    "type": "bool",
+    "default": "false",
+    "description": "Whether to mount the created PVC to the deployment.",
+    "section": "Deployment Parameters",
+    "line_number": 484,
+    "chart": "application"
+  },
+  {
+    "key": "mountPath",
+    "type": "string",
+    "default": "\"/\"",
+    "description": "If `persistence.mountPVC` is enabled, where to mount the volume in the containers.",
+    "section": "Deployment Parameters",
+    "line_number": 487,
+    "chart": "application"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "`{{ include \"application.name\" $ }}-data`",
+    "description": "Name of the PVC.",
+    "section": "Deployment Parameters",
+    "line_number": 491,
+    "chart": "application"
+  },
+  {
+    "key": "accessMode",
+    "type": "string",
+    "default": "ReadWriteOnce",
+    "description": "Access mode for volume.",
+    "section": "Deployment Parameters",
+    "line_number": 494,
+    "chart": "application"
+  },
+  {
+    "key": "storageClass",
+    "type": "string",
+    "default": "null",
+    "description": "Storage class for volume.",
+    "section": "Deployment Parameters",
+    "line_number": 501,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for persistent volume.",
+    "section": "Deployment Parameters",
+    "line_number": 504,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for persistent volume.",
+    "section": "Deployment Parameters",
+    "line_number": 508,
+    "chart": "application"
+  },
+  {
+    "key": "storageSize",
+    "type": "string",
+    "default": "8Gi",
+    "description": "Size of the persistent volume.",
+    "section": "Deployment Parameters",
+    "line_number": 512,
+    "chart": "application"
+  },
+  {
+    "key": "volumeMode",
+    "type": "string",
+    "default": "\"\"",
+    "description": "PVC Volume Mode.",
+    "section": "Deployment Parameters",
+    "line_number": 515,
+    "chart": "application"
+  },
+  {
+    "key": "volumeName",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Name of the volume.",
+    "section": "Deployment Parameters",
+    "line_number": 518,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "true",
+    "description": "Enable Service.",
+    "section": "Service Parameters",
+    "line_number": 523,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for service.",
+    "section": "Service Parameters",
+    "line_number": 526,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for service.",
+    "section": "Service Parameters",
+    "line_number": 529,
+    "chart": "application"
+  },
+  {
+    "key": "ports",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Ports for applications service.",
+    "section": "Service Parameters",
+    "line_number": 542,
+    "chart": "application"
+  },
+  {
+    "key": "type",
+    "type": "string",
+    "default": "ClusterIP",
+    "description": "Type of service.",
+    "section": "Service Parameters",
+    "line_number": 549,
+    "chart": "application"
+  },
+  {
+    "key": "clusterIP",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Fixed IP for a ClusterIP service.",
+    "section": "Service Parameters",
+    "line_number": 553,
+    "chart": "application"
+  },
+  {
+    "key": "loadBalancerClass",
+    "type": "string",
+    "default": "`nil`",
+    "description": "LoadBalancer class name for LoadBalancer type services.",
+    "section": "Service Parameters",
+    "line_number": 556,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Ingress.",
+    "section": "Ingress Parameters",
+    "line_number": 561,
+    "chart": "application"
+  },
+  {
+    "key": "ingressClassName",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Name of the ingress class.",
+    "section": "Ingress Parameters",
+    "line_number": 564,
+    "chart": "application"
+  },
+  {
+    "key": "pathType",
+    "type": "string",
+    "default": "`ImplementationSpecific`",
+    "description": "Path type.",
+    "section": "Ingress Parameters",
+    "line_number": 576,
+    "chart": "application"
+  },
+  {
+    "key": "serviceName",
+    "type": "string",
+    "default": "`{{ include \"application.name\" $ }}`",
+    "description": "Service name.",
+    "section": "Ingress Parameters",
+    "line_number": 580,
+    "chart": "application"
+  },
+  {
+    "key": "servicePort",
+    "type": "string",
+    "default": "`http`",
+    "description": "Service port.",
+    "section": "Ingress Parameters",
+    "line_number": 584,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for ingress.",
+    "section": "Ingress Parameters",
+    "line_number": 587,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for ingress.",
+    "section": "Ingress Parameters",
+    "line_number": 590,
+    "chart": "application"
+  },
+  {
+    "key": "tls",
+    "type": "list",
+    "default": "`nil`",
+    "description": "TLS configuration for ingress.",
+    "section": "Ingress Parameters",
+    "line_number": 598,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable HTTPRoute (Gateway API).",
+    "section": "HTTPRoute Parameters",
+    "line_number": 606,
+    "chart": "application"
+  },
+  {
+    "key": "parentRefs",
+    "type": "tpl/list",
+    "default": "`nil`",
+    "description": "Parent references for the HTTPRoute.",
+    "section": "HTTPRoute Parameters",
+    "line_number": 609,
+    "chart": "application"
+  },
+  {
+    "key": "useDefaultGateways",
+    "type": "string",
+    "default": "`nil`",
+    "description": "The default Gateway scope to use for this Route.",
+    "section": "HTTPRoute Parameters",
+    "line_number": 618,
+    "chart": "application"
+  },
+  {
+    "key": "gatewayNamespace",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Namespace of the Gateway to attach this HTTPRoute to.",
+    "section": "HTTPRoute Parameters",
+    "line_number": 622,
+    "chart": "application"
+  },
+  {
+    "key": "hostnames",
+    "type": "tpl/list",
+    "default": "`nil`",
+    "description": "Hostnames for the HTTPRoute.",
+    "section": "HTTPRoute Parameters",
+    "line_number": 625,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "{}",
+    "description": "Additional labels for HTTPRoute.",
+    "section": "HTTPRoute Parameters",
+    "line_number": 628,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "{}",
+    "description": "Annotations for HTTPRoute.",
+    "section": "HTTPRoute Parameters",
+    "line_number": 631,
+    "chart": "application"
+  },
+  {
+    "key": "rules",
+    "type": "tpl/list",
+    "default": "`nil`",
+    "description": "Rules for HTTPRoute.",
+    "section": "HTTPRoute Parameters",
+    "line_number": 634,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a Route (OpenShift) resource.",
+    "section": "Route Parameters",
+    "line_number": 646,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Route.",
+    "section": "Route Parameters",
+    "line_number": 649,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Route.",
+    "section": "Route Parameters",
+    "line_number": 652,
+    "chart": "application"
+  },
+  {
+    "key": "host",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Explicit host.",
+    "section": "Route Parameters",
+    "line_number": 659,
+    "chart": "application"
+  },
+  {
+    "key": "path",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Path.",
+    "section": "Route Parameters",
+    "line_number": 662,
+    "chart": "application"
+  },
+  {
+    "key": "port",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Service port.",
+    "section": "Route Parameters",
+    "line_number": 665,
+    "chart": "application"
+  },
+  {
+    "key": "weight",
+    "type": "int",
+    "default": "100",
+    "description": "Service weight.",
+    "section": "Route Parameters",
+    "line_number": 670,
+    "chart": "application"
+  },
+  {
+    "key": "wildcardPolicy",
+    "type": "string",
+    "default": "None",
+    "description": "Wildcard policy.",
+    "section": "Route Parameters",
+    "line_number": 673,
+    "chart": "application"
+  },
+  {
+    "key": "termination",
+    "type": "string",
+    "default": "edge",
+    "description": "TLS termination strategy.",
+    "section": "Route Parameters",
+    "line_number": 677,
+    "chart": "application"
+  },
+  {
+    "key": "insecureEdgeTerminationPolicy",
+    "type": "string",
+    "default": "Redirect",
+    "description": "TLS insecure termination policy.",
+    "section": "Route Parameters",
+    "line_number": 680,
+    "chart": "application"
+  },
+  {
+    "key": "alternateBackends",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Alternate backend with it's weight.",
+    "section": "Route Parameters",
+    "line_number": 683,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a [Secrets Store CSI Driver SecretProviderClass](https://secrets-store-csi-driver.sigs.k8s.io/) resource.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 691,
+    "chart": "application"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Name of the SecretProviderClass.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 695,
+    "chart": "application"
+  },
+  {
+    "key": "provider",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Name of the provider.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 699,
+    "chart": "application"
+  },
+  {
+    "key": "vaultAddress",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Vault Address.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 704,
+    "chart": "application"
+  },
+  {
+    "key": "roleName",
+    "type": "tpl/string",
+    "default": "\"\"",
+    "description": "Vault Role Name.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 709,
+    "chart": "application"
+  },
+  {
+    "key": "objects",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Objects definitions.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 713,
+    "chart": "application"
+  },
+  {
+    "key": "secretObjects",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Objects mapping.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 719,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a [ForecastleApp](https://github.com/stakater/Forecastle) resource.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 729,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for ForecastleApp.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 732,
+    "chart": "application"
+  },
+  {
+    "key": "icon",
+    "type": "string",
+    "default": "https://raw.githubusercontent.com/stakater/ForecastleIcons/master/stakater-big.png",
+    "description": "Icon URL.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 735,
+    "chart": "application"
+  },
+  {
+    "key": "displayName",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Application Name.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 739,
+    "chart": "application"
+  },
+  {
+    "key": "group",
+    "type": "string",
+    "default": "`{{ .Release.Namespace }}`",
+    "description": "Application Group.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 743,
+    "chart": "application"
+  },
+  {
+    "key": "properties",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Custom properties.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 746,
+    "chart": "application"
+  },
+  {
+    "key": "networkRestricted",
+    "type": "bool",
+    "default": "false",
+    "description": "Is application network restricted?.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 750,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "true",
+    "description": "Enable RBAC.",
+    "section": "RBAC Parameters",
+    "line_number": 755,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy Service Account.",
+    "section": "RBAC Parameters",
+    "line_number": 759,
+    "chart": "application"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "`{{ include \"application.name\" $ }}`",
+    "description": "Service Account Name.",
+    "section": "RBAC Parameters",
+    "line_number": 763,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Service Account.",
+    "section": "RBAC Parameters",
+    "line_number": 766,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Service Account.",
+    "section": "RBAC Parameters",
+    "line_number": 770,
+    "chart": "application"
+  },
+  {
+    "key": "roles",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Namespaced Roles.",
+    "section": "RBAC Parameters",
+    "line_number": 774,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy additional ConfigMaps.",
+    "section": "ConfigMap Parameters",
+    "line_number": 795,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for ConfigMaps.",
+    "section": "ConfigMap Parameters",
+    "line_number": 798,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for ConfigMaps.",
+    "section": "ConfigMap Parameters",
+    "line_number": 802,
+    "chart": "application"
+  },
+  {
+    "key": "files",
+    "type": "object",
+    "default": "`nil`",
+    "description": "List of ConfigMap entries.",
+    "section": "ConfigMap Parameters",
+    "line_number": 807,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy [SealedSecret](https://github.com/bitnami-labs/sealed-secrets) resources.",
+    "section": "SealedSecret Parameters",
+    "line_number": 818,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for SealedSecret.",
+    "section": "SealedSecret Parameters",
+    "line_number": 821,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for SealedSecret.",
+    "section": "SealedSecret Parameters",
+    "line_number": 825,
+    "chart": "application"
+  },
+  {
+    "key": "files",
+    "type": "object",
+    "default": "`nil`",
+    "description": "List of SealedSecret entries.",
+    "section": "SealedSecret Parameters",
+    "line_number": 830,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy additional Secret resources.",
+    "section": "Secret Parameters",
+    "line_number": 846,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Secret.",
+    "section": "Secret Parameters",
+    "line_number": 849,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Secret.",
+    "section": "Secret Parameters",
+    "line_number": 853,
+    "chart": "application"
+  },
+  {
+    "key": "files",
+    "type": "object",
+    "default": "`nil`",
+    "description": "List of Secrets entries.",
+    "section": "Secret Parameters",
+    "line_number": 862,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a ServiceMonitor (Prometheus Operator) resource.",
+    "section": "ServiceMonitor Parameters",
+    "line_number": 883,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for ServiceMonitor.",
+    "section": "ServiceMonitor Parameters",
+    "line_number": 886,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for ServiceMonitor.",
+    "section": "ServiceMonitor Parameters",
+    "line_number": 890,
+    "chart": "application"
+  },
+  {
+    "key": "endpoints",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Service endpoints from which prometheus will scrape data.",
+    "section": "ServiceMonitor Parameters",
+    "line_number": 894,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Horizontal Pod Autoscaling.",
+    "section": "Autoscaling - Horizontal Pod Autoscaling Parameters",
+    "line_number": 902,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for HPA.",
+    "section": "Autoscaling - Horizontal Pod Autoscaling Parameters",
+    "line_number": 905,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for HPA.",
+    "section": "Autoscaling - Horizontal Pod Autoscaling Parameters",
+    "line_number": 909,
+    "chart": "application"
+  },
+  {
+    "key": "minReplicas",
+    "type": "int",
+    "default": "1",
+    "description": "Minimum number of replicas.",
+    "section": "Autoscaling - Horizontal Pod Autoscaling Parameters",
+    "line_number": 913,
+    "chart": "application"
+  },
+  {
+    "key": "maxReplicas",
+    "type": "int",
+    "default": "10",
+    "description": "Maximum number of replicas.",
+    "section": "Autoscaling - Horizontal Pod Autoscaling Parameters",
+    "line_number": 916,
+    "chart": "application"
+  },
+  {
+    "key": "metrics",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Metrics used for autoscaling.",
+    "section": "Autoscaling - Horizontal Pod Autoscaling Parameters",
+    "line_number": 919,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Vertical Pod Autoscaling.",
+    "section": "VPA - Vertical Pod Autoscaler Parameters",
+    "line_number": 936,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for VPA.",
+    "section": "VPA - Vertical Pod Autoscaler Parameters",
+    "line_number": 939,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for VPA.",
+    "section": "VPA - Vertical Pod Autoscaler Parameters",
+    "line_number": 943,
+    "chart": "application"
+  },
+  {
+    "key": "containerPolicies",
+    "type": "list",
+    "default": "[]",
+    "description": "Container policies for individual containers.",
+    "section": "VPA - Vertical Pod Autoscaler Parameters",
+    "line_number": 947,
+    "chart": "application"
+  },
+  {
+    "key": "updatePolicy",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Update policy.",
+    "section": "VPA - Vertical Pod Autoscaler Parameters",
+    "line_number": 950,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy an [IMC EndpointMonitor](https://github.com/stakater/IngressMonitorController) resource.",
+    "section": "EndpointMonitor Parameters",
+    "line_number": 956,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for EndpointMonitor.",
+    "section": "EndpointMonitor Parameters",
+    "line_number": 959,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for EndpointMonitor.",
+    "section": "EndpointMonitor Parameters",
+    "line_number": 963,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a [cert-manager Certificate](https://cert-manager.io) resource.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 969,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 972,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 976,
+    "chart": "application"
+  },
+  {
+    "key": "secretName",
+    "type": "tpl/string",
+    "default": "tls-cert",
+    "description": "Name of the secret resource that will be automatically created and managed by this Certificate resource.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 980,
+    "chart": "application"
+  },
+  {
+    "key": "duration",
+    "type": "string",
+    "default": "8760h0m0s # 1 year",
+    "description": "The requested \"duration\" (i.e. lifetime) of the Certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 983,
+    "chart": "application"
+  },
+  {
+    "key": "renewBefore",
+    "type": "string",
+    "default": "720h0m0s # 30d",
+    "description": "The amount of time before the currently issued certificate's notAfter time that cert-manager will begin to attempt to renew the certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 986,
+    "chart": "application"
+  },
+  {
+    "key": "subject",
+    "type": "tpl/object",
+    "default": "`nil`",
+    "description": "Full X509 name specification for certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 989,
+    "chart": "application"
+  },
+  {
+    "key": "commonName",
+    "type": "tpl/string",
+    "default": "`nil`",
+    "description": "Common name as specified on the DER encoded CSR. This field is not recommended in cases when this certificate is an end-entity certificate. More information can be found in the [cert-manager documentation](https://cert-manager.io/docs/usage/certificate/#:~:text=%23%20Avoid%20using%20commonName,%3A%20example.com).",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1002,
+    "chart": "application"
+  },
+  {
+    "key": "keyAlgorithm",
+    "type": "string",
+    "default": "rsa",
+    "description": "Private key algorithm of the corresponding private key for this certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1006,
+    "chart": "application"
+  },
+  {
+    "key": "keyEncoding",
+    "type": "string",
+    "default": "pkcs1",
+    "description": "Private key cryptography standards (PKCS) for this certificate's private key to be encoded in.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1009,
+    "chart": "application"
+  },
+  {
+    "key": "keySize",
+    "type": "int",
+    "default": "2048",
+    "description": "Key bit size of the corresponding private key for this certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1012,
+    "chart": "application"
+  },
+  {
+    "key": "isCA",
+    "type": "bool",
+    "default": "false",
+    "description": "Mark this Certificate as valid for certificate signing.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1015,
+    "chart": "application"
+  },
+  {
+    "key": "usages",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Set of x509 usages that are requested for the certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1018,
+    "chart": "application"
+  },
+  {
+    "key": "dnsNames",
+    "type": "tpl/list",
+    "default": "`nil`",
+    "description": "List of DNS subjectAltNames to be set on the certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1023,
+    "chart": "application"
+  },
+  {
+    "key": "ipAddresses",
+    "type": "list",
+    "default": "`nil`",
+    "description": "List of IP address subjectAltNames to be set on the certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1027,
+    "chart": "application"
+  },
+  {
+    "key": "uriSANs",
+    "type": "list",
+    "default": "`nil`",
+    "description": "List of URI subjectAltNames to be set on the certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1031,
+    "chart": "application"
+  },
+  {
+    "key": "emailSANs",
+    "type": "list",
+    "default": "`nil`",
+    "description": "List of email subjectAltNames to be set on the Certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1035,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Private Key for the certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1040,
+    "chart": "application"
+  },
+  {
+    "key": "rotationPolicy",
+    "type": "string",
+    "default": "Always",
+    "description": "Denotes how private keys should be generated or sourced when a certificate is being issued.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1043,
+    "chart": "application"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "ca-issuer",
+    "description": "Reference to the issuer for this certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1047,
+    "chart": "application"
+  },
+  {
+    "key": "kind",
+    "type": "string",
+    "default": "ClusterIssuer",
+    "description": "Kind of the issuer being referred to.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1050,
+    "chart": "application"
+  },
+  {
+    "key": "group",
+    "type": "string",
+    "default": "cert-manager.io",
+    "description": "Group of the issuer resource being refered to.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1054,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enables keystore configuration.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1059,
+    "chart": "application"
+  },
+  {
+    "key": "create",
+    "type": "bool",
+    "default": "true",
+    "description": "Enables PKCS12 keystore creation for the Certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1064,
+    "chart": "application"
+  },
+  {
+    "key": "key",
+    "type": "string",
+    "default": "test_key",
+    "description": "Key of the entry in the Secret resource's data field to be used.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1067,
+    "chart": "application"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "test-creds",
+    "description": "Name of the Secret resource being referred to.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1070,
+    "chart": "application"
+  },
+  {
+    "key": "create",
+    "type": "bool",
+    "default": "false",
+    "description": "Enables jks keystore creation for the Certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1075,
+    "chart": "application"
+  },
+  {
+    "key": "key",
+    "type": "tpl/string",
+    "default": "test_key",
+    "description": "Key of the entry in the Secret resource's data field to be used.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1078,
+    "chart": "application"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "test-creds",
+    "description": "Name of the Secret resource being referred to.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 1081,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy an AlertmanagerConfig (Prometheus Operator) resource.",
+    "section": "AlertmanagerConfig Parameters",
+    "line_number": 1086,
+    "chart": "application"
+  },
+  {
+    "key": "selectionLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Labels to be picked up by Alertmanager to add it to base config.",
+    "section": "AlertmanagerConfig Parameters",
+    "line_number": 1090,
+    "chart": "application"
+  },
+  {
+    "key": "spec",
+    "type": "object",
+    "default": "`nil`",
+    "description": "AlertmanagerConfig spec.",
+    "section": "AlertmanagerConfig Parameters",
+    "line_number": 1095,
+    "chart": "application"
+  },
+  {
+    "key": "route",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Route definition for alerts matching the resource\u2019s namespace.",
+    "section": "AlertmanagerConfig Parameters",
+    "line_number": 1099,
+    "chart": "application"
+  },
+  {
+    "key": "receivers",
+    "type": "list",
+    "default": "[]",
+    "description": "List of receivers.",
+    "section": "AlertmanagerConfig Parameters",
+    "line_number": 1114,
+    "chart": "application"
+  },
+  {
+    "key": "inhibitRules",
+    "type": "list",
+    "default": "[]",
+    "description": "Inhibition rules that allows to mute alerts when other alerts are already firing.",
+    "section": "AlertmanagerConfig Parameters",
+    "line_number": 1118,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a PrometheusRule (Prometheus Operator) resource.",
+    "section": "PrometheusRule Parameters",
+    "line_number": 1128,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for PrometheusRule.",
+    "section": "PrometheusRule Parameters",
+    "line_number": 1131,
+    "chart": "application"
+  },
+  {
+    "key": "groups",
+    "type": "list",
+    "default": "[]",
+    "description": "Groups with alerting rules.",
+    "section": "PrometheusRule Parameters",
+    "line_number": 1137,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy [ExternalSecret](https://external-secrets.io/latest/) resources.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1152,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for ExternalSecret.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1155,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for ExternalSecret.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1159,
+    "chart": "application"
+  },
+  {
+    "key": "secretStore",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Default values for the SecretStore.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1164,
+    "chart": "application"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "tenant-vault-secret-store",
+    "description": "Name of the SecretStore to use.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1167,
+    "chart": "application"
+  },
+  {
+    "key": "kind",
+    "type": "string",
+    "default": "SecretStore",
+    "description": "Kind of the SecretStore being refered to.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1170,
+    "chart": "application"
+  },
+  {
+    "key": "refreshInterval",
+    "type": "string",
+    "default": "\"1m\"",
+    "description": "RefreshInterval is the amount of time before the values are read again from the SecretStore provider.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1174,
+    "chart": "application"
+  },
+  {
+    "key": "files",
+    "type": "object",
+    "default": "`nil`",
+    "description": "List of ExternalSecret entries.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1181,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Network Policy.",
+    "section": "NetworkPolicy Parameters",
+    "line_number": 1201,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Network Policy.",
+    "section": "NetworkPolicy Parameters",
+    "line_number": 1204,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Network Policy.",
+    "section": "NetworkPolicy Parameters",
+    "line_number": 1208,
+    "chart": "application"
+  },
+  {
+    "key": "ingress",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Ingress rules for Network Policy.",
+    "section": "NetworkPolicy Parameters",
+    "line_number": 1212,
+    "chart": "application"
+  },
+  {
+    "key": "egress",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Egress rules for Network Policy.",
+    "section": "NetworkPolicy Parameters",
+    "line_number": 1229,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Pod Disruption Budget.",
+    "section": "PodDisruptionBudget Parameters",
+    "line_number": 1240,
+    "chart": "application"
+  },
+  {
+    "key": "minAvailable",
+    "type": "int",
+    "default": "1",
+    "description": "Minimum number of pods that must be available after eviction.",
+    "section": "PodDisruptionBudget Parameters",
+    "line_number": 1243,
+    "chart": "application"
+  },
+  {
+    "key": "maxUnavailable",
+    "type": "int",
+    "default": "`nil`",
+    "description": "Maximum number of unavailable pods during voluntary disruptions.",
+    "section": "PodDisruptionBudget Parameters",
+    "line_number": 1246,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy [GrafanaDashboard](https://github.com/grafana/grafana-operator) resources.",
+    "section": "GrafanaDashboard Parameters",
+    "line_number": 1252,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for GrafanaDashboard.",
+    "section": "GrafanaDashboard Parameters",
+    "line_number": 1255,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for GrafanaDashboard.",
+    "section": "GrafanaDashboard Parameters",
+    "line_number": 1259,
+    "chart": "application"
+  },
+  {
+    "key": "contents",
+    "type": "object",
+    "default": "`nil`",
+    "description": "List of GrafanaDashboard entries.",
+    "section": "GrafanaDashboard Parameters",
+    "line_number": 1265,
+    "chart": "application"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a [Velero/OADP Backup](https://velero.io/docs/main/api-types/backup/) resource.",
+    "section": "Backup Parameters",
+    "line_number": 1289,
+    "chart": "application"
+  },
+  {
+    "key": "namespace",
+    "type": "string",
+    "default": "`{{ .Release.Namespace }}`",
+    "description": "Namespace for Backup.",
+    "section": "Backup Parameters",
+    "line_number": 1293,
+    "chart": "application"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Backup.",
+    "section": "Backup Parameters",
+    "line_number": 1296,
+    "chart": "application"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Backup.",
+    "section": "Backup Parameters",
+    "line_number": 1300,
+    "chart": "application"
+  },
+  {
+    "key": "defaultVolumesToRestic",
+    "type": "bool",
+    "default": "true",
+    "description": "Whether to use Restic to take snapshots of all pod volumes by default.",
+    "section": "Backup Parameters",
+    "line_number": 1304,
+    "chart": "application"
+  },
+  {
+    "key": "snapshotVolumes",
+    "type": "bool",
+    "default": "true",
+    "description": "Whether to take snapshots of persistent volumes as part of the backup.",
+    "section": "Backup Parameters",
+    "line_number": 1307,
+    "chart": "application"
+  },
+  {
+    "key": "storageLocation",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Name of the backup storage location where the backup should be stored.",
+    "section": "Backup Parameters",
+    "line_number": 1310,
+    "chart": "application"
+  },
+  {
+    "key": "ttl",
+    "type": "string",
+    "default": "\"1h0m0s\"",
+    "description": "How long the Backup should be retained for.",
+    "section": "Backup Parameters",
+    "line_number": 1313,
+    "chart": "application"
+  },
+  {
+    "key": "includedNamespaces",
+    "type": "tpl/list",
+    "default": "`[ {{ include \"application.namespace\" $ }} ]`",
+    "description": "List of namespaces to include objects from.",
+    "section": "Backup Parameters",
+    "line_number": 1317,
+    "chart": "application"
+  },
+  {
+    "key": "includedResources",
+    "type": "list",
+    "default": "`nil`",
+    "description": "List of resource types to include in the backup.",
+    "section": "Backup Parameters",
+    "line_number": 1321,
+    "chart": "application"
+  },
+  {
+    "key": "excludedResources",
+    "type": "list",
+    "default": "`nil`",
+    "description": "List of resource types to exclude from the backup.",
+    "section": "Backup Parameters",
+    "line_number": 1324,
+    "chart": "application"
+  },
+  {
+    "key": "extraObjects",
+    "type": "[list or object] of [tpl/object or tpl/string]",
+    "default": "`nil`",
+    "description": "Extra K8s manifests to deploy.",
+    "section": "Parameters",
+    "line_number": 1329,
+    "chart": "application"
+  },
+  {
+    "key": "namespaceOverride",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Override the namespace for all resources.",
+    "section": "Parameters",
+    "line_number": 3,
+    "chart": "homarr"
+  },
+  {
+    "key": "componentOverride",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Override the component label for all resources.",
+    "section": "Parameters",
+    "line_number": 7,
+    "chart": "homarr"
+  },
+  {
+    "key": "partOfOverride",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Override the partOf label for all resources.",
+    "section": "Parameters",
+    "line_number": 11,
+    "chart": "homarr"
+  },
+  {
+    "key": "applicationName",
+    "type": "string",
+    "default": "`{{ .Chart.Name }}`",
+    "description": "Application name.",
+    "section": "Parameters",
+    "line_number": 16,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy CronJob resources.",
+    "section": "CronJob Parameters",
+    "line_number": 21,
+    "chart": "homarr"
+  },
+  {
+    "key": "jobs",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Map of CronJob resources.",
+    "section": "CronJob Parameters",
+    "line_number": 26,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy Job resources.",
+    "section": "Job Parameters",
+    "line_number": 49,
+    "chart": "homarr"
+  },
+  {
+    "key": "jobs",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Map of Job resources.",
+    "section": "Job Parameters",
+    "line_number": 54,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "true",
+    "description": "Enable Deployment.",
+    "section": "Deployment Parameters",
+    "line_number": 78,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Deployment.",
+    "section": "Deployment Parameters",
+    "line_number": 81,
+    "chart": "homarr"
+  },
+  {
+    "key": "podLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional pod labels which are used in Service's Label Selector.",
+    "section": "Deployment Parameters",
+    "line_number": 84,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Deployment.",
+    "section": "Deployment Parameters",
+    "line_number": 87,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalPodAnnotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional pod annotations.",
+    "section": "Deployment Parameters",
+    "line_number": 90,
+    "chart": "homarr"
+  },
+  {
+    "key": "type",
+    "type": "string",
+    "default": "RollingUpdate",
+    "description": "Type of deployment strategy.",
+    "section": "Deployment Parameters",
+    "line_number": 94,
+    "chart": "homarr"
+  },
+  {
+    "key": "maxUnavailable",
+    "type": "string",
+    "default": "25%",
+    "description": "Max unavailable pods during update.",
+    "section": "Deployment Parameters",
+    "line_number": 98,
+    "chart": "homarr"
+  },
+  {
+    "key": "maxSurge",
+    "type": "string",
+    "default": "25%",
+    "description": "Max surge pods during update.",
+    "section": "Deployment Parameters",
+    "line_number": 101,
+    "chart": "homarr"
+  },
+  {
+    "key": "reloadOnChange",
+    "type": "bool",
+    "default": "true",
+    "description": "Reload deployment if attached Secret/ConfigMap changes.",
+    "section": "Deployment Parameters",
+    "line_number": 104,
+    "chart": "homarr"
+  },
+  {
+    "key": "nodeSelector",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Select the node where the pods should be scheduled.",
+    "section": "Deployment Parameters",
+    "line_number": 107,
+    "chart": "homarr"
+  },
+  {
+    "key": "hostAliases",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Add host aliases to the pods.",
+    "section": "Deployment Parameters",
+    "line_number": 110,
+    "chart": "homarr"
+  },
+  {
+    "key": "initContainers",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Add init containers to the pods.",
+    "section": "Deployment Parameters",
+    "line_number": 121,
+    "chart": "homarr"
+  },
+  {
+    "key": "fluentdConfigAnnotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Configuration details for fluentdConfigurations.",
+    "section": "Deployment Parameters",
+    "line_number": 129,
+    "chart": "homarr"
+  },
+  {
+    "key": "replicas",
+    "type": "int",
+    "default": "`nil`",
+    "description": "Number of replicas.",
+    "section": "Deployment Parameters",
+    "line_number": 141,
+    "chart": "homarr"
+  },
+  {
+    "key": "imagePullSecrets",
+    "type": "list",
+    "default": "[]",
+    "description": "List of secrets to be used for pulling the images.",
+    "section": "Deployment Parameters",
+    "line_number": 144,
+    "chart": "homarr"
+  },
+  {
+    "key": "envFrom",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Mount environment variables from ConfigMap or Secret to the pod.",
+    "section": "Deployment Parameters",
+    "line_number": 148,
+    "chart": "homarr"
+  },
+  {
+    "key": "env",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Environment variables to be added to the pod.",
+    "section": "Deployment Parameters",
+    "line_number": 160,
+    "chart": "homarr"
+  },
+  {
+    "key": "volumes",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Volumes to be added to the pod.",
+    "section": "Deployment Parameters",
+    "line_number": 171,
+    "chart": "homarr"
+  },
+  {
+    "key": "volumeMounts",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Mount path for Volumes.",
+    "section": "Deployment Parameters",
+    "line_number": 184,
+    "chart": "homarr"
+  },
+  {
+    "key": "priorityClassName",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Define the priority class for the pod.",
+    "section": "Deployment Parameters",
+    "line_number": 192,
+    "chart": "homarr"
+  },
+  {
+    "key": "tolerations",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Taint tolerations for the pods.",
+    "section": "Deployment Parameters",
+    "line_number": 195,
+    "chart": "homarr"
+  },
+  {
+    "key": "affinity",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Affinity for the pods.",
+    "section": "Deployment Parameters",
+    "line_number": 202,
+    "chart": "homarr"
+  },
+  {
+    "key": "topologySpreadConstraints",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Topology spread constraints for the pods.",
+    "section": "Deployment Parameters",
+    "line_number": 213,
+    "chart": "homarr"
+  },
+  {
+    "key": "revisionHistoryLimit",
+    "type": "int",
+    "default": "2",
+    "description": "Number of ReplicaSet revisions to retain.",
+    "section": "Deployment Parameters",
+    "line_number": 234,
+    "chart": "homarr"
+  },
+  {
+    "key": "repository",
+    "type": "string",
+    "default": "\"nginx\"",
+    "description": "Repository.",
+    "section": "Deployment Parameters",
+    "line_number": 238,
+    "chart": "homarr"
+  },
+  {
+    "key": "tag",
+    "type": "string",
+    "default": "\"latest\"",
+    "description": "Tag.",
+    "section": "Deployment Parameters",
+    "line_number": 241,
+    "chart": "homarr"
+  },
+  {
+    "key": "digest",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Image digest. If set to a non-empty value, digest takes precedence on the tag.",
+    "section": "Deployment Parameters",
+    "line_number": 244,
+    "chart": "homarr"
+  },
+  {
+    "key": "pullPolicy",
+    "type": "string",
+    "default": "IfNotPresent",
+    "description": "Image pull policy.",
+    "section": "Deployment Parameters",
+    "line_number": 247,
+    "chart": "homarr"
+  },
+  {
+    "key": "dnsConfig",
+    "type": "object",
+    "default": "`nil`",
+    "description": "DNS config for the pods.",
+    "section": "Deployment Parameters",
+    "line_number": 250,
+    "chart": "homarr"
+  },
+  {
+    "key": "startupProbe",
+    "type": "object",
+    "default": "See below",
+    "description": "Startup probe.",
+    "section": "Deployment Parameters",
+    "line_number": 258,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Startup probe.",
+    "section": "Deployment Parameters",
+    "line_number": 261,
+    "chart": "homarr"
+  },
+  {
+    "key": "failureThreshold",
+    "type": "int",
+    "default": "30",
+    "description": "Number of retries before marking the pod as failed.",
+    "section": "Deployment Parameters",
+    "line_number": 264,
+    "chart": "homarr"
+  },
+  {
+    "key": "periodSeconds",
+    "type": "int",
+    "default": "10",
+    "description": "Time between retries.",
+    "section": "Deployment Parameters",
+    "line_number": 267,
+    "chart": "homarr"
+  },
+  {
+    "key": "successThreshold",
+    "type": "int",
+    "default": "1",
+    "description": "Number of successful probes before marking the pod as ready.",
+    "section": "Deployment Parameters",
+    "line_number": 270,
+    "chart": "homarr"
+  },
+  {
+    "key": "timeoutSeconds",
+    "type": "int",
+    "default": "1",
+    "description": "Time before the probe times out.",
+    "section": "Deployment Parameters",
+    "line_number": 273,
+    "chart": "homarr"
+  },
+  {
+    "key": "httpGet",
+    "type": "object",
+    "default": "{}",
+    "description": "HTTP Get probe.",
+    "section": "Deployment Parameters",
+    "line_number": 276,
+    "chart": "homarr"
+  },
+  {
+    "key": "exec",
+    "type": "object",
+    "default": "{}",
+    "description": "Exec probe.",
+    "section": "Deployment Parameters",
+    "line_number": 279,
+    "chart": "homarr"
+  },
+  {
+    "key": "tcpSocket",
+    "type": "object",
+    "default": "{}",
+    "description": "TCP Socket probe.",
+    "section": "Deployment Parameters",
+    "line_number": 282,
+    "chart": "homarr"
+  },
+  {
+    "key": "grpc",
+    "type": "object",
+    "default": "{}",
+    "description": "gRPC probe.",
+    "section": "Deployment Parameters",
+    "line_number": 285,
+    "chart": "homarr"
+  },
+  {
+    "key": "readinessProbe",
+    "type": "object",
+    "default": "See below",
+    "description": "Readiness probe.",
+    "section": "Deployment Parameters",
+    "line_number": 291,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Readiness probe.",
+    "section": "Deployment Parameters",
+    "line_number": 294,
+    "chart": "homarr"
+  },
+  {
+    "key": "failureThreshold",
+    "type": "int",
+    "default": "30",
+    "description": "Number of retries before marking the pod as failed.",
+    "section": "Deployment Parameters",
+    "line_number": 297,
+    "chart": "homarr"
+  },
+  {
+    "key": "periodSeconds",
+    "type": "int",
+    "default": "10",
+    "description": "Time between retries.",
+    "section": "Deployment Parameters",
+    "line_number": 300,
+    "chart": "homarr"
+  },
+  {
+    "key": "successThreshold",
+    "type": "int",
+    "default": "1",
+    "description": "Number of successful probes before marking the pod as ready.",
+    "section": "Deployment Parameters",
+    "line_number": 303,
+    "chart": "homarr"
+  },
+  {
+    "key": "timeoutSeconds",
+    "type": "int",
+    "default": "1",
+    "description": "Time before the probe times out.",
+    "section": "Deployment Parameters",
+    "line_number": 306,
+    "chart": "homarr"
+  },
+  {
+    "key": "httpGet",
+    "type": "object",
+    "default": "{}",
+    "description": "HTTP Get probe.",
+    "section": "Deployment Parameters",
+    "line_number": 309,
+    "chart": "homarr"
+  },
+  {
+    "key": "exec",
+    "type": "object",
+    "default": "{}",
+    "description": "Exec probe.",
+    "section": "Deployment Parameters",
+    "line_number": 312,
+    "chart": "homarr"
+  },
+  {
+    "key": "tcpSocket",
+    "type": "object",
+    "default": "{}",
+    "description": "TCP Socket probe.",
+    "section": "Deployment Parameters",
+    "line_number": 315,
+    "chart": "homarr"
+  },
+  {
+    "key": "grpc",
+    "type": "object",
+    "default": "{}",
+    "description": "gRPC probe.",
+    "section": "Deployment Parameters",
+    "line_number": 318,
+    "chart": "homarr"
+  },
+  {
+    "key": "livenessProbe",
+    "type": "object",
+    "default": "See below",
+    "description": "Liveness probe.",
+    "section": "Deployment Parameters",
+    "line_number": 324,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Liveness probe.",
+    "section": "Deployment Parameters",
+    "line_number": 327,
+    "chart": "homarr"
+  },
+  {
+    "key": "failureThreshold",
+    "type": "int",
+    "default": "30",
+    "description": "Number of retries before marking the pod as failed.",
+    "section": "Deployment Parameters",
+    "line_number": 330,
+    "chart": "homarr"
+  },
+  {
+    "key": "periodSeconds",
+    "type": "int",
+    "default": "10",
+    "description": "Time between retries.",
+    "section": "Deployment Parameters",
+    "line_number": 333,
+    "chart": "homarr"
+  },
+  {
+    "key": "successThreshold",
+    "type": "int",
+    "default": "1",
+    "description": "Number of successful probes before marking the pod as ready.",
+    "section": "Deployment Parameters",
+    "line_number": 336,
+    "chart": "homarr"
+  },
+  {
+    "key": "timeoutSeconds",
+    "type": "int",
+    "default": "1",
+    "description": "Time before the probe times out.",
+    "section": "Deployment Parameters",
+    "line_number": 339,
+    "chart": "homarr"
+  },
+  {
+    "key": "httpGet",
+    "type": "object",
+    "default": "{}",
+    "description": "HTTP Get probe.",
+    "section": "Deployment Parameters",
+    "line_number": 342,
+    "chart": "homarr"
+  },
+  {
+    "key": "exec",
+    "type": "object",
+    "default": "{}",
+    "description": "Exec probe.",
+    "section": "Deployment Parameters",
+    "line_number": 345,
+    "chart": "homarr"
+  },
+  {
+    "key": "tcpSocket",
+    "type": "object",
+    "default": "{}",
+    "description": "TCP Socket probe.",
+    "section": "Deployment Parameters",
+    "line_number": 348,
+    "chart": "homarr"
+  },
+  {
+    "key": "grpc",
+    "type": "object",
+    "default": "{}",
+    "description": "gRPC probe.",
+    "section": "Deployment Parameters",
+    "line_number": 351,
+    "chart": "homarr"
+  },
+  {
+    "key": "resources",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Resource limits and requests for the pod.",
+    "section": "Deployment Parameters",
+    "line_number": 354,
+    "chart": "homarr"
+  },
+  {
+    "key": "containerSecurityContext",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Security Context at Container Level.",
+    "section": "Deployment Parameters",
+    "line_number": 363,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable [OpenShift OAuth Proxy](https://github.com/openshift/oauth-proxy).",
+    "section": "Deployment Parameters",
+    "line_number": 369,
+    "chart": "homarr"
+  },
+  {
+    "key": "port",
+    "type": "int",
+    "default": "8080",
+    "description": "Port on which application is running inside container.",
+    "section": "Deployment Parameters",
+    "line_number": 372,
+    "chart": "homarr"
+  },
+  {
+    "key": "secretName",
+    "type": "string",
+    "default": "\"openshift-oauth-proxy-tls\"",
+    "description": "Secret name for the OAuth Proxy TLS certificate.",
+    "section": "Deployment Parameters",
+    "line_number": 375,
+    "chart": "homarr"
+  },
+  {
+    "key": "image",
+    "type": "string",
+    "default": "openshift/oauth-proxy:latest",
+    "description": "Image for the OAuth Proxy.",
+    "section": "Deployment Parameters",
+    "line_number": 378,
+    "chart": "homarr"
+  },
+  {
+    "key": "disableTLSArg",
+    "type": "bool",
+    "default": "false",
+    "description": "If disabled `--http-address=:8081` will be used instead of `--https-address=:8443`.",
+    "section": "Deployment Parameters",
+    "line_number": 382,
+    "chart": "homarr"
+  },
+  {
+    "key": "securityContext",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Security Context for the pod.",
+    "section": "Deployment Parameters",
+    "line_number": 385,
+    "chart": "homarr"
+  },
+  {
+    "key": "command",
+    "type": "list",
+    "default": "[]",
+    "description": "Command for the app container.",
+    "section": "Deployment Parameters",
+    "line_number": 389,
+    "chart": "homarr"
+  },
+  {
+    "key": "args",
+    "type": "list",
+    "default": "[]",
+    "description": "Args for the app container.",
+    "section": "Deployment Parameters",
+    "line_number": 392,
+    "chart": "homarr"
+  },
+  {
+    "key": "ports",
+    "type": "list",
+    "default": "`nil`",
+    "description": "List of ports for the app container.",
+    "section": "Deployment Parameters",
+    "line_number": 395,
+    "chart": "homarr"
+  },
+  {
+    "key": "hostNetwork",
+    "type": "bool",
+    "default": "`nil`",
+    "description": "Host network connectivity.",
+    "section": "Deployment Parameters",
+    "line_number": 404,
+    "chart": "homarr"
+  },
+  {
+    "key": "terminationGracePeriodSeconds",
+    "type": "int",
+    "default": "`nil`",
+    "description": "Gracefull termination period.",
+    "section": "Deployment Parameters",
+    "line_number": 407,
+    "chart": "homarr"
+  },
+  {
+    "key": "lifecycle",
+    "type": "object",
+    "default": "{}",
+    "description": "Lifecycle configuration for the pod.",
+    "section": "Deployment Parameters",
+    "line_number": 410,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalContainers",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Additional containers besides init and app containers (without templating).",
+    "section": "Deployment Parameters",
+    "line_number": 416,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable persistence.",
+    "section": "Deployment Parameters",
+    "line_number": 425,
+    "chart": "homarr"
+  },
+  {
+    "key": "mountPVC",
+    "type": "bool",
+    "default": "false",
+    "description": "Whether to mount the created PVC to the deployment.",
+    "section": "Deployment Parameters",
+    "line_number": 428,
+    "chart": "homarr"
+  },
+  {
+    "key": "mountPath",
+    "type": "string",
+    "default": "\"/\"",
+    "description": "If `persistence.mountPVC` is enabled, where to mount the volume in the containers.",
+    "section": "Deployment Parameters",
+    "line_number": 431,
+    "chart": "homarr"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "`{{ include \"application.name\" $ }}-data`",
+    "description": "Name of the PVC.",
+    "section": "Deployment Parameters",
+    "line_number": 435,
+    "chart": "homarr"
+  },
+  {
+    "key": "accessMode",
+    "type": "string",
+    "default": "ReadWriteOnce",
+    "description": "Access mode for volume.",
+    "section": "Deployment Parameters",
+    "line_number": 438,
+    "chart": "homarr"
+  },
+  {
+    "key": "storageClass",
+    "type": "string",
+    "default": "null",
+    "description": "Storage class for volume.",
+    "section": "Deployment Parameters",
+    "line_number": 445,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for persistent volume.",
+    "section": "Deployment Parameters",
+    "line_number": 448,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for persistent volume.",
+    "section": "Deployment Parameters",
+    "line_number": 452,
+    "chart": "homarr"
+  },
+  {
+    "key": "storageSize",
+    "type": "string",
+    "default": "8Gi",
+    "description": "Size of the persistent volume.",
+    "section": "Deployment Parameters",
+    "line_number": 456,
+    "chart": "homarr"
+  },
+  {
+    "key": "volumeMode",
+    "type": "string",
+    "default": "\"\"",
+    "description": "PVC Volume Mode.",
+    "section": "Deployment Parameters",
+    "line_number": 459,
+    "chart": "homarr"
+  },
+  {
+    "key": "volumeName",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Name of the volume.",
+    "section": "Deployment Parameters",
+    "line_number": 462,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "true",
+    "description": "Enable Service.",
+    "section": "Service Parameters",
+    "line_number": 467,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for service.",
+    "section": "Service Parameters",
+    "line_number": 470,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for service.",
+    "section": "Service Parameters",
+    "line_number": 473,
+    "chart": "homarr"
+  },
+  {
+    "key": "ports",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Ports for applications service.",
+    "section": "Service Parameters",
+    "line_number": 486,
+    "chart": "homarr"
+  },
+  {
+    "key": "type",
+    "type": "string",
+    "default": "ClusterIP",
+    "description": "Type of service.",
+    "section": "Service Parameters",
+    "line_number": 493,
+    "chart": "homarr"
+  },
+  {
+    "key": "clusterIP",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Fixed IP for a ClusterIP service.",
+    "section": "Service Parameters",
+    "line_number": 497,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Ingress.",
+    "section": "Ingress Parameters",
+    "line_number": 502,
+    "chart": "homarr"
+  },
+  {
+    "key": "ingressClassName",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Name of the ingress class.",
+    "section": "Ingress Parameters",
+    "line_number": 505,
+    "chart": "homarr"
+  },
+  {
+    "key": "pathType",
+    "type": "string",
+    "default": "`ImplementationSpecific`",
+    "description": "Path type.",
+    "section": "Ingress Parameters",
+    "line_number": 517,
+    "chart": "homarr"
+  },
+  {
+    "key": "serviceName",
+    "type": "string",
+    "default": "`{{ include \"application.name\" $ }}`",
+    "description": "Service name.",
+    "section": "Ingress Parameters",
+    "line_number": 521,
+    "chart": "homarr"
+  },
+  {
+    "key": "servicePort",
+    "type": "string",
+    "default": "`http`",
+    "description": "Service port.",
+    "section": "Ingress Parameters",
+    "line_number": 525,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for ingress.",
+    "section": "Ingress Parameters",
+    "line_number": 528,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for ingress.",
+    "section": "Ingress Parameters",
+    "line_number": 531,
+    "chart": "homarr"
+  },
+  {
+    "key": "tls",
+    "type": "list",
+    "default": "`nil`",
+    "description": "TLS configuration for ingress.",
+    "section": "Ingress Parameters",
+    "line_number": 539,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a Route (OpenShift) resource.",
+    "section": "Route Parameters",
+    "line_number": 547,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Route.",
+    "section": "Route Parameters",
+    "line_number": 550,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Route.",
+    "section": "Route Parameters",
+    "line_number": 553,
+    "chart": "homarr"
+  },
+  {
+    "key": "host",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Explicit host.",
+    "section": "Route Parameters",
+    "line_number": 560,
+    "chart": "homarr"
+  },
+  {
+    "key": "path",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Path.",
+    "section": "Route Parameters",
+    "line_number": 563,
+    "chart": "homarr"
+  },
+  {
+    "key": "port",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Service port.",
+    "section": "Route Parameters",
+    "line_number": 566,
+    "chart": "homarr"
+  },
+  {
+    "key": "weight",
+    "type": "int",
+    "default": "100",
+    "description": "Service weight.",
+    "section": "Route Parameters",
+    "line_number": 571,
+    "chart": "homarr"
+  },
+  {
+    "key": "wildcardPolicy",
+    "type": "string",
+    "default": "None",
+    "description": "Wildcard policy.",
+    "section": "Route Parameters",
+    "line_number": 574,
+    "chart": "homarr"
+  },
+  {
+    "key": "termination",
+    "type": "string",
+    "default": "edge",
+    "description": "TLS termination strategy.",
+    "section": "Route Parameters",
+    "line_number": 578,
+    "chart": "homarr"
+  },
+  {
+    "key": "insecureEdgeTerminationPolicy",
+    "type": "string",
+    "default": "Redirect",
+    "description": "TLS insecure termination policy.",
+    "section": "Route Parameters",
+    "line_number": 581,
+    "chart": "homarr"
+  },
+  {
+    "key": "alternateBackends",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Alternate backend with it's weight.",
+    "section": "Route Parameters",
+    "line_number": 584,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a [Secrets Store CSI Driver SecretProviderClass](https://secrets-store-csi-driver.sigs.k8s.io/) resource.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 592,
+    "chart": "homarr"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Name of the SecretProviderClass.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 596,
+    "chart": "homarr"
+  },
+  {
+    "key": "provider",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Name of the provider.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 600,
+    "chart": "homarr"
+  },
+  {
+    "key": "vaultAddress",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Vault Address.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 605,
+    "chart": "homarr"
+  },
+  {
+    "key": "roleName",
+    "type": "tpl/string",
+    "default": "\"\"",
+    "description": "Vault Role Name.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 610,
+    "chart": "homarr"
+  },
+  {
+    "key": "objects",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Objects definitions.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 614,
+    "chart": "homarr"
+  },
+  {
+    "key": "secretObjects",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Objects mapping.",
+    "section": "SecretProviderClass Parameters",
+    "line_number": 620,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a [ForecastleApp](https://github.com/stakater/Forecastle) resource.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 630,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for ForecastleApp.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 633,
+    "chart": "homarr"
+  },
+  {
+    "key": "icon",
+    "type": "string",
+    "default": "https://raw.githubusercontent.com/stakater/ForecastleIcons/master/stakater-big.png",
+    "description": "Icon URL.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 636,
+    "chart": "homarr"
+  },
+  {
+    "key": "displayName",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Application Name.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 640,
+    "chart": "homarr"
+  },
+  {
+    "key": "group",
+    "type": "string",
+    "default": "`{{ .Release.Namespace }}`",
+    "description": "Application Group.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 644,
+    "chart": "homarr"
+  },
+  {
+    "key": "properties",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Custom properties.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 647,
+    "chart": "homarr"
+  },
+  {
+    "key": "networkRestricted",
+    "type": "bool",
+    "default": "false",
+    "description": "Is application network restricted?.",
+    "section": "ForecastleApp Parameters",
+    "line_number": 651,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "true",
+    "description": "Enable RBAC.",
+    "section": "RBAC Parameters",
+    "line_number": 656,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy Service Account.",
+    "section": "RBAC Parameters",
+    "line_number": 660,
+    "chart": "homarr"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "`{{ include \"application.name\" $ }}`",
+    "description": "Service Account Name.",
+    "section": "RBAC Parameters",
+    "line_number": 664,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Service Account.",
+    "section": "RBAC Parameters",
+    "line_number": 667,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Service Account.",
+    "section": "RBAC Parameters",
+    "line_number": 671,
+    "chart": "homarr"
+  },
+  {
+    "key": "roles",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Namespaced Roles.",
+    "section": "RBAC Parameters",
+    "line_number": 675,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy additional ConfigMaps.",
+    "section": "ConfigMap Parameters",
+    "line_number": 696,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for ConfigMaps.",
+    "section": "ConfigMap Parameters",
+    "line_number": 699,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for ConfigMaps.",
+    "section": "ConfigMap Parameters",
+    "line_number": 703,
+    "chart": "homarr"
+  },
+  {
+    "key": "files",
+    "type": "object",
+    "default": "`nil`",
+    "description": "List of ConfigMap entries.",
+    "section": "ConfigMap Parameters",
+    "line_number": 708,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy [SealedSecret](https://github.com/bitnami-labs/sealed-secrets) resources.",
+    "section": "SealedSecret Parameters",
+    "line_number": 719,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for SealedSecret.",
+    "section": "SealedSecret Parameters",
+    "line_number": 722,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for SealedSecret.",
+    "section": "SealedSecret Parameters",
+    "line_number": 726,
+    "chart": "homarr"
+  },
+  {
+    "key": "files",
+    "type": "object",
+    "default": "`nil`",
+    "description": "List of SealedSecret entries.",
+    "section": "SealedSecret Parameters",
+    "line_number": 731,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy additional Secret resources.",
+    "section": "Secret Parameters",
+    "line_number": 747,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Secret.",
+    "section": "Secret Parameters",
+    "line_number": 750,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Secret.",
+    "section": "Secret Parameters",
+    "line_number": 754,
+    "chart": "homarr"
+  },
+  {
+    "key": "files",
+    "type": "object",
+    "default": "`nil`",
+    "description": "List of Secrets entries.",
+    "section": "Secret Parameters",
+    "line_number": 763,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a ServiceMonitor (Prometheus Operator) resource.",
+    "section": "ServiceMonitor Parameters",
+    "line_number": 784,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for ServiceMonitor.",
+    "section": "ServiceMonitor Parameters",
+    "line_number": 787,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for ServiceMonitor.",
+    "section": "ServiceMonitor Parameters",
+    "line_number": 791,
+    "chart": "homarr"
+  },
+  {
+    "key": "endpoints",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Service endpoints from which prometheus will scrape data.",
+    "section": "ServiceMonitor Parameters",
+    "line_number": 795,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Horizontal Pod Autoscaling.",
+    "section": "Autoscaling - Horizontal Pod Autoscaling Parameters",
+    "line_number": 803,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for HPA.",
+    "section": "Autoscaling - Horizontal Pod Autoscaling Parameters",
+    "line_number": 806,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for HPA.",
+    "section": "Autoscaling - Horizontal Pod Autoscaling Parameters",
+    "line_number": 810,
+    "chart": "homarr"
+  },
+  {
+    "key": "minReplicas",
+    "type": "int",
+    "default": "1",
+    "description": "Minimum number of replicas.",
+    "section": "Autoscaling - Horizontal Pod Autoscaling Parameters",
+    "line_number": 814,
+    "chart": "homarr"
+  },
+  {
+    "key": "maxReplicas",
+    "type": "int",
+    "default": "10",
+    "description": "Maximum number of replicas.",
+    "section": "Autoscaling - Horizontal Pod Autoscaling Parameters",
+    "line_number": 817,
+    "chart": "homarr"
+  },
+  {
+    "key": "metrics",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Metrics used for autoscaling.",
+    "section": "Autoscaling - Horizontal Pod Autoscaling Parameters",
+    "line_number": 820,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Vertical Pod Autoscaling.",
+    "section": "VPA - Vertical Pod Autoscaler Parameters",
+    "line_number": 837,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for VPA.",
+    "section": "VPA - Vertical Pod Autoscaler Parameters",
+    "line_number": 840,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for VPA.",
+    "section": "VPA - Vertical Pod Autoscaler Parameters",
+    "line_number": 844,
+    "chart": "homarr"
+  },
+  {
+    "key": "containerPolicies",
+    "type": "list",
+    "default": "[]",
+    "description": "Container policies for individual containers.",
+    "section": "VPA - Vertical Pod Autoscaler Parameters",
+    "line_number": 848,
+    "chart": "homarr"
+  },
+  {
+    "key": "updatePolicy",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Update policy.",
+    "section": "VPA - Vertical Pod Autoscaler Parameters",
+    "line_number": 851,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy an [IMC EndpointMonitor](https://github.com/stakater/IngressMonitorController) resource.",
+    "section": "EndpointMonitor Parameters",
+    "line_number": 857,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for EndpointMonitor.",
+    "section": "EndpointMonitor Parameters",
+    "line_number": 860,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for EndpointMonitor.",
+    "section": "EndpointMonitor Parameters",
+    "line_number": 864,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a [cert-manager Certificate](https://cert-manager.io) resource.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 870,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 873,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 877,
+    "chart": "homarr"
+  },
+  {
+    "key": "secretName",
+    "type": "tpl/string",
+    "default": "tls-cert",
+    "description": "Name of the secret resource that will be automatically created and managed by this Certificate resource.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 881,
+    "chart": "homarr"
+  },
+  {
+    "key": "duration",
+    "type": "string",
+    "default": "8760h0m0s # 1 year",
+    "description": "The requested \"duration\" (i.e. lifetime) of the Certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 884,
+    "chart": "homarr"
+  },
+  {
+    "key": "renewBefore",
+    "type": "string",
+    "default": "720h0m0s # 30d",
+    "description": "The amount of time before the currently issued certificate's notAfter time that cert-manager will begin to attempt to renew the certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 887,
+    "chart": "homarr"
+  },
+  {
+    "key": "subject",
+    "type": "tpl/object",
+    "default": "`nil`",
+    "description": "Full X509 name specification for certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 890,
+    "chart": "homarr"
+  },
+  {
+    "key": "commonName",
+    "type": "string",
+    "default": "admin-app",
+    "description": "Common name as specified on the DER encoded CSR.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 903,
+    "chart": "homarr"
+  },
+  {
+    "key": "keyAlgorithm",
+    "type": "string",
+    "default": "rsa",
+    "description": "Private key algorithm of the corresponding private key for this certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 906,
+    "chart": "homarr"
+  },
+  {
+    "key": "keyEncoding",
+    "type": "string",
+    "default": "pkcs1",
+    "description": "Private key cryptography standards (PKCS) for this certificate's private key to be encoded in.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 909,
+    "chart": "homarr"
+  },
+  {
+    "key": "keySize",
+    "type": "int",
+    "default": "2048",
+    "description": "Key bit size of the corresponding private key for this certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 912,
+    "chart": "homarr"
+  },
+  {
+    "key": "isCA",
+    "type": "bool",
+    "default": "false",
+    "description": "Mark this Certificate as valid for certificate signing.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 915,
+    "chart": "homarr"
+  },
+  {
+    "key": "usages",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Set of x509 usages that are requested for the certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 918,
+    "chart": "homarr"
+  },
+  {
+    "key": "dnsNames",
+    "type": "tpl/list",
+    "default": "`nil`",
+    "description": "List of DNS subjectAltNames to be set on the certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 923,
+    "chart": "homarr"
+  },
+  {
+    "key": "ipAddresses",
+    "type": "list",
+    "default": "`nil`",
+    "description": "List of IP address subjectAltNames to be set on the certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 927,
+    "chart": "homarr"
+  },
+  {
+    "key": "uriSANs",
+    "type": "list",
+    "default": "`nil`",
+    "description": "List of URI subjectAltNames to be set on the certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 931,
+    "chart": "homarr"
+  },
+  {
+    "key": "emailSANs",
+    "type": "list",
+    "default": "`nil`",
+    "description": "List of email subjectAltNames to be set on the Certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 935,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Private Key for the certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 940,
+    "chart": "homarr"
+  },
+  {
+    "key": "rotationPolicy",
+    "type": "string",
+    "default": "Always",
+    "description": "Denotes how private keys should be generated or sourced when a certificate is being issued.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 943,
+    "chart": "homarr"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "ca-issuer",
+    "description": "Reference to the issuer for this certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 947,
+    "chart": "homarr"
+  },
+  {
+    "key": "kind",
+    "type": "string",
+    "default": "ClusterIssuer",
+    "description": "Kind of the issuer being referred to.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 950,
+    "chart": "homarr"
+  },
+  {
+    "key": "group",
+    "type": "string",
+    "default": "cert-manager.io",
+    "description": "Group of the issuer resource being refered to.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 954,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enables keystore configuration.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 959,
+    "chart": "homarr"
+  },
+  {
+    "key": "create",
+    "type": "bool",
+    "default": "true",
+    "description": "Enables PKCS12 keystore creation for the Certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 964,
+    "chart": "homarr"
+  },
+  {
+    "key": "key",
+    "type": "string",
+    "default": "test_key",
+    "description": "Key of the entry in the Secret resource's data field to be used.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 967,
+    "chart": "homarr"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "test-creds",
+    "description": "Name of the Secret resource being referred to.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 970,
+    "chart": "homarr"
+  },
+  {
+    "key": "create",
+    "type": "bool",
+    "default": "false",
+    "description": "Enables jks keystore creation for the Certificate.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 975,
+    "chart": "homarr"
+  },
+  {
+    "key": "key",
+    "type": "tpl/string",
+    "default": "test_key",
+    "description": "Key of the entry in the Secret resource's data field to be used.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 978,
+    "chart": "homarr"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "test-creds",
+    "description": "Name of the Secret resource being referred to.",
+    "section": "cert-manager Certificate Parameters",
+    "line_number": 981,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy an AlertmanagerConfig (Prometheus Operator) resource.",
+    "section": "AlertmanagerConfig Parameters",
+    "line_number": 986,
+    "chart": "homarr"
+  },
+  {
+    "key": "selectionLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Labels to be picked up by Alertmanager to add it to base config.",
+    "section": "AlertmanagerConfig Parameters",
+    "line_number": 990,
+    "chart": "homarr"
+  },
+  {
+    "key": "spec",
+    "type": "object",
+    "default": "`nil`",
+    "description": "AlertmanagerConfig spec.",
+    "section": "AlertmanagerConfig Parameters",
+    "line_number": 995,
+    "chart": "homarr"
+  },
+  {
+    "key": "route",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Route definition for alerts matching the resource\u2019s namespace.",
+    "section": "AlertmanagerConfig Parameters",
+    "line_number": 999,
+    "chart": "homarr"
+  },
+  {
+    "key": "receivers",
+    "type": "list",
+    "default": "[]",
+    "description": "List of receivers.",
+    "section": "AlertmanagerConfig Parameters",
+    "line_number": 1014,
+    "chart": "homarr"
+  },
+  {
+    "key": "inhibitRules",
+    "type": "list",
+    "default": "[]",
+    "description": "Inhibition rules that allows to mute alerts when other alerts are already firing.",
+    "section": "AlertmanagerConfig Parameters",
+    "line_number": 1018,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a PrometheusRule (Prometheus Operator) resource.",
+    "section": "PrometheusRule Parameters",
+    "line_number": 1028,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for PrometheusRule.",
+    "section": "PrometheusRule Parameters",
+    "line_number": 1031,
+    "chart": "homarr"
+  },
+  {
+    "key": "groups",
+    "type": "list",
+    "default": "[]",
+    "description": "Groups with alerting rules.",
+    "section": "PrometheusRule Parameters",
+    "line_number": 1037,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy [ExternalSecret](https://external-secrets.io/latest/) resources.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1052,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for ExternalSecret.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1055,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for ExternalSecret.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1059,
+    "chart": "homarr"
+  },
+  {
+    "key": "secretStore",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Default values for the SecretStore.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1064,
+    "chart": "homarr"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "tenant-vault-secret-store",
+    "description": "Name of the SecretStore to use.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1067,
+    "chart": "homarr"
+  },
+  {
+    "key": "kind",
+    "type": "string",
+    "default": "SecretStore",
+    "description": "Kind of the SecretStore being refered to.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1070,
+    "chart": "homarr"
+  },
+  {
+    "key": "refreshInterval",
+    "type": "string",
+    "default": "\"1m\"",
+    "description": "RefreshInterval is the amount of time before the values are read again from the SecretStore provider.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1074,
+    "chart": "homarr"
+  },
+  {
+    "key": "files",
+    "type": "object",
+    "default": "`nil`",
+    "description": "List of ExternalSecret entries.",
+    "section": "ExternalSecret Parameters",
+    "line_number": 1081,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Network Policy.",
+    "section": "NetworkPolicy Parameters",
+    "line_number": 1101,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Network Policy.",
+    "section": "NetworkPolicy Parameters",
+    "line_number": 1104,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Network Policy.",
+    "section": "NetworkPolicy Parameters",
+    "line_number": 1108,
+    "chart": "homarr"
+  },
+  {
+    "key": "ingress",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Ingress rules for Network Policy.",
+    "section": "NetworkPolicy Parameters",
+    "line_number": 1112,
+    "chart": "homarr"
+  },
+  {
+    "key": "egress",
+    "type": "list",
+    "default": "`nil`",
+    "description": "Egress rules for Network Policy.",
+    "section": "NetworkPolicy Parameters",
+    "line_number": 1129,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable Pod Disruption Budget.",
+    "section": "PodDisruptionBudget Parameters",
+    "line_number": 1140,
+    "chart": "homarr"
+  },
+  {
+    "key": "minAvailable",
+    "type": "int",
+    "default": "1",
+    "description": "Minimum number of pods that must be available after eviction.",
+    "section": "PodDisruptionBudget Parameters",
+    "line_number": 1143,
+    "chart": "homarr"
+  },
+  {
+    "key": "maxUnavailable",
+    "type": "int",
+    "default": "`nil`",
+    "description": "Maximum number of unavailable pods during voluntary disruptions.",
+    "section": "PodDisruptionBudget Parameters",
+    "line_number": 1146,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy [GrafanaDashboard](https://github.com/grafana/grafana-operator) resources.",
+    "section": "GrafanaDashboard Parameters",
+    "line_number": 1152,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for GrafanaDashboard.",
+    "section": "GrafanaDashboard Parameters",
+    "line_number": 1155,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for GrafanaDashboard.",
+    "section": "GrafanaDashboard Parameters",
+    "line_number": 1159,
+    "chart": "homarr"
+  },
+  {
+    "key": "contents",
+    "type": "object",
+    "default": "`nil`",
+    "description": "List of GrafanaDashboard entries.",
+    "section": "GrafanaDashboard Parameters",
+    "line_number": 1165,
+    "chart": "homarr"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Deploy a [Velero/OADP Backup](https://velero.io/docs/main/api-types/backup/) resource.",
+    "section": "Backup Parameters",
+    "line_number": 1189,
+    "chart": "homarr"
+  },
+  {
+    "key": "namespace",
+    "type": "string",
+    "default": "`{{ .Release.Namespace }}`",
+    "description": "Namespace for Backup.",
+    "section": "Backup Parameters",
+    "line_number": 1193,
+    "chart": "homarr"
+  },
+  {
+    "key": "additionalLabels",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Additional labels for Backup.",
+    "section": "Backup Parameters",
+    "line_number": 1196,
+    "chart": "homarr"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "`nil`",
+    "description": "Annotations for Backup.",
+    "section": "Backup Parameters",
+    "line_number": 1200,
+    "chart": "homarr"
+  },
+  {
+    "key": "defaultVolumesToRestic",
+    "type": "bool",
+    "default": "true",
+    "description": "Whether to use Restic to take snapshots of all pod volumes by default.",
+    "section": "Backup Parameters",
+    "line_number": 1204,
+    "chart": "homarr"
+  },
+  {
+    "key": "snapshotVolumes",
+    "type": "bool",
+    "default": "true",
+    "description": "Whether to take snapshots of persistent volumes as part of the backup.",
+    "section": "Backup Parameters",
+    "line_number": 1207,
+    "chart": "homarr"
+  },
+  {
+    "key": "storageLocation",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Name of the backup storage location where the backup should be stored.",
+    "section": "Backup Parameters",
+    "line_number": 1210,
+    "chart": "homarr"
+  },
+  {
+    "key": "ttl",
+    "type": "string",
+    "default": "\"1h0m0s\"",
+    "description": "How long the Backup should be retained for.",
+    "section": "Backup Parameters",
+    "line_number": 1213,
+    "chart": "homarr"
+  },
+  {
+    "key": "includedResources",
+    "type": "list",
+    "default": "`nil`",
+    "description": "List of resource types to include in the backup.",
+    "section": "Backup Parameters",
+    "line_number": 1216,
+    "chart": "homarr"
+  },
+  {
+    "key": "excludedResources",
+    "type": "list",
+    "default": "`nil`",
+    "description": "List of resource types to exclude from the backup.",
+    "section": "Backup Parameters",
+    "line_number": 1219,
+    "chart": "homarr"
+  }
+]
