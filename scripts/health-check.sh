@@ -32,42 +32,178 @@ set -uo pipefail
 # =============================================================================
 # Repository Configuration (customize for your repository)
 # =============================================================================
+# This section uses bash arrays for easy extensibility. To customize:
+# 1. Modify arrays by adding/removing elements
+# 2. Set variables to empty array () or empty string "" to disable checks
+# 3. Override via environment variables where supported
 
 # Auto-detect paths - override these if your repo structure differs
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-# Chart directories - set to empty string "" to disable chart checks
-# Supports multiple chart roots (space-separated within quotes)
-CHARTS_DIR="${REPO_ROOT}/charts"
-CHART_SUBDIRS="apps libs vendors"  # Subdirectories under CHARTS_DIR containing charts
+# -----------------------------------------------------------------------------
+# Directory Configuration
+# -----------------------------------------------------------------------------
 
-# Documentation
+# Chart directories - set CHARTS_DIR="" to disable chart checks
+CHARTS_DIR="${REPO_ROOT}/charts"
+
+# Subdirectories under CHARTS_DIR containing charts (bash array)
+CHART_SUBDIRS=(
+    "apps"
+    "libs"
+    "vendors"
+)
+
+# Documentation directories
 DOCS_DIR="${REPO_ROOT}/docs"
 SITE_DIR="${REPO_ROOT}/site"
 SITE_DOCS_DIR="${REPO_ROOT}/site-docs"
 
-# Test directories
+# Test directory and subdirectories (bash array)
 TEST_DIR="${REPO_ROOT}/test"
-TEST_SUBDIRS="fixtures e2e integration unit"
+TEST_SUBDIRS=(
+    "fixtures"
+    "e2e"
+    "integration"
+    "unit"
+)
 
-# Templates
+# Templates directory
 TEMPLATES_DIR="${REPO_ROOT}/templates"
 
-# Scripts
+# Scripts directory
 SCRIPTS_DIR="${REPO_ROOT}/scripts"
 
-# GitHub workflows
-REQUIRED_WORKFLOWS="lint-test.yaml release.yaml docs.yaml"
+# -----------------------------------------------------------------------------
+# Tool Requirements (bash arrays)
+# -----------------------------------------------------------------------------
 
-# Required tools (space-separated)
-REQUIRED_TOOLS="helm git yq python3"
-OPTIONAL_TOOLS="uv helm-docs ct pre-commit yamllint"
+# Required tools - script will fail if these are missing
+REQUIRED_TOOLS=(
+    "helm"
+    "git"
+    "yq"
+    "python3"
+)
+
+# Optional tools - script will warn if these are missing
+OPTIONAL_TOOLS=(
+    "uv"
+    "helm-docs"
+    "ct"
+    "pre-commit"
+    "yamllint"
+)
 
 # Helm plugins to check
-HELM_PLUGINS="unittest"
+HELM_PLUGINS=(
+    "unittest"
+)
 
-# Enable/disable check categories (set to "true" or "false")
+# -----------------------------------------------------------------------------
+# GitHub Workflows (bash array)
+# -----------------------------------------------------------------------------
+
+# Required workflow files (relative to .github/workflows/)
+REQUIRED_WORKFLOWS=(
+    "lint-test.yaml"
+    "release.yaml"
+    "docs.yaml"
+)
+
+# -----------------------------------------------------------------------------
+# Root Files to Check (bash arrays)
+# -----------------------------------------------------------------------------
+
+# Essential root files that MUST exist (will fail if missing)
+ESSENTIAL_ROOT_FILES=(
+    "README.md"
+)
+
+# Recommended root files (will warn if missing)
+RECOMMENDED_ROOT_FILES=(
+    "LICENSE"
+    "Makefile"
+    ".gitignore"
+    ".editorconfig"
+)
+
+# Optional root configuration files to check (informational)
+OPTIONAL_ROOT_FILES=(
+    "pyproject.toml"
+    "uv.lock"
+    "package.json"
+    "go.mod"
+    "Cargo.toml"
+    "mkdocs.yml"
+    "ct.yaml"
+    "Tiltfile"
+    "Dockerfile"
+    "docker-compose.yml"
+    "renovate.json"
+    ".pre-commit-config.yaml"
+    ".yamllint"
+    ".cz.toml"
+    ".sops.yaml"
+    ".gitattributes"
+)
+
+# Community/documentation files to check (with location variants)
+COMMUNITY_FILES=(
+    "CONTRIBUTING.md"
+    "SECURITY.md"
+    "CHANGELOG.md"
+    "CODE_OF_CONDUCT.md"
+    "CODEOWNERS"
+)
+
+# Location prefixes to search for community files
+COMMUNITY_FILE_LOCATIONS=(
+    ""
+    "docs/"
+    ".github/"
+)
+
+# -----------------------------------------------------------------------------
+# Essential Directories (bash array)
+# -----------------------------------------------------------------------------
+
+# Directories that should exist (will warn if missing)
+ESSENTIAL_DIRS=(
+    "docs"
+    ".github/workflows"
+)
+
+# -----------------------------------------------------------------------------
+# Security Patterns (bash array)
+# -----------------------------------------------------------------------------
+
+# Patterns to scan for potential secrets (case-insensitive grep)
+SECRET_PATTERNS=(
+    "password"
+    "secret"
+    "api_key"
+    "apikey"
+    "token"
+    "private_key"
+    "credential"
+)
+
+# File extensions to exclude from secret scanning
+SECRET_SCAN_EXCLUDES=(
+    "*.md"
+    "*.txt"
+    "*.yaml"
+    "*.yml"
+    "*.json"
+    "*.lock"
+)
+
+# -----------------------------------------------------------------------------
+# Check Category Toggles (environment variable overrides supported)
+# -----------------------------------------------------------------------------
+
 CHECK_DEPENDENCIES="${CHECK_DEPENDENCIES:-true}"
 CHECK_STRUCTURE="${CHECK_STRUCTURE:-true}"
 CHECK_CHARTS="${CHECK_CHARTS:-true}"
@@ -212,51 +348,64 @@ record_result() {
 # Dependency Checks
 # =============================================================================
 
+# Get version for a tool (extensible - add new tools here)
+get_tool_version() {
+    local tool="$1"
+    local version=""
+    
+    case "${tool}" in
+        helm)       version=$(helm version --short 2>/dev/null | head -1) ;;
+        git)        version=$(git --version 2>/dev/null | awk '{print $3}') ;;
+        yq)         version=$(yq --version 2>/dev/null | head -1 | awk '{print $NF}') ;;
+        python3)    version=$(python3 --version 2>/dev/null | awk '{print $2}') ;;
+        python)     version=$(python --version 2>/dev/null | awk '{print $2}') ;;
+        node)       version=$(node --version 2>/dev/null) ;;
+        npm)        version=$(npm --version 2>/dev/null) ;;
+        go)         version=$(go version 2>/dev/null | awk '{print $3}') ;;
+        docker)     version=$(docker --version 2>/dev/null | awk '{print $3}' | tr -d ',') ;;
+        kubectl)    version=$(kubectl version --client --short 2>/dev/null | awk '{print $3}') ;;
+        uv)         version=$(uv --version 2>/dev/null | awk '{print $2}') ;;
+        helm-docs)  version=$(helm-docs --version 2>/dev/null | head -1) ;;
+        ct)         version=$(ct version 2>/dev/null | head -1) ;;
+        pre-commit) version=$(pre-commit --version 2>/dev/null | awk '{print $2}') ;;
+        yamllint)   version=$(yamllint --version 2>/dev/null | awk '{print $2}') ;;
+        jq)         version=$(jq --version 2>/dev/null) ;;
+        shellcheck) version=$(shellcheck --version 2>/dev/null | grep "^version:" | awk '{print $2}') ;;
+        *)          version=$(${tool} --version 2>/dev/null | head -1) ;;
+    esac
+    
+    echo "${version:-unknown}"
+}
+
 check_dependencies() {
     [[ "${CHECK_DEPENDENCIES}" != "true" ]] && return
     
     log_section "Checking Required Dependencies"
     
-    # Convert space-separated strings to arrays
-    read -ra required_tools <<< "${REQUIRED_TOOLS}"
-    read -ra optional_tools <<< "${OPTIONAL_TOOLS}"
-    
-    log_subsection "Required Tools"
-    for tool in "${required_tools[@]}"; do
-        if command -v "${tool}" &>/dev/null; then
-            local version=""
-            case "${tool}" in
-                helm)     version=$(helm version --short 2>/dev/null | head -1 || echo "unknown") ;;
-                git)      version=$(git --version 2>/dev/null | awk '{print $3}' || echo "unknown") ;;
-                yq)       version=$(yq --version 2>/dev/null | head -1 | awk '{print $NF}' || echo "unknown") ;;
-                python3)  version=$(python3 --version 2>/dev/null | awk '{print $2}' || echo "unknown") ;;
-                node)     version=$(node --version 2>/dev/null || echo "unknown") ;;
-                go)       version=$(go version 2>/dev/null | awk '{print $3}' || echo "unknown") ;;
-                docker)   version=$(docker --version 2>/dev/null | awk '{print $3}' | tr -d ',' || echo "unknown") ;;
-                kubectl)  version=$(kubectl version --client --short 2>/dev/null | awk '{print $3}' || echo "unknown") ;;
-                *)        version=$(${tool} --version 2>/dev/null | head -1 || echo "installed") ;;
-            esac
-            record_result "pass" "dependencies" "${tool}" "Found (${version:-unknown})"
-        else
-            record_result "fail" "dependencies" "${tool}" "Not found - required for repository operations"
-        fi
-    done
-    
-    if [[ ${#optional_tools[@]} -gt 0 && -n "${optional_tools[0]}" ]]; then
-        log_subsection "Optional Tools"
-        for tool in "${optional_tools[@]}"; do
+    # Check required tools
+    if [[ ${#REQUIRED_TOOLS[@]} -gt 0 ]]; then
+        log_subsection "Required Tools"
+        for tool in "${REQUIRED_TOOLS[@]}"; do
             [[ -z "${tool}" ]] && continue
             if command -v "${tool}" &>/dev/null; then
-                local version=""
-                case "${tool}" in
-                    uv)         version=$(uv --version 2>/dev/null | awk '{print $2}' || echo "unknown") ;;
-                    helm-docs)  version=$(helm-docs --version 2>/dev/null | head -1 || echo "unknown") ;;
-                    ct)         version=$(ct version 2>/dev/null | head -1 || echo "unknown") ;;
-                    pre-commit) version=$(pre-commit --version 2>/dev/null | awk '{print $2}' || echo "unknown") ;;
-                    yamllint)   version=$(yamllint --version 2>/dev/null | awk '{print $2}' || echo "unknown") ;;
-                    *)          version=$(${tool} --version 2>/dev/null | head -1 || echo "installed") ;;
-                esac
-                record_result "pass" "dependencies" "${tool}" "Found (${version:-unknown})"
+                local version
+                version=$(get_tool_version "${tool}")
+                record_result "pass" "dependencies" "${tool}" "Found (${version})"
+            else
+                record_result "fail" "dependencies" "${tool}" "Not found - required for repository operations"
+            fi
+        done
+    fi
+    
+    # Check optional tools
+    if [[ ${#OPTIONAL_TOOLS[@]} -gt 0 ]]; then
+        log_subsection "Optional Tools"
+        for tool in "${OPTIONAL_TOOLS[@]}"; do
+            [[ -z "${tool}" ]] && continue
+            if command -v "${tool}" &>/dev/null; then
+                local version
+                version=$(get_tool_version "${tool}")
+                record_result "pass" "dependencies" "${tool}" "Found (${version})"
             else
                 record_result "warn" "dependencies" "${tool}" "Not found - some features may be unavailable"
             fi
@@ -264,10 +413,9 @@ check_dependencies() {
     fi
     
     # Check helm plugins
-    if [[ -n "${HELM_PLUGINS}" ]] && command -v helm &>/dev/null; then
+    if [[ ${#HELM_PLUGINS[@]} -gt 0 ]] && command -v helm &>/dev/null; then
         log_subsection "Helm Plugins"
-        read -ra helm_plugins <<< "${HELM_PLUGINS}"
-        for plugin in "${helm_plugins[@]}"; do
+        for plugin in "${HELM_PLUGINS[@]}"; do
             [[ -z "${plugin}" ]] && continue
             if helm plugin list 2>/dev/null | grep -q "^${plugin}"; then
                 local version=""
@@ -284,285 +432,848 @@ check_dependencies() {
 # Repository Structure Checks
 # =============================================================================
 
+# Helper: Get file info for display
+get_file_info() {
+    local file="$1"
+    local info=""
+    
+    if [[ -f "${file}" ]]; then
+        local lines size
+        lines=$(wc -l < "${file}" 2>/dev/null | tr -d ' ')
+        size=$(du -h "${file}" 2>/dev/null | awk '{print $1}')
+        info="${lines} lines, ${size}"
+    fi
+    
+    echo "${info}"
+}
+
+# Helper: Detect license type
+detect_license_type() {
+    local file="$1"
+    
+    if grep -qi "MIT" "${file}" 2>/dev/null; then
+        echo "MIT"
+    elif grep -qi "Apache" "${file}" 2>/dev/null; then
+        echo "Apache"
+    elif grep -qi "GPL" "${file}" 2>/dev/null; then
+        echo "GPL"
+    elif grep -qi "BSD" "${file}" 2>/dev/null; then
+        echo "BSD"
+    elif grep -qi "ISC" "${file}" 2>/dev/null; then
+        echo "ISC"
+    elif grep -qi "MPL" "${file}" 2>/dev/null; then
+        echo "MPL"
+    else
+        echo "Custom"
+    fi
+}
+
+# Helper: Get details for a specific file type
+get_file_details() {
+    local file="$1"
+    local basename
+    basename=$(basename "${file}")
+    
+    case "${basename}" in
+        Makefile)
+            local targets
+            targets=$(grep -c "^[a-zA-Z_-]*:" "${file}" 2>/dev/null || echo "0")
+            echo "${targets} targets"
+            ;;
+        README.md|CONTRIBUTING.md|CHANGELOG.md|SECURITY.md|CODE_OF_CONDUCT.md)
+            get_file_info "${file}"
+            ;;
+        LICENSE)
+            local size
+            size=$(wc -c < "${file}" 2>/dev/null | tr -d ' ')
+            if [[ "${size}" -gt 0 ]]; then
+                echo "$(detect_license_type "${file}")"
+            else
+                echo "empty"
+            fi
+            ;;
+        pyproject.toml)
+            local deps
+            deps=$(grep -c "dependencies" "${file}" 2>/dev/null || echo "0")
+            echo "deps: ${deps} sections"
+            ;;
+        package.json)
+            local deps
+            deps=$(grep -c "dependencies" "${file}" 2>/dev/null || echo "0")
+            echo "${deps} dependency sections"
+            ;;
+        *.lock|uv.lock|package-lock.json|yarn.lock|Cargo.lock)
+            du -h "${file}" 2>/dev/null | awk '{print $1}'
+            ;;
+        mkdocs.yml)
+            local site_name
+            site_name=$(yq '.site_name' "${file}" 2>/dev/null | grep -v '^null$' || echo "")
+            [[ -n "${site_name}" ]] && echo "site: ${site_name}" || echo ""
+            ;;
+        ct.yaml)
+            local dirs
+            dirs=$(yq '.chart-dirs | length' "${file}" 2>/dev/null || echo "0")
+            echo "${dirs} chart dirs"
+            ;;
+        Tiltfile)
+            get_file_info "${file}"
+            ;;
+        .gitignore)
+            local rules
+            rules=$(grep -v '^#' "${file}" 2>/dev/null | grep -v '^$' | wc -l | tr -d ' ')
+            echo "${rules} patterns"
+            ;;
+        .gitattributes)
+            local rules
+            rules=$(grep -v '^#' "${file}" 2>/dev/null | grep -v '^$' | wc -l | tr -d ' ')
+            echo "${rules} rules"
+            ;;
+        .pre-commit-config.yaml)
+            local hooks
+            hooks=$(grep -c "id:" "${file}" 2>/dev/null || echo "0")
+            echo "${hooks} hooks"
+            ;;
+        .editorconfig)
+            local sections
+            sections=$(grep -c "^\[" "${file}" 2>/dev/null || echo "0")
+            echo "${sections} sections"
+            ;;
+        .cz.toml)
+            local cz_name
+            cz_name=$(grep "name" "${file}" 2>/dev/null | head -1 | cut -d'"' -f2 || echo "default")
+            echo "${cz_name}"
+            ;;
+        .sops.yaml)
+            local rules
+            rules=$(grep -c "path_regex" "${file}" 2>/dev/null || echo "0")
+            echo "${rules} rules"
+            ;;
+        CODEOWNERS)
+            local rules
+            rules=$(grep -v '^#' "${file}" 2>/dev/null | grep -v '^$' | wc -l | tr -d ' ')
+            echo "${rules} rules"
+            ;;
+        *)
+            echo ""
+            ;;
+    esac
+}
+
 check_repository_structure() {
     [[ "${CHECK_STRUCTURE}" != "true" ]] && return
     
     log_section "Checking Repository Structure"
     
-    log_subsection "Root Configuration Files"
-    
-    # Check all important root files with details
-    
-    # Makefile
-    if [[ -f "${REPO_ROOT}/Makefile" ]]; then
-        local target_count
-        target_count=$(grep -c "^[a-zA-Z_-]*:" "${REPO_ROOT}/Makefile" 2>/dev/null || echo "0")
-        record_result "pass" "structure" "Makefile" "Build automation (${target_count} targets)"
-    else
-        record_result "fail" "structure" "Makefile" "Missing Makefile"
-    fi
-    
-    # README.md
-    if [[ -f "${REPO_ROOT}/README.md" ]]; then
-        local readme_lines
-        readme_lines=$(wc -l < "${REPO_ROOT}/README.md" | tr -d ' ')
-        local readme_size
-        readme_size=$(du -h "${REPO_ROOT}/README.md" 2>/dev/null | awk '{print $1}')
-        record_result "pass" "structure" "README.md" "Project documentation (${readme_lines} lines, ${readme_size})"
-    else
-        record_result "fail" "structure" "README.md" "Missing README.md"
-    fi
-    
-    # LICENSE
-    if [[ -f "${REPO_ROOT}/LICENSE" ]]; then
-        local license_size
-        license_size=$(wc -c < "${REPO_ROOT}/LICENSE" | tr -d ' ')
-        if [[ "${license_size}" -gt 0 ]]; then
-            local license_type=""
-            if grep -qi "MIT" "${REPO_ROOT}/LICENSE" 2>/dev/null; then
-                license_type="MIT"
-            elif grep -qi "Apache" "${REPO_ROOT}/LICENSE" 2>/dev/null; then
-                license_type="Apache"
-            elif grep -qi "GPL" "${REPO_ROOT}/LICENSE" 2>/dev/null; then
-                license_type="GPL"
-            elif grep -qi "BSD" "${REPO_ROOT}/LICENSE" 2>/dev/null; then
-                license_type="BSD"
+    # -------------------------------------------------------------------------
+    # Check essential root files (must exist)
+    # -------------------------------------------------------------------------
+    if [[ ${#ESSENTIAL_ROOT_FILES[@]} -gt 0 ]]; then
+        log_subsection "Essential Files"
+        for file in "${ESSENTIAL_ROOT_FILES[@]}"; do
+            [[ -z "${file}" ]] && continue
+            if [[ -f "${REPO_ROOT}/${file}" ]]; then
+                local details
+                details=$(get_file_details "${REPO_ROOT}/${file}")
+                if [[ -n "${details}" ]]; then
+                    record_result "pass" "structure" "${file}" "Exists (${details})"
+                else
+                    record_result "pass" "structure" "${file}" "Exists"
+                fi
             else
-                license_type="Custom"
+                record_result "fail" "structure" "${file}" "Missing essential file"
             fi
-            record_result "pass" "structure" "LICENSE" "License file (${license_type})"
-        else
-            record_result "warn" "structure" "LICENSE" "LICENSE file is empty"
-        fi
-    else
-        record_result "warn" "structure" "LICENSE" "No LICENSE file found"
-    fi
-    
-    # pyproject.toml
-    if [[ -f "${REPO_ROOT}/pyproject.toml" ]]; then
-        local has_project
-        has_project=$(grep -c "^\[project\]" "${REPO_ROOT}/pyproject.toml" 2>/dev/null || echo "0")
-        local has_deps
-        has_deps=$(grep -c "dependencies" "${REPO_ROOT}/pyproject.toml" 2>/dev/null || echo "0")
-        record_result "pass" "structure" "pyproject.toml" "Python project config (deps: ${has_deps} sections)"
-    else
-        record_result "warn" "structure" "pyproject.toml" "No pyproject.toml"
-    fi
-    
-    # uv.lock
-    if [[ -f "${REPO_ROOT}/uv.lock" ]]; then
-        local lock_size
-        lock_size=$(du -h "${REPO_ROOT}/uv.lock" 2>/dev/null | awk '{print $1}')
-        record_result "pass" "structure" "uv.lock" "UV lock file (${lock_size})"
-    else
-        record_result "warn" "structure" "uv.lock" "No uv.lock (run 'uv sync' to generate)"
-    fi
-    
-    # mkdocs.yml
-    if [[ -f "${REPO_ROOT}/mkdocs.yml" ]]; then
-        local site_name
-        site_name=$(yq '.site_name' "${REPO_ROOT}/mkdocs.yml" 2>/dev/null | grep -v '^null$' || echo "")
-        if [[ -n "${site_name}" ]]; then
-            record_result "pass" "structure" "mkdocs.yml" "MkDocs config (site: ${site_name})"
-        else
-            record_result "pass" "structure" "mkdocs.yml" "MkDocs config exists"
-        fi
-    else
-        record_result "warn" "structure" "mkdocs.yml" "No MkDocs configuration"
-    fi
-    
-    # ct.yaml (chart-testing)
-    if [[ -f "${REPO_ROOT}/ct.yaml" ]]; then
-        local chart_dirs
-        chart_dirs=$(yq '.chart-dirs | length' "${REPO_ROOT}/ct.yaml" 2>/dev/null || echo "0")
-        record_result "pass" "structure" "ct.yaml" "Chart-testing config (${chart_dirs} chart dirs)"
-    else
-        record_result "warn" "structure" "ct.yaml" "No chart-testing configuration"
-    fi
-    
-    # Tiltfile
-    if [[ -f "${REPO_ROOT}/Tiltfile" ]]; then
-        local tilt_lines
-        tilt_lines=$(wc -l < "${REPO_ROOT}/Tiltfile" | tr -d ' ')
-        record_result "pass" "structure" "Tiltfile" "Tilt config for local K8s dev (${tilt_lines} lines)"
-    else
-        record_result "warn" "structure" "Tiltfile" "No Tiltfile for local development"
-    fi
-    
-    # renovate.json
-    if [[ -f "${REPO_ROOT}/renovate.json" ]]; then
-        record_result "pass" "structure" "renovate.json" "Renovate dependency management configured"
-    elif [[ -f "${REPO_ROOT}/renovate.json5" ]] || [[ -f "${REPO_ROOT}/.renovaterc" ]]; then
-        record_result "pass" "structure" "renovate" "Renovate configured (alternative format)"
-    else
-        record_result "warn" "structure" "renovate.json" "No Renovate configuration"
-    fi
-    
-    log_subsection "Git & Version Control"
-    
-    # .gitignore
-    if [[ -f "${REPO_ROOT}/.gitignore" ]]; then
-        local ignore_rules
-        ignore_rules=$(grep -v '^#' "${REPO_ROOT}/.gitignore" 2>/dev/null | grep -v '^$' | wc -l | tr -d ' ')
-        record_result "pass" "structure" ".gitignore" "Git ignore rules (${ignore_rules} patterns)"
-    else
-        record_result "fail" "structure" ".gitignore" "Missing .gitignore"
-    fi
-    
-    # .gitattributes
-    if [[ -f "${REPO_ROOT}/.gitattributes" ]]; then
-        local attr_rules
-        attr_rules=$(grep -v '^#' "${REPO_ROOT}/.gitattributes" 2>/dev/null | grep -v '^$' | wc -l | tr -d ' ')
-        local attr_size
-        attr_size=$(du -h "${REPO_ROOT}/.gitattributes" 2>/dev/null | awk '{print $1}')
-        record_result "pass" "structure" ".gitattributes" "Git attributes (${attr_rules} rules, ${attr_size})"
-    else
-        record_result "warn" "structure" ".gitattributes" "No .gitattributes file"
-    fi
-    
-    log_subsection "Code Quality & Linting"
-    
-    # .pre-commit-config.yaml
-    if [[ -f "${REPO_ROOT}/.pre-commit-config.yaml" ]]; then
-        local hook_count
-        hook_count=$(grep -c "id:" "${REPO_ROOT}/.pre-commit-config.yaml" 2>/dev/null || echo "0")
-        record_result "pass" "structure" ".pre-commit-config.yaml" "Pre-commit hooks (${hook_count} hooks)"
-    else
-        record_result "warn" "structure" ".pre-commit-config.yaml" "No pre-commit configuration"
-    fi
-    
-    # .yamllint
-    if [[ -f "${REPO_ROOT}/.yamllint" ]]; then
-        record_result "pass" "structure" ".yamllint" "YAML linting configured"
-    elif [[ -f "${REPO_ROOT}/.yamllint.yaml" ]] || [[ -f "${REPO_ROOT}/.yamllint.yml" ]]; then
-        record_result "pass" "structure" ".yamllint" "YAML linting configured"
-    else
-        record_result "warn" "structure" ".yamllint" "No YAML lint configuration"
-    fi
-    
-    # .editorconfig
-    if [[ -f "${REPO_ROOT}/.editorconfig" ]]; then
-        local editor_rules
-        editor_rules=$(grep -c "^\[" "${REPO_ROOT}/.editorconfig" 2>/dev/null || echo "0")
-        record_result "pass" "structure" ".editorconfig" "EditorConfig (${editor_rules} sections)"
-    else
-        record_result "warn" "structure" ".editorconfig" "No .editorconfig for consistent formatting"
-    fi
-    
-    log_subsection "Commit & Changelog"
-    
-    # .cz.toml (commitizen)
-    if [[ -f "${REPO_ROOT}/.cz.toml" ]]; then
-        local cz_type
-        cz_type=$(grep "name" "${REPO_ROOT}/.cz.toml" 2>/dev/null | head -1 | cut -d'"' -f2 || echo "default")
-        record_result "pass" "structure" ".cz.toml" "Commitizen config (${cz_type})"
-    elif grep -q "\[tool.commitizen\]" "${REPO_ROOT}/pyproject.toml" 2>/dev/null; then
-        record_result "pass" "structure" "commitizen" "Commitizen in pyproject.toml"
-    else
-        record_result "warn" "structure" ".cz.toml" "No Commitizen configuration"
-    fi
-    
-    log_subsection "Security & Secrets"
-    
-    # .sops.yaml
-    if [[ -f "${REPO_ROOT}/.sops.yaml" ]]; then
-        local sops_rules
-        sops_rules=$(grep -c "path_regex" "${REPO_ROOT}/.sops.yaml" 2>/dev/null || echo "0")
-        record_result "pass" "structure" ".sops.yaml" "SOPS encryption config (${sops_rules} rules)"
-    else
-        record_result "warn" "structure" ".sops.yaml" "No SOPS configuration for secrets"
-    fi
-    
-    log_subsection "Community & Documentation Files"
-    
-    # Check for CODEOWNERS
-    local codeowners_found=false
-    for path in ".github/CODEOWNERS" "CODEOWNERS" "docs/CODEOWNERS"; do
-        if [[ -f "${REPO_ROOT}/${path}" ]]; then
-            local owner_rules
-            owner_rules=$(grep -v '^#' "${REPO_ROOT}/${path}" 2>/dev/null | grep -v '^$' | wc -l | tr -d ' ')
-            record_result "pass" "structure" "CODEOWNERS" "Code owners defined (${owner_rules} rules in ${path})"
-            codeowners_found=true
-            break
-        fi
-    done
-    if [[ "${codeowners_found}" == "false" ]]; then
-        record_result "warn" "structure" "CODEOWNERS" "No CODEOWNERS file"
-    fi
-    
-    # Check for CONTRIBUTING guide
-    local contributing_found=false
-    for path in "CONTRIBUTING.md" ".github/CONTRIBUTING.md" "docs/CONTRIBUTING.md"; do
-        if [[ -f "${REPO_ROOT}/${path}" ]]; then
-            local contrib_lines
-            contrib_lines=$(wc -l < "${REPO_ROOT}/${path}" | tr -d ' ')
-            record_result "pass" "structure" "CONTRIBUTING.md" "Contributing guide (${contrib_lines} lines in ${path})"
-            contributing_found=true
-            break
-        fi
-    done
-    if [[ "${contributing_found}" == "false" ]]; then
-        record_result "warn" "structure" "CONTRIBUTING.md" "No CONTRIBUTING.md"
-    fi
-    
-    # Check for SECURITY policy
-    local security_found=false
-    for path in "SECURITY.md" ".github/SECURITY.md" "docs/SECURITY.md"; do
-        if [[ -f "${REPO_ROOT}/${path}" ]]; then
-            record_result "pass" "structure" "SECURITY.md" "Security policy (${path})"
-            security_found=true
-            break
-        fi
-    done
-    if [[ "${security_found}" == "false" ]]; then
-        record_result "warn" "structure" "SECURITY.md" "No SECURITY.md"
-    fi
-    
-    # Check for CHANGELOG
-    local changelog_found=false
-    for path in "CHANGELOG.md" "CHANGELOG" "docs/CHANGELOG.md" "HISTORY.md"; do
-        if [[ -f "${REPO_ROOT}/${path}" ]]; then
-            local changelog_lines
-            changelog_lines=$(wc -l < "${REPO_ROOT}/${path}" | tr -d ' ')
-            record_result "pass" "structure" "CHANGELOG" "Changelog (${changelog_lines} lines in ${path})"
-            changelog_found=true
-            break
-        fi
-    done
-    if [[ "${changelog_found}" == "false" ]]; then
-        record_result "warn" "structure" "CHANGELOG" "No CHANGELOG.md"
-    fi
-    
-    log_subsection "Directory Structure"
-    
-    # Build essential directories list dynamically
-    local essential_dirs=("scripts" "docs" ".github/workflows")
-    
-    # Add chart directories if configured
-    if [[ -n "${CHARTS_DIR}" ]]; then
-        essential_dirs+=("$(basename "${CHARTS_DIR}")")
-        for subdir in ${CHART_SUBDIRS}; do
-            essential_dirs+=("$(basename "${CHARTS_DIR}")/${subdir}")
         done
     fi
     
-    for dir in "${essential_dirs[@]}"; do
+    # -------------------------------------------------------------------------
+    # Check recommended root files (should exist)
+    # -------------------------------------------------------------------------
+    if [[ ${#RECOMMENDED_ROOT_FILES[@]} -gt 0 ]]; then
+        log_subsection "Recommended Files"
+        for file in "${RECOMMENDED_ROOT_FILES[@]}"; do
+            [[ -z "${file}" ]] && continue
+            if [[ -f "${REPO_ROOT}/${file}" ]]; then
+                local details
+                details=$(get_file_details "${REPO_ROOT}/${file}")
+                if [[ -n "${details}" && "${details}" != "empty" ]]; then
+                    record_result "pass" "structure" "${file}" "Exists (${details})"
+                elif [[ "${details}" == "empty" ]]; then
+                    record_result "warn" "structure" "${file}" "File is empty"
+                else
+                    record_result "pass" "structure" "${file}" "Exists"
+                fi
+            else
+                record_result "warn" "structure" "${file}" "Recommended file missing"
+            fi
+        done
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check optional configuration files (informational)
+    # -------------------------------------------------------------------------
+    if [[ ${#OPTIONAL_ROOT_FILES[@]} -gt 0 ]]; then
+        log_subsection "Configuration Files"
+        for file in "${OPTIONAL_ROOT_FILES[@]}"; do
+            [[ -z "${file}" ]] && continue
+            if [[ -f "${REPO_ROOT}/${file}" ]]; then
+                local details
+                details=$(get_file_details "${REPO_ROOT}/${file}")
+                if [[ -n "${details}" ]]; then
+                    record_result "pass" "structure" "${file}" "${details}"
+                else
+                    record_result "pass" "structure" "${file}" "Configured"
+                fi
+            fi
+        done
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check community/documentation files (with location variants)
+    # -------------------------------------------------------------------------
+    if [[ ${#COMMUNITY_FILES[@]} -gt 0 ]]; then
+        log_subsection "Community & Documentation"
+        for file in "${COMMUNITY_FILES[@]}"; do
+            [[ -z "${file}" ]] && continue
+            local found=false
+            local found_path=""
+            
+            for prefix in "${COMMUNITY_FILE_LOCATIONS[@]}"; do
+                local check_path="${REPO_ROOT}/${prefix}${file}"
+                if [[ -f "${check_path}" ]]; then
+                    found=true
+                    found_path="${prefix}${file}"
+                    break
+                fi
+            done
+            
+            if [[ "${found}" == "true" ]]; then
+                local details
+                details=$(get_file_details "${REPO_ROOT}/${found_path}")
+                if [[ -n "${details}" ]]; then
+                    record_result "pass" "structure" "${file}" "Found at ${found_path} (${details})"
+                else
+                    record_result "pass" "structure" "${file}" "Found at ${found_path}"
+                fi
+            else
+                record_result "warn" "structure" "${file}" "Not found"
+            fi
+        done
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check essential directories
+    # -------------------------------------------------------------------------
+    log_subsection "Directory Structure"
+    
+    # Check configured essential directories
+    for dir in "${ESSENTIAL_DIRS[@]}"; do
+        [[ -z "${dir}" ]] && continue
         if [[ -d "${REPO_ROOT}/${dir}" ]]; then
             local count
-            count=$(find "${REPO_ROOT}/${dir}" -maxdepth 1 -type f -o -type d 2>/dev/null | wc -l | tr -d ' ')
+            count=$(find "${REPO_ROOT}/${dir}" -maxdepth 1 \( -type f -o -type d \) 2>/dev/null | wc -l | tr -d ' ')
             record_result "pass" "structure" "${dir}" "Directory exists (${count} items)"
         else
             record_result "warn" "structure" "${dir}" "Directory not found"
         fi
     done
     
-    log_subsection "Test Infrastructure"
+    # Check chart directories if configured
+    if [[ -n "${CHARTS_DIR}" && -d "${CHARTS_DIR}" ]]; then
+        local count
+        count=$(find "${CHARTS_DIR}" -maxdepth 1 \( -type f -o -type d \) 2>/dev/null | wc -l | tr -d ' ')
+        record_result "pass" "structure" "$(basename "${CHARTS_DIR}")" "Charts directory (${count} items)"
+        
+        for subdir in "${CHART_SUBDIRS[@]}"; do
+            [[ -z "${subdir}" ]] && continue
+            if [[ -d "${CHARTS_DIR}/${subdir}" ]]; then
+                count=$(find "${CHARTS_DIR}/${subdir}" -maxdepth 1 \( -type f -o -type d \) 2>/dev/null | wc -l | tr -d ' ')
+                record_result "pass" "structure" "$(basename "${CHARTS_DIR}")/${subdir}" "Directory exists (${count} items)"
+            fi
+        done
+    fi
     
-    # Check test directory structure
+    # -------------------------------------------------------------------------
+    # Check test infrastructure
+    # -------------------------------------------------------------------------
     if [[ -n "${TEST_DIR}" && -d "${TEST_DIR}" ]]; then
+        log_subsection "Test Infrastructure"
         record_result "pass" "structure" "test/" "Test directory exists"
         
-        # Check for test subdirectories
+        for subdir in "${TEST_SUBDIRS[@]}"; do
+            [[ -z "${subdir}" ]] && continue
+            if [[ -d "${TEST_DIR}/${subdir}" ]]; then
+                local file_count
+                file_count=$(find "${TEST_DIR}/${subdir}" -type f 2>/dev/null | wc -l | tr -d ' ')
+                if [[ "${file_count}" -gt 0 ]]; then
+                    record_result "pass" "structure" "test/${subdir}" "Test ${subdir} directory (${file_count} files)"
+                else
+                    record_result "warn" "structure" "test/${subdir}" "Test ${subdir} directory is empty"
+                fi
+            fi
+        done
+        
+        # Chart unit test coverage
+        check_chart_test_coverage
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check site/static assets
+    # -------------------------------------------------------------------------
+    if [[ -n "${SITE_DIR}" && -d "${SITE_DIR}" ]]; then
+        log_subsection "Site & Static Assets"
+        check_site_directory
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check templates
+    # -------------------------------------------------------------------------
+    if [[ -n "${TEMPLATES_DIR}" && -d "${TEMPLATES_DIR}" ]]; then
+        log_subsection "Templates & Scaffolding"
+        check_templates_directory
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check scripts
+    # -------------------------------------------------------------------------
+    if [[ -n "${SCRIPTS_DIR}" && -d "${SCRIPTS_DIR}" ]]; then
+        log_subsection "Scripts & Automation"
+        check_scripts_directory
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check GitHub configuration
+    # -------------------------------------------------------------------------
+    log_subsection "GitHub Configuration"
+    check_github_config
+}
+
+# Helper: Check chart unit test coverage
+check_chart_test_coverage() {
+    [[ -z "${CHARTS_DIR}" || ! -d "${CHARTS_DIR}" ]] && return
+    
+    local charts_with_tests=0
+    local charts_total=0
+    
+    for subdir in "${CHART_SUBDIRS[@]}"; do
+        local chart_dir="${CHARTS_DIR}/${subdir}"
+        [[ ! -d "${chart_dir}" ]] && continue
+        
+        while IFS= read -r chart_yaml; do
+            [[ -z "${chart_yaml}" ]] && continue
+            local chart_path
+            chart_path=$(dirname "${chart_yaml}")
+            
+            # Skip subcharts
+            local relative_path="${chart_path#${chart_dir}/}"
+            if [[ "${relative_path}" == *"/charts/"* ]]; then
+                continue
+            fi
+            
+            ((charts_total++))
+            
+            if [[ -d "${chart_path}/tests" ]]; then
+                local test_files
+                test_files=$(find "${chart_path}/tests" -name "*_test.yaml" -o -name "*_test.yml" 2>/dev/null | wc -l | tr -d ' ')
+                if [[ "${test_files}" -gt 0 ]]; then
+                    ((charts_with_tests++))
+                fi
+            fi
+        done < <(find "${chart_dir}" -maxdepth 2 -name "Chart.yaml" -type f 2>/dev/null)
+    done
+    
+    if [[ "${charts_total}" -gt 0 ]]; then
+        local test_coverage=$((charts_with_tests * 100 / charts_total))
+        if [[ "${test_coverage}" -ge 50 ]]; then
+            record_result "pass" "structure" "chart-tests" "Chart unit test coverage: ${test_coverage}% (${charts_with_tests}/${charts_total})"
+        elif [[ "${test_coverage}" -gt 0 ]]; then
+            record_result "warn" "structure" "chart-tests" "Low test coverage: ${test_coverage}% (${charts_with_tests}/${charts_total})"
+        else
+            record_result "warn" "structure" "chart-tests" "No chart unit tests (0/${charts_total})"
+        fi
+    fi
+}
+
+# Helper: Check site directory
+check_site_directory() {
+    local site_file_count
+    site_file_count=$(find "${SITE_DIR}" -type f 2>/dev/null | wc -l | tr -d ' ')
+    record_result "pass" "structure" "site/" "Site directory (${site_file_count} files)"
+    
+    [[ -f "${SITE_DIR}/index.html" ]] && \
+        record_result "pass" "structure" "site/index.html" "Site index page exists"
+    
+    if [[ -f "${SITE_DIR}/index.yaml" ]]; then
+        local chart_count
+        chart_count=$(grep -c "^  [a-zA-Z]" "${SITE_DIR}/index.yaml" 2>/dev/null || echo "0")
+        record_result "pass" "structure" "site/index.yaml" "Helm repo index (${chart_count} entries)"
+    fi
+    
+    if [[ -f "${SITE_DIR}/CNAME" ]]; then
+        local domain
+        domain=$(head -1 "${SITE_DIR}/CNAME" 2>/dev/null)
+        record_result "pass" "structure" "site/CNAME" "Custom domain: ${domain}"
+    fi
+    
+    [[ -f "${SITE_DIR}/.nojekyll" ]] && \
+        record_result "pass" "structure" "site/.nojekyll" "Jekyll processing disabled"
+    
+    [[ -f "${SITE_DIR}/artifacthub-repo.yaml" ]] && \
+        record_result "pass" "structure" "site/artifacthub" "ArtifactHub metadata exists"
+}
+
+# Helper: Check templates directory
+check_templates_directory() {
+    local template_count
+    template_count=$(find "${TEMPLATES_DIR}" -type f 2>/dev/null | wc -l | tr -d ' ')
+    record_result "pass" "structure" "templates/" "Templates directory (${template_count} files)"
+    
+    [[ -f "${TEMPLATES_DIR}/README.md.gotmpl" ]] && \
+        record_result "pass" "structure" "templates/README.md.gotmpl" "Helm-docs README template"
+    
+    [[ -f "${TEMPLATES_DIR}/_helpers.gotmpl" ]] && \
+        record_result "pass" "structure" "templates/_helpers.gotmpl" "Helm-docs helpers template"
+    
+    if [[ -d "${TEMPLATES_DIR}/chart-template" ]]; then
+        local scaffold_files
+        scaffold_files=$(find "${TEMPLATES_DIR}/chart-template" -type f 2>/dev/null | wc -l | tr -d ' ')
+        record_result "pass" "structure" "templates/chart-template" "Chart scaffold (${scaffold_files} files)"
+        
+        # Check scaffold required files
+        local required=("Chart.yaml" "values.yaml" ".helmignore")
+        local missing=()
+        for f in "${required[@]}"; do
+            [[ ! -f "${TEMPLATES_DIR}/chart-template/${f}" ]] && missing+=("${f}")
+        done
+        
+        if [[ ${#missing[@]} -eq 0 ]]; then
+            record_result "pass" "structure" "chart-template-files" "Scaffold has required files"
+        else
+            record_result "warn" "structure" "chart-template-files" "Missing: ${missing[*]}"
+        fi
+        
+        [[ -d "${TEMPLATES_DIR}/chart-template/templates" ]] && \
+            record_result "pass" "structure" "chart-template/templates" "Scaffold includes templates"
+        [[ -d "${TEMPLATES_DIR}/chart-template/tests" ]] && \
+            record_result "pass" "structure" "chart-template/tests" "Scaffold includes tests"
+        [[ -d "${TEMPLATES_DIR}/chart-template/ci" ]] && \
+            record_result "pass" "structure" "chart-template/ci" "Scaffold includes CI values"
+    fi
+}
+
+# Helper: Check scripts directory
+check_scripts_directory() {
+    local script_count
+    script_count=$(find "${SCRIPTS_DIR}" -type f \( -name "*.sh" -o -name "*.py" -o -name "*.js" \) 2>/dev/null | wc -l | tr -d ' ')
+    record_result "pass" "structure" "scripts/" "Scripts directory (${script_count} scripts)"
+    
+    # Check shell script executability
+    local shell_scripts
+    shell_scripts=$(find "${SCRIPTS_DIR}" -name "*.sh" -type f 2>/dev/null)
+    local executable_count=0
+    local non_executable=()
+    
+    while IFS= read -r script; do
+        [[ -z "${script}" ]] && continue
+        if [[ -x "${script}" ]]; then
+            ((executable_count++))
+        else
+            non_executable+=("$(basename "${script}")")
+        fi
+    done <<< "${shell_scripts}"
+    
+    if [[ ${#non_executable[@]} -eq 0 && "${executable_count}" -gt 0 ]]; then
+        record_result "pass" "structure" "scripts-executable" "All ${executable_count} shell scripts executable"
+    elif [[ ${#non_executable[@]} -gt 0 ]]; then
+        record_result "warn" "structure" "scripts-executable" "Non-executable: ${non_executable[*]}"
+    fi
+    
+    # Check for Python scripts
+    local python_count
+    python_count=$(find "${SCRIPTS_DIR}" -name "*.py" -type f 2>/dev/null | wc -l | tr -d ' ')
+    [[ "${python_count}" -gt 0 ]] && \
+        record_result "pass" "structure" "scripts/python" "Python scripts (${python_count} files)"
+}
+
+# Helper: Check GitHub configuration
+check_github_config() {
+    # Check workflows
+    if [[ ${#REQUIRED_WORKFLOWS[@]} -gt 0 ]]; then
+        for workflow in "${REQUIRED_WORKFLOWS[@]}"; do
+            [[ -z "${workflow}" ]] && continue
+            if [[ -f "${REPO_ROOT}/.github/workflows/${workflow}" ]]; then
+                record_result "pass" "structure" "workflow/${workflow}" "Workflow exists"
+            else
+                record_result "warn" "structure" "workflow/${workflow}" "Workflow missing"
+            fi
+        done
+    fi
+    
+    # Check issue templates
+    local issue_dir="${REPO_ROOT}/.github/ISSUE_TEMPLATE"
+    if [[ -d "${issue_dir}" ]]; then
+        local count
+        count=$(find "${issue_dir}" \( -name "*.md" -o -name "*.yml" -o -name "*.yaml" \) 2>/dev/null | wc -l | tr -d ' ')
+        if [[ "${count}" -gt 0 ]]; then
+            record_result "pass" "structure" "issue-templates" "Issue templates (${count} templates)"
+        fi
+    fi
+    
+    # Check PR template
+    local pr_template_found=false
+    for path in ".github/PULL_REQUEST_TEMPLATE.md" ".github/PULL_REQUEST_TEMPLATE" "PULL_REQUEST_TEMPLATE.md"; do
+        if [[ -f "${REPO_ROOT}/${path}" ]]; then
+            record_result "pass" "structure" "pr-template" "PR template exists"
+            pr_template_found=true
+            break
+        fi
+    done
+    
+    # Check custom actions
+    if [[ -d "${REPO_ROOT}/.github/actions" ]]; then
+        local action_count
+        action_count=$(find "${REPO_ROOT}/.github/actions" \( -name "action.yml" -o -name "action.yaml" \) 2>/dev/null | wc -l | tr -d ' ')
+        [[ "${action_count}" -gt 0 ]] && \
+            record_result "pass" "structure" "custom-actions" "Custom actions (${action_count} actions)"
+    fi
+    
+    # Check IDE configurations
+    if [[ -d "${REPO_ROOT}/.husky" ]]; then
+        local hook_count
+        hook_count=$(find "${REPO_ROOT}/.husky" -type f -not -name ".*" 2>/dev/null | wc -l | tr -d ' ')
+        record_result "pass" "structure" ".husky" "Git hooks (${hook_count} hooks)"
+    fi
+    
+    if [[ -d "${REPO_ROOT}/.vscode" ]]; then
+        local vscode_files
+        vscode_files=$(find "${REPO_ROOT}/.vscode" -name "*.json" 2>/dev/null | wc -l | tr -d ' ')
+        record_result "pass" "structure" ".vscode" "VS Code config (${vscode_files} files)"
+    fi
+    
+    [[ -d "${REPO_ROOT}/.idea" ]] && \
+        record_result "pass" "structure" ".idea" "JetBrains IDE config"
+}
+
+# =============================================================================
+# Chart Validation
+# =============================================================================
+
+check_charts() {
+    [[ "${CHECK_CHARTS}" != "true" ]] && return
+    [[ -z "${CHARTS_DIR}" || ! -d "${CHARTS_DIR}" ]] && return
+    
+    log_section "Validating Helm Charts"
+    
+    local total_charts=0
+    local valid_charts=0
+    
+    for subdir in "${CHART_SUBDIRS[@]}"; do
+        local chart_dir="${CHARTS_DIR}/${subdir}"
+        [[ ! -d "${chart_dir}" ]] && continue
+        
+        local category="${subdir}"
+        log_subsection "Charts in ${category}/"
+        
+        while IFS= read -r chart_yaml; do
+            [[ -z "${chart_yaml}" ]] && continue
+            
+            local chart_path
+            chart_path=$(dirname "${chart_yaml}")
+            local chart_name
+            chart_name=$(basename "${chart_path}")
+            
+            # Skip subcharts
+            local relative_path="${chart_path#${chart_dir}/}"
+            if [[ "${relative_path}" == *"/charts/"* ]]; then
+                log_verbose "Skipping subchart: ${relative_path}"
+                continue
+            fi
+            
+            ((total_charts++))
+            
+            if [[ -f "${chart_yaml}" ]]; then
+                local name version
+                name=$(yq '.name' "${chart_yaml}" 2>/dev/null | grep -v '^null$' || echo "")
+                version=$(yq '.version' "${chart_yaml}" 2>/dev/null | grep -v '^null$' || echo "")
+                
+                if [[ -z "${name}" ]]; then
+                    record_result "fail" "charts" "${category}/${chart_name}" "Missing 'name' field"
+                    continue
+                fi
+                
+                if [[ -z "${version}" ]]; then
+                    record_result "fail" "charts" "${category}/${chart_name}" "Missing 'version' field"
+                    continue
+                fi
+                
+                if [[ ! -f "${chart_path}/values.yaml" ]]; then
+                    record_result "warn" "charts" "${category}/${chart_name}" "Missing values.yaml (v${version})"
+                    continue
+                fi
+                
+                local lint_output
+                if lint_output=$(helm lint "${chart_path}" 2>&1); then
+                    ((valid_charts++))
+                    record_result "pass" "charts" "${category}/${chart_name}" "Valid chart (v${version})"
+                else
+                    local error_count
+                    error_count=$(echo "${lint_output}" | grep -c "Error:" || echo "0")
+                    record_result "fail" "charts" "${category}/${chart_name}" "Lint errors: ${error_count} (v${version})"
+                fi
+            else
+                record_result "fail" "charts" "${category}/${chart_name}" "Missing Chart.yaml"
+            fi
+        done < <(find "${chart_dir}" -maxdepth 2 -name "Chart.yaml" -type f 2>/dev/null)
+    done
+    
+    log_info "Chart summary: ${valid_charts}/${total_charts} charts valid"
+}
+
+# =============================================================================
+# Documentation Checks
+# =============================================================================
+
+check_documentation() {
+    [[ "${CHECK_DOCUMENTATION}" != "true" ]] && return
+    
+    log_section "Checking Documentation"
+    
+    log_subsection "Documentation Files"
+    
+    # Check main README
+    if [[ -f "${REPO_ROOT}/README.md" ]]; then
+        local readme_lines
+        readme_lines=$(wc -l < "${REPO_ROOT}/README.md" | tr -d ' ')
+        if [[ "${readme_lines}" -gt 10 ]]; then
+            record_result "pass" "docs" "README.md" "Main README exists (${readme_lines} lines)"
+        else
+            record_result "warn" "docs" "README.md" "README.md seems sparse (${readme_lines} lines)"
+        fi
+    else
+        record_result "fail" "docs" "README.md" "Missing main README"
+    fi
+    
+    # Check docs directory
+    if [[ -d "${REPO_ROOT}/docs" ]]; then
+        local doc_files
+        doc_files=$(find "${REPO_ROOT}/docs" -name "*.md" -type f | wc -l | tr -d ' ')
+        record_result "pass" "docs" "docs/" "Documentation directory exists (${doc_files} markdown files)"
+    else
+        record_result "warn" "docs" "docs/" "Missing docs directory"
+    fi
+    
+    # Check MkDocs configuration
+    if [[ -f "${REPO_ROOT}/mkdocs.yml" ]]; then
+        if yq -e '.site_name' "${REPO_ROOT}/mkdocs.yml" &>/dev/null; then
+            record_result "pass" "docs" "mkdocs.yml" "Valid MkDocs configuration"
+        else
+            record_result "warn" "docs" "mkdocs.yml" "MkDocs configuration may be incomplete"
+        fi
+    fi
+    
+    log_subsection "Chart Documentation"
+    
+    if [[ -n "${CHARTS_DIR}" && -d "${CHARTS_DIR}" ]]; then
+        local charts_with_readme=0
+        local charts_total=0
+        
+        for subdir in "${CHART_SUBDIRS[@]}"; do
+            local chart_dir="${CHARTS_DIR}/${subdir}"
+            [[ ! -d "${chart_dir}" ]] && continue
+            
+            while IFS= read -r chart_yaml; do
+                [[ -z "${chart_yaml}" ]] && continue
+                local chart_path
+                chart_path=$(dirname "${chart_yaml}")
+                
+                local relative_path="${chart_path#${chart_dir}/}"
+                [[ "${relative_path}" == *"/charts/"* ]] && continue
+                
+                ((charts_total++))
+                [[ -f "${chart_path}/README.md" ]] && ((charts_with_readme++))
+            done < <(find "${chart_dir}" -maxdepth 2 -name "Chart.yaml" -type f 2>/dev/null)
+        done
+        
+        if [[ "${charts_total}" -gt 0 ]]; then
+            local coverage=$((charts_with_readme * 100 / charts_total))
+            if [[ "${coverage}" -ge 80 ]]; then
+                record_result "pass" "docs" "chart-readmes" "Chart README coverage: ${coverage}%"
+            elif [[ "${coverage}" -ge 50 ]]; then
+                record_result "warn" "docs" "chart-readmes" "Chart README coverage: ${coverage}%"
+            else
+                record_result "warn" "docs" "chart-readmes" "Low README coverage: ${coverage}%"
+            fi
+        fi
+    fi
+}
+
+# =============================================================================
+# Git Repository Checks
+# =============================================================================
+
+check_git_repository() {
+    [[ "${CHECK_GIT}" != "true" ]] && return
+    
+    log_section "Checking Git Repository"
+    
+    log_subsection "Repository Status"
+    
+    # Check if it's a git repository
+    if ! git -C "${REPO_ROOT}" rev-parse --is-inside-work-tree &>/dev/null; then
+        record_result "fail" "git" "repository" "Not a git repository"
+        return
+    fi
+    
+    record_result "pass" "git" "repository" "Valid git repository"
+    
+    # Check for uncommitted changes
+    local changes
+    changes=$(git -C "${REPO_ROOT}" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+    if [[ "${changes}" -eq 0 ]]; then
+        record_result "pass" "git" "working-tree" "Clean working tree"
+    else
+        record_result "warn" "git" "working-tree" "${changes} uncommitted changes"
+    fi
+    
+    # Check current branch
+    local branch
+    branch=$(git -C "${REPO_ROOT}" rev-parse --abbrev-ref HEAD 2>/dev/null)
+    record_result "pass" "git" "branch" "Current branch: ${branch}"
+    
+    # Check remote
+    local remote
+    if remote=$(git -C "${REPO_ROOT}" remote get-url origin 2>/dev/null); then
+        record_result "pass" "git" "remote" "Origin: ${remote}"
+    else
+        record_result "warn" "git" "remote" "No remote 'origin' configured"
+    fi
+    
+    log_subsection "Git Hooks"
+    
+    # Check pre-commit hooks
+    if [[ -f "${REPO_ROOT}/.git/hooks/pre-commit" ]]; then
+        record_result "pass" "git" "pre-commit-hook" "Pre-commit hook installed"
+    else
+        record_result "warn" "git" "pre-commit-hook" "Pre-commit hook not installed"
+    fi
+    
+    # Check .gitignore
+    if [[ -f "${REPO_ROOT}/.gitignore" ]]; then
+        local gitignore_lines
+        gitignore_lines=$(grep -v '^#' "${REPO_ROOT}/.gitignore" | grep -v '^$' | wc -l | tr -d ' ')
+        record_result "pass" "git" ".gitignore" ".gitignore configured (${gitignore_lines} rules)"
+    fi
+}
+
+# =============================================================================
+# CI/CD Checks
+# =============================================================================
+
+check_cicd() {
+    [[ "${CHECK_CICD}" != "true" ]] && return
+    
+    log_section "Checking CI/CD Configuration"
+    
+    log_subsection "GitHub Actions"
+    
+    local workflows_dir="${REPO_ROOT}/.github/workflows"
+    
+    if [[ -d "${workflows_dir}" ]]; then
+        local workflow_count
+        workflow_count=$(find "${workflows_dir}" -name "*.yaml" -o -name "*.yml" 2>/dev/null | wc -l | tr -d ' ')
+        record_result "pass" "cicd" "workflows" "Found ${workflow_count} workflow files"
+        
+        # Validate each workflow
+        while IFS= read -r workflow; do
+            [[ -z "${workflow}" ]] && continue
+            local workflow_name
+            workflow_name=$(basename "${workflow}")
+            
+            if yq -e '.jobs' "${workflow}" &>/dev/null; then
+                local job_count
+                job_count=$(yq '.jobs | keys | length' "${workflow}" 2>/dev/null)
+                record_result "pass" "cicd" "${workflow_name}" "Valid workflow (${job_count} jobs)"
+            else
+                record_result "fail" "cicd" "${workflow_name}" "Invalid workflow YAML"
+            fi
+        done < <(find "${workflows_dir}" -name "*.yaml" -o -name "*.yml" 2>/dev/null)
+    else
+        record_result "fail" "cicd" "workflows" "No GitHub workflows directory found"
+    fi
+    
+    log_subsection "Chart Testing Configuration"
+    
+    if [[ -f "${REPO_ROOT}/ct.yaml" ]]; then
+        local chart_dirs
+        chart_dirs=$(yq '.chart-dirs[]?' "${REPO_ROOT}/ct.yaml" 2>/dev/null | wc -l | tr -d ' ')
+        record_result "pass" "cicd" "ct.yaml" "Chart-testing configured (${chart_dirs} chart directories)"
+    fi
+}
+
+# =============================================================================
+# GitHub Pages Checks
+# =============================================================================
+
+check_github_pages() {
+    [[ "${CHECK_GITHUB_PAGES}" != "true" ]] && return
+    
+    log_section "Checking GitHub Pages Configuration"
+    
+    log_subsection "Pages Workflow"
+    
+    # Check for pages workflow
+    local pages_workflow="${REPO_ROOT}/.github/workflows/pages.yaml"
+    if [[ -f "${pages_workflow}" ]]; then
+        record_result "pass" "pages" "pages.yaml" "GitHub Pages workflow exists"
+        
+        # Check workflow triggers
+        if yq -e '.on.push' "${pages_workflow}" &>/dev/null; then
+            record_result "pass" "pages" "workflow-trigger" "Push trigger configured"
+        else
+            record_result "warn" "pages" "workflow-trigger" "No push trigger configured"
+        fi
+        
+        # Check for workflow_dispatch (manual trigger)
+        if yq '.on | has("workflow_dispatch")' "${pages_workflow}" 2>/dev/null | grep -q "true"; then
+            record_result "pass" "pages" "manual-trigger" "Manual workflow dispatch enabled"
+        else
+            record_result "warn" "pages" "manual-trigger" "Manual workflow dispatch not enabled"
+        fi
+    else
+        # Check for alternative workflow names
+        local alt_workflow
+        for alt in "pages.yml" "gh-pages.yaml" "gh-pages.yml" "deploy-pages.yaml" "deploy-pages.yml"; do
+            if [[ -f "${REPO_ROOT}/.github/workflows/${alt}" ]]; then
+                alt_workflow="${alt}"
+                break
+            fi
+        done
+        
+        if [[ -n "${alt_workflow}" ]]; then
+            record_result "pass" "pages" "pages-workflow" "GitHub Pages workflow exists (${alt_workflow})"
+        else
+            record_result "warn" "pages" "pages-workflow" "No GitHub Pages workflow found"
+        fi
+    fi
+    
+    log_subsection "Static Site Directory"
+    
+    # Check site directory (source for GitHub Pages)
+    local site_dir="${REPO_ROOT}/site"
+    if [[ -d "${site_dir}" ]]; then
+        local site_files
+        site_files=$(find "${site_dir}" -type f | wc -l | tr -d ' ')
+        record_result "pass" "pages" "site/" "Site source directory exists (${site_files} files)"
+        
+        # Check for index.html
+        if [[ -f "${site_dir}/index.html" ]]; then
+            record_result "pass" "pages" "site/index.html" "Index page exists"
+        fi
+    fi
+    
+    # Check site-docs directory (MkDocs output)
+    local site_docs_dir="${REPO_ROOT}/site-docs"
+    if [[ -d "${site_docs_dir}" ]]; then
+        local docs_files
         read -ra test_subdirs <<< "${TEST_SUBDIRS}"
         for subdir in "${test_subdirs[@]}"; do
             [[ -z "${subdir}" ]] && continue
@@ -867,86 +1578,6 @@ check_repository_structure() {
     if [[ -d "${REPO_ROOT}/.idea" ]]; then
         record_result "pass" "structure" ".idea" "JetBrains IDE configuration present"
     fi
-}
-
-# =============================================================================
-# Chart Validation
-# =============================================================================
-
-check_charts() {
-    [[ "${CHECK_CHARTS}" != "true" ]] && return
-    [[ -z "${CHARTS_DIR}" || ! -d "${CHARTS_DIR}" ]] && return
-    
-    log_section "Validating Helm Charts"
-    
-    local total_charts=0
-    local valid_charts=0
-    
-    for subdir in ${CHART_SUBDIRS}; do
-        local chart_dir="${CHARTS_DIR}/${subdir}"
-        [[ ! -d "${chart_dir}" ]] && continue
-        
-        local category="${subdir}"
-        log_subsection "Charts in ${category}/"
-        
-        while IFS= read -r chart_yaml; do
-            [[ -z "${chart_yaml}" ]] && continue
-            
-            local chart_path
-            chart_path=$(dirname "${chart_yaml}")
-            local chart_name
-            chart_name=$(basename "${chart_path}")
-            
-            # Skip subcharts - these are charts that have "/charts/" in their path
-            # relative to the chart directory (e.g., apps/myapp/charts/subchart)
-            local relative_path="${chart_path#${chart_dir}/}"
-            if [[ "${relative_path}" == *"/charts/"* ]]; then
-                log_verbose "Skipping subchart: ${relative_path}"
-                continue
-            fi
-            
-            ((total_charts++))
-            
-            # Check Chart.yaml exists and is valid
-            if [[ -f "${chart_yaml}" ]]; then
-                # Validate required fields
-                local name version
-                name=$(yq '.name' "${chart_yaml}" 2>/dev/null | grep -v '^null$' || echo "")
-                version=$(yq '.version' "${chart_yaml}" 2>/dev/null | grep -v '^null$' || echo "")
-                
-                if [[ -z "${name}" ]]; then
-                    record_result "fail" "charts" "${category}/${chart_name}" "Chart.yaml missing 'name' field"
-                    continue
-                fi
-                
-                if [[ -z "${version}" ]]; then
-                    record_result "fail" "charts" "${category}/${chart_name}" "Chart.yaml missing 'version' field"
-                    continue
-                fi
-                
-                # Check values.yaml exists
-                if [[ ! -f "${chart_path}/values.yaml" ]]; then
-                    record_result "warn" "charts" "${category}/${chart_name}" "Missing values.yaml (v${version})"
-                    continue
-                fi
-                
-                # Run helm lint
-                local lint_output
-                if lint_output=$(helm lint "${chart_path}" 2>&1); then
-                    ((valid_charts++))
-                    record_result "pass" "charts" "${category}/${chart_name}" "Valid chart (v${version})"
-                else
-                    local error_count
-                    error_count=$(echo "${lint_output}" | grep -c "Error:" || echo "0")
-                    record_result "fail" "charts" "${category}/${chart_name}" "Lint errors: ${error_count} (v${version})" "${lint_output}"
-                fi
-            else
-                record_result "fail" "charts" "${category}/${chart_name}" "Missing Chart.yaml"
-            fi
-        done < <(find "${chart_dir}" -maxdepth 2 -name "Chart.yaml" -type f 2>/dev/null)
-    done
-    
-    log_info "Chart summary: ${valid_charts}/${total_charts} charts valid"
 }
 
 # =============================================================================
