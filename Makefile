@@ -168,6 +168,18 @@ docs-check: docs-deps ## Check if chart documentation is in sync
 validate: lint build-docs ## Validate all charts (lint + docs)
 	@echo "All charts validated successfully!"
 
+.PHONY: health-check
+health-check: ## Run repository health check
+	@./scripts/health-check.sh
+
+.PHONY: health-check-verbose
+health-check-verbose: ## Run repository health check with verbose output
+	@./scripts/health-check.sh --verbose
+
+.PHONY: health-check-json
+health-check-json: ## Run repository health check with JSON output
+	@./scripts/health-check.sh --json
+
 .PHONY: list-charts
 list-charts: ## List all charts in the repository
 	@for chart in $(CHARTS_DIR)/*; do \

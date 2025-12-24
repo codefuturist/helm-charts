@@ -322,7 +322,7 @@ details.values-section>*:not(summary) {
   .filter-buttons {
     justify-content: center;
   }
-  
+
   .values-table td,
   .values-table th {
     font-size: var(--docs-font-xs);
