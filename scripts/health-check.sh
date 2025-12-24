@@ -1357,6 +1357,313 @@ check_git_repository() {
         gitignore_lines=$(grep -v '^#' "${REPO_ROOT}/.gitignore" | grep -v '^$' | wc -l | tr -d ' ')
         record_result "pass" "git" ".gitignore" ".gitignore configured (${gitignore_lines} rules)"
     fi
+    
+    # -------------------------------------------------------------------------
+    # Git Remote Health Checks
+    # -------------------------------------------------------------------------
+    check_git_remotes
+}
+
+# Helper: Comprehensive git remote health checks
+check_git_remotes() {
+    log_subsection "Git Remote Health"
+    
+    # Get list of all configured remotes
+    local remotes=()
+    while IFS= read -r remote; do
+        [[ -n "${remote}" ]] && remotes+=("${remote}")
+    done < <(git -C "${REPO_ROOT}" remote 2>/dev/null)
+    
+    if [[ ${#remotes[@]} -eq 0 ]]; then
+        record_result "warn" "git" "remotes" "No remotes configured"
+        return
+    fi
+    
+    record_result "pass" "git" "remotes-count" "${#remotes[@]} remote(s) configured: ${remotes[*]}"
+    
+    # -------------------------------------------------------------------------
+    # Check each remote
+    # -------------------------------------------------------------------------
+    for remote_name in "${remotes[@]}"; do
+        local fetch_url push_url
+        fetch_url=$(git -C "${REPO_ROOT}" remote get-url "${remote_name}" 2>/dev/null || echo "")
+        push_url=$(git -C "${REPO_ROOT}" remote get-url --push "${remote_name}" 2>/dev/null || echo "")
+        
+        # Validate remote URL format
+        if [[ -z "${fetch_url}" ]]; then
+            record_result "fail" "git" "remote-${remote_name}-url" "No fetch URL configured"
+            continue
+        fi
+        
+        # Check URL format (SSH or HTTPS)
+        local url_type="unknown"
+        local url_display="${fetch_url}"
+        
+        if [[ "${fetch_url}" == git@* ]]; then
+            url_type="SSH"
+            # Extract host and repo for display
+            local ssh_host="${fetch_url#git@}"
+            ssh_host="${ssh_host%%:*}"
+            local ssh_path="${fetch_url#*:}"
+            url_display="${ssh_host}:${ssh_path}"
+        elif [[ "${fetch_url}" == https://* ]]; then
+            url_type="HTTPS"
+            url_display="${fetch_url#https://}"
+        elif [[ "${fetch_url}" == http://* ]]; then
+            url_type="HTTP"
+            url_display="${fetch_url#http://}"
+            record_result "warn" "git" "remote-${remote_name}-protocol" "Using insecure HTTP protocol"
+        elif [[ "${fetch_url}" == ssh://* ]]; then
+            url_type="SSH"
+            url_display="${fetch_url#ssh://}"
+        elif [[ "${fetch_url}" == /* || "${fetch_url}" == ./* ]]; then
+            url_type="Local"
+            url_display="${fetch_url}"
+        fi
+        
+        record_result "pass" "git" "remote-${remote_name}" "${url_type}: ${url_display}"
+        
+        # Check if fetch and push URLs differ
+        if [[ -n "${push_url}" && "${fetch_url}" != "${push_url}" ]]; then
+            record_result "warn" "git" "remote-${remote_name}-push" "Push URL differs: ${push_url}"
+        fi
+        
+        # -------------------------------------------------------------------------
+        # Test remote connectivity (with timeout)
+        # -------------------------------------------------------------------------
+        log_verbose "Testing connectivity to ${remote_name}..."
+        
+        # Use git ls-remote with timeout to test connectivity
+        local ls_remote_output
+        local connectivity_ok=false
+        
+        # Try to connect with a short timeout (5 seconds)
+        if ls_remote_output=$(timeout 10 git -C "${REPO_ROOT}" ls-remote --exit-code --heads "${remote_name}" HEAD 2>&1); then
+            connectivity_ok=true
+            record_result "pass" "git" "remote-${remote_name}-connect" "Remote is reachable"
+        else
+            local exit_code=$?
+            case ${exit_code} in
+                2)
+                    # Exit code 2 means remote is reachable but HEAD doesn't exist (empty repo or different ref)
+                    connectivity_ok=true
+                    record_result "pass" "git" "remote-${remote_name}-connect" "Remote is reachable (may be empty or have different refs)"
+                    ;;
+                124)
+                    record_result "warn" "git" "remote-${remote_name}-connect" "Connection timed out (may be network issue or slow remote)"
+                    ;;
+                128)
+                    # Authentication or access error
+                    if echo "${ls_remote_output}" | grep -qi "permission denied\|authentication\|publickey"; then
+                        record_result "fail" "git" "remote-${remote_name}-connect" "Authentication failed (check SSH keys or credentials)"
+                    elif echo "${ls_remote_output}" | grep -qi "not found\|does not exist"; then
+                        record_result "fail" "git" "remote-${remote_name}-connect" "Remote repository not found"
+                    elif echo "${ls_remote_output}" | grep -qi "could not resolve\|name or service not known"; then
+                        record_result "fail" "git" "remote-${remote_name}-connect" "Could not resolve hostname"
+                    else
+                        record_result "fail" "git" "remote-${remote_name}-connect" "Connection failed: ${ls_remote_output}"
+                    fi
+                    ;;
+                *)
+                    record_result "warn" "git" "remote-${remote_name}-connect" "Unknown connection error (exit code: ${exit_code})"
+                    ;;
+            esac
+        fi
+        
+        # -------------------------------------------------------------------------
+        # Check tracking branches and sync status
+        # -------------------------------------------------------------------------
+        if [[ "${connectivity_ok}" == "true" ]]; then
+            # Check for tracking branches
+            local tracking_branches=()
+            while IFS= read -r branch; do
+                [[ -n "${branch}" ]] && tracking_branches+=("${branch}")
+            done < <(git -C "${REPO_ROOT}" branch -r 2>/dev/null | grep "^  ${remote_name}/" | sed "s|^  ${remote_name}/||" | grep -v "HEAD")
+            
+            if [[ ${#tracking_branches[@]} -gt 0 ]]; then
+                record_result "pass" "git" "remote-${remote_name}-branches" "${#tracking_branches[@]} remote branches tracked"
+                log_verbose "Remote branches: ${tracking_branches[*]:0:10}$([[ ${#tracking_branches[@]} -gt 10 ]] && echo " ... and more")"
+            else
+                record_result "warn" "git" "remote-${remote_name}-branches" "No remote branches tracked (run 'git fetch ${remote_name}')"
+            fi
+            
+            # Check if local branch is ahead/behind remote
+            local current_branch
+            current_branch=$(git -C "${REPO_ROOT}" rev-parse --abbrev-ref HEAD 2>/dev/null)
+            
+            if [[ -n "${current_branch}" && "${current_branch}" != "HEAD" ]]; then
+                local upstream
+                upstream=$(git -C "${REPO_ROOT}" rev-parse --abbrev-ref "${current_branch}@{upstream}" 2>/dev/null || echo "")
+                
+                if [[ -n "${upstream}" && "${upstream}" == "${remote_name}/"* ]]; then
+                    local ahead behind
+                    ahead=$(git -C "${REPO_ROOT}" rev-list --count "${upstream}..${current_branch}" 2>/dev/null || echo "0")
+                    behind=$(git -C "${REPO_ROOT}" rev-list --count "${current_branch}..${upstream}" 2>/dev/null || echo "0")
+                    
+                    if [[ "${ahead}" -eq 0 && "${behind}" -eq 0 ]]; then
+                        record_result "pass" "git" "remote-${remote_name}-sync" "Branch '${current_branch}' is in sync with '${upstream}'"
+                    elif [[ "${ahead}" -gt 0 && "${behind}" -eq 0 ]]; then
+                        record_result "warn" "git" "remote-${remote_name}-sync" "Branch '${current_branch}' is ${ahead} commit(s) ahead of '${upstream}'"
+                    elif [[ "${ahead}" -eq 0 && "${behind}" -gt 0 ]]; then
+                        record_result "warn" "git" "remote-${remote_name}-sync" "Branch '${current_branch}' is ${behind} commit(s) behind '${upstream}'"
+                    else
+                        record_result "warn" "git" "remote-${remote_name}-sync" "Branch '${current_branch}' has diverged from '${upstream}' (${ahead} ahead, ${behind} behind)"
+                    fi
+                fi
+            fi
+        fi
+        
+        # -------------------------------------------------------------------------
+        # Check remote-specific settings
+        # -------------------------------------------------------------------------
+        
+        # Check fetch refspecs
+        local fetch_refspecs=()
+        while IFS= read -r refspec; do
+            [[ -n "${refspec}" ]] && fetch_refspecs+=("${refspec}")
+        done < <(git -C "${REPO_ROOT}" config --get-all "remote.${remote_name}.fetch" 2>/dev/null)
+        
+        if [[ ${#fetch_refspecs[@]} -gt 0 ]]; then
+            log_verbose "Fetch refspecs for ${remote_name}: ${fetch_refspecs[*]}"
+            
+            # Check for unusual refspecs
+            for refspec in "${fetch_refspecs[@]}"; do
+                if [[ "${refspec}" != "+refs/heads/*:refs/remotes/${remote_name}/*" ]]; then
+                    record_result "warn" "git" "remote-${remote_name}-refspec" "Non-standard fetch refspec: ${refspec}"
+                fi
+            done
+        fi
+        
+        # Check push default
+        local push_default
+        push_default=$(git -C "${REPO_ROOT}" config --get "remote.${remote_name}.push" 2>/dev/null || echo "")
+        if [[ -n "${push_default}" ]]; then
+            log_verbose "Push config for ${remote_name}: ${push_default}"
+        fi
+        
+        # -------------------------------------------------------------------------
+        # Check for stale remote refs
+        # -------------------------------------------------------------------------
+        local stale_refs=()
+        while IFS= read -r ref; do
+            [[ -n "${ref}" ]] && stale_refs+=("${ref}")
+        done < <(git -C "${REPO_ROOT}" remote prune "${remote_name}" --dry-run 2>/dev/null | grep "^\s*\* \[would prune\]" | sed 's/.*\[would prune\] //')
+        
+        if [[ ${#stale_refs[@]} -gt 0 ]]; then
+            record_result "warn" "git" "remote-${remote_name}-stale" "${#stale_refs[@]} stale refs (run 'git remote prune ${remote_name}')"
+            log_verbose "Stale refs: ${stale_refs[*]}"
+        else
+            record_result "pass" "git" "remote-${remote_name}-stale" "No stale remote refs"
+        fi
+    done
+    
+    # -------------------------------------------------------------------------
+    # Check for origin as the primary remote
+    # -------------------------------------------------------------------------
+    log_subsection "Primary Remote Validation"
+    
+    local has_origin=false
+    for remote_name in "${remotes[@]}"; do
+        [[ "${remote_name}" == "origin" ]] && has_origin=true
+    done
+    
+    if [[ "${has_origin}" == "true" ]]; then
+        record_result "pass" "git" "primary-remote" "Standard 'origin' remote configured"
+        
+        # Check if origin is the correct type for this repo
+        local origin_url
+        origin_url=$(git -C "${REPO_ROOT}" remote get-url origin 2>/dev/null || echo "")
+        
+        if [[ "${origin_url}" == *"github.com"* ]]; then
+            record_result "pass" "git" "remote-host" "Origin points to GitHub"
+            
+            # Extract owner/repo from GitHub URL
+            local github_repo=""
+            if [[ "${origin_url}" == git@github.com:* ]]; then
+                github_repo="${origin_url#git@github.com:}"
+                github_repo="${github_repo%.git}"
+            elif [[ "${origin_url}" == https://github.com/* ]]; then
+                github_repo="${origin_url#https://github.com/}"
+                github_repo="${github_repo%.git}"
+            fi
+            
+            if [[ -n "${github_repo}" ]]; then
+                log_verbose "GitHub repository: ${github_repo}"
+            fi
+        elif [[ "${origin_url}" == *"gitlab.com"* ]]; then
+            record_result "pass" "git" "remote-host" "Origin points to GitLab"
+        elif [[ "${origin_url}" == *"bitbucket.org"* ]]; then
+            record_result "pass" "git" "remote-host" "Origin points to Bitbucket"
+        elif [[ "${origin_url}" == *"azure.com"* || "${origin_url}" == *"visualstudio.com"* ]]; then
+            record_result "pass" "git" "remote-host" "Origin points to Azure DevOps"
+        fi
+    else
+        record_result "warn" "git" "primary-remote" "No 'origin' remote (convention suggests using 'origin' for primary)"
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check for fork setup (upstream remote)
+    # -------------------------------------------------------------------------
+    local has_upstream=false
+    for remote_name in "${remotes[@]}"; do
+        [[ "${remote_name}" == "upstream" ]] && has_upstream=true
+    done
+    
+    if [[ "${has_upstream}" == "true" ]]; then
+        record_result "pass" "git" "fork-setup" "Fork setup detected ('upstream' remote configured)"
+        
+        # Check upstream connectivity
+        local upstream_url
+        upstream_url=$(git -C "${REPO_ROOT}" remote get-url upstream 2>/dev/null || echo "")
+        log_verbose "Upstream URL: ${upstream_url}"
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check last fetch time
+    # -------------------------------------------------------------------------
+    log_subsection "Remote Synchronization"
+    
+    local fetch_head="${REPO_ROOT}/.git/FETCH_HEAD"
+    if [[ -f "${fetch_head}" ]]; then
+        local last_fetch_time
+        last_fetch_time=$(stat -f %m "${fetch_head}" 2>/dev/null || stat -c %Y "${fetch_head}" 2>/dev/null || echo "0")
+        local current_time
+        current_time=$(date +%s)
+        local fetch_age=$((current_time - last_fetch_time))
+        
+        local fetch_age_human=""
+        if [[ ${fetch_age} -lt 3600 ]]; then
+            fetch_age_human="$((fetch_age / 60)) minutes ago"
+        elif [[ ${fetch_age} -lt 86400 ]]; then
+            fetch_age_human="$((fetch_age / 3600)) hours ago"
+        else
+            fetch_age_human="$((fetch_age / 86400)) days ago"
+        fi
+        
+        if [[ ${fetch_age} -lt 86400 ]]; then  # Less than 1 day
+            record_result "pass" "git" "last-fetch" "Last fetch: ${fetch_age_human}"
+        elif [[ ${fetch_age} -lt 604800 ]]; then  # Less than 1 week
+            record_result "warn" "git" "last-fetch" "Last fetch: ${fetch_age_human} (consider running 'git fetch')"
+        else
+            record_result "warn" "git" "last-fetch" "Last fetch: ${fetch_age_human} (stale - run 'git fetch --all')"
+        fi
+    else
+        record_result "warn" "git" "last-fetch" "No fetch history found (run 'git fetch')"
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check for uncommitted remote tracking changes
+    # -------------------------------------------------------------------------
+    local unpushed_branches=()
+    while IFS= read -r branch_info; do
+        [[ -n "${branch_info}" ]] && unpushed_branches+=("${branch_info}")
+    done < <(git -C "${REPO_ROOT}" for-each-ref --format='%(refname:short) %(push:track)' refs/heads 2>/dev/null | grep '\[ahead' | awk '{print $1}')
+    
+    if [[ ${#unpushed_branches[@]} -gt 0 ]]; then
+        record_result "warn" "git" "unpushed-branches" "${#unpushed_branches[@]} branch(es) have unpushed commits: ${unpushed_branches[*]}"
+    else
+        record_result "pass" "git" "unpushed-branches" "All branches are in sync with remote"
+    fi
 }
 
 # =============================================================================
@@ -1775,365 +2082,6 @@ check_github_pages() {
     fi
 }
 
-# =============================================================================
-# Documentation Checks
-# =============================================================================
-
-check_documentation() {
-    [[ "${CHECK_DOCUMENTATION}" != "true" ]] && return
-    
-    log_section "Checking Documentation"
-    
-    log_subsection "Documentation Files"
-    
-    # Check main README
-    if [[ -f "${REPO_ROOT}/README.md" ]]; then
-        local readme_lines
-        readme_lines=$(wc -l < "${REPO_ROOT}/README.md" | tr -d ' ')
-        if [[ "${readme_lines}" -gt 10 ]]; then
-            record_result "pass" "docs" "README.md" "Main README exists (${readme_lines} lines)"
-        else
-            record_result "warn" "docs" "README.md" "README.md seems sparse (${readme_lines} lines)"
-        fi
-    else
-        record_result "fail" "docs" "README.md" "Missing main README"
-    fi
-    
-    # Check docs directory
-    if [[ -d "${REPO_ROOT}/docs" ]]; then
-        local doc_files
-        doc_files=$(find "${REPO_ROOT}/docs" -name "*.md" -type f | wc -l | tr -d ' ')
-        record_result "pass" "docs" "docs/" "Documentation directory exists (${doc_files} markdown files)"
-    else
-        record_result "warn" "docs" "docs/" "Missing docs directory"
-    fi
-    
-    # Check MkDocs configuration
-    if [[ -f "${REPO_ROOT}/mkdocs.yml" ]]; then
-        if yq -e '.site_name' "${REPO_ROOT}/mkdocs.yml" &>/dev/null; then
-            record_result "pass" "docs" "mkdocs.yml" "Valid MkDocs configuration"
-        else
-            record_result "warn" "docs" "mkdocs.yml" "MkDocs configuration may be incomplete"
-        fi
-    else
-        record_result "warn" "docs" "mkdocs.yml" "Missing MkDocs configuration"
-    fi
-    
-    log_subsection "Chart Documentation"
-    
-    if [[ -n "${CHARTS_DIR}" && -d "${CHARTS_DIR}" ]]; then
-        local charts_with_readme=0
-        local charts_total=0
-        
-        for subdir in ${CHART_SUBDIRS}; do
-            local chart_dir="${CHARTS_DIR}/${subdir}"
-            [[ ! -d "${chart_dir}" ]] && continue
-            
-            while IFS= read -r chart_yaml; do
-                [[ -z "${chart_yaml}" ]] && continue
-                local chart_path
-                chart_path=$(dirname "${chart_yaml}")
-                
-                # Skip subcharts - check relative path for /charts/ directory
-                local relative_path="${chart_path#${chart_dir}/}"
-                if [[ "${relative_path}" == *"/charts/"* ]]; then
-                    continue
-                fi
-                
-                ((charts_total++))
-                
-                if [[ -f "${chart_path}/README.md" ]]; then
-                    ((charts_with_readme++))
-                fi
-            done < <(find "${chart_dir}" -maxdepth 2 -name "Chart.yaml" -type f 2>/dev/null)
-        done
-        
-        local coverage
-        if [[ "${charts_total}" -gt 0 ]]; then
-            coverage=$((charts_with_readme * 100 / charts_total))
-            
-            if [[ "${coverage}" -ge 80 ]]; then
-                record_result "pass" "docs" "chart-readmes" "Chart README coverage: ${coverage}% (${charts_with_readme}/${charts_total})"
-            elif [[ "${coverage}" -ge 50 ]]; then
-                record_result "warn" "docs" "chart-readmes" "Chart README coverage: ${coverage}% (${charts_with_readme}/${charts_total})"
-            else
-                record_result "warn" "docs" "chart-readmes" "Low chart README coverage: ${coverage}% (${charts_with_readme}/${charts_total})"
-            fi
-        fi
-    fi
-}
-
-# =============================================================================
-# Git Repository Checks
-# =============================================================================
-
-check_git_repository() {
-    [[ "${CHECK_GIT}" != "true" ]] && return
-    
-    log_section "Checking Git Repository"
-    
-    log_subsection "Repository Status"
-    
-    # Check if it's a git repository
-    if ! git -C "${REPO_ROOT}" rev-parse --is-inside-work-tree &>/dev/null; then
-        record_result "fail" "git" "repository" "Not a git repository"
-        return
-    fi
-    
-    record_result "pass" "git" "repository" "Valid git repository"
-    
-    # Check for uncommitted changes
-    local changes
-    changes=$(git -C "${REPO_ROOT}" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
-    if [[ "${changes}" -eq 0 ]]; then
-        record_result "pass" "git" "working-tree" "Clean working tree"
-    else
-        record_result "warn" "git" "working-tree" "${changes} uncommitted changes"
-    fi
-    
-    # Check current branch
-    local branch
-    branch=$(git -C "${REPO_ROOT}" rev-parse --abbrev-ref HEAD 2>/dev/null)
-    record_result "pass" "git" "branch" "Current branch: ${branch}"
-    
-    # Check remote
-    local remote
-    if remote=$(git -C "${REPO_ROOT}" remote get-url origin 2>/dev/null); then
-        record_result "pass" "git" "remote" "Origin: ${remote}"
-    else
-        record_result "warn" "git" "remote" "No remote 'origin' configured"
-    fi
-    
-    log_subsection "Git Hooks"
-    
-    # Check pre-commit hooks
-    if [[ -f "${REPO_ROOT}/.git/hooks/pre-commit" ]]; then
-        record_result "pass" "git" "pre-commit-hook" "Pre-commit hook installed"
-    else
-        record_result "warn" "git" "pre-commit-hook" "Pre-commit hook not installed (run 'make install-hooks')"
-    fi
-    
-    # Check .gitignore
-    if [[ -f "${REPO_ROOT}/.gitignore" ]]; then
-        local gitignore_lines
-        gitignore_lines=$(grep -v '^#' "${REPO_ROOT}/.gitignore" | grep -v '^$' | wc -l | tr -d ' ')
-        record_result "pass" "git" ".gitignore" ".gitignore configured (${gitignore_lines} rules)"
-    else
-        record_result "warn" "git" ".gitignore" "Missing .gitignore"
-    fi
-}
-
-# =============================================================================
-# CI/CD Checks
-# =============================================================================
-
-check_cicd() {
-    [[ "${CHECK_CICD}" != "true" ]] && return
-    
-    log_section "Checking CI/CD Configuration"
-    
-    log_subsection "GitHub Actions"
-    
-    local workflows_dir="${REPO_ROOT}/.github/workflows"
-    
-    if [[ -d "${workflows_dir}" ]]; then
-        local workflow_count
-        workflow_count=$(find "${workflows_dir}" -name "*.yaml" -o -name "*.yml" 2>/dev/null | wc -l | tr -d ' ')
-        record_result "pass" "cicd" "workflows" "Found ${workflow_count} workflow files"
-        
-        # Validate each workflow
-        while IFS= read -r workflow; do
-            [[ -z "${workflow}" ]] && continue
-            local workflow_name
-            workflow_name=$(basename "${workflow}")
-            
-            if yq -e '.jobs' "${workflow}" &>/dev/null; then
-                local job_count
-                job_count=$(yq '.jobs | keys | length' "${workflow}" 2>/dev/null)
-                record_result "pass" "cicd" "${workflow_name}" "Valid workflow (${job_count} jobs)"
-            else
-                record_result "fail" "cicd" "${workflow_name}" "Invalid workflow YAML"
-            fi
-        done < <(find "${workflows_dir}" -name "*.yaml" -o -name "*.yml" 2>/dev/null)
-    else
-        record_result "fail" "cicd" "workflows" "No GitHub workflows directory found"
-    fi
-    
-    log_subsection "Chart Testing Configuration"
-    
-    if [[ -f "${REPO_ROOT}/ct.yaml" ]]; then
-        local chart_dirs
-        chart_dirs=$(yq '.chart-dirs[]?' "${REPO_ROOT}/ct.yaml" 2>/dev/null | wc -l | tr -d ' ')
-        record_result "pass" "cicd" "ct.yaml" "Chart-testing configured (${chart_dirs} chart directories)"
-    else
-        record_result "warn" "cicd" "ct.yaml" "Missing chart-testing configuration"
-    fi
-}
-
-# =============================================================================
-# GitHub Pages Checks
-# =============================================================================
-
-check_github_pages() {
-    [[ "${CHECK_GITHUB_PAGES}" != "true" ]] && return
-    
-    log_section "Checking GitHub Pages Configuration"
-    
-    log_subsection "Pages Workflow"
-    
-    # Check for pages workflow
-    local pages_workflow="${REPO_ROOT}/.github/workflows/pages.yaml"
-    if [[ -f "${pages_workflow}" ]]; then
-        record_result "pass" "pages" "pages.yaml" "GitHub Pages workflow exists"
-        
-        # Check workflow triggers
-        if yq -e '.on.push' "${pages_workflow}" &>/dev/null; then
-            record_result "pass" "pages" "workflow-trigger" "Push trigger configured"
-        else
-            record_result "warn" "pages" "workflow-trigger" "No push trigger configured"
-        fi
-        
-        # Check for workflow_dispatch (manual trigger)
-        if yq '.on | has("workflow_dispatch")' "${pages_workflow}" 2>/dev/null | grep -q "true"; then
-            record_result "pass" "pages" "manual-trigger" "Manual workflow dispatch enabled"
-        else
-            record_result "warn" "pages" "manual-trigger" "Manual workflow dispatch not enabled"
-        fi
-    else
-        # Check for alternative workflow names
-        local alt_workflow
-        for alt in "pages.yml" "gh-pages.yaml" "gh-pages.yml" "deploy-pages.yaml" "deploy-pages.yml"; do
-            if [[ -f "${REPO_ROOT}/.github/workflows/${alt}" ]]; then
-                alt_workflow="${alt}"
-                break
-            fi
-        done
-        
-        if [[ -n "${alt_workflow}" ]]; then
-            record_result "pass" "pages" "pages-workflow" "GitHub Pages workflow exists (${alt_workflow})"
-        else
-            record_result "warn" "pages" "pages-workflow" "No GitHub Pages workflow found"
-        fi
-    fi
-    
-    log_subsection "Static Site Directory"
-    
-    # Check site directory (source for GitHub Pages)
-    local site_dir="${REPO_ROOT}/site"
-    if [[ -d "${site_dir}" ]]; then
-        local site_files
-        site_files=$(find "${site_dir}" -type f | wc -l | tr -d ' ')
-        record_result "pass" "pages" "site/" "Site source directory exists (${site_files} files)"
-        
-        # Check for index.html
-        if [[ -f "${site_dir}/index.html" ]]; then
-            record_result "pass" "pages" "site/index.html" "Index page exists"
-        else
-            record_result "warn" "pages" "site/index.html" "Missing index.html in site directory"
-        fi
-    else
-        record_result "warn" "pages" "site/" "No site source directory found"
-    fi
-    
-    # Check site-docs directory (MkDocs output)
-    local site_docs_dir="${REPO_ROOT}/site-docs"
-    if [[ -d "${site_docs_dir}" ]]; then
-        local docs_files
-        docs_files=$(find "${site_docs_dir}" -type f | wc -l | tr -d ' ')
-        record_result "pass" "pages" "site-docs/" "Built documentation exists (${docs_files} files)"
-        
-        # Check for index.html in site-docs
-        if [[ -f "${site_docs_dir}/index.html" ]]; then
-            record_result "pass" "pages" "site-docs/index.html" "Documentation index page exists"
-        else
-            record_result "warn" "pages" "site-docs/index.html" "Missing index.html in site-docs"
-        fi
-        
-        # Check sitemap
-        if [[ -f "${site_docs_dir}/sitemap.xml" ]]; then
-            record_result "pass" "pages" "sitemap.xml" "Sitemap exists for SEO"
-        else
-            record_result "warn" "pages" "sitemap.xml" "No sitemap.xml found"
-        fi
-    else
-        record_result "warn" "pages" "site-docs/" "No built documentation (run 'make docs-build')"
-    fi
-    
-    log_subsection "MkDocs Configuration"
-    
-    # Validate MkDocs configuration for Pages
-    if [[ -f "${REPO_ROOT}/mkdocs.yml" ]]; then
-        # Check site_url configuration
-        local site_url
-        site_url=$(yq '.site_url' "${REPO_ROOT}/mkdocs.yml" 2>/dev/null | grep -v '^null$' || echo "")
-        if [[ -n "${site_url}" ]]; then
-            record_result "pass" "pages" "mkdocs-site_url" "Site URL configured: ${site_url}"
-        else
-            record_result "warn" "pages" "mkdocs-site_url" "No site_url configured in mkdocs.yml"
-        fi
-        
-        # Check for required plugins
-        local has_minify
-        has_minify=$(yq '.plugins[]? | select(. == "minify" or .minify)' "${REPO_ROOT}/mkdocs.yml" 2>/dev/null || echo "")
-        if [[ -n "${has_minify}" ]]; then
-            record_result "pass" "pages" "mkdocs-minify" "Minify plugin enabled for production"
-        else
-            record_result "warn" "pages" "mkdocs-minify" "Consider enabling minify plugin for smaller builds"
-        fi
-    fi
-    
-    log_subsection "Charts Documentation for Pages"
-    
-    # Check if chart documentation is being copied to site
-    if [[ -d "${site_docs_dir}/charts" ]] || [[ -d "${site_dir}/charts" ]]; then
-        local charts_dir
-        if [[ -d "${site_docs_dir}/charts" ]]; then
-            charts_dir="${site_docs_dir}/charts"
-        else
-            charts_dir="${site_dir}/charts"
-        fi
-        
-        local chart_docs
-        chart_docs=$(find "${charts_dir}" -name "*.md" -o -name "*.html" 2>/dev/null | wc -l | tr -d ' ')
-        if [[ "${chart_docs}" -gt 0 ]]; then
-            record_result "pass" "pages" "chart-docs" "Chart documentation in site (${chart_docs} files)"
-        else
-            record_result "warn" "pages" "chart-docs" "No chart documentation files found in site"
-        fi
-    else
-        record_result "warn" "pages" "chart-docs" "No charts directory in site output"
-    fi
-    
-    # Check if gh CLI is available to check deployment status
-    if command -v gh &>/dev/null; then
-        log_subsection "GitHub Pages Deployment Status"
-        
-        # Try to get pages info (requires gh auth)
-        local pages_status
-        if pages_status=$(gh api repos/:owner/:repo/pages 2>/dev/null); then
-            local pages_url
-            pages_url=$(echo "${pages_status}" | yq '.html_url' 2>/dev/null || echo "")
-            local pages_build_status
-            pages_build_status=$(echo "${pages_status}" | yq '.status' 2>/dev/null || echo "unknown")
-            
-            if [[ -n "${pages_url}" && "${pages_url}" != "null" ]]; then
-                record_result "pass" "pages" "deployment" "Pages deployed at ${pages_url}"
-            fi
-            
-            if [[ "${pages_build_status}" == "built" ]]; then
-                record_result "pass" "pages" "build-status" "Latest build successful"
-            elif [[ "${pages_build_status}" == "building" ]]; then
-                record_result "warn" "pages" "build-status" "Build in progress"
-            elif [[ "${pages_build_status}" != "unknown" && "${pages_build_status}" != "null" ]]; then
-                record_result "warn" "pages" "build-status" "Build status: ${pages_build_status}"
-            fi
-        else
-            record_result "skip" "pages" "deployment" "Could not fetch Pages status (gh auth may be required)"
-        fi
-    else
-        record_result "skip" "pages" "deployment" "gh CLI not available for deployment status check"
-    fi
-}
 
 # =============================================================================
 # GitHub Repository Health Checks
@@ -3178,6 +3126,8 @@ Checks Performed:
   • Charts          - Helm chart validation and linting
   • Documentation   - README files and MkDocs configuration
   • Git             - Repository status, hooks, and configuration
+                    - Remote health: connectivity, sync status, stale refs
+                    - Tracking branches, last fetch time, unpushed commits
   • CI/CD           - GitHub Actions workflows
   • GitHub Pages    - Pages workflow, site directories, and deployment status
   • GitHub Health   - Workflow failures, issues, PRs, branch protection
