@@ -176,6 +176,199 @@ ESSENTIAL_DIRS=(
 )
 
 # -----------------------------------------------------------------------------
+# Unwanted/Misplaced Files (bash arrays)
+# -----------------------------------------------------------------------------
+
+# Files that should NOT exist at repo root (common mistakes)
+UNWANTED_ROOT_FILES=(
+    ".DS_Store"
+    "Thumbs.db"
+    "desktop.ini"
+    ".env"
+    ".env.local"
+    ".env.development"
+    ".env.production"
+    "*.log"
+    "*.tmp"
+    "*.bak"
+    "*.swp"
+    "*.swo"
+    "*~"
+    "node_modules"
+    "__pycache__"
+    ".pytest_cache"
+    ".mypy_cache"
+    ".ruff_cache"
+    "*.pyc"
+    "*.pyo"
+    ".coverage"
+    "coverage.xml"
+    "htmlcov"
+    ".tox"
+    ".nox"
+    "dist"
+    "build"
+    "*.egg-info"
+    ".eggs"
+    "venv"
+    ".venv"
+    "env"
+    ".idea"
+    ".vscode"
+    "*.iml"
+    ".project"
+    ".classpath"
+    ".settings"
+    "*.sublime-*"
+    ".terraform"
+    "*.tfstate"
+    "*.tfstate.*"
+    "crash.log"
+)
+
+# Files that should NOT exist anywhere in the repo (glob patterns)
+UNWANTED_FILES_ANYWHERE=(
+    "**/.DS_Store"
+    "**/Thumbs.db"
+    "**/*.log"
+    "**/*.tmp"
+    "**/*.bak"
+    "**/*.swp"
+    "**/*.swo"
+    "**/*~"
+    "**/__pycache__/**"
+    "**/*.pyc"
+    "**/*.pyo"
+    "**/.env"
+    "**/.env.local"
+)
+
+# Files that are misplaced (pattern -> expected location)
+# Format: "file_pattern|expected_location_description"
+MISPLACED_FILE_PATTERNS=(
+    "charts/**/README.md|docs/ or chart root only"
+    "*.yaml|appropriate directory (not root, unless config)"
+    "*.yml|appropriate directory (not root, unless config)"
+)
+
+# Directories that should NOT exist at repo root
+UNWANTED_ROOT_DIRS=(
+    "node_modules"
+    "__pycache__"
+    ".pytest_cache"
+    ".mypy_cache"
+    ".ruff_cache"
+    ".coverage"
+    "htmlcov"
+    ".tox"
+    ".nox"
+    "dist"
+    "build"
+    ".eggs"
+    "venv"
+    ".venv"
+    "env"
+    ".idea"
+    ".vscode"
+    ".settings"
+    ".terraform"
+    ".cache"
+)
+
+# Temporary/generated files that should be cleaned up
+TEMPORARY_FILE_PATTERNS=(
+    "*.orig"
+    "*.rej"
+    "*.backup"
+    "*.old"
+    "*_backup"
+    "*_old"
+    "*.BACKUP.*"
+    "*.BASE.*"
+    "*.LOCAL.*"
+    "*.REMOTE.*"
+)
+
+# Large files that probably shouldn't be committed (in bytes, 10MB default)
+LARGE_FILE_THRESHOLD="${LARGE_FILE_THRESHOLD:-10485760}"
+
+# File extensions that are suspicious in a Helm repo
+SUSPICIOUS_EXTENSIONS=(
+    ".exe"
+    ".dll"
+    ".so"
+    ".dylib"
+    ".bin"
+    ".dat"
+    ".zip"
+    ".tar"
+    ".tar.gz"
+    ".tgz"
+    ".rar"
+    ".7z"
+    ".jar"
+    ".war"
+    ".ear"
+    ".class"
+    ".o"
+    ".a"
+)
+
+# -----------------------------------------------------------------------------
+# Gitignore Pattern Verification (bash arrays)
+# -----------------------------------------------------------------------------
+# Patterns that SHOULD be ignored by git and should not be tracked.
+# These are common OS, IDE, and temporary files that should never be committed.
+
+# Linux patterns that should be gitignored
+GITIGNORE_LINUX_PATTERNS=(
+    "*~"
+    ".fuse_hidden*"
+    ".directory"
+    ".Trash-*"
+    ".nfs*"
+)
+
+# macOS patterns that should be gitignored
+GITIGNORE_MACOS_PATTERNS=(
+    ".DS_Store"
+    ".AppleDouble"
+    ".LSOverride"
+    "Icon"
+    "._*"
+    ".DocumentRevisions-V100"
+    ".fseventsd"
+    ".Spotlight-V100"
+    ".TemporaryItems"
+    ".Trashes"
+    ".VolumeIcon.icns"
+    ".com.apple.timemachine.donotpresent"
+    ".AppleDB"
+    ".AppleDesktop"
+    "Network Trash Folder"
+    "Temporary Items"
+    ".apdisk"
+    "*.icloud"
+)
+
+# Windows patterns that should be gitignored
+GITIGNORE_WINDOWS_PATTERNS=(
+    "Thumbs.db"
+    "Thumbs.db:encryptable"
+    "ehthumbs.db"
+    "ehthumbs_vista.db"
+    "*.stackdump"
+    "[Dd]esktop.ini"
+    "\$RECYCLE.BIN/"
+    "*.cab"
+    "*.msi"
+    "*.msix"
+    "*.msm"
+    "*.msp"
+    "*.lnk"
+)
+
+# -----------------------------------------------------------------------------
 # Security Patterns (bash array)
 # -----------------------------------------------------------------------------
 
@@ -214,6 +407,8 @@ CHECK_GITHUB_PAGES="${CHECK_GITHUB_PAGES:-true}"
 CHECK_GITHUB_HEALTH="${CHECK_GITHUB_HEALTH:-true}"
 CHECK_PYTHON="${CHECK_PYTHON:-true}"
 CHECK_SECURITY="${CHECK_SECURITY:-true}"
+CHECK_UNWANTED="${CHECK_UNWANTED:-true}"
+CHECK_GITIGNORE="${CHECK_GITIGNORE:-true}"
 
 # =============================================================================
 # Runtime Options (do not modify)
@@ -2300,6 +2495,600 @@ check_security() {
 }
 
 # =============================================================================
+# Unwanted/Misplaced Files Checks
+# =============================================================================
+
+check_unwanted() {
+    [[ "${CHECK_UNWANTED}" != "true" ]] && return
+    
+    log_section "Checking for Unwanted/Misplaced Files"
+    
+    local unwanted_count=0
+    local misplaced_count=0
+    
+    # -------------------------------------------------------------------------
+    # Check for unwanted files at repository root
+    # -------------------------------------------------------------------------
+    log_subsection "Unwanted Root Files"
+    
+    local root_unwanted=()
+    for pattern in "${UNWANTED_ROOT_FILES[@]}"; do
+        # Use find for glob patterns, direct check for exact names
+        if [[ "${pattern}" == *"*"* ]]; then
+            while IFS= read -r file; do
+                [[ -n "${file}" ]] && root_unwanted+=("$(basename "${file}")")
+            done < <(find "${REPO_ROOT}" -maxdepth 1 -name "${pattern}" 2>/dev/null)
+        else
+            if [[ -e "${REPO_ROOT}/${pattern}" ]]; then
+                root_unwanted+=("${pattern}")
+            fi
+        fi
+    done
+    
+    if [[ ${#root_unwanted[@]} -eq 0 ]]; then
+        record_result "pass" "unwanted" "root-files" "No unwanted files at repository root"
+    else
+        ((unwanted_count += ${#root_unwanted[@]}))
+        local file_list="${root_unwanted[*]}"
+        if [[ ${#root_unwanted[@]} -gt 5 ]]; then
+            file_list="${root_unwanted[*]:0:5} ... and $((${#root_unwanted[@]} - 5)) more"
+        fi
+        record_result "fail" "unwanted" "root-files" "Found ${#root_unwanted[@]} unwanted files: ${file_list}"
+        
+        log_verbose "Unwanted root files:"
+        for file in "${root_unwanted[@]}"; do
+            log_verbose "  - ${file}"
+        done
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check for unwanted directories at repository root
+    # -------------------------------------------------------------------------
+    log_subsection "Unwanted Root Directories"
+    
+    local root_unwanted_dirs=()
+    for dir in "${UNWANTED_ROOT_DIRS[@]}"; do
+        if [[ -d "${REPO_ROOT}/${dir}" ]]; then
+            root_unwanted_dirs+=("${dir}")
+        fi
+    done
+    
+    if [[ ${#root_unwanted_dirs[@]} -eq 0 ]]; then
+        record_result "pass" "unwanted" "root-dirs" "No unwanted directories at repository root"
+    else
+        ((unwanted_count += ${#root_unwanted_dirs[@]}))
+        record_result "fail" "unwanted" "root-dirs" "Found ${#root_unwanted_dirs[@]} unwanted directories: ${root_unwanted_dirs[*]}"
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check for unwanted files anywhere in the repo
+    # -------------------------------------------------------------------------
+    log_subsection "Unwanted Files (Repository-wide)"
+    
+    local unwanted_anywhere=()
+    for pattern in "${UNWANTED_FILES_ANYWHERE[@]}"; do
+        while IFS= read -r file; do
+            [[ -n "${file}" ]] && unwanted_anywhere+=("${file#${REPO_ROOT}/}")
+        done < <(find "${REPO_ROOT}" -path "${REPO_ROOT}/.git" -prune -o -path "${pattern#\*\*/}" -print 2>/dev/null | grep -v "^${REPO_ROOT}/.git")
+    done
+    
+    # Also check common patterns using find
+    while IFS= read -r file; do
+        [[ -n "${file}" ]] && unwanted_anywhere+=("${file#${REPO_ROOT}/}")
+    done < <(find "${REPO_ROOT}" -path "${REPO_ROOT}/.git" -prune -o \( \
+        -name ".DS_Store" -o \
+        -name "Thumbs.db" -o \
+        -name "*.log" -o \
+        -name "*.tmp" -o \
+        -name "*.bak" -o \
+        -name "*.swp" -o \
+        -name "*.swo" -o \
+        -name "*~" -o \
+        -name "*.pyc" -o \
+        -name "*.pyo" \
+    \) -print 2>/dev/null)
+    
+    # Remove duplicates
+    local unique_unwanted=()
+    declare -A seen
+    for file in "${unwanted_anywhere[@]}"; do
+        if [[ -z "${seen[${file}]:-}" ]]; then
+            seen["${file}"]=1
+            unique_unwanted+=("${file}")
+        fi
+    done
+    
+    if [[ ${#unique_unwanted[@]} -eq 0 ]]; then
+        record_result "pass" "unwanted" "anywhere" "No unwanted files found in repository"
+    else
+        ((unwanted_count += ${#unique_unwanted[@]}))
+        local preview_count=5
+        if [[ ${#unique_unwanted[@]} -le ${preview_count} ]]; then
+            record_result "fail" "unwanted" "anywhere" "Found ${#unique_unwanted[@]} unwanted files: ${unique_unwanted[*]}"
+        else
+            record_result "fail" "unwanted" "anywhere" "Found ${#unique_unwanted[@]} unwanted files (showing first ${preview_count}): ${unique_unwanted[*]:0:${preview_count}}"
+        fi
+        
+        log_verbose "All unwanted files:"
+        for file in "${unique_unwanted[@]}"; do
+            log_verbose "  - ${file}"
+        done
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check for temporary/generated files (merge artifacts, backups)
+    # -------------------------------------------------------------------------
+    log_subsection "Temporary/Generated Files"
+    
+    local temp_files=()
+    for pattern in "${TEMPORARY_FILE_PATTERNS[@]}"; do
+        while IFS= read -r file; do
+            [[ -n "${file}" ]] && temp_files+=("${file#${REPO_ROOT}/}")
+        done < <(find "${REPO_ROOT}" -path "${REPO_ROOT}/.git" -prune -o -name "${pattern}" -print 2>/dev/null | grep -v "^${REPO_ROOT}/.git$")
+    done
+    
+    if [[ ${#temp_files[@]} -eq 0 ]]; then
+        record_result "pass" "unwanted" "temp-files" "No temporary/generated files found"
+    else
+        ((unwanted_count += ${#temp_files[@]}))
+        record_result "warn" "unwanted" "temp-files" "Found ${#temp_files[@]} temporary files (should be cleaned up)"
+        
+        log_verbose "Temporary files:"
+        for file in "${temp_files[@]}"; do
+            log_verbose "  - ${file}"
+        done
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check for suspicious file extensions
+    # -------------------------------------------------------------------------
+    log_subsection "Suspicious File Extensions"
+    
+    local suspicious_files=()
+    for ext in "${SUSPICIOUS_EXTENSIONS[@]}"; do
+        while IFS= read -r file; do
+            [[ -n "${file}" ]] && suspicious_files+=("${file#${REPO_ROOT}/}")
+        done < <(find "${REPO_ROOT}" -path "${REPO_ROOT}/.git" -prune -o -name "*${ext}" -print 2>/dev/null | grep -v "^${REPO_ROOT}/.git$")
+    done
+    
+    if [[ ${#suspicious_files[@]} -eq 0 ]]; then
+        record_result "pass" "unwanted" "suspicious-ext" "No suspicious file extensions found"
+    else
+        record_result "warn" "unwanted" "suspicious-ext" "Found ${#suspicious_files[@]} files with suspicious extensions (binaries typically shouldn't be committed)"
+        
+        log_verbose "Suspicious files:"
+        for file in "${suspicious_files[@]}"; do
+            log_verbose "  - ${file}"
+        done
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check for large files
+    # -------------------------------------------------------------------------
+    log_subsection "Large Files"
+    
+    local large_files=()
+    local threshold_mb=$((LARGE_FILE_THRESHOLD / 1024 / 1024))
+    
+    while IFS= read -r file; do
+        [[ -n "${file}" ]] && large_files+=("${file#${REPO_ROOT}/}")
+    done < <(find "${REPO_ROOT}" -path "${REPO_ROOT}/.git" -prune -o -type f -size "+${LARGE_FILE_THRESHOLD}c" -print 2>/dev/null | grep -v "^${REPO_ROOT}/.git$")
+    
+    if [[ ${#large_files[@]} -eq 0 ]]; then
+        record_result "pass" "unwanted" "large-files" "No files larger than ${threshold_mb}MB found"
+    else
+        record_result "warn" "unwanted" "large-files" "Found ${#large_files[@]} files larger than ${threshold_mb}MB (consider Git LFS)"
+        
+        log_verbose "Large files:"
+        for file in "${large_files[@]}"; do
+            local size
+            size=$(du -h "${REPO_ROOT}/${file}" 2>/dev/null | cut -f1)
+            log_verbose "  - ${file} (${size})"
+        done
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check for __pycache__ directories
+    # -------------------------------------------------------------------------
+    log_subsection "Python Cache Directories"
+    
+    local pycache_dirs=()
+    while IFS= read -r dir; do
+        [[ -n "${dir}" ]] && pycache_dirs+=("${dir#${REPO_ROOT}/}")
+    done < <(find "${REPO_ROOT}" -path "${REPO_ROOT}/.git" -prune -o -type d -name "__pycache__" -print 2>/dev/null | grep -v "^${REPO_ROOT}/.git$")
+    
+    if [[ ${#pycache_dirs[@]} -eq 0 ]]; then
+        record_result "pass" "unwanted" "pycache" "No __pycache__ directories found"
+    else
+        ((unwanted_count += ${#pycache_dirs[@]}))
+        record_result "fail" "unwanted" "pycache" "Found ${#pycache_dirs[@]} __pycache__ directories (should be gitignored)"
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check for misplaced files
+    # -------------------------------------------------------------------------
+    log_subsection "Misplaced Files"
+    
+    # Check for YAML files at root that might be misplaced
+    local root_yamls=()
+    while IFS= read -r file; do
+        local basename
+        basename=$(basename "${file}")
+        # Skip known config files
+        case "${basename}" in
+            mkdocs.yml|ct.yaml|.yamllint|.pre-commit-config.yaml|renovate.json|docker-compose.yml|docker-compose.yaml)
+                continue
+                ;;
+            *)
+                root_yamls+=("${basename}")
+                ;;
+        esac
+    done < <(find "${REPO_ROOT}" -maxdepth 1 \( -name "*.yaml" -o -name "*.yml" \) -type f 2>/dev/null)
+    
+    if [[ ${#root_yamls[@]} -gt 0 ]]; then
+        # Check if any seem misplaced (not in OPTIONAL_ROOT_FILES)
+        local misplaced_yamls=()
+        for yaml in "${root_yamls[@]}"; do
+            local is_expected=false
+            for expected in "${OPTIONAL_ROOT_FILES[@]}"; do
+                if [[ "${yaml}" == "${expected}" ]]; then
+                    is_expected=true
+                    break
+                fi
+            done
+            if [[ "${is_expected}" == "false" ]]; then
+                misplaced_yamls+=("${yaml}")
+            fi
+        done
+        
+        if [[ ${#misplaced_yamls[@]} -gt 0 ]]; then
+            ((misplaced_count += ${#misplaced_yamls[@]}))
+            record_result "warn" "unwanted" "misplaced-yaml" "Found ${#misplaced_yamls[@]} possibly misplaced YAML files at root: ${misplaced_yamls[*]}"
+        fi
+    fi
+    
+    # Check for source code files at root (might be misplaced)
+    local root_code=()
+    while IFS= read -r file; do
+        root_code+=("$(basename "${file}")")
+    done < <(find "${REPO_ROOT}" -maxdepth 1 \( \
+        -name "*.py" -o \
+        -name "*.js" -o \
+        -name "*.ts" -o \
+        -name "*.go" -o \
+        -name "*.rs" -o \
+        -name "*.java" -o \
+        -name "*.c" -o \
+        -name "*.cpp" -o \
+        -name "*.h" \
+    \) -type f 2>/dev/null)
+    
+    if [[ ${#root_code[@]} -gt 0 ]]; then
+        ((misplaced_count += ${#root_code[@]}))
+        record_result "warn" "unwanted" "misplaced-code" "Found ${#root_code[@]} source files at root (consider moving to src/ or scripts/): ${root_code[*]}"
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check for common editor/IDE config at unexpected locations
+    # -------------------------------------------------------------------------
+    log_subsection "Editor/IDE Configuration"
+    
+    local editor_configs=()
+    # Check for .vscode or .idea in subdirectories (should only be at root if at all)
+    while IFS= read -r dir; do
+        [[ -n "${dir}" && "${dir}" != "${REPO_ROOT}/.vscode" && "${dir}" != "${REPO_ROOT}/.idea" ]] && \
+            editor_configs+=("${dir#${REPO_ROOT}/}")
+    done < <(find "${REPO_ROOT}" -path "${REPO_ROOT}/.git" -prune -o \( -name ".vscode" -o -name ".idea" \) -type d -print 2>/dev/null | grep -v "^${REPO_ROOT}/.git$")
+    
+    if [[ ${#editor_configs[@]} -gt 0 ]]; then
+        ((misplaced_count += ${#editor_configs[@]}))
+        record_result "warn" "unwanted" "editor-config" "Found editor config in unexpected locations: ${editor_configs[*]}"
+    else
+        record_result "pass" "unwanted" "editor-config" "No misplaced editor configurations found"
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Summary
+    # -------------------------------------------------------------------------
+    log_subsection "Unwanted Files Summary"
+    
+    if [[ ${unwanted_count} -eq 0 && ${misplaced_count} -eq 0 ]]; then
+        record_result "pass" "unwanted" "summary" "Repository is clean - no unwanted or misplaced files"
+    else
+        if [[ ${unwanted_count} -gt 0 ]]; then
+            record_result "fail" "unwanted" "summary-unwanted" "Total unwanted files/directories: ${unwanted_count}"
+        fi
+        if [[ ${misplaced_count} -gt 0 ]]; then
+            record_result "warn" "unwanted" "summary-misplaced" "Total potentially misplaced files: ${misplaced_count}"
+        fi
+    fi
+}
+
+# =============================================================================
+# Gitignore Pattern Verification
+# =============================================================================
+
+check_gitignore_patterns() {
+    [[ "${CHECK_GITIGNORE}" != "true" ]] && return
+    
+    log_section "Checking Gitignore Pattern Compliance"
+    
+    # Skip if not a git repository
+    if ! git -C "${REPO_ROOT}" rev-parse --is-inside-work-tree &>/dev/null; then
+        record_result "skip" "gitignore" "repository" "Not a git repository - skipping gitignore checks"
+        return
+    fi
+    
+    local tracked_violations=()
+    local unignored_patterns=()
+    local total_patterns=0
+    local ignored_count=0
+    local tracked_count=0
+    
+    # Helper function to check if a pattern is ignored by git
+    check_pattern_ignored() {
+        local pattern="$1"
+        local category="$2"
+        
+        ((total_patterns++))
+        
+        # Create a test file path (we don't create the file, just check if it would be ignored)
+        local test_path="${pattern}"
+        
+        # Handle patterns with wildcards differently
+        if [[ "${pattern}" == *"*"* ]]; then
+            # For wildcard patterns, create a sample filename
+            local sample_name
+            case "${pattern}" in
+                "*~") sample_name="test~" ;;
+                "._*") sample_name="._test" ;;
+                "*.icloud") sample_name="test.icloud" ;;
+                "*.stackdump") sample_name="test.stackdump" ;;
+                "*.cab") sample_name="test.cab" ;;
+                "*.msi") sample_name="test.msi" ;;
+                "*.msix") sample_name="test.msix" ;;
+                "*.msm") sample_name="test.msm" ;;
+                "*.msp") sample_name="test.msp" ;;
+                "*.lnk") sample_name="test.lnk" ;;
+                ".fuse_hidden*") sample_name=".fuse_hidden123" ;;
+                ".Trash-*") sample_name=".Trash-1000" ;;
+                ".nfs*") sample_name=".nfs123456" ;;
+                *) sample_name="${pattern//\*/test}" ;;
+            esac
+            test_path="${sample_name}"
+        fi
+        
+        # Handle special characters in pattern names
+        case "${pattern}" in
+            "[Dd]esktop.ini")
+                # Test both variants
+                if git -C "${REPO_ROOT}" check-ignore -q "desktop.ini" 2>/dev/null || \
+                   git -C "${REPO_ROOT}" check-ignore -q "Desktop.ini" 2>/dev/null; then
+                    ((ignored_count++))
+                    return 0
+                else
+                    unignored_patterns+=("${pattern}")
+                    return 1
+                fi
+                ;;
+            "\$RECYCLE.BIN/")
+                test_path="\$RECYCLE.BIN"
+                ;;
+        esac
+        
+        # Check if the pattern would be ignored
+        if git -C "${REPO_ROOT}" check-ignore -q "${test_path}" 2>/dev/null; then
+            ((ignored_count++))
+            return 0
+        else
+            unignored_patterns+=("${pattern}")
+            return 1
+        fi
+    }
+    
+    # Helper function to check if any matching files are tracked
+    check_tracked_files() {
+        local pattern="$1"
+        local category="$2"
+        
+        local tracked_files=()
+        
+        # Handle different pattern types
+        case "${pattern}" in
+            "*~"|"._*"|"*.icloud"|"*.stackdump"|"*.cab"|"*.msi"|"*.msix"|"*.msm"|"*.msp"|"*.lnk")
+                # Glob patterns
+                while IFS= read -r file; do
+                    [[ -n "${file}" ]] && tracked_files+=("${file}")
+                done < <(git -C "${REPO_ROOT}" ls-files "${pattern}" 2>/dev/null)
+                ;;
+            ".fuse_hidden*"|".Trash-*"|".nfs*")
+                # Prefix patterns
+                local prefix="${pattern%\*}"
+                while IFS= read -r file; do
+                    [[ -n "${file}" && "${file}" == ${prefix}* ]] && tracked_files+=("${file}")
+                done < <(git -C "${REPO_ROOT}" ls-files 2>/dev/null)
+                ;;
+            "[Dd]esktop.ini")
+                # Case variant patterns
+                while IFS= read -r file; do
+                    [[ -n "${file}" ]] && tracked_files+=("${file}")
+                done < <(git -C "${REPO_ROOT}" ls-files "desktop.ini" "Desktop.ini" 2>/dev/null)
+                ;;
+            "\$RECYCLE.BIN/")
+                # Special directory
+                while IFS= read -r file; do
+                    [[ -n "${file}" && "${file}" == "\$RECYCLE.BIN"* ]] && tracked_files+=("${file}")
+                done < <(git -C "${REPO_ROOT}" ls-files 2>/dev/null)
+                ;;
+            *)
+                # Exact match or simple pattern
+                while IFS= read -r file; do
+                    [[ -n "${file}" ]] && tracked_files+=("${file}")
+                done < <(git -C "${REPO_ROOT}" ls-files "${pattern}" 2>/dev/null)
+                ;;
+        esac
+        
+        if [[ ${#tracked_files[@]} -gt 0 ]]; then
+            ((tracked_count++))
+            for file in "${tracked_files[@]}"; do
+                tracked_violations+=("${category}:${pattern}:${file}")
+            done
+            return 1
+        fi
+        return 0
+    }
+    
+    # -------------------------------------------------------------------------
+    # Check Linux patterns
+    # -------------------------------------------------------------------------
+    log_subsection "Linux Patterns"
+    
+    local linux_ignored=0
+    local linux_total=${#GITIGNORE_LINUX_PATTERNS[@]}
+    local linux_unignored=()
+    
+    for pattern in "${GITIGNORE_LINUX_PATTERNS[@]}"; do
+        [[ -z "${pattern}" ]] && continue
+        if check_pattern_ignored "${pattern}" "linux"; then
+            ((linux_ignored++))
+        else
+            linux_unignored+=("${pattern}")
+        fi
+        check_tracked_files "${pattern}" "linux"
+    done
+    
+    if [[ ${#linux_unignored[@]} -eq 0 ]]; then
+        record_result "pass" "gitignore" "linux-patterns" "All ${linux_total} Linux patterns are gitignored"
+    else
+        record_result "warn" "gitignore" "linux-patterns" "${#linux_unignored[@]}/${linux_total} patterns not ignored: ${linux_unignored[*]}"
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check macOS patterns
+    # -------------------------------------------------------------------------
+    log_subsection "macOS Patterns"
+    
+    local macos_ignored=0
+    local macos_total=${#GITIGNORE_MACOS_PATTERNS[@]}
+    local macos_unignored=()
+    
+    for pattern in "${GITIGNORE_MACOS_PATTERNS[@]}"; do
+        [[ -z "${pattern}" ]] && continue
+        if check_pattern_ignored "${pattern}" "macos"; then
+            ((macos_ignored++))
+        else
+            macos_unignored+=("${pattern}")
+        fi
+        check_tracked_files "${pattern}" "macos"
+    done
+    
+    if [[ ${#macos_unignored[@]} -eq 0 ]]; then
+        record_result "pass" "gitignore" "macos-patterns" "All ${macos_total} macOS patterns are gitignored"
+    else
+        record_result "warn" "gitignore" "macos-patterns" "${#macos_unignored[@]}/${macos_total} patterns not ignored: ${macos_unignored[*]}"
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check Windows patterns
+    # -------------------------------------------------------------------------
+    log_subsection "Windows Patterns"
+    
+    local windows_ignored=0
+    local windows_total=${#GITIGNORE_WINDOWS_PATTERNS[@]}
+    local windows_unignored=()
+    
+    for pattern in "${GITIGNORE_WINDOWS_PATTERNS[@]}"; do
+        [[ -z "${pattern}" ]] && continue
+        if check_pattern_ignored "${pattern}" "windows"; then
+            ((windows_ignored++))
+        else
+            windows_unignored+=("${pattern}")
+        fi
+        check_tracked_files "${pattern}" "windows"
+    done
+    
+    if [[ ${#windows_unignored[@]} -eq 0 ]]; then
+        record_result "pass" "gitignore" "windows-patterns" "All ${windows_total} Windows patterns are gitignored"
+    else
+        record_result "warn" "gitignore" "windows-patterns" "${#windows_unignored[@]}/${windows_total} patterns not ignored: ${windows_unignored[*]}"
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check for tracked violations
+    # -------------------------------------------------------------------------
+    log_subsection "Tracked File Violations"
+    
+    if [[ ${#tracked_violations[@]} -eq 0 ]]; then
+        record_result "pass" "gitignore" "tracked-files" "No OS/temp files are currently tracked"
+    else
+        record_result "fail" "gitignore" "tracked-files" "Found ${#tracked_violations[@]} tracked files that should be gitignored"
+        
+        log_verbose "Tracked violations:"
+        for violation in "${tracked_violations[@]}"; do
+            local category="${violation%%:*}"
+            local rest="${violation#*:}"
+            local pattern="${rest%%:*}"
+            local file="${rest#*:}"
+            log_verbose "  - [${category}] ${file} (matches ${pattern})"
+        done
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Check for untracked files matching patterns (verify they ARE untracked)
+    # -------------------------------------------------------------------------
+    log_subsection "Untracked OS Files Check"
+    
+    local untracked_os_files=()
+    
+    # Check for common OS files that exist but are untracked (good!)
+    local os_patterns=(".DS_Store" "Thumbs.db" "desktop.ini" ".directory")
+    for pattern in "${os_patterns[@]}"; do
+        while IFS= read -r file; do
+            [[ -n "${file}" ]] && untracked_os_files+=("${file}")
+        done < <(find "${REPO_ROOT}" -path "${REPO_ROOT}/.git" -prune -o -name "${pattern}" -print 2>/dev/null | grep -v "^${REPO_ROOT}/.git$")
+    done
+    
+    if [[ ${#untracked_os_files[@]} -eq 0 ]]; then
+        record_result "pass" "gitignore" "untracked-os-files" "No OS-specific files present in working directory"
+    else
+        # Check if they're properly untracked
+        local tracked_os_files=()
+        for file in "${untracked_os_files[@]}"; do
+            local relative="${file#${REPO_ROOT}/}"
+            if git -C "${REPO_ROOT}" ls-files --error-unmatch "${relative}" &>/dev/null; then
+                tracked_os_files+=("${relative}")
+            fi
+        done
+        
+        if [[ ${#tracked_os_files[@]} -eq 0 ]]; then
+            record_result "pass" "gitignore" "untracked-os-files" "${#untracked_os_files[@]} OS files exist but are properly untracked"
+        else
+            record_result "fail" "gitignore" "untracked-os-files" "${#tracked_os_files[@]} OS files are tracked: ${tracked_os_files[*]}"
+        fi
+    fi
+    
+    # -------------------------------------------------------------------------
+    # Summary
+    # -------------------------------------------------------------------------
+    log_subsection "Gitignore Summary"
+    
+    local coverage_pct=0
+    if [[ ${total_patterns} -gt 0 ]]; then
+        coverage_pct=$((ignored_count * 100 / total_patterns))
+    fi
+    
+    if [[ ${coverage_pct} -ge 90 && ${tracked_count} -eq 0 ]]; then
+        record_result "pass" "gitignore" "summary" "Excellent gitignore coverage: ${coverage_pct}% (${ignored_count}/${total_patterns} patterns)"
+    elif [[ ${coverage_pct} -ge 70 && ${tracked_count} -eq 0 ]]; then
+        record_result "warn" "gitignore" "summary" "Good gitignore coverage: ${coverage_pct}% (${ignored_count}/${total_patterns} patterns)"
+    elif [[ ${tracked_count} -gt 0 ]]; then
+        record_result "fail" "gitignore" "summary" "Gitignore issues: ${coverage_pct}% coverage, ${tracked_count} tracked violations"
+    else
+        record_result "warn" "gitignore" "summary" "Low gitignore coverage: ${coverage_pct}% (${ignored_count}/${total_patterns} patterns)"
+    fi
+}
+
+# =============================================================================
 # Summary and Output
 # =============================================================================
 
@@ -2394,6 +3183,8 @@ Checks Performed:
   • GitHub Health   - Workflow failures, issues, PRs, branch protection
   • Python          - Python environment and scripts
   • Security        - Secrets scanning and .gitignore patterns
+  • Unwanted Files  - Temporary files, caches, misplaced files, large files
+  • Gitignore       - Linux/macOS/Windows patterns properly ignored, no tracked violations
 
 Configuration:
   The script auto-detects repository structure. To customize for your repo,
@@ -2410,6 +3201,8 @@ Configuration:
     CHECK_GITHUB_HEALTH=true|false
     CHECK_PYTHON=true|false
     CHECK_SECURITY=true|false
+    CHECK_UNWANTED=true|false
+    CHECK_GITIGNORE=true|false
 
   You can also customize paths by editing the script:
     CHARTS_DIR, CHART_SUBDIRS, DOCS_DIR, SITE_DIR, TEST_DIR, etc.
@@ -2500,6 +3293,8 @@ main() {
     check_github_health
     check_python_environment
     check_security
+    check_unwanted
+    check_gitignore_patterns
     
     # Output results
     if [[ "${JSON_OUTPUT}" == "true" ]]; then
