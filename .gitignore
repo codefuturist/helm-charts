@@ -37,3 +37,4 @@ __pycache__/
 
 # MkDocs build output
 site-docs/
+sqlite_mcp_server.db
