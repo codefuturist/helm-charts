@@ -121,6 +121,7 @@ Once MeTube is running:
 6. **Access files** in the downloads directory
 
 Example URLs to test:
+
 - Any YouTube video URL
 - Vimeo, Dailymotion, and 1000+ other supported sites
 
@@ -254,7 +255,7 @@ hpa:
 
 persistence:
   downloads:
-    accessMode: ReadWriteMany  # Requires NFS or similar
+    accessMode: ReadWriteMany # Requires NFS or similar
     size: 100Gi
 ```
 
@@ -294,11 +295,13 @@ helm test metube
 If you can't access MeTube:
 
 1. Check service:
+
    ```bash
    kubectl get svc -l app.kubernetes.io/name=metube
    ```
 
 2. Port forward directly:
+
    ```bash
    kubectl port-forward pod/<pod-name> 8081:8081
    ```
@@ -318,6 +321,7 @@ kubectl logs -l app.kubernetes.io/name=metube --tail=100 -f
 ```
 
 Common issues:
+
 - **Storage full**: Check PVC usage
 - **Network restrictions**: Verify network policies allow egress
 - **Format errors**: Adjust `defaultFormat` or `ytdlOptions`

@@ -4,18 +4,18 @@ This directory contains CI test configurations for the RedisInsight Helm chart. 
 
 ## Test Configurations
 
-| File | Purpose | Key Features Tested |
-|------|---------|-------------------|
-| `01-default-values.yaml` | Default configuration | Basic deployment with minimal settings |
-| `02-statefulset-controller.yaml` | StatefulSet controller | StatefulSet with volumeClaimTemplates |
-| `03-security-unprivileged.yaml` | Security hardening | Security contexts, NetworkPolicy, RBAC |
-| `04-server-definitions.yaml` | Server management | Pre-configured servers, existing secrets |
-| `05-monitoring-enabled.yaml` | Monitoring stack | ServiceMonitor, PrometheusRule, HPA |
-| `06-extra-containers.yaml` | Extensibility | Init containers, sidecars, custom volumes |
-| `07-redisinsight-features.yaml` | RedisInsight-specific | SMTP, pgpass, config_local.py |
-| `08-ingress-enabled.yaml` | Ingress | Ingress with TLS and annotations |
-| `09-advanced-scheduling.yaml` | Pod scheduling | Topology spread, affinity, DNS config |
-| `10-diagnostic-mode.yaml` | Troubleshooting | Diagnostic mode configuration |
+| File                             | Purpose                | Key Features Tested                       |
+| -------------------------------- | ---------------------- | ----------------------------------------- |
+| `01-default-values.yaml`         | Default configuration  | Basic deployment with minimal settings    |
+| `02-statefulset-controller.yaml` | StatefulSet controller | StatefulSet with volumeClaimTemplates     |
+| `03-security-unprivileged.yaml`  | Security hardening     | Security contexts, NetworkPolicy, RBAC    |
+| `04-server-definitions.yaml`     | Server management      | Pre-configured servers, existing secrets  |
+| `05-monitoring-enabled.yaml`     | Monitoring stack       | ServiceMonitor, PrometheusRule, HPA       |
+| `06-extra-containers.yaml`       | Extensibility          | Init containers, sidecars, custom volumes |
+| `07-redisinsight-features.yaml`  | RedisInsight-specific  | SMTP, pgpass, config_local.py             |
+| `08-ingress-enabled.yaml`        | Ingress                | Ingress with TLS and annotations          |
+| `09-advanced-scheduling.yaml`    | Pod scheduling         | Topology spread, affinity, DNS config     |
+| `10-diagnostic-mode.yaml`        | Troubleshooting        | Diagnostic mode configuration             |
 
 ## Running Tests Locally
 
@@ -61,7 +61,7 @@ The CI tests cover:
 ✅ **Configuration**: Server definitions, secrets, ConfigMaps  
 ✅ **Extensibility**: Init containers, sidecars, extra volumes  
 ✅ **RedisInsight Features**: SMTP, LDAP, pgpass, config_local.py  
-✅ **Scheduling**: Affinity, topology spread, DNS config  
+✅ **Scheduling**: Affinity, topology spread, DNS config
 
 ## Adding New Tests
 

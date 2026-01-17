@@ -4,13 +4,13 @@ This directory contains [helm-unittest](https://github.com/helm-unittest/helm-un
 
 ## Covered Templates
 
-| File | Templates | Highlights |
-| ---- | --------- | ---------- |
-| `deployment_test.yaml` | `templates/deployment.yaml` | DB secret wiring, env vars, persistence volumes |
-| `secret_test.yaml` | `templates/secret.yaml` | Generated secrets vs. existing secrets |
-| `configmap_test.yaml` | `templates/configmap.yaml` | Pre-configured `servers.json` behavior |
-| `webclient_test.yaml` | `templates/deployment-webclient.yaml` | Default server env vars, extra env handling |
-| `service_test.yaml` | `templates/service*.yaml` | Backend and web client services |
+| File                   | Templates                             | Highlights                                      |
+| ---------------------- | ------------------------------------- | ----------------------------------------------- |
+| `deployment_test.yaml` | `templates/deployment.yaml`           | DB secret wiring, env vars, persistence volumes |
+| `secret_test.yaml`     | `templates/secret.yaml`               | Generated secrets vs. existing secrets          |
+| `configmap_test.yaml`  | `templates/configmap.yaml`            | Pre-configured `servers.json` behavior          |
+| `webclient_test.yaml`  | `templates/deployment-webclient.yaml` | Default server env vars, extra env handling     |
+| `service_test.yaml`    | `templates/service*.yaml`             | Backend and web client services                 |
 
 ## Prerequisites
 

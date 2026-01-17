@@ -32,6 +32,7 @@ helm repo update
 ### 2. Install Home Assistant
 
 **Option A: Minimal Setup (Secure Default)**
+
 ```bash
 # Install with secure unprivileged mode (recommended)
 helm install home-assistant codefuturist/home-assistant
@@ -43,12 +44,14 @@ kubectl get pods -l app.kubernetes.io/name=home-assistant
 > 🔒 **Security**: The default configuration runs in **unprivileged mode** with only necessary capabilities (NET_ADMIN, NET_RAW, SYS_ADMIN). This is secure and works for 95% of use cases.
 
 **Option B: With LoadBalancer**
+
 ```bash
 helm install home-assistant codefuturist/home-assistant \
   --set service.type=LoadBalancer
 ```
 
 **Option C: With Ingress**
+
 ```bash
 helm install home-assistant codefuturist/home-assistant \
   --set ingress.enabled=true \
@@ -75,16 +78,20 @@ The first startup may take 2-3 minutes as Home Assistant initializes.
 ### Access Home Assistant
 
 **If using ClusterIP (default):**
+
 ```bash
 kubectl port-forward svc/home-assistant 8123:8123
 ```
+
 Then visit: http://localhost:8123
 
 **If using LoadBalancer:**
+
 ```bash
 kubectl get svc home-assistant
 # Note the EXTERNAL-IP
 ```
+
 Visit: http://EXTERNAL-IP:8123
 
 **If using Ingress:**
@@ -109,12 +116,13 @@ securityContext:
   privileged: false
   capabilities:
     add:
-      - NET_ADMIN    # For network discovery (SSDP, mDNS)
-      - NET_RAW      # For ping integration
-      - SYS_ADMIN    # For hardware access
+      - NET_ADMIN # For network discovery (SSDP, mDNS)
+      - NET_RAW # For ping integration
+      - SYS_ADMIN # For hardware access
 ```
 
 **What this means:**
+
 - ✅ Most integrations work out of the box (network discovery, ping, sensors)
 - ✅ Better security and cluster isolation
 - ✅ Compatible with Pod Security Standards
@@ -123,23 +131,26 @@ securityContext:
 ### When You Need Privileged Mode
 
 **Only enable privileged mode if you need:**
+
 - Bluetooth integrations
 - Full D-Bus system access
 - Certain legacy hardware
 
 **To enable privileged mode:**
+
 ```yaml
 # values-privileged.yaml
 securityContext:
   privileged: true
   capabilities:
-    add: []  # Clear capabilities when using privileged
+    add: [] # Clear capabilities when using privileged
 
 hostNetwork:
   enabled: true
 ```
 
 **Deploy:**
+
 ```bash
 helm upgrade home-assistant codefuturist/home-assistant \
   -f values-privileged.yaml
@@ -158,7 +169,7 @@ By default, persistence is enabled with 5Gi. To adjust:
 persistence:
   enabled: true
   size: 10Gi
-  storageClassName: "fast-ssd"  # Your storage class
+  storageClassName: "fast-ssd" # Your storage class
 
   media:
     enabled: true
@@ -170,6 +181,7 @@ persistence:
 ```
 
 Apply:
+
 ```bash
 helm upgrade home-assistant codefuturist/home-assistant \
   -f values-persistent.yaml
@@ -194,6 +206,7 @@ codeserver:
 ```
 
 Apply and access:
+
 ```bash
 helm upgrade home-assistant codefuturist/home-assistant \
   -f values-codeserver.yaml
@@ -214,12 +227,14 @@ mqtt:
 ```
 
 Apply:
+
 ```bash
 helm upgrade home-assistant codefuturist/home-assistant \
   -f values-mqtt.yaml
 ```
 
 Configure in Home Assistant:
+
 - Go to Settings → Devices & Services
 - Add Integration → MQTT
 - Broker: localhost
@@ -230,7 +245,7 @@ Configure in Home Assistant:
 ```yaml
 # values-zigbee.yaml
 hostNetwork:
-  enabled: true  # Required for device discovery
+  enabled: true # Required for device discovery
 
 devices:
   enabled: true
@@ -244,6 +259,7 @@ nodeSelector:
 ```
 
 Apply:
+
 ```bash
 helm upgrade home-assistant codefuturist/home-assistant \
   -f values-zigbee.yaml
@@ -323,15 +339,18 @@ kubectl get all -l app.kubernetes.io/name=home-assistant
 Edit configuration files:
 
 **Option A: Use Code Server (if enabled)**
+
 - Access code-server web UI
 - Edit `/config/configuration.yaml`
 
 **Option B: Use kubectl**
+
 ```bash
 kubectl exec -it deployment/home-assistant -- vi /config/configuration.yaml
 ```
 
 **Option C: Use ConfigMap**
+
 ```yaml
 homeassistant:
   configuration:
@@ -344,12 +363,14 @@ homeassistant:
 ### 2. Add Integrations
 
 In Home Assistant:
+
 1. Go to **Settings** → **Devices & Services**
 2. Click **Add Integration**
 3. Search for your devices/services
 4. Follow the setup wizard
 
 Popular integrations:
+
 - **MQTT** - For IoT devices
 - **ESPHome** - For ESP32/ESP8266 devices
 - **Zigbee (ZHA)** - For Zigbee devices
@@ -403,6 +424,7 @@ homeassistant:
 ### 6. Set Up Backups
 
 **Automated Backups** (using CronJob):
+
 ```yaml
 # Create a backup CronJob
 apiVersion: batch/v1
@@ -410,31 +432,31 @@ kind: CronJob
 metadata:
   name: home-assistant-backup
 spec:
-  schedule: "0 2 * * *"  # 2 AM daily
+  schedule: "0 2 * * *" # 2 AM daily
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-          - name: backup
-            image: ghcr.io/home-assistant/home-assistant:2024.11.1
-            command:
-            - /bin/bash
-            - -c
-            - |
-              tar czf /backup/ha-backup-$(date +%Y%m%d).tar.gz /config
+            - name: backup
+              image: ghcr.io/home-assistant/home-assistant:2024.11.1
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  tar czf /backup/ha-backup-$(date +%Y%m%d).tar.gz /config
           volumeMounts:
-          - name: config
-            mountPath: /config
-          - name: backup
-            mountPath: /backup
+            - name: config
+              mountPath: /config
+            - name: backup
+              mountPath: /backup
           volumes:
-          - name: config
-            persistentVolumeClaim:
-              claimName: home-assistant-config
-          - name: backup
-            persistentVolumeClaim:
-              claimName: home-assistant-backup
+            - name: config
+              persistentVolumeClaim:
+                claimName: home-assistant-config
+            - name: backup
+              persistentVolumeClaim:
+                claimName: home-assistant-backup
           restartPolicy: OnFailure
 ```
 
@@ -444,6 +466,7 @@ spec:
    - Already enabled by default in Home Assistant 2023.1+
 
 2. **Use HTTPS**:
+
 ```yaml
 ingress:
   enabled: true
@@ -457,16 +480,18 @@ ingress:
 ```
 
 3. **Configure Trusted Proxies**:
+
 ```yaml
 homeassistant:
   configuration:
     http:
       use_x_forwarded_for: true
       trusted_proxies:
-        - 10.0.0.0/8  # Your cluster network
+        - 10.0.0.0/8 # Your cluster network
 ```
 
 4. **Use Secrets**:
+
 ```yaml
 homeassistant:
   secrets:
@@ -477,6 +502,7 @@ homeassistant:
 ## Troubleshooting
 
 ### Pod won't start
+
 ```bash
 # Check pod events
 kubectl describe pod -l app.kubernetes.io/name=home-assistant
@@ -486,6 +512,7 @@ kubectl logs -l app.kubernetes.io/name=home-assistant --tail=100
 ```
 
 ### Can't access web interface
+
 ```bash
 # Verify service
 kubectl get svc home-assistant
@@ -495,6 +522,7 @@ kubectl run -it --rm debug --image=busybox --restart=Never -- wget -O- http://ho
 ```
 
 ### Configuration errors
+
 ```bash
 # Check configuration
 kubectl exec -it deployment/home-assistant -- ha core check
@@ -504,6 +532,7 @@ kubectl exec -it deployment/home-assistant -- cat /config/configuration.yaml
 ```
 
 ### Database issues
+
 ```bash
 # Check database connection (PostgreSQL)
 kubectl exec -it deployment/home-assistant -- psql -h $DB_HOST -U $DB_USER -d homeassistant

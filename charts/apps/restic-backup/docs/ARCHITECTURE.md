@@ -66,6 +66,7 @@ This Helm chart provides a complete backup solution for Kubernetes workloads usi
 **Purpose**: Scheduled execution of backup operations
 
 **Key Features**:
+
 - Configurable schedule (default: daily at 2 AM)
 - Mounts specified PVCs read-only
 - Executes restic backup with retention policy
@@ -74,6 +75,7 @@ This Helm chart provides a complete backup solution for Kubernetes workloads usi
 - Webhook notifications on success/failure
 
 **Resource Usage**:
+
 - Default: 100m CPU / 128Mi RAM (requests)
 - Configurable based on data volume
 
@@ -82,12 +84,14 @@ This Helm chart provides a complete backup solution for Kubernetes workloads usi
 **Purpose**: Periodic repository integrity verification
 
 **Key Features**:
+
 - Configurable schedule (default: weekly)
 - Verifies repository structure
 - Optional data verification (slower but thorough)
 - Reports repository statistics
 
 **Resource Usage**:
+
 - Similar to backup job
 - Higher resources if `readData: true`
 
@@ -96,6 +100,7 @@ This Helm chart provides a complete backup solution for Kubernetes workloads usi
 **Purpose**: One-time repository initialization
 
 **Key Features**:
+
 - Runs as Helm post-install/post-upgrade hook
 - Creates restic repository if not exists
 - Idempotent (safe to run multiple times)
@@ -106,6 +111,7 @@ This Helm chart provides a complete backup solution for Kubernetes workloads usi
 **Purpose**: Optional one-time restore operation
 
 **Key Features**:
+
 - Manually enabled via values
 - Restores specific snapshot to target PVC
 - Optional integrity verification
@@ -116,11 +122,13 @@ This Helm chart provides a complete backup solution for Kubernetes workloads usi
 **Purpose**: Security and permissions
 
 **Permissions**:
+
 - Read PVCs (to mount for backup)
 - Read secrets (for credentials)
 - List pods (for operations)
 
 **Features**:
+
 - Cloud provider IAM integration (AWS, Azure, GCP)
 - Minimal required permissions
 - Customizable additional rules
@@ -128,12 +136,14 @@ This Helm chart provides a complete backup solution for Kubernetes workloads usi
 ### 6. Secret Management
 
 **Options**:
+
 1. **Chart-managed secret**: Create from values (development)
 2. **Existing secret**: Reference external secret (production)
 3. **External Secrets Operator**: Pull from vault
 4. **Cloud provider secrets**: AWS Secrets Manager, Azure Key Vault, GCP Secret Manager
 
 **Required Keys**:
+
 - `RESTIC_REPOSITORY`: Backup destination
 - `RESTIC_PASSWORD`: Encryption password
 - Backend-specific credentials (AWS_ACCESS_KEY_ID, etc.)
@@ -143,6 +153,7 @@ This Helm chart provides a complete backup solution for Kubernetes workloads usi
 **Purpose**: Network-level security
 
 **Default Rules**:
+
 - Allow DNS (TCP/UDP 53)
 - Allow egress to backup destination
 - Block AWS metadata endpoint
@@ -217,14 +228,14 @@ This Helm chart provides a complete backup solution for Kubernetes workloads usi
 
 ### Authentication Methods
 
-| Backend | Authentication |
-|---------|----------------|
-| AWS S3 | IAM roles (IRSA) or access keys |
-| Azure Blob | Managed Identity or storage keys |
-| Google GCS | Workload Identity or service accounts |
-| Backblaze B2 | Application keys |
-| SFTP | SSH keys or password |
-| REST Server | HTTP basic auth or token |
+| Backend      | Authentication                        |
+| ------------ | ------------------------------------- |
+| AWS S3       | IAM roles (IRSA) or access keys       |
+| Azure Blob   | Managed Identity or storage keys      |
+| Google GCS   | Workload Identity or service accounts |
+| Backblaze B2 | Application keys                      |
+| SFTP         | SSH keys or password                  |
+| REST Server  | HTTP basic auth or token              |
 
 ## Scalability Considerations
 
@@ -236,12 +247,12 @@ This Helm chart provides a complete backup solution for Kubernetes workloads usi
 
 ### Vertical Scaling
 
-| Data Size | CPU | Memory | Notes |
-|-----------|-----|--------|-------|
-| < 10 GB | 100m | 128Mi | Default config |
-| 10-100 GB | 500m | 512Mi | Medium workload |
-| 100-500 GB | 1000m | 1Gi | Large workload |
-| > 500 GB | 2000m | 2Gi | Very large, consider splitting |
+| Data Size  | CPU   | Memory | Notes                          |
+| ---------- | ----- | ------ | ------------------------------ |
+| < 10 GB    | 100m  | 128Mi  | Default config                 |
+| 10-100 GB  | 500m  | 512Mi  | Medium workload                |
+| 100-500 GB | 1000m | 1Gi    | Large workload                 |
+| > 500 GB   | 2000m | 2Gi    | Very large, consider splitting |
 
 ### Performance Optimization
 
@@ -262,12 +273,12 @@ This Helm chart provides a complete backup solution for Kubernetes workloads usi
 
 ### Storage HA
 
-| Backend | HA Features |
-|---------|-------------|
-| AWS S3 | 99.999999999% durability, cross-region replication |
-| Azure Blob | LRS/GRS/RA-GRS replication options |
-| Google GCS | Multi-regional storage classes |
-| Backblaze B2 | Distributed storage, 99.9% durability |
+| Backend      | HA Features                                        |
+| ------------ | -------------------------------------------------- |
+| AWS S3       | 99.999999999% durability, cross-region replication |
+| Azure Blob   | LRS/GRS/RA-GRS replication options                 |
+| Google GCS   | Multi-regional storage classes                     |
+| Backblaze B2 | Distributed storage, 99.9% durability              |
 
 ### Disaster Recovery
 
@@ -292,6 +303,7 @@ When ServiceMonitor is enabled:
 ### Logs
 
 All operations logged with structured output:
+
 - Backup start/completion
 - Files processed
 - Data transferred

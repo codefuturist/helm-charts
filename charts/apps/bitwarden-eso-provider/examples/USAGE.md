@@ -14,6 +14,7 @@ helm install bitwarden-eso-provider codefuturist/bitwarden-eso-provider \
 In your Bitwarden vault, create items with the secrets you need:
 
 ### Example: Database Credentials
+
 - **Name**: `myapp-database`
 - **Username**: `dbuser`
 - **Password**: `super-secret-password`
@@ -23,6 +24,7 @@ In your Bitwarden vault, create items with the secrets you need:
   - `DB_NAME`: `myapp`
 
 ### Example: API Keys
+
 - **Name**: `myapp-api-keys`
 - **Custom Fields**:
   - `STRIPE_API_KEY`: `sk_live_...`
@@ -110,11 +112,11 @@ spec:
   template:
     spec:
       containers:
-      - name: app
-        image: myapp:latest
-        envFrom:
-        - secretRef:
-            name: myapp-secrets
+        - name: app
+          image: myapp:latest
+          envFrom:
+            - secretRef:
+                name: myapp-secrets
 ```
 
 ### Option B: Volume Mounts
@@ -128,16 +130,16 @@ spec:
   template:
     spec:
       containers:
-      - name: app
-        image: myapp:latest
-        volumeMounts:
-        - name: secrets
-          mountPath: /secrets
-          readOnly: true
+        - name: app
+          image: myapp:latest
+          volumeMounts:
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
       volumes:
-      - name: secrets
-        secret:
-          secretName: myapp-secrets
+        - name: secrets
+          secret:
+            secretName: myapp-secrets
 ```
 
 ### Option C: With Your Helm Charts (homarr example)
@@ -211,11 +213,13 @@ kubectl logs -n bitwarden-eso-provider -l app.kubernetes.io/name=bitwarden-eso-p
 For better security, use item UUIDs instead of names:
 
 1. Get item UUID:
+
 ```bash
 bw list items --search "myapp-database" | jq '.[0].id'
 ```
 
 2. Use in ExternalSecret:
+
 ```yaml
 data:
   - secretKey: DB_PASSWORD
@@ -246,7 +250,7 @@ When you update a secret in Bitwarden, it will automatically sync based on `refr
 
 ```yaml
 spec:
-  refreshInterval: 1m  # Check every minute
+  refreshInterval: 1m # Check every minute
 ```
 
 To force immediate sync:

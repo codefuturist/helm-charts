@@ -5,6 +5,56 @@
 
 A collection of Helm charts for Kubernetes deployments, maintained by [@codefuturist](https://github.com/codefuturist).
 
+## 🚀 Quick Install
+
+**Install uv (if not already installed):**
+
+macOS/Linux:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Windows:
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+**Update uv:**
+
+```bash
+uv self update
+```
+
+**Install from GitHub (private repo):**
+
+```bash
+uv tool install git+ssh://git@github.com/codefuturist/helm-charts.git
+```
+
+**Force reinstall/upgrade:**
+
+```bash
+uv tool install --force git+ssh://git@github.com/codefuturist/helm-charts.git
+```
+
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+````
+
+**Install & sync dependencies:**
+
+```bash
+uv sync
+````
+
+**Keep uv updated:**
+
+```bash
+uv self update
+```
+
 ## Overview
 
 This repository contains production-ready Helm charts for various applications and services. Each chart follows Kubernetes and Helm best practices, providing flexible configuration options and comprehensive documentation.
@@ -85,6 +135,7 @@ helm uninstall my-release
 📚 **Full documentation with search**: [charts.pandia.io](https://charts.pandia.io)
 
 Each chart has its own detailed README with:
+
 - Complete parameter documentation
 - Usage examples
 - Configuration guides
@@ -92,11 +143,11 @@ Each chart has its own detailed README with:
 
 ### Quick Links
 
-| Chart | README | Search Values |
-|-------|--------|---------------|
+| Chart       | README                                 | Search Values                                          |
+| ----------- | -------------------------------------- | ------------------------------------------------------ |
 | Application | [README](charts/application/README.md) | [Search](https://charts.pandia.io/charts/application/) |
-| Homarr | [README](charts/homarr/README.md) | [Search](https://charts.pandia.io/charts/homarr/) |
-| NGINX | [README](charts/nginx/README.md) | [Search](https://charts.pandia.io/charts/nginx/) |
+| Homarr      | [README](charts/homarr/README.md)      | [Search](https://charts.pandia.io/charts/homarr/)      |
+| NGINX       | [README](charts/nginx/README.md)       | [Search](https://charts.pandia.io/charts/nginx/)       |
 
 **Search all values across all charts**: [Values Search](https://charts.pandia.io/reference/search/)
 
@@ -139,6 +190,7 @@ make docs-serve
 ```
 
 This will:
+
 - Create a virtual environment automatically
 - Install all dependencies
 - Generate documentation from chart values
@@ -158,7 +210,7 @@ This will:
 
 # Using make
 make docs-deps      # Install dependencies only
-make docs-generate  # Generate MkDocs pages from charts  
+make docs-generate  # Generate MkDocs pages from charts
 make docs-build     # Build documentation site
 make docs-sync      # Sync charts with docs
 make docs-check     # Check if docs are in sync
@@ -186,6 +238,7 @@ make docs-sync
 ## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for details on:
+
 - How to submit issues and pull requests
 - Development setup and workflow
 - Chart development guidelines

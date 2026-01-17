@@ -18,12 +18,12 @@ deployment:
     repository: nginx
     tag: "1.25"
     pullPolicy: IfNotPresent
-  
+
   ports:
     - containerPort: 80
       name: http
       protocol: TCP
-  
+
   resources:
     limits:
       memory: 256Mi
@@ -84,7 +84,7 @@ cronJob:
   enabled: true
   jobs:
     cleanup:
-      schedule: "0 2 * * *"  # Run at 2 AM daily
+      schedule: "0 2 * * *" # Run at 2 AM daily
       image:
         repository: busybox
         tag: latest

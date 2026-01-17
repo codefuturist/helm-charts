@@ -8,17 +8,16 @@ A Library Helm Chart for grouping common logic between bitnami charts. This char
 
 ## Maintainers
 
-| Name | Email | Url |
-| ---- | ------ | --- |
-| Broadcom, Inc. All Rights Reserved. |  | <https://github.com/bitnami/charts> |
+| Name                                | Email | Url                                 |
+| ----------------------------------- | ----- | ----------------------------------- |
+| Broadcom, Inc. All Rights Reserved. |       | <https://github.com/bitnami/charts> |
 
 ## Source Code
 
-* <https://github.com/bitnami/charts/tree/main/bitnami/common>
+- <https://github.com/bitnami/charts/tree/main/bitnami/common>
 
 ## Values
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| exampleValue | string | `"common-chart"` |  |
-
+| Key          | Type   | Default          | Description |
+| ------------ | ------ | ---------------- | ----------- |
+| exampleValue | string | `"common-chart"` |             |

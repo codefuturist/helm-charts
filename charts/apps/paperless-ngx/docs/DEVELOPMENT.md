@@ -11,11 +11,13 @@
 ### Testing with Helm
 
 1. **Lint the chart:**
+
    ```bash
    helm lint charts/paperless-ngx
    ```
 
 2. **Dry run to see generated manifests:**
+
    ```bash
    helm install paperless-ngx charts/paperless-ngx \
      --dry-run --debug \
@@ -33,6 +35,7 @@
 ### Installing Dependencies for Testing
 
 1. **Install PostgreSQL:**
+
    ```bash
    helm install postgresql oci://registry-1.docker.io/bitnamicharts/postgresql \
      --set auth.username=paperless \
@@ -41,6 +44,7 @@
    ```
 
 2. **Install Redis:**
+
    ```bash
    helm install redis oci://registry-1.docker.io/bitnamicharts/redis \
      --set auth.password=redis
@@ -121,6 +125,7 @@ Before submitting changes, ensure:
 ### Adding a New Configuration Option
 
 1. Add to `values.yaml` with documentation:
+
    ```yaml
    ## @param config.newOption Description of new option
    ##
@@ -128,9 +133,10 @@ Before submitting changes, ensure:
    ```
 
 2. Use in templates:
+
    ```yaml
    - name: PAPERLESS_NEW_OPTION
-     value: {{ .Values.config.newOption | quote }}
+     value: { { .Values.config.newOption | quote } }
    ```
 
 3. Document in README.md
@@ -157,12 +163,14 @@ Before submitting changes, ensure:
 2. Update CHANGELOG.md with changes
 
 3. Create git tag:
+
    ```bash
    git tag -a paperless-ngx-0.2.0 -m "Release paperless-ngx chart version 0.2.0"
    git push origin paperless-ngx-0.2.0
    ```
 
 4. Package chart:
+
    ```bash
    helm package charts/paperless-ngx
    ```
@@ -177,6 +185,7 @@ Before submitting changes, ensure:
 ### Template Rendering Issues
 
 Use `--debug` flag to see detailed error messages:
+
 ```bash
 helm install paperless-ngx charts/paperless-ngx --debug --dry-run
 ```
@@ -184,6 +193,7 @@ helm install paperless-ngx charts/paperless-ngx --debug --dry-run
 ### Testing Specific Scenarios
 
 Create custom values files for different scenarios:
+
 ```bash
 helm template paperless-ngx charts/paperless-ngx -f test-scenario.yaml
 ```

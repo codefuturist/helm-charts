@@ -60,4 +60,4 @@ helm uninstall my-release
 ```
 
 !!! warning "Data Loss"
-    Uninstalling a release will delete all associated resources. Make sure to backup any persistent data before uninstalling.
+Uninstalling a release will delete all associated resources. Make sure to backup any persistent data before uninstalling.

@@ -8,20 +8,20 @@ The test suite provides comprehensive coverage of all chart templates, ensuring 
 
 ## Test Files
 
-| File | Templates Tested | Test Count | Coverage |
-|------|-----------------|------------|----------|
-| `common_test.yaml` | deployment, service, secret, configmap | 5 tests | Labels, metadata, overrides |
-| `deployment_test.yaml` | deployment | 11 tests | Resources, env vars, volumes, security |
-| `statefulset_test.yaml` | statefulset | 5 tests | Controller type, VCTs, storage |
-| `service_test.yaml` | service | 7 tests | Service types, ports, annotations |
-| `secret_test.yaml` | secret | 4 tests | Inline/existing secrets, SMTP, pgpass |
-| `configmap_test.yaml` | configmap | 3 tests | Server definitions, config_local |
-| `ingress_test.yaml` | ingress | 5 tests | Ingress config, TLS, annotations |
-| `monitoring_test.yaml` | servicemonitor, prometheusrule, hpa | 8 tests | Monitoring stack configuration |
-| `networkpolicy_test.yaml` | networkpolicy | 5 tests | Network policies, ingress/egress |
-| `rbac_test.yaml` | serviceaccount, rbac | 7 tests | RBAC resources, annotations |
-| `pvc_test.yaml` | pvc, pdb | 7 tests | Persistence, disruption budgets |
-| `diagnostic_test.yaml` | deployment | 4 tests | Diagnostic mode functionality |
+| File                      | Templates Tested                       | Test Count | Coverage                               |
+| ------------------------- | -------------------------------------- | ---------- | -------------------------------------- |
+| `common_test.yaml`        | deployment, service, secret, configmap | 5 tests    | Labels, metadata, overrides            |
+| `deployment_test.yaml`    | deployment                             | 11 tests   | Resources, env vars, volumes, security |
+| `statefulset_test.yaml`   | statefulset                            | 5 tests    | Controller type, VCTs, storage         |
+| `service_test.yaml`       | service                                | 7 tests    | Service types, ports, annotations      |
+| `secret_test.yaml`        | secret                                 | 4 tests    | Inline/existing secrets, SMTP, pgpass  |
+| `configmap_test.yaml`     | configmap                              | 3 tests    | Server definitions, config_local       |
+| `ingress_test.yaml`       | ingress                                | 5 tests    | Ingress config, TLS, annotations       |
+| `monitoring_test.yaml`    | servicemonitor, prometheusrule, hpa    | 8 tests    | Monitoring stack configuration         |
+| `networkpolicy_test.yaml` | networkpolicy                          | 5 tests    | Network policies, ingress/egress       |
+| `rbac_test.yaml`          | serviceaccount, rbac                   | 7 tests    | RBAC resources, annotations            |
+| `pvc_test.yaml`           | pvc, pdb                               | 7 tests    | Persistence, disruption budgets        |
+| `diagnostic_test.yaml`    | deployment                             | 4 tests    | Diagnostic mode functionality          |
 
 **Total: 71 unit tests**
 
@@ -76,12 +76,12 @@ Each test file follows this structure:
 ```yaml
 suite: test description
 templates:
-  - template.yaml       # Templates to render
+  - template.yaml # Templates to render
 tests:
   - it: should do something
-    set:                # Override values
+    set: # Override values
       key: value
-    asserts:            # Assertions
+    asserts: # Assertions
       - isKind:
           of: Deployment
       - equal:
@@ -124,7 +124,7 @@ See [helm-unittest documentation](https://github.com/helm-unittest/helm-unittest
 ✅ serviceaccount.yaml (4 tests)  
 ✅ rbac.yaml (3 tests)  
 ✅ pvc.yaml (4 tests)  
-✅ pdb.yaml (3 tests)  
+✅ pdb.yaml (3 tests)
 
 ### Features Tested
 
@@ -139,13 +139,14 @@ See [helm-unittest documentation](https://github.com/helm-unittest/helm-unittest
 ✅ **RBAC**: ServiceAccount, Role, RoleBinding  
 ✅ **Scheduling**: PodDisruptionBudget  
 ✅ **Extensibility**: Extra env, volumes, containers  
-✅ **Operations**: Diagnostic mode, lifecycle hooks  
+✅ **Operations**: Diagnostic mode, lifecycle hooks
 
 ## Adding New Tests
 
 When adding features to the chart:
 
 1. **Create test file** (if new template):
+
    ```yaml
    suite: test new feature
    templates:
@@ -158,6 +159,7 @@ When adding features to the chart:
    ```
 
 2. **Add tests for new values**:
+
    ```yaml
    - it: should configure new feature
      set:
@@ -170,6 +172,7 @@ When adding features to the chart:
    ```
 
 3. **Test conditional logic**:
+
    ```yaml
    - it: should not create when disabled
      set:

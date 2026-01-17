@@ -61,7 +61,7 @@ restic:
   password: "password"
 
   backup:
-    schedule: "0 3 * * *"  # 3 AM daily
+    schedule: "0 3 * * *" # 3 AM daily
     retention:
       enabled: true
       keepLast: 10
@@ -242,19 +242,19 @@ networkPolicy:
   egress:
     # Allow DNS
     - to:
-      - namespaceSelector:
-          matchLabels:
-            name: kube-system
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
       ports:
-      - protocol: UDP
-        port: 53
+        - protocol: UDP
+          port: 53
     # Allow only S3
     - to:
-      - ipBlock:
-          cidr: 52.216.0.0/15  # S3 IP range
+        - ipBlock:
+            cidr: 52.216.0.0/15 # S3 IP range
       ports:
-      - protocol: TCP
-        port: 443
+        - protocol: TCP
+          port: 443
 
 volumes:
   - name: data
@@ -475,6 +475,7 @@ serviceMonitor:
   additionalLabels:
     release: prometheus-stack
   interval: 30s
+
 
 # Create PrometheusRule for alerts
 ---

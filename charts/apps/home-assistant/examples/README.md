@@ -9,6 +9,7 @@ This directory contains example value files for different Home Assistant deploym
 **Use Case**: Quick start, testing, development, small home labs
 
 **Features**:
+
 - ✅ SQLite database (no external dependencies)
 - ✅ Basic persistence (5Gi)
 - ✅ ClusterIP service (port-forward access)
@@ -18,6 +19,7 @@ This directory contains example value files for different Home Assistant deploym
 - ❌ No device access
 
 **Deploy**:
+
 ```bash
 helm install home-assistant codefuturist/home-assistant \
   -f examples/values-minimal.yaml
@@ -26,6 +28,7 @@ kubectl port-forward svc/home-assistant 8123:8123
 ```
 
 **Best For**:
+
 - First-time users
 - Testing and development
 - Homes with < 25 devices
@@ -38,6 +41,7 @@ kubectl port-forward svc/home-assistant 8123:8123
 **Use Case**: Secure production deployment without privileged mode
 
 **Features**:
+
 - ✅ **Specific capabilities** (NET_ADMIN, NET_RAW, SYS_ADMIN) - no privileged mode
 - ✅ **Bridge networking** - better security isolation
 - ✅ Environment variable support
@@ -48,6 +52,7 @@ kubectl port-forward svc/home-assistant 8123:8123
 - ✅ **Much safer than privileged mode**
 
 **Deploy**:
+
 ```bash
 helm install home-assistant codefuturist/home-assistant \
   -f examples/values-unprivileged.yaml \
@@ -61,6 +66,7 @@ helm install home-assistant codefuturist/home-assistant \
 ```
 
 **Best For**:
+
 - **Production environments** (recommended over privileged)
 - Security-conscious deployments
 - Compliance requirements
@@ -69,6 +75,7 @@ helm install home-assistant codefuturist/home-assistant \
 - Most integrations (network discovery, ping, etc.)
 
 **✅ Security Advantages**:
+
 - Principle of least privilege
 - Compatible with pod security policies
 - Reduced attack surface
@@ -82,6 +89,7 @@ helm install home-assistant codefuturist/home-assistant \
 **Use Case**: Migration from Docker Compose, privileged mode setup
 
 **Features**:
+
 - ✅ Privileged mode (matches Docker `privileged: true`)
 - ✅ Host networking (matches `network_mode: host`)
 - ✅ System volumes (`/etc/localtime`, `/run/dbus`)
@@ -91,6 +99,7 @@ helm install home-assistant codefuturist/home-assistant \
 - ✅ LoadBalancer service
 
 **Deploy**:
+
 ```bash
 helm install home-assistant codefuturist/home-assistant \
   -f examples/values-docker-compose.yaml \
@@ -99,6 +108,7 @@ helm install home-assistant codefuturist/home-assistant \
 ```
 
 **Best For**:
+
 - Migrating from Docker Compose
 - Bluetooth integrations (requires privileged)
 - Full D-Bus system integrations
@@ -114,6 +124,7 @@ helm install home-assistant codefuturist/home-assistant \
 **Use Case**: Production deployments with PostgreSQL, medium to large homes
 
 **Features**:
+
 - ✅ PostgreSQL database (bundled subchart)
 - ✅ Multiple persistent volumes (config, media, backup)
 - ✅ LoadBalancer service
@@ -126,6 +137,7 @@ helm install home-assistant codefuturist/home-assistant \
 - ❌ No device access (can be added)
 
 **Deploy**:
+
 ```bash
 # Create database secret
 kubectl create secret generic ha-db-secret \
@@ -139,6 +151,7 @@ helm install home-assistant codefuturist/home-assistant \
 ```
 
 **Best For**:
+
 - Production environments
 - Homes with 50-200 devices
 - Long-term history retention
@@ -152,6 +165,7 @@ helm install home-assistant codefuturist/home-assistant \
 **Use Case**: Power users, complex smart homes, device integrations
 
 **Features**:
+
 - ✅ PostgreSQL database (external, HA setup)
 - ✅ Host network mode (device discovery)
 - ✅ USB/Serial device mounting (Zigbee, Z-Wave)
@@ -165,6 +179,7 @@ helm install home-assistant codefuturist/home-assistant \
 - ✅ Extra capabilities for device access
 
 **Deploy**:
+
 ```bash
 # 1. Create secrets
 kubectl create secret generic ha-db-credentials \
@@ -185,6 +200,7 @@ helm install home-assistant codefuturist/home-assistant \
 ```
 
 **Best For**:
+
 - Advanced users
 - Large homes (200+ devices)
 - Zigbee/Z-Wave controllers
@@ -196,27 +212,28 @@ helm install home-assistant codefuturist/home-assistant \
 
 ## Comparison Matrix
 
-| Feature | Minimal | **Unprivileged** ⭐ | Docker Compose | Production | Advanced |
-|---------|---------|-------------------|----------------|------------|----------|
-| **Database** | SQLite | SQLite | SQLite | PostgreSQL (bundled) | PostgreSQL (external) |
-| **Persistence** | 5Gi | 20Gi | 20Gi | 20Gi + media + backup | 50Gi + 500Gi media |
-| **Service Type** | ClusterIP | LoadBalancer | LoadBalancer | LoadBalancer | LoadBalancer |
-| **Ingress** | ❌ | ❌ | ❌ | ✅ TLS | ✅ Multi-domain TLS |
-| **Code Server** | ❌ | ❌ | ❌ | ✅ | ✅ with auth |
-| **MQTT** | ❌ | ❌ | ❌ | ✅ | ✅ advanced |
-| **Device Access** | ❌ | ✅ USB/Serial | ✅ Full (privileged) | ❌ | ✅ USB/Serial |
-| **Host Network** | ❌ | ❌ | ✅ | ❌ | ✅ |
-| **Privileged Mode** | ❌ | ❌ (**secure**) | ✅ (⚠️ insecure) | ❌ | ❌ (capabilities) |
-| **Capabilities** | None | NET_ADMIN, NET_RAW, SYS_ADMIN | All (privileged) | None | Custom |
-| **System Volumes** | ❌ | ✅ localtime | ✅ (localtime, dbus) | ❌ | Optional |
-| **Monitoring** | ❌ | ❌ | ❌ | ✅ | ✅ |
-| **CPU Request** | 250m | 500m | 500m | 1000m | 2000m |
-| **Memory Request** | 512Mi | 1Gi | 512Mi | 2Gi | 4Gi |
-| **Storage Class** | default | default | default | fast-ssd | fast-nvme |
-| **Security Level** | Basic | **High** ⭐ | Low ⚠️ | Basic | Medium |
-| **Best For** | Testing | **Production** | Docker Migration | Enterprise | Advanced |
+| Feature             | Minimal   | **Unprivileged** ⭐           | Docker Compose       | Production            | Advanced              |
+| ------------------- | --------- | ----------------------------- | -------------------- | --------------------- | --------------------- |
+| **Database**        | SQLite    | SQLite                        | SQLite               | PostgreSQL (bundled)  | PostgreSQL (external) |
+| **Persistence**     | 5Gi       | 20Gi                          | 20Gi                 | 20Gi + media + backup | 50Gi + 500Gi media    |
+| **Service Type**    | ClusterIP | LoadBalancer                  | LoadBalancer         | LoadBalancer          | LoadBalancer          |
+| **Ingress**         | ❌        | ❌                            | ❌                   | ✅ TLS                | ✅ Multi-domain TLS   |
+| **Code Server**     | ❌        | ❌                            | ❌                   | ✅                    | ✅ with auth          |
+| **MQTT**            | ❌        | ❌                            | ❌                   | ✅                    | ✅ advanced           |
+| **Device Access**   | ❌        | ✅ USB/Serial                 | ✅ Full (privileged) | ❌                    | ✅ USB/Serial         |
+| **Host Network**    | ❌        | ❌                            | ✅                   | ❌                    | ✅                    |
+| **Privileged Mode** | ❌        | ❌ (**secure**)               | ✅ (⚠️ insecure)     | ❌                    | ❌ (capabilities)     |
+| **Capabilities**    | None      | NET_ADMIN, NET_RAW, SYS_ADMIN | All (privileged)     | None                  | Custom                |
+| **System Volumes**  | ❌        | ✅ localtime                  | ✅ (localtime, dbus) | ❌                    | Optional              |
+| **Monitoring**      | ❌        | ❌                            | ❌                   | ✅                    | ✅                    |
+| **CPU Request**     | 250m      | 500m                          | 500m                 | 1000m                 | 2000m                 |
+| **Memory Request**  | 512Mi     | 1Gi                           | 512Mi                | 2Gi                   | 4Gi                   |
+| **Storage Class**   | default   | default                       | default              | fast-ssd              | fast-nvme             |
+| **Security Level**  | Basic     | **High** ⭐                   | Low ⚠️               | Basic                 | Medium                |
+| **Best For**        | Testing   | **Production**                | Docker Migration     | Enterprise            | Advanced              |
 
 **Legend**:
+
 - ⭐ = Recommended configuration
 - ⚠️ = Security consideration needed
 
@@ -310,12 +327,14 @@ persistence:
 ### Minimal → Production
 
 1. **Backup SQLite database**:
+
 ```bash
 kubectl exec deployment/home-assistant -- \
   cp /config/home-assistant_v2.db /backup/sqlite-backup.db
 ```
 
 2. **Upgrade with production values**:
+
 ```bash
 helm upgrade home-assistant codefuturist/home-assistant \
   -f examples/values-production.yaml
@@ -326,6 +345,7 @@ helm upgrade home-assistant codefuturist/home-assistant \
 ### Production → Advanced
 
 1. **Add device access**:
+
 ```bash
 # Label your node
 kubectl label node node-name kubernetes.io/hostname=node-with-iot-devices
@@ -336,6 +356,7 @@ helm upgrade home-assistant codefuturist/home-assistant \
 ```
 
 2. **Verify device access**:
+
 ```bash
 kubectl exec deployment/home-assistant -- ls -la /dev/tty*
 ```
@@ -392,7 +413,7 @@ homeassistant:
 homeassistant:
   configuration:
     recorder:
-      purge_keep_days: 180  # 6 months
+      purge_keep_days: 180 # 6 months
 ```
 
 ### Add Trusted Proxies
@@ -431,6 +452,7 @@ For questions or issues with these examples:
 ## Contributing
 
 Have a useful configuration? Submit a PR with:
+
 - New example file
 - Description in this README
 - Use case documentation

@@ -8,41 +8,42 @@ A Bitwarden webhook provider for External Secrets Operator that works with perso
 
 ## Maintainers
 
-| Name | Email | Url |
-| ---- | ------ | --- |
-| codefuturist | <58808821+codefuturist@users.noreply.github.com> |  |
+| Name         | Email                                            | Url |
+| ------------ | ------------------------------------------------ | --- |
+| codefuturist | <58808821+codefuturist@users.noreply.github.com> |     |
 
 ## Source Code
 
-* <https://github.com/codefuturist/helm-charts>
-* <https://github.com/codefuturist/helm-charts/tree/main/apps/bitwarden-eso-provider-app>
+- <https://github.com/codefuturist/helm-charts>
+- <https://github.com/codefuturist/helm-charts/tree/main/apps/bitwarden-eso-provider-app>
 
 ## Requirements
 
-| Repository | Name | Version |
-|------------|------|---------|
-| file://../../libs/common | common | 2.x.x |
+| Repository               | Name   | Version |
+| ------------------------ | ------ | ------- |
+| file://../../libs/common | common | 2.x.x   |
 
 ## Values
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| externalSecretsOperator.createClusterSecretStore | bool | `true` | Create ClusterSecretStore resource |
-| externalSecretsOperator.namespaced | bool | `false` | Create namespaced SecretStore (if false, creates ClusterSecretStore) |
-| externalSecretsOperator.secretStore.annotations | object | `{}` | Additional annotations |
-| externalSecretsOperator.secretStore.labels | object | `{}` | Additional labels |
-| externalSecretsOperator.secretStore.name | string | `"bitwarden"` | SecretStore/ClusterSecretStore name |
-| metrics.enabled | bool | `false` | Enable Prometheus metrics endpoint |
-| metrics.serviceMonitor.annotations | object | `{}` | ServiceMonitor annotations |
-| metrics.serviceMonitor.enabled | bool | `false` | Create ServiceMonitor resource (requires Prometheus Operator) |
-| metrics.serviceMonitor.interval | string | `"30s"` | Scrape interval |
-| metrics.serviceMonitor.labels | object | `{}` | Additional ServiceMonitor labels |
-| metrics.serviceMonitor.metricRelabelings | list | `[]` | Metric relabelings for ServiceMonitor |
-| metrics.serviceMonitor.relabelings | list | `[]` | Relabelings for ServiceMonitor |
-| metrics.serviceMonitor.scrapeTimeout | string | `nil` | Scrape timeout |
-| networkPolicy.egress | list | `[{"ports":[{"port":443,"protocol":"TCP"}],"to":[{"namespaceSelector":{}}]},{"ports":[{"port":53,"protocol":"TCP"},{"port":53,"protocol":"UDP"}],"to":[{"namespaceSelector":{}}]}]` | Egress rules (allow Bitwarden API) |
-| networkPolicy.enabled | bool | `false` | Enable network policy |
-| networkPolicy.ingress | list | `[{"from":[{"namespaceSelector":{}}]}]` | Ingress rules |
+| Key                                              | Type   | Default                                                                                                                                                                             | Description                                                          |
+| ------------------------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| externalSecretsOperator.createClusterSecretStore | bool   | `true`                                                                                                                                                                              | Create ClusterSecretStore resource                                   |
+| externalSecretsOperator.namespaced               | bool   | `false`                                                                                                                                                                             | Create namespaced SecretStore (if false, creates ClusterSecretStore) |
+| externalSecretsOperator.secretStore.annotations  | object | `{}`                                                                                                                                                                                | Additional annotations                                               |
+| externalSecretsOperator.secretStore.labels       | object | `{}`                                                                                                                                                                                | Additional labels                                                    |
+| externalSecretsOperator.secretStore.name         | string | `"bitwarden"`                                                                                                                                                                       | SecretStore/ClusterSecretStore name                                  |
+| metrics.enabled                                  | bool   | `false`                                                                                                                                                                             | Enable Prometheus metrics endpoint                                   |
+| metrics.serviceMonitor.annotations               | object | `{}`                                                                                                                                                                                | ServiceMonitor annotations                                           |
+| metrics.serviceMonitor.enabled                   | bool   | `false`                                                                                                                                                                             | Create ServiceMonitor resource (requires Prometheus Operator)        |
+| metrics.serviceMonitor.interval                  | string | `"30s"`                                                                                                                                                                             | Scrape interval                                                      |
+| metrics.serviceMonitor.labels                    | object | `{}`                                                                                                                                                                                | Additional ServiceMonitor labels                                     |
+| metrics.serviceMonitor.metricRelabelings         | list   | `[]`                                                                                                                                                                                | Metric relabelings for ServiceMonitor                                |
+| metrics.serviceMonitor.relabelings               | list   | `[]`                                                                                                                                                                                | Relabelings for ServiceMonitor                                       |
+| metrics.serviceMonitor.scrapeTimeout             | string | `nil`                                                                                                                                                                               | Scrape timeout                                                       |
+| networkPolicy.egress                             | list   | `[{"ports":[{"port":443,"protocol":"TCP"}],"to":[{"namespaceSelector":{}}]},{"ports":[{"port":53,"protocol":"TCP"},{"port":53,"protocol":"UDP"}],"to":[{"namespaceSelector":{}}]}]` | Egress rules (allow Bitwarden API)                                   |
+| networkPolicy.enabled                            | bool   | `false`                                                                                                                                                                             | Enable network policy                                                |
+| networkPolicy.ingress                            | list   | `[{"from":[{"namespaceSelector":{}}]}]`                                                                                                                                             | Ingress rules                                                        |
 
-----------------------------------------------
+---
+
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

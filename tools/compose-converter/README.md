@@ -5,6 +5,7 @@ A comprehensive tool to convert Docker Compose files into production-ready Helm 
 ## Features
 
 ✨ **Comprehensive Conversion**
+
 - Converts Docker Compose services to Kubernetes Deployments
 - Maps container ports to Kubernetes Services
 - Transforms volumes into PersistentVolumeClaims
@@ -14,6 +15,7 @@ A comprehensive tool to convert Docker Compose files into production-ready Helm 
 - Supports multiple services in a single compose file
 
 🎯 **Best Practices**
+
 - Generates production-ready Helm templates
 - Includes proper label management
 - Implements security contexts
@@ -23,10 +25,11 @@ A comprehensive tool to convert Docker Compose files into production-ready Helm 
 - Follows Kubernetes naming conventions
 
 📦 **Complete Chart Structure**
+
 - Chart.yaml with metadata
 - values.yaml with sensible defaults
 - Comprehensive template files (deployment, service, ingress, configmap, secret, pvc)
-- Helper functions in _helpers.tpl
+- Helper functions in \_helpers.tpl
 - NOTES.txt for post-installation instructions
 - Example values files (minimal, production)
 - Generated README.md
@@ -82,16 +85,19 @@ python3 compose2helm.py -c docker-compose.yml -o charts -n myapp
 ### Basic Usage
 
 **With UV (recommended):**
+
 ```bash
 uv run python compose2helm.py --compose docker-compose.yml --output charts --name myapp
 ```
 
 **With Python:**
+
 ```bash
 python compose2helm.py --compose docker-compose.yml --output charts --name myapp
 ```
 
 **Using Make:**
+
 ```bash
 make examples  # Convert all example files
 make test      # Run tests and convert examples
@@ -142,6 +148,7 @@ python compose2helm.py \
 The converter supports the following Docker Compose features:
 
 **Service Configuration:**
+
 - ✅ `image` - Container image and tag
 - ✅ `command` - Override default command
 - ✅ `entrypoint` - Override entrypoint
@@ -155,23 +162,24 @@ The converter supports the following Docker Compose features:
 - ✅ `deploy.replicas` - Number of replicas
 
 **Top-Level Configuration:**
+
 - ✅ `volumes` - Named volume definitions
 - ✅ `networks` - Network configuration (basic support)
 - ✅ `secrets` - Secret definitions
 
 ### Conversion Mappings
 
-| Docker Compose | Kubernetes | Notes |
-|----------------|------------|-------|
-| `service` | `Deployment` | Each service becomes a deployment |
-| `ports` | `Service` | Port mappings create ClusterIP services |
-| `volumes` (named) | `PersistentVolumeClaim` | Named volumes become PVCs |
-| `volumes` (bind) | `hostPath` | Bind mounts use hostPath (not recommended for production) |
-| `environment` | `env` / `Secret` / `ConfigMap` | Env vars can reference secrets |
-| `healthcheck` | `livenessProbe` / `readinessProbe` | HTTP and exec probes supported |
-| `deploy.resources.limits` | `resources.limits` | CPU and memory limits |
-| `deploy.resources.reservations` | `resources.requests` | CPU and memory requests |
-| `user` | `securityContext.runAsUser` | User ID mapping |
+| Docker Compose                  | Kubernetes                         | Notes                                                     |
+| ------------------------------- | ---------------------------------- | --------------------------------------------------------- |
+| `service`                       | `Deployment`                       | Each service becomes a deployment                         |
+| `ports`                         | `Service`                          | Port mappings create ClusterIP services                   |
+| `volumes` (named)               | `PersistentVolumeClaim`            | Named volumes become PVCs                                 |
+| `volumes` (bind)                | `hostPath`                         | Bind mounts use hostPath (not recommended for production) |
+| `environment`                   | `env` / `Secret` / `ConfigMap`     | Env vars can reference secrets                            |
+| `healthcheck`                   | `livenessProbe` / `readinessProbe` | HTTP and exec probes supported                            |
+| `deploy.resources.limits`       | `resources.limits`                 | CPU and memory limits                                     |
+| `deploy.resources.reservations` | `resources.requests`               | CPU and memory requests                                   |
+| `user`                          | `securityContext.runAsUser`        | User ID mapping                                           |
 
 ## Generated Chart Structure
 
@@ -211,6 +219,7 @@ After conversion, you should:
    - Add backup strategies
 
 3. **Test the Chart**
+
    ```bash
    # Lint the chart
    helm lint myapp
@@ -234,36 +243,43 @@ After conversion, you should:
 ## Best Practices Applied
 
 ### 1. Labels and Selectors
+
 - Uses standard Kubernetes labels (`app.kubernetes.io/name`, `app.kubernetes.io/instance`)
 - Implements consistent label management
 - Supports custom labels via `additionalLabels`
 
 ### 2. Configuration Management
+
 - Separates configuration (ConfigMap) from secrets (Secret)
 - Supports reload on config changes via annotations
 - Uses tpl function for dynamic value substitution
 
 ### 3. Resource Management
+
 - Defines resource requests and limits
 - Supports horizontal pod autoscaling
 - Includes pod disruption budget considerations
 
 ### 4. Health and Readiness
+
 - Converts Docker health checks to Kubernetes probes
 - Supports both HTTP and exec probes
 - Configurable timing and thresholds
 
 ### 5. Storage
+
 - Uses PersistentVolumeClaims for data persistence
 - Supports multiple access modes
 - Allows storage class customization
 
 ### 6. Networking
+
 - Creates ClusterIP services by default
 - Supports LoadBalancer and NodePort
 - Includes Ingress configuration with TLS support
 
 ### 7. Security
+
 - Implements security contexts
 - Supports running as non-root
 - Includes image pull secrets
@@ -274,7 +290,7 @@ After conversion, you should:
 ### Simple Application
 
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   web:
     image: nginx:1.21
@@ -298,7 +314,7 @@ volumes:
 ### Multi-Service Application
 
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   app:
     image: myapp:latest
@@ -313,10 +329,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 512M
         reservations:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 256M
 
   db:
@@ -337,15 +353,19 @@ volumes:
 ### Common Issues
 
 **Issue: Unsupported compose version**
+
 - Solution: The tool supports Compose v2 and v3 formats. Use a compatible version.
 
 **Issue: Complex port mappings not converted correctly**
+
 - Solution: Manually review and adjust the Service configuration in the generated chart.
 
 **Issue: Environment variables referencing other services**
+
 - Solution: Update the environment variables to use Kubernetes Service DNS names (e.g., `db` becomes `myapp-db`).
 
 **Issue: Bind mounts using hostPath**
+
 - Solution: For production, replace hostPath volumes with PersistentVolumeClaims.
 
 ## Advanced Configuration
@@ -389,6 +409,7 @@ MIT License - See LICENSE file for details
 ## Support
 
 For issues, questions, or contributions:
+
 - Open an issue in the repository
 - Submit a pull request
 - Contact the maintainers

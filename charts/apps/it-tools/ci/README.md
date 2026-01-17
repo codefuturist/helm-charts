@@ -4,16 +4,16 @@ This directory contains CI test configurations for the chart template. These tes
 
 ## Test Configurations
 
-| File | Purpose | Key Features Tested |
-|------|---------|-------------------|
-| `01-default-values.yaml` | Default configuration | Basic deployment with minimal settings |
-| `02-statefulset-controller.yaml` | StatefulSet controller | StatefulSet with volumeClaimTemplates |
-| `03-security-hardening.yaml` | Security hardening | Security contexts, NetworkPolicy, RBAC |
-| `04-monitoring-enabled.yaml` | Monitoring stack | ServiceMonitor, PrometheusRule, HPA, PDB |
-| `05-extra-containers.yaml` | Extensibility | Init containers, sidecars, custom volumes |
-| `06-ingress-enabled.yaml` | Ingress | Ingress with TLS and annotations |
-| `07-advanced-scheduling.yaml` | Pod scheduling | Topology spread, affinity, DNS config |
-| `08-diagnostic-mode.yaml` | Troubleshooting | Diagnostic mode configuration |
+| File                             | Purpose                | Key Features Tested                       |
+| -------------------------------- | ---------------------- | ----------------------------------------- |
+| `01-default-values.yaml`         | Default configuration  | Basic deployment with minimal settings    |
+| `02-statefulset-controller.yaml` | StatefulSet controller | StatefulSet with volumeClaimTemplates     |
+| `03-security-hardening.yaml`     | Security hardening     | Security contexts, NetworkPolicy, RBAC    |
+| `04-monitoring-enabled.yaml`     | Monitoring stack       | ServiceMonitor, PrometheusRule, HPA, PDB  |
+| `05-extra-containers.yaml`       | Extensibility          | Init containers, sidecars, custom volumes |
+| `06-ingress-enabled.yaml`        | Ingress                | Ingress with TLS and annotations          |
+| `07-advanced-scheduling.yaml`    | Pod scheduling         | Topology spread, affinity, DNS config     |
+| `08-diagnostic-mode.yaml`        | Troubleshooting        | Diagnostic mode configuration             |
 
 ## Running Tests Locally
 
@@ -49,4 +49,3 @@ helm lint . -f ci/01-default-values.yaml
 ct lint --charts charts/apps/your-chart
 ct install --charts charts/apps/your-chart
 ```
-

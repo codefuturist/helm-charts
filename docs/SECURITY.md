@@ -89,6 +89,7 @@ securityContext:
 ### 5. Scan Images
 
 Regularly scan container images for vulnerabilities using tools like:
+
 - Trivy
 - Clair
 - Anchore
@@ -111,6 +112,7 @@ Use minimal RBAC permissions required for your application.
 ### Secrets Management
 
 Our charts support multiple secret management approaches:
+
 - Kubernetes native secrets
 - Sealed Secrets
 - External Secrets Operator
@@ -121,6 +123,7 @@ Choose the method appropriate for your security requirements.
 ### Service Exposure
 
 By default, services are not exposed externally. When enabling ingress:
+
 - Always use TLS/HTTPS
 - Configure proper authentication
 - Review ingress annotations for security implications
@@ -136,6 +139,7 @@ By default, services are not exposed externally. When enabling ingress:
 ## Security Advisories
 
 Published security advisories can be found at:
+
 - GitHub Security Advisories: https://github.com/codefuturist/helm-charts/security/advisories
 - Release Notes: https://github.com/codefuturist/helm-charts/releases
 

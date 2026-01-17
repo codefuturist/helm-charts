@@ -5,7 +5,9 @@ This directory contains example configurations for common deployment scenarios.
 ## Available Examples
 
 ### 1. values-minimal.yaml
+
 Minimal configuration for quick development/testing:
+
 - Inline credentials (not recommended for production)
 - No persistence (data lost on restart)
 - Minimal resources
@@ -16,7 +18,9 @@ helm install my-redisinsight codefuturist/redisinsight -f values-minimal.yaml
 ```
 
 ### 2. values-with-persistence.yaml
+
 Basic configuration with persistent storage:
+
 - Enables persistent volume for data retention
 - Retains user preferences, saved queries, and sessions
 - Configurable storage size and class
@@ -27,7 +31,9 @@ helm install my-redisinsight codefuturist/redisinsight -f values-with-persistenc
 ```
 
 ### 3. values-production.yaml
+
 Production-ready configuration with all best practices:
+
 - Uses Kubernetes secrets for credentials
 - Persistent storage enabled
 - Resource limits configured
@@ -39,6 +45,7 @@ Production-ready configuration with all best practices:
 - Best for: Production environments
 
 Prerequisites:
+
 ```bash
 # Create secret first
 kubectl create secret generic redisinsight-credentials \
@@ -47,12 +54,15 @@ kubectl create secret generic redisinsight-credentials \
 ```
 
 Install:
+
 ```bash
 helm install my-redisinsight codefuturist/redisinsight -f values-production.yaml
 ```
 
 ### 4. values-multiple-servers.yaml
+
 Configuration with pre-configured Redis servers:
+
 - Multiple database connections defined
 - Organized by environment groups
 - Different SSL modes per environment
@@ -87,6 +97,7 @@ helm install my-redisinsight codefuturist/redisinsight \
 ## Security Notes
 
 ⚠️ **Important**:
+
 - Never commit sensitive passwords to version control
 - Always use Kubernetes secrets for production credentials
 - Change default passwords in all examples

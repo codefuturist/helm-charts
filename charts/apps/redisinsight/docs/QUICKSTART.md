@@ -136,11 +136,11 @@ networkPolicy:
   enabled: true
   egress:
     - to:
-      - ipBlock:
-          cidr: 0.0.0.0/0
+        - ipBlock:
+            cidr: 0.0.0.0/0
       ports:
-      - protocol: TCP
-        port: 5432
+        - protocol: TCP
+          port: 5432
 ```
 
 ## Common Configuration
@@ -179,12 +179,12 @@ networkPolicy:
   enabled: true
   ingress:
     - from:
-      - namespaceSelector:
-          matchLabels:
-            name: ingress-nginx
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
       ports:
-      - protocol: TCP
-        port: 80
+        - protocol: TCP
+          port: 80
 ```
 
 ### Reverse Proxy with Subdirectory
@@ -242,9 +242,9 @@ Adjust WSGI server settings for your workload:
 ```yaml
 redisinsight:
   gunicorn:
-    threads: 50              # More threads for high concurrency
-    accessLogfile: "-"       # Log to stdout for observability
-    limitRequestLine: 16380  # Allow larger HTTP headers
+    threads: 50 # More threads for high concurrency
+    accessLogfile: "-" # Log to stdout for observability
+    limitRequestLine: 16380 # Allow larger HTTP headers
 ```
 
 ## Upgrading
@@ -283,11 +283,13 @@ helm test my-redisinsight
 If you can't access RedisInsight:
 
 1. Check service:
+
    ```bash
    kubectl get svc -l app.kubernetes.io/name=redisinsight
    ```
 
 2. Port forward directly:
+
    ```bash
    kubectl port-forward pod/<pod-name> 8080:80
    ```

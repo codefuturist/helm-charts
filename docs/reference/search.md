@@ -8,10 +8,7 @@ tags:
 
 Search across all chart values in this repository.
 
-!!! tip "Keyboard Shortcuts"
-    - ++ctrl+k++ or ++cmd+k++ - Focus search
-    - ++escape++ - Clear search
-    - Click 🔗 to copy direct link to a value
+!!! tip "Keyboard Shortcuts" - ++ctrl+k++ or ++cmd+k++ - Focus search - ++escape++ - Clear search - Click 🔗 to copy direct link to a value
 
 <input type="text" id="values-search" placeholder="🔍 Search all values... (e.g., 'replicas', 'image.tag', 'enabled')" autofocus />
 
@@ -9711,4 +9708,4 @@ Search across all chart values in this repository.
 
 ---
 
-*Last updated: 2025-12-23 17:28:11*
+_Last updated: 2025-12-23 17:28:11_

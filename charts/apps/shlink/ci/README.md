@@ -4,19 +4,19 @@ This directory contains CI test configurations for the Shlink Helm chart. These 
 
 ## Test Configurations
 
-| File | Purpose | Key Features Tested |
-|------|---------|-------------------|
-| `01-default-values.yaml` | Default configuration | Basic deployment with PostgreSQL subchart |
-| `02-statefulset-controller.yaml` | StatefulSet controller | StatefulSet with volumeClaimTemplates |
-| `03-security-unprivileged.yaml` | Security hardening | Security contexts, NetworkPolicy, RBAC |
-| `04-server-definitions.yaml` | Web client setup | Pre-configured server connections |
-| `05-monitoring-enabled.yaml` | Monitoring stack | ServiceMonitor, PrometheusRule, HPA |
-| `06-extra-containers.yaml` | Extensibility | Init containers, sidecars, custom volumes |
-| `07-pgadmin-features.yaml` | Shlink-specific | GeoLite, Redis, security settings |
-| `08-ingress-enabled.yaml` | Dual ingress | Backend and web client ingress with TLS |
-| `09-advanced-scheduling.yaml` | Pod scheduling | Topology spread, affinity, DNS config |
-| `10-diagnostic-mode.yaml` | Troubleshooting | Diagnostic mode configuration |
-| `11-container-config.yaml` | Advanced config | External database, Redis, advanced settings |
+| File                             | Purpose                | Key Features Tested                         |
+| -------------------------------- | ---------------------- | ------------------------------------------- |
+| `01-default-values.yaml`         | Default configuration  | Basic deployment with PostgreSQL subchart   |
+| `02-statefulset-controller.yaml` | StatefulSet controller | StatefulSet with volumeClaimTemplates       |
+| `03-security-unprivileged.yaml`  | Security hardening     | Security contexts, NetworkPolicy, RBAC      |
+| `04-server-definitions.yaml`     | Web client setup       | Pre-configured server connections           |
+| `05-monitoring-enabled.yaml`     | Monitoring stack       | ServiceMonitor, PrometheusRule, HPA         |
+| `06-extra-containers.yaml`       | Extensibility          | Init containers, sidecars, custom volumes   |
+| `07-pgadmin-features.yaml`       | Shlink-specific        | GeoLite, Redis, security settings           |
+| `08-ingress-enabled.yaml`        | Dual ingress           | Backend and web client ingress with TLS     |
+| `09-advanced-scheduling.yaml`    | Pod scheduling         | Topology spread, affinity, DNS config       |
+| `10-diagnostic-mode.yaml`        | Troubleshooting        | Diagnostic mode configuration               |
+| `11-container-config.yaml`       | Advanced config        | External database, Redis, advanced settings |
 
 ## Running Tests Locally
 
@@ -53,6 +53,7 @@ ct install --charts charts/shlink
 ## Test Coverage
 
 ### Backend API Tests
+
 - Default configuration with PostgreSQL
 - External database connectivity
 - Environment variable configuration
@@ -60,18 +61,21 @@ ct install --charts charts/shlink
 - Resource limits and requests
 
 ### Web Client Tests
+
 - Separate deployment from backend
 - Server configuration via ConfigMap
 - Dual ingress setup (backend + webclient)
 - Independent scaling
 
 ### Database Tests
+
 - Embedded PostgreSQL subchart
 - External PostgreSQL/MySQL
 - Database secret management
 - Connection pooling
 
 ### Security Tests
+
 - Pod security contexts
 - Container security contexts
 - Network policies
@@ -79,12 +83,14 @@ ct install --charts charts/shlink
 - Secret management
 
 ### Monitoring Tests
+
 - Prometheus ServiceMonitor
 - Custom metrics
 - Alerting rules
 - Health check endpoints
 
 ### Advanced Features
+
 - Redis caching
 - GeoLite2 integration
 - Multi-domain support
@@ -119,7 +125,7 @@ The CI tests cover:
 ✅ **Configuration**: Server definitions, secrets, ConfigMaps  
 ✅ **Extensibility**: Init containers, sidecars, extra volumes  
 ✅ **pgAdmin Features**: SMTP, LDAP, pgpass, config_local.py  
-✅ **Scheduling**: Affinity, topology spread, DNS config  
+✅ **Scheduling**: Affinity, topology spread, DNS config
 
 ## Adding New Tests
 

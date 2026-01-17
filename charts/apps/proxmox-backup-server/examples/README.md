@@ -7,6 +7,7 @@ This directory contains example configurations for various PBS deployment scenar
 ### 1. Production Deployment (`production.yaml`)
 
 A complete production-ready configuration with:
+
 - Persistence enabled for all volumes
 - Monitoring with Prometheus Operator
 - Network policies for security
@@ -25,6 +26,7 @@ helm install pbs codefuturist/proxmox-backup-server \
 ### 2. Beta Version (`beta-version.yaml`)
 
 Configuration for testing pre-release versions:
+
 - Uses `image.tag: beta`
 - Reduced resources for testing
 - Basic persistence setup
@@ -39,6 +41,7 @@ helm install pbs-beta codefuturist/proxmox-backup-server \
 ### 3. Existing Volumes (`existing-volumes.yaml`)
 
 Example of using pre-existing PVCs:
+
 - Useful for migrations
 - Preserves data across releases
 - References existing storage

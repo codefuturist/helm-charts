@@ -83,6 +83,7 @@ helm uninstall my-redisinsight -n redisinsight
 #### validate.sh - Quick Validation
 
 Fast validation script that runs:
+
 - Helm lint
 - Template rendering for all CI configurations
 - Resource count validation
@@ -94,6 +95,7 @@ Fast validation script that runs:
 #### test.sh - Comprehensive Suite
 
 Full test suite covering:
+
 - Chart linting
 - Default values rendering
 - All CI configurations (10 tests)
@@ -117,18 +119,18 @@ for config in ci/*.yaml; do
 done
 ```
 
-| Config | Tests |
-|--------|-------|
-| `01-default-values.yaml` | Basic deployment |
-| `02-statefulset-controller.yaml` | StatefulSet with persistence |
-| `03-security-unprivileged.yaml` | Security contexts, NetworkPolicy |
-| `04-server-definitions.yaml` | Pre-configured servers |
-| `05-monitoring-enabled.yaml` | Monitoring stack |
-| `06-extra-containers.yaml` | Init containers, sidecars |
-| `07-redisinsight-features.yaml` | SMTP, pgpass, config_local |
-| `08-ingress-enabled.yaml` | Ingress with TLS |
-| `09-advanced-scheduling.yaml` | Topology spread, affinity |
-| `10-diagnostic-mode.yaml` | Diagnostic mode |
+| Config                           | Tests                            |
+| -------------------------------- | -------------------------------- |
+| `01-default-values.yaml`         | Basic deployment                 |
+| `02-statefulset-controller.yaml` | StatefulSet with persistence     |
+| `03-security-unprivileged.yaml`  | Security contexts, NetworkPolicy |
+| `04-server-definitions.yaml`     | Pre-configured servers           |
+| `05-monitoring-enabled.yaml`     | Monitoring stack                 |
+| `06-extra-containers.yaml`       | Init containers, sidecars        |
+| `07-redisinsight-features.yaml`  | SMTP, pgpass, config_local       |
+| `08-ingress-enabled.yaml`        | Ingress with TLS                 |
+| `09-advanced-scheduling.yaml`    | Topology spread, affinity        |
+| `10-diagnostic-mode.yaml`        | Diagnostic mode                  |
 
 ### Example Configurations
 
@@ -176,7 +178,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2
@@ -216,54 +218,64 @@ lint-redisinsight:
 ### What is Tested
 
 ✅ **Chart Structure**
+
 - Valid Chart.yaml
 - Required files present
 - Proper template syntax
 
 ✅ **Controllers**
+
 - Deployment (default)
 - StatefulSet with volumeClaimTemplates
 
 ✅ **Security**
+
 - Pod security contexts
 - Container security contexts
 - NetworkPolicy
 - RBAC
 
 ✅ **Storage**
+
 - PersistentVolumeClaim
 - VolumeClaimTemplates (StatefulSet)
 - emptyDir fallback
 
 ✅ **Networking**
+
 - Service (ClusterIP, LoadBalancer, NodePort)
 - Ingress with TLS
 - DNS configuration
 
 ✅ **Monitoring**
+
 - ServiceMonitor
 - PrometheusRule
 - HorizontalPodAutoscaler
 
 ✅ **Configuration**
+
 - Server definitions
 - Inline secrets
 - Existing secrets
 - ConfigMaps
 
 ✅ **Extensibility**
+
 - Extra containers
 - Init containers
 - Extra volumes
 - Extra environment variables
 
 ✅ **RedisInsight Features**
+
 - SMTP configuration
 - LDAP configuration
 - pgpass file
 - config_local.py
 
 ✅ **Scheduling**
+
 - Affinity rules
 - Topology spread constraints
 - Pod disruption budgets
@@ -375,11 +387,13 @@ helm template test . \
 ## Best Practices
 
 1. **Always lint before committing**
+
    ```bash
    ./validate.sh
    ```
 
 2. **Test all CI configurations**
+
    ```bash
    ./test.sh
    ```
@@ -390,6 +404,7 @@ helm template test . \
    - Document in README
 
 4. **Test with actual Kubernetes cluster**
+
    ```bash
    kind create cluster
    helm install test . -f ci/01-default-values.yaml

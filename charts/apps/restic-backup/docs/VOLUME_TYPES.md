@@ -9,28 +9,31 @@ The Restic Backup Helm chart supports multiple volume types to accommodate diffe
 The most common volume type for backing up Kubernetes persistent storage.
 
 **Configuration:**
+
 ```yaml
 volumes:
   - name: app-data
-    type: pvc  # Optional, PVC is default
+    type: pvc # Optional, PVC is default
     claimName: myapp-data-pvc
     mountPath: /data/app
-    subPath: ""  # Optional: backup specific subdirectory
-    readOnly: false  # Optional: mount read-only for safety
+    subPath: "" # Optional: backup specific subdirectory
+    readOnly: false # Optional: mount read-only for safety
 ```
 
 **When to use:**
+
 - Backing up application data stored in PVCs
 - Standard Kubernetes storage backup scenarios
 - When you have existing PersistentVolumeClaims
 
 **Example:**
+
 ```yaml
 volumes:
   - name: postgres-data
     claimName: postgres-pvc
     mountPath: /pgdata
-    readOnly: true  # Read-only for database safety
+    readOnly: true # Read-only for database safety
 ```
 
 ---
@@ -40,18 +43,20 @@ volumes:
 Access and backup directories directly from the Kubernetes node filesystem.
 
 **Configuration:**
+
 ```yaml
 volumes:
   - name: host-data
     type: hostPath
     hostPath:
-      path: /mnt/data  # Path on the host
-      type: Directory  # Optional: Directory, DirectoryOrCreate, File, etc.
+      path: /mnt/data # Path on the host
+      type: Directory # Optional: Directory, DirectoryOrCreate, File, etc.
     mountPath: /backup/host-data
-    readOnly: true  # Recommended for safety
+    readOnly: true # Recommended for safety
 ```
 
 **HostPath types:**
+
 - `Directory` - Must exist on host
 - `DirectoryOrCreate` - Create if doesn't exist
 - `File` - Must be a file
@@ -61,18 +66,21 @@ volumes:
 - `BlockDevice` - Block device
 
 **When to use:**
+
 - Backing up Docker volumes (`/var/lib/docker/volumes`)
 - Accessing host-mounted storage
 - Backing up node-specific data
 - Legacy applications with host path storage
 
 **Important considerations:**
+
 - Requires appropriate pod security context (may need root)
 - Pod must be scheduled on the correct node
 - Use node selectors or node affinity
 - Set `readOnly: true` when possible
 
 **Complete example:**
+
 ```yaml
 restic:
   repository: "s3:s3.amazonaws.com/my-backups/host-data"
@@ -107,29 +115,32 @@ podSecurityContext:
 Ephemeral storage for backup operations, useful as temporary workspace.
 
 **Configuration:**
+
 ```yaml
 volumes:
   - name: temp-workspace
     type: emptyDir
     emptyDir:
-      sizeLimit: 2Gi  # Optional: limit storage size
-      medium: ""  # Optional: "" (disk) or "Memory" (tmpfs)
+      sizeLimit: 2Gi # Optional: limit storage size
+      medium: "" # Optional: "" (disk) or "Memory" (tmpfs)
     mountPath: /tmp/backup-work
 ```
 
 **When to use:**
+
 - Temporary decompression space
 - Intermediate backup processing
 - Scratch space for backup scripts
 - Testing and development
 
 **Example with memory-backed storage:**
+
 ```yaml
 volumes:
   - name: fast-temp
     type: emptyDir
     emptyDir:
-      medium: "Memory"  # Use RAM
+      medium: "Memory" # Use RAM
       sizeLimit: 1Gi
     mountPath: /tmp/fast-space
 ```
@@ -141,25 +152,28 @@ volumes:
 Mount ConfigMaps as volumes for backup configuration or scripts.
 
 **Configuration:**
+
 ```yaml
 volumes:
   - name: backup-config
     type: configMap
     configMap:
       name: backup-settings
-      defaultMode: 0644  # Optional: file permissions
-      items:  # Optional: select specific keys
+      defaultMode: 0644 # Optional: file permissions
+      items: # Optional: select specific keys
         - key: config.json
           path: config.json
     mountPath: /config
 ```
 
 **When to use:**
+
 - Backing up configuration alongside data
 - Providing configuration to pre/post backup hooks
 - Include application settings in backups
 
 **Example:**
+
 ```yaml
 volumes:
   - name: app-config
@@ -176,25 +190,28 @@ volumes:
 Mount Kubernetes Secrets for backup (use carefully).
 
 **Configuration:**
+
 ```yaml
 volumes:
   - name: backup-credentials
     type: secret
     secret:
       secretName: app-secrets
-      defaultMode: 0400  # Optional: file permissions
-      items:  # Optional: select specific keys
+      defaultMode: 0400 # Optional: file permissions
+      items: # Optional: select specific keys
         - key: database.key
           path: db.key
     mountPath: /secrets
 ```
 
 **When to use:**
+
 - Including encrypted credentials in backups
 - Providing secrets to backup hooks
 - Backing up certificate stores
 
 **Security warning:**
+
 - Secrets will be written to backup repository
 - Ensure backup repository is properly encrypted and secured
 - Consider using External Secrets Operator instead
@@ -206,6 +223,7 @@ volumes:
 Support for any Kubernetes volume type using custom specification.
 
 **Configuration:**
+
 ```yaml
 volumes:
   - name: custom-volume
@@ -218,6 +236,7 @@ volumes:
 ```
 
 **Supported via volumeSpec:**
+
 - NFS
 - CephFS
 - GlusterFS
@@ -230,6 +249,7 @@ volumes:
 - Any other Kubernetes volume type
 
 **NFS example:**
+
 ```yaml
 volumes:
   - name: nfs-backup
@@ -243,6 +263,7 @@ volumes:
 ```
 
 **CephFS example:**
+
 ```yaml
 volumes:
   - name: ceph-data
@@ -266,6 +287,7 @@ volumes:
 Store restic repository on a dedicated local PV instead of cloud storage.
 
 **Step 1: Create dedicated PVC for backup repository**
+
 ```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -281,9 +303,10 @@ spec:
 ```
 
 **Step 2: Configure backup to use local repository**
+
 ```yaml
 restic:
-  repository: "/backup-repo"  # Local path
+  repository: "/backup-repo" # Local path
   password: "secure-password"
 
 volumes:
@@ -303,6 +326,7 @@ extraVolumeMounts:
 ```
 
 **Step 3 (Optional): Create PV with hostPath**
+
 ```yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -321,11 +345,11 @@ spec:
   nodeAffinity:
     required:
       nodeSelectorTerms:
-      - matchExpressions:
-        - key: kubernetes.io/hostname
-          operator: In
-          values:
-          - backup-node
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - backup-node
 ```
 
 See `examples/dedicated-pv-backup-values.yaml` for complete configuration.
@@ -337,14 +361,16 @@ See `examples/dedicated-pv-backup-values.yaml` for complete configuration.
 The restore job also supports multiple volume types:
 
 **Restore to PVC:**
+
 ```yaml
 restore:
   enabled: true
   snapshotId: "latest"
-  targetVolume: "restore-pvc"  # Simple syntax
+  targetVolume: "restore-pvc" # Simple syntax
 ```
 
 **Restore to HostPath:**
+
 ```yaml
 restore:
   enabled: true
@@ -357,6 +383,7 @@ restore:
 ```
 
 **Restore to Custom Volume:**
+
 ```yaml
 restore:
   enabled: true
@@ -373,6 +400,7 @@ restore:
 ## Common Patterns
 
 ### Pattern 1: Mixed Volume Types
+
 ```yaml
 volumes:
   # Application PVC
@@ -398,6 +426,7 @@ volumes:
 ```
 
 ### Pattern 2: Backup to Local Storage
+
 ```yaml
 restic:
   repository: "/backup-repo"
@@ -424,6 +453,7 @@ cronjob:
 ```
 
 ### Pattern 3: Multi-Node Backup
+
 Use node affinity to backup different nodes:
 
 ```yaml
@@ -452,6 +482,7 @@ cronjob:
 ### Volume Mount Issues
 
 **Permission denied:**
+
 ```yaml
 # May need elevated permissions for hostPath
 podSecurityContext:
@@ -460,22 +491,25 @@ podSecurityContext:
 ```
 
 **Volume not found:**
+
 - Check PVC exists: `kubectl get pvc`
 - Verify HostPath exists on node
 - Check node selector matches
 
 **Read-only filesystem:**
+
 ```yaml
 volumes:
   - name: data
     claimName: my-pvc
     mountPath: /data
-    readOnly: false  # Ensure not read-only if writing
+    readOnly: false # Ensure not read-only if writing
 ```
 
 ### Examples Directory
 
 Complete working examples available in `examples/`:
+
 - `hostpath-backup-values.yaml` - HostPath configuration
 - `dedicated-pv-backup-values.yaml` - Local PV storage
 - `test-values.yaml` - PVC-based backup

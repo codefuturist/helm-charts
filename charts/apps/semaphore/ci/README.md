@@ -4,13 +4,13 @@ This directory contains CI test configurations for the Semaphore Helm chart. The
 
 ## Test Configurations
 
-| File | Purpose | Key Features Tested |
-|------|---------|-------------------|
-| `01-default-values.yaml` | Default configuration | Basic deployment with SQLite, minimal settings |
-| `02-with-tls.yaml` | TLS/HTTPS | TLS configuration, certificates, ingress with TLS |
-| `03-with-auth.yaml` | Authentication & Security | LDAP, email, TOTP, existing secrets, NetworkPolicy |
-| `04-statefulset.yaml` | StatefulSet controller | StatefulSet with volumeClaimTemplates, pod affinity |
-| `05-monitoring-enabled.yaml` | Monitoring stack | ServiceMonitor, PrometheusRule, HPA, PDB |
+| File                         | Purpose                   | Key Features Tested                                 |
+| ---------------------------- | ------------------------- | --------------------------------------------------- |
+| `01-default-values.yaml`     | Default configuration     | Basic deployment with SQLite, minimal settings      |
+| `02-with-tls.yaml`           | TLS/HTTPS                 | TLS configuration, certificates, ingress with TLS   |
+| `03-with-auth.yaml`          | Authentication & Security | LDAP, email, TOTP, existing secrets, NetworkPolicy  |
+| `04-statefulset.yaml`        | StatefulSet controller    | StatefulSet with volumeClaimTemplates, pod affinity |
+| `05-monitoring-enabled.yaml` | Monitoring stack          | ServiceMonitor, PrometheusRule, HPA, PDB            |
 
 ## Running Tests Locally
 
@@ -47,6 +47,7 @@ ct install --charts charts/semaphore
 ## Test Coverage
 
 ### 01-default-values.yaml
+
 - ✅ Basic Deployment controller
 - ✅ SQLite database
 - ✅ Minimal resource allocation
@@ -54,6 +55,7 @@ ct install --charts charts/semaphore
 - ✅ Basic persistence (data, config, tmp)
 
 ### 02-with-tls.yaml
+
 - ✅ TLS/HTTPS configuration
 - ✅ Certificate mounting
 - ✅ Ingress with TLS
@@ -61,6 +63,7 @@ ct install --charts charts/semaphore
 - ✅ HTTPS redirects
 
 ### 03-with-auth.yaml
+
 - ✅ PostgreSQL database
 - ✅ Existing secrets
 - ✅ LDAP authentication
@@ -70,6 +73,7 @@ ct install --charts charts/semaphore
 - ✅ NetworkPolicy
 
 ### 04-statefulset.yaml
+
 - ✅ StatefulSet controller
 - ✅ VolumeClaimTemplates
 - ✅ Multiple replicas
@@ -78,6 +82,7 @@ ct install --charts charts/semaphore
 - ✅ PostgreSQL backend
 
 ### 05-monitoring-enabled.yaml
+
 - ✅ ServiceMonitor (Prometheus)
 - ✅ PrometheusRule (alerts)
 - ✅ HorizontalPodAutoscaler
@@ -107,7 +112,6 @@ helm lint . -f ci/XX-failing-test.yaml
 helm template test . -f ci/XX-failing-test.yaml | kubectl apply --dry-run=client -f -
 ```
 
-
 ## Test Coverage
 
 The CI tests cover:
@@ -120,7 +124,7 @@ The CI tests cover:
 ✅ **Configuration**: Server definitions, secrets, ConfigMaps  
 ✅ **Extensibility**: Init containers, sidecars, extra volumes  
 ✅ **pgAdmin Features**: SMTP, LDAP, pgpass, config_local.py  
-✅ **Scheduling**: Affinity, topology spread, DNS config  
+✅ **Scheduling**: Affinity, topology spread, DNS config
 
 ## Adding New Tests
 

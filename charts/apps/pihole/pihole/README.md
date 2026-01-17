@@ -69,128 +69,128 @@ For detailed Pi-hole Docker configuration options, see the [official documentati
 
 ### Core Parameters
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `namespaceOverride` | Override the deployment namespace | `""` |
-| `applicationName` | Override the application name | `""` |
-| `additionalLabels` | Additional labels for all resources | `{}` |
+| Parameter           | Description                         | Default |
+| ------------------- | ----------------------------------- | ------- |
+| `namespaceOverride` | Override the deployment namespace   | `""`    |
+| `applicationName`   | Override the application name       | `""`    |
+| `additionalLabels`  | Additional labels for all resources | `{}`    |
 
 ### ServiceAccount
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `serviceAccount.enabled` | Create a ServiceAccount | `true` |
-| `serviceAccount.name` | ServiceAccount name (generated if empty) | `""` |
-| `serviceAccount.annotations` | ServiceAccount annotations | `{}` |
-| `serviceAccount.imagePullSecrets` | Image pull secrets for ServiceAccount | `[]` |
+| Parameter                         | Description                              | Default |
+| --------------------------------- | ---------------------------------------- | ------- |
+| `serviceAccount.enabled`          | Create a ServiceAccount                  | `true`  |
+| `serviceAccount.name`             | ServiceAccount name (generated if empty) | `""`    |
+| `serviceAccount.annotations`      | ServiceAccount annotations               | `{}`    |
+| `serviceAccount.imagePullSecrets` | Image pull secrets for ServiceAccount    | `[]`    |
 
 ### NetworkPolicy
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `networkPolicy.enabled` | Enable NetworkPolicy for network isolation | `false` |
-| `networkPolicy.ingress` | Ingress rules | See values.yaml |
-| `networkPolicy.egress` | Egress rules | See values.yaml |
+| Parameter               | Description                                | Default         |
+| ----------------------- | ------------------------------------------ | --------------- |
+| `networkPolicy.enabled` | Enable NetworkPolicy for network isolation | `false`         |
+| `networkPolicy.ingress` | Ingress rules                              | See values.yaml |
+| `networkPolicy.egress`  | Egress rules                               | See values.yaml |
 
 ### PodDisruptionBudget
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `podDisruptionBudget.enabled` | Enable PDB for high availability | `false` |
-| `podDisruptionBudget.minAvailable` | Minimum available pods | `nil` |
-| `podDisruptionBudget.maxUnavailable` | Maximum unavailable pods | `1` |
+| Parameter                            | Description                      | Default |
+| ------------------------------------ | -------------------------------- | ------- |
+| `podDisruptionBudget.enabled`        | Enable PDB for high availability | `false` |
+| `podDisruptionBudget.minAvailable`   | Minimum available pods           | `nil`   |
+| `podDisruptionBudget.maxUnavailable` | Maximum unavailable pods         | `1`     |
 
 ### ServiceMonitor (Prometheus)
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `serviceMonitor.enabled` | Enable Prometheus ServiceMonitor | `false` |
-| `serviceMonitor.interval` | Scrape interval | `30s` |
-| `serviceMonitor.path` | Metrics path | `/admin/api.php?summaryRaw` |
-| `serviceMonitor.additionalLabels` | Additional labels for ServiceMonitor | `{}` |
+| Parameter                         | Description                          | Default                     |
+| --------------------------------- | ------------------------------------ | --------------------------- |
+| `serviceMonitor.enabled`          | Enable Prometheus ServiceMonitor     | `false`                     |
+| `serviceMonitor.interval`         | Scrape interval                      | `30s`                       |
+| `serviceMonitor.path`             | Metrics path                         | `/admin/api.php?summaryRaw` |
+| `serviceMonitor.additionalLabels` | Additional labels for ServiceMonitor | `{}`                        |
 
 ### Deployment
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `deployment.enabled` | Enable deployment | `true` |
-| `deployment.replicas` | Number of replicas | `1` |
-| `deployment.image.repository` | Container image repository | `pihole/pihole` |
-| `deployment.image.tag` | Container image tag | `latest` |
-| `deployment.image.imagePullPolicy` | Image pull policy | `IfNotPresent` |
-| `deployment.strategy.type` | Update strategy | `RollingUpdate` |
-| `deployment.priorityClassName` | Priority class for pods | `""` |
-| `deployment.dnsPolicy` | DNS policy for pods | `ClusterFirst` |
+| Parameter                          | Description                | Default         |
+| ---------------------------------- | -------------------------- | --------------- |
+| `deployment.enabled`               | Enable deployment          | `true`          |
+| `deployment.replicas`              | Number of replicas         | `1`             |
+| `deployment.image.repository`      | Container image repository | `pihole/pihole` |
+| `deployment.image.tag`             | Container image tag        | `latest`        |
+| `deployment.image.imagePullPolicy` | Image pull policy          | `IfNotPresent`  |
+| `deployment.strategy.type`         | Update strategy            | `RollingUpdate` |
+| `deployment.priorityClassName`     | Priority class for pods    | `""`            |
+| `deployment.dnsPolicy`             | DNS policy for pods        | `ClusterFirst`  |
 
 ### Security Context
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `deployment.podSecurityContext.fsGroup` | FSGroup for pod volumes | `1000` |
-| `deployment.podSecurityContext.seccompProfile.type` | Seccomp profile | `RuntimeDefault` |
-| `deployment.securityContext.runAsNonRoot` | Run as non-root user | `true` |
-| `deployment.securityContext.runAsUser` | User ID to run as | `1000` |
-| `deployment.securityContext.allowPrivilegeEscalation` | Allow privilege escalation | `false` |
-| `deployment.securityContext.capabilities.drop` | Dropped capabilities | `["ALL"]` |
-| `deployment.securityContext.capabilities.add` | Added capabilities | `["NET_BIND_SERVICE", ...]` |
+| Parameter                                             | Description                | Default                     |
+| ----------------------------------------------------- | -------------------------- | --------------------------- |
+| `deployment.podSecurityContext.fsGroup`               | FSGroup for pod volumes    | `1000`                      |
+| `deployment.podSecurityContext.seccompProfile.type`   | Seccomp profile            | `RuntimeDefault`            |
+| `deployment.securityContext.runAsNonRoot`             | Run as non-root user       | `true`                      |
+| `deployment.securityContext.runAsUser`                | User ID to run as          | `1000`                      |
+| `deployment.securityContext.allowPrivilegeEscalation` | Allow privilege escalation | `false`                     |
+| `deployment.securityContext.capabilities.drop`        | Dropped capabilities       | `["ALL"]`                   |
+| `deployment.securityContext.capabilities.add`         | Added capabilities         | `["NET_BIND_SERVICE", ...]` |
 
 ### Health Probes
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `deployment.startupProbe` | Startup probe configuration | See values.yaml |
-| `deployment.livenessProbe` | Liveness probe configuration | See values.yaml |
+| Parameter                   | Description                   | Default         |
+| --------------------------- | ----------------------------- | --------------- |
+| `deployment.startupProbe`   | Startup probe configuration   | See values.yaml |
+| `deployment.livenessProbe`  | Liveness probe configuration  | See values.yaml |
 | `deployment.readinessProbe` | Readiness probe configuration | See values.yaml |
 
 ### Resources
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `deployment.resources.requests.cpu` | CPU request | `0.5` |
-| `deployment.resources.requests.memory` | Memory request | `256M` |
-| `deployment.resources.limits.cpu` | CPU limit | `2` |
-| `deployment.resources.limits.memory` | Memory limit | `512M` |
+| Parameter                              | Description    | Default |
+| -------------------------------------- | -------------- | ------- |
+| `deployment.resources.requests.cpu`    | CPU request    | `0.5`   |
+| `deployment.resources.requests.memory` | Memory request | `256M`  |
+| `deployment.resources.limits.cpu`      | CPU limit      | `2`     |
+| `deployment.resources.limits.memory`   | Memory limit   | `512M`  |
 
 ### Autoscaling
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `deployment.autoscaling.enabled` | Enable HPA | `false` |
-| `deployment.autoscaling.minReplicas` | Minimum replicas | `1` |
-| `deployment.autoscaling.maxReplicas` | Maximum replicas | `10` |
-| `deployment.autoscaling.targetCPUUtilizationPercentage` | Target CPU % | `80` |
-| `deployment.autoscaling.targetMemoryUtilizationPercentage` | Target Memory % | `80` |
-| `deployment.autoscaling.behavior` | Scaling behavior | See values.yaml |
+| Parameter                                                  | Description      | Default         |
+| ---------------------------------------------------------- | ---------------- | --------------- |
+| `deployment.autoscaling.enabled`                           | Enable HPA       | `false`         |
+| `deployment.autoscaling.minReplicas`                       | Minimum replicas | `1`             |
+| `deployment.autoscaling.maxReplicas`                       | Maximum replicas | `10`            |
+| `deployment.autoscaling.targetCPUUtilizationPercentage`    | Target CPU %     | `80`            |
+| `deployment.autoscaling.targetMemoryUtilizationPercentage` | Target Memory %  | `80`            |
+| `deployment.autoscaling.behavior`                          | Scaling behavior | See values.yaml |
 
 ### Persistence
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `persistence.etc-pihole.enabled` | Enable persistence for /etc/pihole | `false` |
-| `persistence.etc-pihole.size` | PVC size | `1Gi` |
-| `persistence.etc-pihole.storageClass` | Storage class | `""` |
-| `persistence.etc-dnsmasq.enabled` | Enable persistence for /etc/dnsmasq.d | `false` |
-| `persistence.etc-dnsmasq.size` | PVC size | `500Mi` |
+| Parameter                             | Description                           | Default |
+| ------------------------------------- | ------------------------------------- | ------- |
+| `persistence.etc-pihole.enabled`      | Enable persistence for /etc/pihole    | `false` |
+| `persistence.etc-pihole.size`         | PVC size                              | `1Gi`   |
+| `persistence.etc-pihole.storageClass` | Storage class                         | `""`    |
+| `persistence.etc-dnsmasq.enabled`     | Enable persistence for /etc/dnsmasq.d | `false` |
+| `persistence.etc-dnsmasq.size`        | PVC size                              | `500Mi` |
 
 ### Service
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `service.type` | Service type | `ClusterIP` |
-| `service.port` | Service port | `80` |
-| `service.annotations` | Service annotations | `{}` |
-| `service.clusterIP` | Specific cluster IP | `nil` |
-| `service.loadBalancerIP` | Load balancer IP (for LoadBalancer type) | `nil` |
+| Parameter                | Description                              | Default     |
+| ------------------------ | ---------------------------------------- | ----------- |
+| `service.type`           | Service type                             | `ClusterIP` |
+| `service.port`           | Service port                             | `80`        |
+| `service.annotations`    | Service annotations                      | `{}`        |
+| `service.clusterIP`      | Specific cluster IP                      | `nil`       |
+| `service.loadBalancerIP` | Load balancer IP (for LoadBalancer type) | `nil`       |
 
 ### Ingress
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `ingress.enabled` | Enable ingress | `false` |
-| `ingress.className` | Ingress class name | `""` |
-| `ingress.annotations` | Ingress annotations | `{}` |
-| `ingress.hosts` | Ingress hosts configuration | `[]` |
-| `ingress.tls` | Ingress TLS configuration | `[]` |
+| Parameter             | Description                 | Default |
+| --------------------- | --------------------------- | ------- |
+| `ingress.enabled`     | Enable ingress              | `false` |
+| `ingress.className`   | Ingress class name          | `""`    |
+| `ingress.annotations` | Ingress annotations         | `{}`    |
+| `ingress.hosts`       | Ingress hosts configuration | `[]`    |
+| `ingress.tls`         | Ingress TLS configuration   | `[]`    |
 
 ## Examples
 
@@ -230,15 +230,15 @@ deployment:
   affinity:
     podAntiAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          labelSelector:
-            matchExpressions:
-            - key: app.kubernetes.io/name
-              operator: In
-              values:
-              - pihole
-          topologyKey: kubernetes.io/hostname
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - pihole
+            topologyKey: kubernetes.io/hostname
 
 persistence:
   etc-pihole:
@@ -256,15 +256,15 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
   hosts:
-  - host: pihole.example.com
-    paths:
-    - path: /
-      pathType: Prefix
-      port: 80
+    - host: pihole.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          port: 80
   tls:
-  - secretName: pihole-tls
-    hosts:
-    - pihole.example.com
+    - secretName: pihole-tls
+      hosts:
+        - pihole.example.com
 ```
 
 ### With Prometheus Monitoring
@@ -287,12 +287,12 @@ networkPolicy:
   enabled: true
   ingress:
     - from:
-      - namespaceSelector: {}
+        - namespaceSelector: {}
       ports:
-      - protocol: UDP
-        port: 53
-      - protocol: TCP
-        port: 53
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
 ```
 
 ## Security Best Practices
@@ -354,7 +354,7 @@ externalSecrets:
 sealedSecrets:
   enabled: true
   encryptedData:
-    FTLCONF_webserver_api_password: AgBZ8VzTxW5...  # Encrypted with kubeseal
+    FTLCONF_webserver_api_password: AgBZ8VzTxW5... # Encrypted with kubeseal
 ```
 
 #### Option 4: Secret Store CSI Driver (Enterprise)
@@ -372,6 +372,7 @@ secretProviderClass:
 **📖 For complete secret management documentation, see [SECRET_MANAGEMENT.md](SECRET_MANAGEMENT.md)**
 
 **📁 For working examples, see:**
+
 - `examples/values-existing-secret.yaml` - Using pre-created secrets (environment variables)
 - `examples/values-webpassword-file.yaml` - Using file-based secrets (WEBPASSWORD_FILE) ⭐ More Secure
 - `examples/values-external-secrets.yaml` - External Secrets Operator (cloud-native)
@@ -412,6 +413,7 @@ serviceMonitor:
 ```
 
 Pi-hole exposes metrics at `/admin/api.php?summaryRaw` including:
+
 - DNS queries blocked
 - Total DNS queries
 - Percentage blocked
@@ -423,11 +425,13 @@ Pi-hole exposes metrics at `/admin/api.php?summaryRaw` including:
 ### Pods not starting
 
 Check logs:
+
 ```bash
 kubectl logs -l app.kubernetes.io/name=pihole
 ```
 
 Check events:
+
 ```bash
 kubectl describe pod -l app.kubernetes.io/name=pihole
 ```
@@ -435,12 +439,14 @@ kubectl describe pod -l app.kubernetes.io/name=pihole
 ### DNS not working
 
 Verify service:
+
 ```bash
 kubectl get svc
 kubectl describe svc pihole
 ```
 
 Test DNS resolution:
+
 ```bash
 kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup google.com <pihole-service-ip>
 ```
@@ -448,6 +454,7 @@ kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup google.co
 ### Permission issues
 
 Check security context settings and ensure the storage volume has correct permissions:
+
 ```bash
 kubectl exec -it <pod-name> -- ls -la /etc/pihole
 ```
@@ -470,9 +477,9 @@ This Helm chart is licensed under the [Apache License 2.0](../../../LICENSE).
 
 ## Maintainers
 
-| Name | Email | GitHub |
-|------|-------|--------|
-| codefuturist | - | [@codefuturist](https://github.com/codefuturist) |
+| Name         | Email | GitHub                                           |
+| ------------ | ----- | ------------------------------------------------ |
+| codefuturist | -     | [@codefuturist](https://github.com/codefuturist) |
 
 ## Source Code
 

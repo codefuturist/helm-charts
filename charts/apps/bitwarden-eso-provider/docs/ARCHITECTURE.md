@@ -5,6 +5,7 @@
 This document outlines a production-ready, **completely free** solution for integrating Bitwarden personal/organizational vaults with Kubernetes secrets management using External Secrets Operator.
 
 **Key Benefits:**
+
 - ✅ **$0 cost** - No paid Bitwarden Secrets Manager needed
 - ✅ **Production-ready** - High availability, caching, monitoring
 - ✅ **Secure** - API key auth, encrypted sessions, audit logs
@@ -18,6 +19,7 @@ This document outlines a production-ready, **completely free** solution for inte
 ### ❌ What We're NOT Using
 
 **Bitwarden Secrets Manager (Paid - $10/org/month)**
+
 - Requires separate subscription
 - Different from personal vaults
 - Overkill for most use cases
@@ -25,6 +27,7 @@ This document outlines a production-ready, **completely free** solution for inte
 ### ✅ What We ARE Using
 
 **Bitwarden CLI Bridge + External Secrets Operator (Free)**
+
 - Works with existing personal/org vaults
 - Uses official Bitwarden CLI
 - Integrates with ESO webhook provider
@@ -126,6 +129,7 @@ This document outlines a production-ready, **completely free** solution for inte
 **Purpose**: Bridge between ESO and Bitwarden CLI
 
 **Features**:
+
 - REST API webhook endpoint for ESO
 - Automatic session management and renewal
 - Vault syncing with configurable interval
@@ -136,6 +140,7 @@ This document outlines a production-ready, **completely free** solution for inte
 - Works with self-hosted Bitwarden/Vaultwarden
 
 **Resources**:
+
 - 2-3 replicas for HA
 - 100-200m CPU, 128-256Mi memory
 - ClusterIP service on port 8080
@@ -148,6 +153,7 @@ This document outlines a production-ready, **completely free** solution for inte
 **Configuration**: `charts/homarr/templates/externalsecrets.yaml`
 
 **What Changes**: Only the SecretStore configuration:
+
 - Before: Points to Vault, AWS Secrets Manager, etc.
 - Now: Points to Bitwarden ESO Provider webhook
 
@@ -211,17 +217,20 @@ spec:
 ### Credential Storage
 
 **Bitwarden Credentials** (stored as Kubernetes Secret):
+
 - `BW_CLIENTID`: API key client ID
 - `BW_CLIENTSECRET`: API key client secret
 - Created once during installation
 - Never logged or exposed
 
 **API Token** (stored as Kubernetes Secret):
+
 - Used for ESO -> Provider authentication
 - Auto-generated random 32-char string
 - Validated on every webhook call
 
 **Session Token** (in-memory only):
+
 - Obtained from `bw login`
 - Stored in provider memory
 - Never persisted to disk
@@ -265,13 +274,13 @@ networkPolicy:
 
 ### Performance Numbers
 
-| Operation | Latency | Notes |
-|-----------|---------|-------|
-| Cache hit | <5ms | From provider LRU cache |
-| Cache miss (synced vault) | 50-100ms | CLI reads local vault |
-| Vault sync | 1-3s | Every 300s automatically |
-| Session renewal | 2-5s | Every 3600s automatically |
-| Cold start | 5-10s | Initial login + sync |
+| Operation                 | Latency  | Notes                     |
+| ------------------------- | -------- | ------------------------- |
+| Cache hit                 | <5ms     | From provider LRU cache   |
+| Cache miss (synced vault) | 50-100ms | CLI reads local vault     |
+| Vault sync                | 1-3s     | Every 300s automatically  |
+| Session renewal           | 2-5s     | Every 3600s automatically |
+| Cold start                | 5-10s    | Initial login + sync      |
 
 ### Scalability
 
@@ -322,14 +331,14 @@ kubectl get pods -n bitwarden-eso-provider
 externalSecret:
   enabled: true
   secretStore:
-    name: bitwarden        # ← Just change this!
+    name: bitwarden # ← Just change this!
     kind: ClusterSecretStore
   files:
     main:
       data:
         SECRET_ENCRYPTION_KEY:
           remoteRef:
-            key: "homarr-config"  # ← Bitwarden item name/UUID
+            key: "homarr-config" # ← Bitwarden item name/UUID
             property: "field:encryption_key"
 ```
 
@@ -337,14 +346,14 @@ externalSecret:
 
 ## Comparison with Alternatives
 
-| Solution | Cost | Complexity | Security | Flexibility |
-|----------|------|------------|----------|-------------|
-| **Bitwarden ESO Provider** | **Free** | Medium | High | High |
-| Bitwarden Secrets Manager | $10/org/mo | Low | High | Medium |
-| Sealed Secrets | Free | Low | Medium | Low |
-| SOPS | Free | Medium | High | Medium |
-| Vault | $Free/$$ | High | High | High |
-| AWS Secrets Manager | $$$ | Medium | High | Medium |
+| Solution                   | Cost       | Complexity | Security | Flexibility |
+| -------------------------- | ---------- | ---------- | -------- | ----------- |
+| **Bitwarden ESO Provider** | **Free**   | Medium     | High     | High        |
+| Bitwarden Secrets Manager  | $10/org/mo | Low        | High     | Medium      |
+| Sealed Secrets             | Free       | Low        | Medium   | Low         |
+| SOPS                       | Free       | Medium     | High     | Medium      |
+| Vault                      | $Free/$$   | High       | High     | High        |
+| AWS Secrets Manager        | $$$        | Medium     | High     | Medium      |
 
 ---
 
@@ -403,14 +412,16 @@ secretStore:
 ## Best Practices
 
 ### 1. Use API Keys (Not Passwords)
+
 ```yaml
 bitwarden:
   auth:
-    useApiKey: true  # ✅ Recommended
+    useApiKey: true # ✅ Recommended
     usePassword: false
 ```
 
 ### 2. Use Item UUIDs (Not Names)
+
 ```yaml
 # Better (UUID):
 key: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
@@ -420,6 +431,7 @@ key: "myapp-database"
 ```
 
 ### 3. Set Appropriate Refresh Intervals
+
 ```yaml
 # Sensitive data
 refreshInterval: 1m
@@ -429,6 +441,7 @@ refreshInterval: 15m
 ```
 
 ### 4. Enable Monitoring
+
 ```yaml
 metrics:
   enabled: true
@@ -437,6 +450,7 @@ metrics:
 ```
 
 ### 5. Use Network Policies
+
 ```yaml
 networkPolicy:
   enabled: true
@@ -504,6 +518,7 @@ helm upgrade bitwarden-eso-provider ./charts/bitwarden-eso-provider \
 ## Summary
 
 This architecture provides:
+
 - **Zero cost** alternative to paid secret managers
 - **Production-ready** with HA, caching, monitoring
 - **Seamless integration** with your existing Helm charts

@@ -8,21 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.1] - 2025-11-21
 
 ### Added
+
 - Traefik-focused example values showing ingress annotations, TLS, and secret references for docker-compose migrations
 - Documentation updates covering docker-compose env mappings and web client exposure requirements
 
 ### Fixed
+
 - Default secret key names now match the generated Secret data, so automatic API/GeoLite keys are injected without manual overrides
 
 ### Removed
-- `values.yaml.backup`, eliminating duplicate defaults that could confuse consumers
 
+- `values.yaml.backup`, eliminating duplicate defaults that could confuse consumers
 
 ## [1.0.0] - 2024-11-21
 
 ### Added
 
 #### Core Features
+
 - Initial release of Shlink Helm chart
 - Support for Shlink 4.2.4 (stable backend API)
 - Shlink Web Client 4.2.1 (React-based admin interface)
@@ -30,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PostgreSQL 16.2.0 via Bitnami subchart integration
 
 #### Deployment & Scaling
+
 - Support for both Deployment (default) and StatefulSet controllers
 - Horizontal Pod Autoscaling (HPA) with CPU and memory targets
 - Pod Disruption Budget (PDB) for high availability
@@ -38,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Init containers and sidecar support
 
 #### Database & Persistence
+
 - Integrated Bitnami PostgreSQL subchart
 - External database support (PostgreSQL/MySQL)
 - Persistent volume claims for Shlink data storage
@@ -46,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for existing secrets for database credentials
 
 #### Networking & Ingress
+
 - Dual ingress support (separate for API and web client)
 - Service configuration for backend (port 8080) and web client (port 80)
 - Support for multiple ingress classes (nginx, traefik, etc.)
@@ -54,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CORS, rate limiting, and security header configurations
 
 #### Security
+
 - API key authentication support
 - Kubernetes secrets for sensitive data (API keys, database passwords, GeoLite license)
 - Pod security contexts with runAsNonRoot
@@ -63,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configurable security settings (IP anonymization, logging)
 
 #### Monitoring & Observability
+
 - Prometheus ServiceMonitor integration
 - PrometheusRule with alerting rules
 - Custom metrics support
@@ -70,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Health check endpoint: `/rest/health`
 
 #### Configuration & Customization
+
 - Comprehensive values.yaml with 700+ lines of configuration options
 - Environment variable injection for Shlink configuration
 - Web client server pre-configuration
@@ -80,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for existing secrets
 
 #### Examples & Documentation
+
 - Four comprehensive example value files:
   - `values-minimal.yaml` - Basic configuration
   - `values-production.yaml` - Production HA setup
@@ -91,6 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ASCII art branding in NOTES.txt
 
 #### Testing & CI
+
 - CI test configurations for multiple scenarios
 - Unit test templates
 - Helm chart validation
@@ -98,6 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical Details
 
 #### Shlink Backend Configuration
+
 - `DB_DRIVER`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` environment variables
 - `DEFAULT_DOMAIN` and `DEFAULT_SCHEME` for URL generation
 - `INITIAL_API_KEY` for automatic API key creation
@@ -106,6 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security settings: `ANONYMIZE_REMOTE_ADDR`, `REDIRECTS_LOGGING`, `ORPHAN_VISITS_LOGGING`
 
 #### Web Client Features
+
 - Pre-configured server connections via `webClient.servers` array
 - Nginx-based static file serving
 - Separate scaling from backend
@@ -113,6 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Independent ingress configuration
 
 #### Kubernetes Resources
+
 - Deployment for stateless backend API
 - Deployment for web client UI
 - Service for backend (ClusterIP/NodePort/LoadBalancer)
@@ -129,18 +143,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PodDisruptionBudget (optional)
 
 ### Changed
+
 - N/A (initial release)
 
 ### Deprecated
+
 - N/A (initial release)
 
 ### Removed
+
 - N/A (initial release)
 
 ### Fixed
+
 - N/A (initial release)
 
 ### Security
+
 - Default configuration uses secure contexts (runAsNonRoot, dropped capabilities)
 - Secrets properly isolated for database credentials and API keys
 - Network policies available for traffic restriction
@@ -149,12 +168,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Future Releases
 
 ### Planned for 1.1.0
+
 - StatefulSet template updates
 - Additional CI test scenarios
 - Enhanced monitoring dashboards
 - Backup/restore documentation
 
 ### Planned for 1.2.0
+
 - Support for Shlink 5.x (when released)
 - Additional database backends (SQLite for development)
 - Enhanced Redis configuration options
@@ -170,21 +191,27 @@ For future releases, use this template:
 ## [X.Y.Z] - YYYY-MM-DD
 
 ### Added
+
 - New feature descriptions
 
 ### Changed
+
 - Modified behavior or updated dependencies
 
 ### Deprecated
+
 - Features that will be removed in future versions
 
 ### Removed
+
 - Features removed in this version
 
 ### Fixed
+
 - Bug fixes
 
 ### Security
+
 - Security improvements or vulnerability patches
 ```
 

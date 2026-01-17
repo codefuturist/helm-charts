@@ -13,6 +13,7 @@ This guide will help you get Shlink up and running quickly in your Kubernetes cl
 ## What is Shlink?
 
 Shlink is a self-hosted URL shortener that allows you to:
+
 - Create custom short URLs with your own domain
 - Track visits with detailed analytics (referrers, browsers, OS, location)
 - Manage multiple domains
@@ -78,7 +79,7 @@ shlink:
   defaultDomain: "go.yourcompany.com"
   defaultSchema: "https"
   initialApiKey: "your-secure-api-key-here"
-  geoLiteLicenseKey: "YOUR_GEOLITE_LICENSE_KEY"  # Get from MaxMind
+  geoLiteLicenseKey: "YOUR_GEOLITE_LICENSE_KEY" # Get from MaxMind
 
 webClient:
   enabled: true
@@ -170,7 +171,7 @@ shlink:
   defaultDomain: "short.example.com"
 
 database:
-  type: "postgresql"  # or "mysql"
+  type: "postgresql" # or "mysql"
   host: "postgres.example.com"
   port: 5432
   name: "shlink"
@@ -181,7 +182,7 @@ database:
   # existingSecretPasswordKey: "password"
 
 postgresql:
-  enabled: false  # Disable embedded database
+  enabled: false # Disable embedded database
 ```
 
 ```bash
@@ -329,6 +330,7 @@ kubectl get pods -l app.kubernetes.io/name=shlink
 ```
 
 Expected output:
+
 ```
 NAME                      READY   STATUS    RESTARTS   AGE
 shlink-7d5f4c8b9c-abcd1   1/1     Running   0          2m
@@ -365,16 +367,19 @@ kubectl exec -it deployment/shlink -- shlink db:create
 ### Problem: Backend Pod Not Starting
 
 **Check logs:**
+
 ```bash
 kubectl logs deployment/shlink
 ```
 
 **Common causes:**
+
 - Database connection failure
 - Missing required environment variables
 - Insufficient resources
 
 **Solution:**
+
 ```bash
 # Verify database is running
 kubectl get pods -l app.kubernetes.io/name=postgresql
@@ -391,21 +396,25 @@ helm upgrade shlink codefuturist/shlink \
 ### Problem: Cannot Access via Ingress
 
 **Check ingress controller:**
+
 ```bash
 kubectl get pods -n ingress-nginx
 ```
 
 **Check ingress resource:**
+
 ```bash
 kubectl describe ingress shlink-backend
 ```
 
 **Common causes:**
+
 - Ingress controller not installed
 - DNS not pointing to cluster
 - TLS certificate issues
 
 **Solution:**
+
 ```bash
 # Test with port-forward first
 kubectl port-forward svc/shlink 8080:8080
@@ -419,6 +428,7 @@ kubectl logs -n ingress-nginx deployment/ingress-nginx-controller
 **Symptom:** Web client shows "Server not reachable"
 
 **Solution:**
+
 1. Verify backend API is accessible at the configured URL
 2. Check server configuration in web client:
 
@@ -426,7 +436,7 @@ kubectl logs -n ingress-nginx deployment/ingress-nginx-controller
 webClient:
   servers:
     - name: "Production"
-      url: "https://go.yourcompany.com"  # Must be the actual backend URL
+      url: "https://go.yourcompany.com" # Must be the actual backend URL
       apiKey: "your-api-key"
 ```
 
@@ -446,6 +456,7 @@ kubectl port-forward svc/shlink-webclient 3000:80
 ### Problem: Database Connection Errors
 
 **Check database status:**
+
 ```bash
 kubectl get pods -l app.kubernetes.io/name=postgresql
 
@@ -453,6 +464,7 @@ kubectl logs -l app.kubernetes.io/name=postgresql
 ```
 
 **Verify credentials:**
+
 ```bash
 # Get the database password
 kubectl get secret shlink-postgresql -o jsonpath='{.data.postgres-password}' | base64 -d
@@ -467,6 +479,7 @@ kubectl exec -it deployment/shlink -- \
 **Symptom:** Location data not showing in analytics
 
 **Solution:**
+
 1. Get a free license key from [MaxMind](https://www.maxmind.com/en/geolite2/signup)
 2. Configure in values:
 
@@ -542,6 +555,7 @@ kubectl exec -i deployment/shlink-postgresql-0 -- \
 ## Support
 
 If you encounter issues:
+
 1. Check this troubleshooting section
 2. Review [GitHub Issues](https://github.com/codefuturist/helm-charts/issues)
 3. Consult [Shlink Documentation](https://shlink.io/documentation/)

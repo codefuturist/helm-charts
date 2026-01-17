@@ -6,17 +6,17 @@ This directory contains comprehensive tests for the Home Assistant Helm chart fo
 
 The test suite includes 9 automated test pods that validate different aspects of the deployment:
 
-| Test | Purpose | When It Runs | Weight |
-|------|---------|--------------|--------|
-| `test-connection` | Basic service connectivity | Always | 0 (first) |
-| `test-api` | Home Assistant API endpoint | Always | 1 |
-| `test-persistence` | Volume mounts and write permissions | When persistence enabled | 2 |
-| `test-database` | PostgreSQL connectivity | When PostgreSQL enabled | 3 |
-| `test-ingress` | Ingress configuration | When ingress enabled | 4 |
-| `test-rbac` | Service account and RBAC | Always | 5 |
-| `test-codeserver` | Code-server sidecar | When code-server enabled | 6 |
-| `test-mqtt` | MQTT broker | When MQTT enabled | 7 |
-| `test-security` | Security context validation | Always | 8 |
+| Test               | Purpose                             | When It Runs             | Weight    |
+| ------------------ | ----------------------------------- | ------------------------ | --------- |
+| `test-connection`  | Basic service connectivity          | Always                   | 0 (first) |
+| `test-api`         | Home Assistant API endpoint         | Always                   | 1         |
+| `test-persistence` | Volume mounts and write permissions | When persistence enabled | 2         |
+| `test-database`    | PostgreSQL connectivity             | When PostgreSQL enabled  | 3         |
+| `test-ingress`     | Ingress configuration               | When ingress enabled     | 4         |
+| `test-rbac`        | Service account and RBAC            | Always                   | 5         |
+| `test-codeserver`  | Code-server sidecar                 | When code-server enabled | 6         |
+| `test-mqtt`        | MQTT broker                         | When MQTT enabled        | 7         |
+| `test-security`    | Security context validation         | Always                   | 8         |
 
 ## Running Tests
 
@@ -55,6 +55,7 @@ kubectl delete pod -l app.kubernetes.io/component=test -n <namespace>
 **Purpose**: Validates basic service connectivity
 
 **What it tests**:
+
 - Service is reachable
 - Port is correctly configured
 - Basic network connectivity
@@ -68,6 +69,7 @@ kubectl delete pod -l app.kubernetes.io/component=test -n <namespace>
 **Purpose**: Validates Home Assistant API endpoint
 
 **What it tests**:
+
 - Home Assistant web interface is responding
 - HTTP status codes (200 or 401 expected)
 - Service health after startup
@@ -81,6 +83,7 @@ kubectl delete pod -l app.kubernetes.io/component=test -n <namespace>
 **Purpose**: Validates volume mounts and permissions
 
 **What it tests**:
+
 - Config volume is mounted
 - Config volume is writable
 - Media volume is mounted (if enabled)
@@ -97,6 +100,7 @@ kubectl delete pod -l app.kubernetes.io/component=test -n <namespace>
 **Purpose**: Validates PostgreSQL connectivity
 
 **What it tests**:
+
 - Database connection succeeds
 - Credentials are correct
 - Database is accessible
@@ -113,6 +117,7 @@ kubectl delete pod -l app.kubernetes.io/component=test -n <namespace>
 **Purpose**: Validates Ingress configuration
 
 **What it tests**:
+
 - Hosts are resolvable
 - Ingress is configured
 - HTTP endpoint responds
@@ -128,6 +133,7 @@ kubectl delete pod -l app.kubernetes.io/component=test -n <namespace>
 **Purpose**: Validates service account and RBAC configuration
 
 **What it tests**:
+
 - Service account token is mounted
 - RBAC permissions (if enabled)
 - Service account name is correct
@@ -141,6 +147,7 @@ kubectl delete pod -l app.kubernetes.io/component=test -n <namespace>
 **Purpose**: Validates code-server sidecar
 
 **What it tests**:
+
 - Code-server is responding
 - Port 8080 is accessible
 - Health endpoint works
@@ -156,6 +163,7 @@ kubectl delete pod -l app.kubernetes.io/component=test -n <namespace>
 **Purpose**: Validates MQTT broker sidecar
 
 **What it tests**:
+
 - MQTT broker accepts connections
 - Port 1883 is accessible
 - Can publish test messages
@@ -171,6 +179,7 @@ kubectl delete pod -l app.kubernetes.io/component=test -n <namespace>
 **Purpose**: Validates security configuration
 
 **What it tests**:
+
 - Controller (Deployment/StatefulSet) exists
 - Privileged mode status
 - Capabilities configuration
@@ -207,7 +216,7 @@ All test pods use secure, non-privileged containers:
 securityContext:
   allowPrivilegeEscalation: false
   runAsNonRoot: true
-  runAsUser: 65534  # nobody user
+  runAsUser: 65534 # nobody user
   capabilities:
     drop:
       - ALL

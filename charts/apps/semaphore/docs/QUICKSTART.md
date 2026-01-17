@@ -304,6 +304,7 @@ For SSH/Git access:
    - **Name**: production
    - **Type**: Static
    - **Inventory**:
+
      ```ini
      [webservers]
      web1.example.com

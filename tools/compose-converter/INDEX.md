@@ -7,6 +7,7 @@ This is a comprehensive template system for converting Docker Compose files into
 ## 🎯 Key Features
 
 ### Conversion Capabilities
+
 - ✅ **Service to Deployment**: Converts Docker Compose services to Kubernetes Deployments
 - ✅ **Port Mapping**: Automatically creates Services from port configurations
 - ✅ **Volume Handling**: Converts volumes to PersistentVolumeClaims or HostPath
@@ -16,9 +17,10 @@ This is a comprehensive template system for converting Docker Compose files into
 - ✅ **Multi-Service Support**: Handles complex compose files with multiple services
 
 ### Generated Chart Features
+
 - ✅ **Complete Chart Structure**: All necessary files and directories
 - ✅ **Production-Ready Templates**: Deployment, Service, Ingress, ConfigMap, Secret, PVC
-- ✅ **Helper Functions**: Reusable template helpers in _helpers.tpl
+- ✅ **Helper Functions**: Reusable template helpers in \_helpers.tpl
 - ✅ **Documentation**: Auto-generated README with examples
 - ✅ **Best Practices**: Security contexts, labels, annotations, probes
 - ✅ **Customizable Values**: Well-structured values.yaml with sensible defaults
@@ -88,6 +90,7 @@ make validate
 ## 📖 Documentation Structure
 
 ### 1. README.md
+
 - **Purpose**: Main documentation for the converter tool
 - **Contents**:
   - Features overview
@@ -100,6 +103,7 @@ make validate
   - Troubleshooting guide
 
 ### 2. BEST_PRACTICES.md
+
 - **Purpose**: Comprehensive guide to Helm chart best practices
 - **Contents**:
   - Chart structure guidelines
@@ -115,6 +119,7 @@ make validate
   - Additional recommendations
 
 ### 3. MIGRATION_GUIDE.md
+
 - **Purpose**: Step-by-step guide for migrating from Docker Compose to Kubernetes
 - **Contents**:
   - Pre-migration checklist
@@ -128,6 +133,7 @@ make validate
   - Migration checklist
 
 ### 4. CHANGELOG.md
+
 - **Purpose**: Version history and feature tracking
 - **Contents**:
   - Current version features (1.0.0)
@@ -140,9 +146,11 @@ make validate
 ### 1. compose2helm.py (Main Converter)
 
 **Key Classes:**
+
 - `ComposeConverter`: Main converter class with all conversion logic
 
 **Key Methods:**
+
 - `load_compose()`: Parse Docker Compose file
 - `generate_chart_yaml()`: Create Chart.yaml
 - `generate_values_yaml()`: Generate values.yaml from services
@@ -154,6 +162,7 @@ make validate
 - `_convert_resources()`: Map resource limits
 
 **Supported Compose Features:**
+
 - Services (image, command, args, ports, environment, volumes, healthcheck, user, deploy.resources)
 - Volumes (named volumes, bind mounts)
 - Networks (basic support)
@@ -162,6 +171,7 @@ make validate
 ### 2. Generated Template Files
 
 **Core Templates:**
+
 - `_helpers.tpl`: Template helper functions
 - `deployment.yaml`: Main workload
 - `service.yaml`: Service for networking
@@ -172,6 +182,7 @@ make validate
 - `NOTES.txt`: Post-installation notes
 
 **Template Features:**
+
 - Conditional rendering based on values
 - Checksum annotations for reload on change
 - Proper label and selector management
@@ -184,12 +195,14 @@ make validate
 ### 3. Supporting Scripts
 
 **setup.sh:**
+
 - Checks Python installation
 - Installs dependencies
 - Makes scripts executable
 - Shows usage examples
 
 **validate-chart.sh:**
+
 - Runs helm lint
 - Tests template rendering
 - Checks required files
@@ -198,6 +211,7 @@ make validate
 - Provides next steps
 
 **Makefile:**
+
 - `install`: Install dependencies
 - `test`: Run conversion tests
 - `examples`: Convert all examples
@@ -327,18 +341,21 @@ helm install test ./test-output/test-chart --dry-run
 ## 📦 Example Compose Files
 
 ### 1. simple-app.yml
+
 - Single nginx service
 - Basic configuration
 - Health check
 - Resource limits
 
 ### 2. wordpress.yml
+
 - Multi-service (WordPress + MySQL)
 - Service dependencies
 - Multiple volumes
 - Different resource configurations
 
 ### 3. fullstack-app.yml
+
 - Complex application (App + PostgreSQL + Redis)
 - Multiple service dependencies
 - Various health check types
@@ -347,6 +364,7 @@ helm install test ./test-output/test-chart --dry-run
 ## 🔒 Security Considerations
 
 ### Implemented Security Features
+
 - Non-root user execution via security context
 - Read-only root filesystem support
 - Secret management for sensitive data
@@ -355,6 +373,7 @@ helm install test ./test-output/test-chart --dry-run
 - RBAC-ready templates
 
 ### Recommendations
+
 - Always use specific image tags (not `latest`)
 - Move sensitive data to Kubernetes Secrets
 - Enable network policies in production
@@ -364,23 +383,24 @@ helm install test ./test-output/test-chart --dry-run
 
 ## 📊 Conversion Mappings
 
-| Docker Compose | Kubernetes | Notes |
-|----------------|------------|-------|
-| `service` | `Deployment` | One deployment per service |
-| `ports` | `Service` | ClusterIP service by default |
-| `volumes` (named) | `PersistentVolumeClaim` | With configurable storage class |
-| `volumes` (bind) | `hostPath` | Not recommended for production |
-| `environment` | `env` + `Secret`/`ConfigMap` | Smart detection of secrets |
-| `healthcheck` | `livenessProbe`/`readinessProbe` | HTTP and exec probes |
-| `deploy.resources.limits` | `resources.limits` | CPU and memory |
-| `deploy.resources.reservations` | `resources.requests` | CPU and memory |
-| `user` | `securityContext.runAsUser` | User ID mapping |
-| `command` | `command` | Array format |
-| `entrypoint` | `command` | Combined with args |
+| Docker Compose                  | Kubernetes                       | Notes                           |
+| ------------------------------- | -------------------------------- | ------------------------------- |
+| `service`                       | `Deployment`                     | One deployment per service      |
+| `ports`                         | `Service`                        | ClusterIP service by default    |
+| `volumes` (named)               | `PersistentVolumeClaim`          | With configurable storage class |
+| `volumes` (bind)                | `hostPath`                       | Not recommended for production  |
+| `environment`                   | `env` + `Secret`/`ConfigMap`     | Smart detection of secrets      |
+| `healthcheck`                   | `livenessProbe`/`readinessProbe` | HTTP and exec probes            |
+| `deploy.resources.limits`       | `resources.limits`               | CPU and memory                  |
+| `deploy.resources.reservations` | `resources.requests`             | CPU and memory                  |
+| `user`                          | `securityContext.runAsUser`      | User ID mapping                 |
+| `command`                       | `command`                        | Array format                    |
+| `entrypoint`                    | `command`                        | Combined with args              |
 
 ## 🚀 Deployment Workflow
 
 ### 1. Development
+
 ```bash
 # Convert compose file
 python3 compose2helm.py -c compose.yml -o charts -n myapp
@@ -390,6 +410,7 @@ helm install test charts/myapp --dry-run
 ```
 
 ### 2. Staging
+
 ```bash
 # Create staging values
 cp charts/myapp/values.yaml charts/myapp/values-staging.yaml
@@ -400,6 +421,7 @@ helm install myapp-staging charts/myapp -f values-staging.yaml -n staging
 ```
 
 ### 3. Production
+
 ```bash
 # Create production values
 cp charts/myapp/values.yaml charts/myapp/values-production.yaml
@@ -412,6 +434,7 @@ helm install myapp-prod charts/myapp -f values-production.yaml -n production
 ## 📈 Monitoring and Observability
 
 The generated charts support:
+
 - **Prometheus**: ServiceMonitor templates
 - **Logging**: Structured logging configuration
 - **Health Checks**: Liveness and readiness probes
@@ -421,6 +444,7 @@ The generated charts support:
 ## 🤝 Contributing
 
 Contributions are welcome! Areas for contribution:
+
 - Additional Docker Compose feature support
 - New template types (StatefulSet, DaemonSet)
 - Enhanced conversion logic
@@ -432,21 +456,25 @@ Contributions are welcome! Areas for contribution:
 ### Common Issues
 
 **Import Error (PyYAML)**
+
 ```bash
 pip3 install pyyaml
 ```
 
 **Permission Denied**
+
 ```bash
 chmod +x compose2helm.py
 ```
 
 **Chart Validation Failed**
+
 - Check Chart.yaml structure
 - Verify template syntax
 - Review values.yaml references
 
 **Deployment Issues**
+
 - Check image availability
 - Verify environment variables
 - Review resource limits
@@ -476,6 +504,7 @@ This project follows the same license as the parent repository.
 ## 🌟 Success Criteria
 
 After using this system, you should have:
+
 - ✅ A production-ready Helm chart
 - ✅ Proper resource management
 - ✅ Security best practices implemented

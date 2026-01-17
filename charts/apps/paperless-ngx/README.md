@@ -8,72 +8,73 @@ A Helm chart for Paperless-ngx - A community-supported supercharged version of p
 
 ## Maintainers
 
-| Name | Email | Url |
-| ---- | ------ | --- |
-| codefuturist |  | <https://github.com/codefuturist> |
+| Name         | Email | Url                               |
+| ------------ | ----- | --------------------------------- |
+| codefuturist |       | <https://github.com/codefuturist> |
 
 ## Source Code
 
-* <https://github.com/paperless-ngx/paperless-ngx>
-* <https://github.com/codefuturist/helm-charts>
+- <https://github.com/paperless-ngx/paperless-ngx>
+- <https://github.com/codefuturist/helm-charts>
 
 ## Requirements
 
-| Repository | Name | Version |
-|------------|------|---------|
-| file://../../libs/common | common | 2.x.x |
-| https://charts.bitnami.com/bitnami | postgresql | 16.x.x |
-| https://charts.bitnami.com/bitnami | redis | 20.x.x |
+| Repository                         | Name       | Version |
+| ---------------------------------- | ---------- | ------- |
+| file://../../libs/common           | common     | 2.x.x   |
+| https://charts.bitnami.com/bitnami | postgresql | 16.x.x  |
+| https://charts.bitnami.com/bitnami | redis      | 20.x.x  |
 
 ## Values
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| affinity | object | `{}` |  |
-| extraEnvVars | list | `[]` |  |
-| extraEnvVarsCM | string | `""` |  |
-| extraEnvVarsSecret | string | `""` |  |
-| extraVolumeMounts | list | `[]` |  |
-| extraVolumes | list | `[]` |  |
-| initContainers | list | `[]` |  |
-| livenessProbe.enabled | bool | `true` |  |
-| livenessProbe.failureThreshold | int | `6` |  |
-| livenessProbe.initialDelaySeconds | int | `30` |  |
-| livenessProbe.periodSeconds | int | `10` |  |
-| livenessProbe.successThreshold | int | `1` |  |
-| livenessProbe.timeoutSeconds | int | `5` |  |
-| metrics.enabled | bool | `false` |  |
-| metrics.serviceMonitor.enabled | bool | `false` |  |
-| metrics.serviceMonitor.honorLabels | bool | `false` |  |
-| metrics.serviceMonitor.interval | string | `"30s"` |  |
-| metrics.serviceMonitor.jobLabel | string | `""` |  |
-| metrics.serviceMonitor.labels | object | `{}` |  |
-| metrics.serviceMonitor.metricRelabelings | list | `[]` |  |
-| metrics.serviceMonitor.namespace | string | `""` |  |
-| metrics.serviceMonitor.relabelings | list | `[]` |  |
-| metrics.serviceMonitor.scrapeTimeout | string | `"10s"` |  |
-| metrics.serviceMonitor.selector | object | `{}` |  |
-| networkPolicy.allowExternal | bool | `true` |  |
-| networkPolicy.enabled | bool | `false` |  |
-| networkPolicy.extraEgress | list | `[]` |  |
-| networkPolicy.extraIngress | list | `[]` |  |
-| nodeSelector | object | `{}` |  |
-| podAnnotations | object | `{}` |  |
-| podLabels | object | `{}` |  |
-| readinessProbe.enabled | bool | `true` |  |
-| readinessProbe.failureThreshold | int | `6` |  |
-| readinessProbe.initialDelaySeconds | int | `10` |  |
-| readinessProbe.periodSeconds | int | `10` |  |
-| readinessProbe.successThreshold | int | `1` |  |
-| readinessProbe.timeoutSeconds | int | `5` |  |
-| sidecars | list | `[]` |  |
-| startupProbe.enabled | bool | `true` |  |
-| startupProbe.failureThreshold | int | `30` |  |
-| startupProbe.initialDelaySeconds | int | `0` |  |
-| startupProbe.periodSeconds | int | `10` |  |
-| startupProbe.successThreshold | int | `1` |  |
-| startupProbe.timeoutSeconds | int | `5` |  |
-| tolerations | list | `[]` |  |
+| Key                                      | Type   | Default | Description |
+| ---------------------------------------- | ------ | ------- | ----------- |
+| affinity                                 | object | `{}`    |             |
+| extraEnvVars                             | list   | `[]`    |             |
+| extraEnvVarsCM                           | string | `""`    |             |
+| extraEnvVarsSecret                       | string | `""`    |             |
+| extraVolumeMounts                        | list   | `[]`    |             |
+| extraVolumes                             | list   | `[]`    |             |
+| initContainers                           | list   | `[]`    |             |
+| livenessProbe.enabled                    | bool   | `true`  |             |
+| livenessProbe.failureThreshold           | int    | `6`     |             |
+| livenessProbe.initialDelaySeconds        | int    | `30`    |             |
+| livenessProbe.periodSeconds              | int    | `10`    |             |
+| livenessProbe.successThreshold           | int    | `1`     |             |
+| livenessProbe.timeoutSeconds             | int    | `5`     |             |
+| metrics.enabled                          | bool   | `false` |             |
+| metrics.serviceMonitor.enabled           | bool   | `false` |             |
+| metrics.serviceMonitor.honorLabels       | bool   | `false` |             |
+| metrics.serviceMonitor.interval          | string | `"30s"` |             |
+| metrics.serviceMonitor.jobLabel          | string | `""`    |             |
+| metrics.serviceMonitor.labels            | object | `{}`    |             |
+| metrics.serviceMonitor.metricRelabelings | list   | `[]`    |             |
+| metrics.serviceMonitor.namespace         | string | `""`    |             |
+| metrics.serviceMonitor.relabelings       | list   | `[]`    |             |
+| metrics.serviceMonitor.scrapeTimeout     | string | `"10s"` |             |
+| metrics.serviceMonitor.selector          | object | `{}`    |             |
+| networkPolicy.allowExternal              | bool   | `true`  |             |
+| networkPolicy.enabled                    | bool   | `false` |             |
+| networkPolicy.extraEgress                | list   | `[]`    |             |
+| networkPolicy.extraIngress               | list   | `[]`    |             |
+| nodeSelector                             | object | `{}`    |             |
+| podAnnotations                           | object | `{}`    |             |
+| podLabels                                | object | `{}`    |             |
+| readinessProbe.enabled                   | bool   | `true`  |             |
+| readinessProbe.failureThreshold          | int    | `6`     |             |
+| readinessProbe.initialDelaySeconds       | int    | `10`    |             |
+| readinessProbe.periodSeconds             | int    | `10`    |             |
+| readinessProbe.successThreshold          | int    | `1`     |             |
+| readinessProbe.timeoutSeconds            | int    | `5`     |             |
+| sidecars                                 | list   | `[]`    |             |
+| startupProbe.enabled                     | bool   | `true`  |             |
+| startupProbe.failureThreshold            | int    | `30`    |             |
+| startupProbe.initialDelaySeconds         | int    | `0`     |             |
+| startupProbe.periodSeconds               | int    | `10`    |             |
+| startupProbe.successThreshold            | int    | `1`     |             |
+| startupProbe.timeoutSeconds              | int    | `5`     |             |
+| tolerations                              | list   | `[]`    |             |
 
-----------------------------------------------
+---
+
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

@@ -100,6 +100,7 @@ This Helm chart deploys Home Assistant on Kubernetes with enterprise-grade featu
 **Purpose**: Core home automation platform
 
 **Key Features**:
+
 - Runs as root (UID 0) for device access
 - Seccomp profile for security
 - Liveness/readiness/startup probes
@@ -107,6 +108,7 @@ This Helm chart deploys Home Assistant on Kubernetes with enterprise-grade featu
 - Environment variable configuration
 
 **Volume Mounts**:
+
 - `/config` - Main configuration directory
 - `/media` - Media files (optional)
 - `/backup` - Backup storage (optional)
@@ -117,12 +119,14 @@ This Helm chart deploys Home Assistant on Kubernetes with enterprise-grade featu
 **Purpose**: Web-based code editor for configuration management
 
 **Why Include**:
+
 - Edit YAML files without SSH/shell access
 - Syntax highlighting and validation
 - Git integration for version control
 - Easy for non-technical users
 
 **Access**:
+
 - Via separate ingress (recommended)
 - Via port-forward for testing
 - Password-protected by default
@@ -132,6 +136,7 @@ This Helm chart deploys Home Assistant on Kubernetes with enterprise-grade featu
 **Purpose**: Local MQTT broker for IoT devices
 
 **Why Include**:
+
 - Many devices require MQTT
 - Reduces external dependencies
 - Low resource overhead
@@ -174,11 +179,13 @@ PersistentVolume Layout:
 ### Storage Classes
 
 **Recommendations**:
+
 - **Config**: Fast SSD (frequent reads/writes)
 - **Media**: Large HDD (infrequent access, large files)
 - **Backup**: Any storage (retention focused)
 
 **Example Configuration**:
+
 ```yaml
 persistence:
   storageClassName: "fast-ssd"
@@ -207,36 +214,36 @@ kind: CronJob
 metadata:
   name: home-assistant-backup
 spec:
-  schedule: "0 2 * * *"  # 2 AM daily
+  schedule: "0 2 * * *" # 2 AM daily
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-          - name: backup
-            image: alpine:3.18
-            command:
-            - /bin/sh
-            - -c
-            - |
-              BACKUP_FILE="/backup/ha-$(date +%Y%m%d-%H%M%S).tar.gz"
-              tar czf "$BACKUP_FILE" -C / config
+            - name: backup
+              image: alpine:3.18
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  BACKUP_FILE="/backup/ha-$(date +%Y%m%d-%H%M%S).tar.gz"
+                  tar czf "$BACKUP_FILE" -C / config
 
-              # Keep only last 7 daily backups
-              ls -t /backup/ha-*.tar.gz | tail -n +8 | xargs -r rm
+                  # Keep only last 7 daily backups
+                  ls -t /backup/ha-*.tar.gz | tail -n +8 | xargs -r rm
           volumeMounts:
-          - name: config
-            mountPath: /config
-            readOnly: true
-          - name: backup
-            mountPath: /backup
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: backup
+              mountPath: /backup
           volumes:
-          - name: config
-            persistentVolumeClaim:
-              claimName: home-assistant-config
-          - name: backup
-            persistentVolumeClaim:
-              claimName: home-assistant-backup
+            - name: config
+              persistentVolumeClaim:
+                claimName: home-assistant-config
+            - name: backup
+              persistentVolumeClaim:
+                claimName: home-assistant-backup
           restartPolicy: OnFailure
 ```
 
@@ -252,11 +259,13 @@ hostNetwork:
 ```
 
 **Pros**:
+
 - Better security isolation
 - Standard Kubernetes networking
 - Compatible with network policies
 
 **Cons**:
+
 - No multicast/broadcast (mDNS, SSDP)
 - Device discovery limited
 - Some integrations won't work
@@ -269,11 +278,13 @@ hostNetwork:
 ```
 
 **Pros**:
+
 - Full network access
 - mDNS/SSDP discovery works
 - All integrations functional
 
 **Cons**:
+
 - Less secure
 - Requires nodeSelector
 - Port conflicts possible
@@ -298,7 +309,7 @@ service:
 service:
   type: LoadBalancer
   port: 8123
-  loadBalancerIP: 192.168.1.100  # Optional static IP
+  loadBalancerIP: 192.168.1.100 # Optional static IP
 ```
 
 #### NodePort
@@ -357,7 +368,7 @@ ingress:
 
 ```yaml
 podSecurityContext:
-  runAsNonRoot: false  # Home Assistant needs root for device access
+  runAsNonRoot: false # Home Assistant needs root for device access
   runAsUser: 0
   runAsGroup: 0
   fsGroup: 0
@@ -377,7 +388,7 @@ securityContext:
     # add:
     #   - NET_RAW    # For network scanning
     #   - NET_ADMIN  # For network management
-  readOnlyRootFilesystem: false  # HA writes to filesystem
+  readOnlyRootFilesystem: false # HA writes to filesystem
   privileged: false
 ```
 
@@ -410,26 +421,26 @@ spec:
     - Egress
   ingress:
     - from:
-      - podSelector:
-          matchLabels:
-            app: nginx-ingress
+        - podSelector:
+            matchLabels:
+              app: nginx-ingress
       ports:
-      - protocol: TCP
-        port: 8123
+        - protocol: TCP
+          port: 8123
   egress:
     - to:
-      - podSelector: {}  # Allow all in namespace
+        - podSelector: {} # Allow all in namespace
     - to:
-      - namespaceSelector: {}
+        - namespaceSelector: {}
       ports:
-      - protocol: TCP
-        port: 443  # HTTPS
-      - protocol: TCP
-        port: 5432  # PostgreSQL
+        - protocol: TCP
+          port: 443 # HTTPS
+        - protocol: TCP
+          port: 5432 # PostgreSQL
     - to: []
       ports:
-      - protocol: UDP
-        port: 53  # DNS
+        - protocol: UDP
+          port: 53 # DNS
 ```
 
 ## High Availability
@@ -475,7 +486,7 @@ persistence:
 #### Option 2: PostgreSQL Backend
 
 ```yaml
-replicaCount: 1  # Still single replica
+replicaCount: 1 # Still single replica
 database:
   type: postgresql
   postgresql:
@@ -486,6 +497,7 @@ database:
 #### Option 3: Backup/Restore Strategy
 
 Focus on:
+
 - Automated backups
 - Quick restore procedures
 - Infrastructure as Code
@@ -496,7 +508,7 @@ Focus on:
 ```yaml
 podDisruptionBudget:
   enabled: true
-  minAvailable: 1  # Prevents voluntary disruption
+  minAvailable: 1 # Prevents voluntary disruption
 ```
 
 ## Database Options
@@ -504,11 +516,13 @@ podDisruptionBudget:
 ### SQLite (Default)
 
 **Pros**:
+
 - Zero configuration
 - Fast for single instance
 - Built-in, no external dependencies
 
 **Cons**:
+
 - File-based, single writer
 - Limited scale
 - No clustering
@@ -517,6 +531,7 @@ podDisruptionBudget:
 **Use Case**: Home labs, development, small deployments
 
 **Configuration**:
+
 ```yaml
 database:
   type: sqlite
@@ -527,6 +542,7 @@ Database location: `/config/home-assistant_v2.db`
 ### PostgreSQL
 
 **Pros**:
+
 - Better performance at scale
 - MVCC (multi-version concurrency control)
 - Better for recorder (history)
@@ -534,6 +550,7 @@ Database location: `/config/home-assistant_v2.db`
 - Better backup options
 
 **Cons**:
+
 - Additional complexity
 - Requires external database
 - Higher resource usage
@@ -583,6 +600,7 @@ database:
 ### Migration: SQLite → PostgreSQL
 
 1. **Backup SQLite database**:
+
 ```bash
 kubectl exec deployment/home-assistant -- \
   cp /config/home-assistant_v2.db /backup/ha_v2_backup.db
@@ -591,6 +609,7 @@ kubectl exec deployment/home-assistant -- \
 2. **Export data** (use Home Assistant tools or manual SQL)
 
 3. **Deploy PostgreSQL**:
+
 ```bash
 helm upgrade home-assistant codefuturist/home-assistant \
   --set postgresql.enabled=true \
@@ -631,7 +650,7 @@ nodeSelector:
 securityContext:
   capabilities:
     add:
-      - SYS_RAWIO  # For device access
+      - SYS_RAWIO # For device access
 ```
 
 ### Device Permissions
@@ -659,6 +678,7 @@ dnsPolicy: ClusterFirstWithHostNet
 ```
 
 This enables:
+
 - **mDNS**: HomeKit, Chromecast discovery
 - **SSDP**: UPnP device discovery
 - **Broadcast**: Wake-on-LAN, some IoT devices
@@ -668,11 +688,13 @@ This enables:
 ### From Docker to Kubernetes
 
 1. **Backup Docker volumes**:
+
 ```bash
 docker cp homeassistant:/config ./ha-config-backup
 ```
 
 2. **Create PVC and copy data**:
+
 ```bash
 # Install chart
 helm install home-assistant codefuturist/home-assistant
@@ -690,11 +712,13 @@ kubectl rollout restart deployment/home-assistant
 ### From VM to Kubernetes
 
 1. **Backup VM configuration**:
+
 ```bash
 scp -r root@homeassistant-vm:/config ./ha-config-backup
 ```
 
 2. **Install chart with persistent storage**:
+
 ```bash
 helm install home-assistant codefuturist/home-assistant \
   --set persistence.enabled=true \
@@ -702,6 +726,7 @@ helm install home-assistant codefuturist/home-assistant \
 ```
 
 3. **Restore configuration**:
+
 ```bash
 kubectl cp ./ha-config-backup home-assistant-pod:/config
 kubectl rollout restart deployment/home-assistant
@@ -720,6 +745,7 @@ kubectl rollout restart deployment/home-assistant
 ### Resource Allocation
 
 **Small Home** (< 50 devices):
+
 ```yaml
 resources:
   limits:
@@ -731,6 +757,7 @@ resources:
 ```
 
 **Medium Home** (50-200 devices):
+
 ```yaml
 resources:
   limits:
@@ -742,6 +769,7 @@ resources:
 ```
 
 **Large Home** (200+ devices):
+
 ```yaml
 resources:
   limits:
@@ -755,16 +783,18 @@ resources:
 ### Database Tuning
 
 #### SQLite
+
 ```yaml
 homeassistant:
   configuration:
     recorder:
       auto_purge: true
-      purge_keep_days: 7  # Reduce for better performance
-      commit_interval: 1  # Seconds between commits
+      purge_keep_days: 7 # Reduce for better performance
+      commit_interval: 1 # Seconds between commits
 ```
 
 #### PostgreSQL
+
 ```yaml
 homeassistant:
   configuration:
@@ -786,17 +816,19 @@ homeassistant:
 ### Storage Performance
 
 Use fast storage for config:
+
 ```yaml
 persistence:
-  storageClassName: "fast-ssd"  # NVMe or SSD
+  storageClassName: "fast-ssd" # NVMe or SSD
 ```
 
 Separate media to slower storage:
+
 ```yaml
 persistence:
   media:
     enabled: true
-    storageClassName: "standard"  # HDD okay
+    storageClassName: "standard" # HDD okay
 ```
 
 ### Probe Tuning
@@ -808,7 +840,7 @@ startupProbe:
   enabled: true
   initialDelaySeconds: 10
   periodSeconds: 10
-  failureThreshold: 60  # 10 minutes max startup
+  failureThreshold: 60 # 10 minutes max startup
 
 readinessProbe:
   enabled: true
@@ -841,6 +873,7 @@ livenessProbe:
 This architecture provides a solid foundation for running Home Assistant on Kubernetes, from simple home lab setups to production deployments. The chart's flexibility allows you to start simple and grow as needs evolve.
 
 For more information:
+
 - [Quick Start Guide](./QUICKSTART.md)
 - [Main README](../README.md)
 - [Home Assistant Docs](https://www.home-assistant.io/docs/)

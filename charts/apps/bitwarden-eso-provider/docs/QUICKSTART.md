@@ -35,7 +35,7 @@ externalSecret:
 ✅ **Secure** - API key auth, encrypted sessions  
 ✅ **Fast** - Built-in caching (60s TTL)  
 ✅ **HA** - 2-3 replicas, auto-scaling  
-✅ **Compatible** - Works with all your existing charts  
+✅ **Compatible** - Works with all your existing charts
 
 ## Architecture in One Picture
 
@@ -50,12 +50,14 @@ Your App → K8s Secret → ExternalSecret → Bitwarden Provider → Bitwarden 
 ### Use Case 1: Database Credentials
 
 **In Bitwarden:**
+
 - Item name: `myapp-database`
 - Username: `dbuser`
 - Password: `mysecretpass`
 - Custom field `DB_HOST`: `postgres.default.svc`
 
 **In Kubernetes:**
+
 ```yaml
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
@@ -83,11 +85,13 @@ spec:
 ### Use Case 2: API Keys
 
 **In Bitwarden:**
+
 - Item name: `api-keys`
 - Custom field `STRIPE_KEY`: `sk_live_...`
 - Custom field `SENDGRID_KEY`: `SG...`
 
 **In Kubernetes:**
+
 ```yaml
 data:
   - secretKey: STRIPE_KEY
@@ -121,14 +125,14 @@ externalSecret:
 
 ## Field Types Reference
 
-| What you want | Property value | Example |
-|---------------|----------------|---------|
-| Password | `"password"` | Login password field |
-| Username | `"username"` | Login username field |
-| TOTP | `"totp"` | 2FA secret |
-| URL | `"uri"` | First URL in item |
-| Notes | `"notes"` | Secure notes field |
-| Custom field | `"field:NAME"` | Custom field named NAME |
+| What you want | Property value | Example                 |
+| ------------- | -------------- | ----------------------- |
+| Password      | `"password"`   | Login password field    |
+| Username      | `"username"`   | Login username field    |
+| TOTP          | `"totp"`       | 2FA secret              |
+| URL           | `"uri"`        | First URL in item       |
+| Notes         | `"notes"`      | Secure notes field      |
+| Custom field  | `"field:NAME"` | Custom field named NAME |
 
 ## Installation Options
 
@@ -192,30 +196,30 @@ curl http://localhost:8080/healthz
 
 ```yaml
 # values.yaml
-replicaCount: 3  # Scale up for HA
+replicaCount: 3 # Scale up for HA
 
 cache:
   enabled: true
-  ttl: 120        # Cache for 2 minutes
-  maxSize: 2000   # Store up to 2000 items
+  ttl: 120 # Cache for 2 minutes
+  maxSize: 2000 # Store up to 2000 items
 
 bitwarden:
-  sessionTTL: 7200      # Session valid for 2 hours
-  syncInterval: 600     # Sync vault every 10 minutes
+  sessionTTL: 7200 # Session valid for 2 hours
+  syncInterval: 600 # Sync vault every 10 minutes
 ```
 
 ### Security Hardening
 
 ```yaml
 networkPolicy:
-  enabled: true  # Restrict network access
+  enabled: true # Restrict network access
 
 bitwarden:
   auth:
-    useApiKey: true  # Use API keys (not passwords)
+    useApiKey: true # Use API keys (not passwords)
 
 externalSecretsOperator:
-  namespaced: true  # Per-namespace instead of cluster-wide
+  namespaced: true # Per-namespace instead of cluster-wide
 ```
 
 ## Troubleshooting
@@ -243,13 +247,15 @@ kubectl logs -n external-secrets-operator -l app.kubernetes.io/name=external-sec
 ### Problem: "Field not found" errors
 
 Check property name:
+
 - Use `"password"` for login password
-- Use `"username"` for login username  
+- Use `"username"` for login username
 - Use `"field:MyField"` for custom fields (case-sensitive!)
 
 ### Problem: Slow sync
 
 Increase cache TTL:
+
 ```bash
 helm upgrade bitwarden-eso-provider ./charts/bitwarden-eso-provider \
   --set cache.ttl=300 --reuse-values
@@ -260,25 +266,27 @@ helm upgrade bitwarden-eso-provider ./charts/bitwarden-eso-provider \
 ### From Hardcoded Secrets
 
 **Before:**
+
 ```yaml
 secret:
   enabled: true
   files:
     main:
       data:
-        password: "bXlzZWNyZXQ="  # base64
+        password: "bXlzZWNyZXQ=" # base64
 ```
 
 **After:**
+
 ```yaml
 externalSecret:
   enabled: true
-  secretStore: {name: bitwarden, kind: ClusterSecretStore}
+  secretStore: { name: bitwarden, kind: ClusterSecretStore }
   files:
     main:
       data:
         password:
-          remoteRef: {key: "myapp", property: "password"}
+          remoteRef: { key: "myapp", property: "password" }
 ```
 
 ### From SealedSecrets
@@ -291,23 +299,23 @@ Just change the SecretStore reference from `vault` to `bitwarden`.
 
 ## Cost Comparison
 
-| Solution | Monthly Cost |
-|----------|--------------|
-| **Bitwarden ESO Provider** | **$0** |
-| Bitwarden Secrets Manager | $10/org |
-| AWS Secrets Manager | ~$0.40/secret |
-| Azure Key Vault | ~$0.03/10k ops |
-| HashiCorp Vault Cloud | $0.03/hour |
+| Solution                   | Monthly Cost   |
+| -------------------------- | -------------- |
+| **Bitwarden ESO Provider** | **$0**         |
+| Bitwarden Secrets Manager  | $10/org        |
+| AWS Secrets Manager        | ~$0.40/secret  |
+| Azure Key Vault            | ~$0.03/10k ops |
+| HashiCorp Vault Cloud      | $0.03/hour     |
 
 ## Performance Benchmarks
 
-| Metric | Value |
-|--------|-------|
-| Cache hit latency | <5ms |
-| Cache miss latency | 50-100ms |
+| Metric             | Value      |
+| ------------------ | ---------- |
+| Cache hit latency  | <5ms       |
+| Cache miss latency | 50-100ms   |
 | Throughput/replica | ~100 req/s |
-| Memory/replica | 128-256Mi |
-| Startup time | 5-10s |
+| Memory/replica     | 128-256Mi  |
+| Startup time       | 5-10s      |
 
 ## Support
 

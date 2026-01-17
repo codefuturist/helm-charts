@@ -10,29 +10,29 @@ Use the search bar above (or press ++s++ / ++f++) to search across all chart val
 
 <div class="grid cards" markdown>
 
--   :material-application:{ .lg .middle } __Application Chart__
+- :material-application:{ .lg .middle } **Application Chart**
 
-    ---
+  ***
 
-    Generic helm chart for deploying stateless applications, jobs, and cronjobs.
+  Generic helm chart for deploying stateless applications, jobs, and cronjobs.
 
-    [:octicons-arrow-right-24: View Chart](charts/application.md)
+  [:octicons-arrow-right-24: View Chart](charts/application.md)
 
--   :material-home:{ .lg .middle } __Homarr__
+- :material-home:{ .lg .middle } **Homarr**
 
-    ---
+  ***
 
-    Dashboard for managing your self-hosted applications.
+  Dashboard for managing your self-hosted applications.
 
-    [:octicons-arrow-right-24: View Chart](charts/homarr.md)
+  [:octicons-arrow-right-24: View Chart](charts/homarr.md)
 
--   :material-web:{ .lg .middle } __NGINX__
+- :material-web:{ .lg .middle } **NGINX**
 
-    ---
+  ***
 
-    NGINX web server with customizable configuration.
+  NGINX web server with customizable configuration.
 
-    [:octicons-arrow-right-24: View Chart](charts/nginx.md)
+  [:octicons-arrow-right-24: View Chart](charts/nginx.md)
 
 </div>
 
@@ -49,12 +49,12 @@ helm install my-app pandia/application
 
 ## :books: Documentation
 
-| Section | Description |
-|---------|-------------|
-| [Getting Started](getting-started/installation.md) | Installation and basic usage |
-| [Charts](charts/index.md) | All available charts with full documentation |
-| [Values Search](reference/search.md) | Interactive search across all chart values |
-| [Contributing](CONTRIBUTING.md) | How to contribute to this repository |
+| Section                                            | Description                                  |
+| -------------------------------------------------- | -------------------------------------------- |
+| [Getting Started](getting-started/installation.md) | Installation and basic usage                 |
+| [Charts](charts/index.md)                          | All available charts with full documentation |
+| [Values Search](reference/search.md)               | Interactive search across all chart values   |
+| [Contributing](CONTRIBUTING.md)                    | How to contribute to this repository         |
 
 ## :label: Browse by Tags
 

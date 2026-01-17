@@ -20,6 +20,7 @@ We are committed to providing a welcoming and inspiring community for all. Pleas
 ### Reporting Bugs
 
 If you find a bug, please create an issue with:
+
 - Clear description of the problem
 - Steps to reproduce
 - Expected vs actual behavior
@@ -29,6 +30,7 @@ If you find a bug, please create an issue with:
 ### Suggesting Enhancements
 
 Enhancement suggestions are welcome! Please create an issue describing:
+
 - The enhancement you'd like to see
 - Why it would be useful
 - Any implementation ideas you have
@@ -158,6 +160,7 @@ charts/
 ### PR Title Format
 
 Use conventional commits format:
+
 - `feat(chart-name): add new feature`
 - `fix(chart-name): resolve bug`
 - `docs(chart-name): update documentation`
@@ -196,6 +199,7 @@ helm repo index site/ --url https://charts.pandia.io --merge site/index.yaml
 ## Questions?
 
 If you have questions, feel free to:
+
 - Open an issue
 - Reach out to maintainers
 - Check existing documentation

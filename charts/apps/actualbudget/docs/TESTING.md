@@ -74,6 +74,7 @@ helm uninstall metube -n metube
 #### validate.sh - Quick Validation
 
 Fast validation script that runs:
+
 - Helm lint
 - Template rendering for all CI configurations
 - Resource count validation
@@ -85,6 +86,7 @@ Fast validation script that runs:
 #### test.sh - Comprehensive Suite
 
 Full test suite covering:
+
 - Chart linting
 - Default values rendering
 - All CI configurations
@@ -217,7 +219,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2

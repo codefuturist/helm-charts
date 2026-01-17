@@ -510,16 +510,19 @@ Use this checklist to ensure comprehensive testing:
 If a test fails:
 
 1. Check pod logs:
+
    ```bash
    kubectl logs -l app.kubernetes.io/name=semaphore
    ```
 
 2. Check pod events:
+
    ```bash
    kubectl describe pod -l app.kubernetes.io/name=semaphore
    ```
 
 3. Check rendered manifests:
+
    ```bash
    helm template semaphore . --debug
    ```
@@ -561,7 +564,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v3
         with:
-          version: '3.12.0'
+          version: "3.12.0"
 
       - name: Install helm-unittest
         run: helm plugin install https://github.com/helm-unittest/helm-unittest.git

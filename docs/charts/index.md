@@ -4,22 +4,22 @@ This repository contains the following Helm charts:
 
 ## Available Charts
 
-| Chart | Version | Description |
-|-------|---------|-------------|
-| [application](application.md) | 6.14.1 | Generic helm chart for deploying stateless applications |
-| [homarr](homarr.md) | 5.2.12 | Dashboard for managing self-hosted applications |
-| [nginx](nginx.md) | 0.1.2 | NGINX web server with customizable configuration |
+| Chart                         | Version | Description                                             |
+| ----------------------------- | ------- | ------------------------------------------------------- |
+| [application](application.md) | 6.14.1  | Generic helm chart for deploying stateless applications |
+| [homarr](homarr.md)           | 5.2.12  | Dashboard for managing self-hosted applications         |
+| [nginx](nginx.md)             | 0.1.2   | NGINX web server with customizable configuration        |
 
 ## Chart Categories
 
 ### :material-application: Application Deployment
 
 - **[Application](application.md)** - Deploy any stateless application with support for:
-    - Deployments, Jobs, and CronJobs
-    - ConfigMaps and Secrets
-    - Ingress and Services
-    - Autoscaling (HPA/VPA)
-    - ServiceMonitors for Prometheus
+  - Deployments, Jobs, and CronJobs
+  - ConfigMaps and Secrets
+  - Ingress and Services
+  - Autoscaling (HPA/VPA)
+  - ServiceMonitors for Prometheus
 
 ### :material-home: Dashboard & Management
 
@@ -42,9 +42,9 @@ Resources are named using the pattern: `{{ .Release.Name }}-{{ .Chart.Name }}`
 Standard Kubernetes labels are applied:
 
 ```yaml
-app.kubernetes.io/name: {{ .Chart.Name }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/version: {{ .Chart.AppVersion }}
+app.kubernetes.io/name: { { .Chart.Name } }
+app.kubernetes.io/instance: { { .Release.Name } }
+app.kubernetes.io/version: { { .Chart.AppVersion } }
 app.kubernetes.io/managed-by: Helm
 ```
 

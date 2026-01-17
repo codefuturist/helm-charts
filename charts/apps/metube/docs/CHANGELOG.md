@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-11-21
 
 ### Added
+
 - Initial release of MeTube Helm chart
 - Support for Deployment and StatefulSet controller types (Deployment is default)
 - Comprehensive download directory management with 10Gi default persistent storage
@@ -32,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Helm unittest test suite with >90% coverage
 
 ### Configuration Highlights
+
 - Default storage: 10Gi persistent volume (recommended 50-100Gi for production)
 - Port: 8081 (MeTube standard port)
 - Image: ghcr.io/alexta69/metube:latest
@@ -40,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Controller: Deployment with Recreate strategy (default)
 
 ### Documentation
+
 - Comprehensive README with all configuration options
 - Quick start guide (docs/QUICKSTART.md)
 - Testing guide (docs/TESTING.md)
@@ -59,6 +62,7 @@ MeTube supports downloading videos from YouTube and 1000+ other websites with pl
 custom directory organization, and flexible output formatting.
 
 Key features:
+
 - 🎬 Support for 1000+ video sites via yt-dlp
 - 📁 Organized downloads with custom directories
 - 🎨 Modern web interface with light/dark themes
@@ -69,6 +73,7 @@ Key features:
 - 🔒 Security-hardened with least-privilege principles
 
 For more information, visit:
+
 - Chart repository: https://github.com/codefuturist/helm-charts
 - MeTube project: https://github.com/alexta69/metube
 - yt-dlp documentation: https://github.com/yt-dlp/yt-dlp
