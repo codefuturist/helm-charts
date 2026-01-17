@@ -67,7 +67,7 @@ jobs:
 
             - name: Create Pull Request
               if: steps.ha-version.outputs.changed == 'true'
-              uses: peter-evans/create-pull-request@v6
+              uses: peter-evans/create-pull-request@v7
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   commit-message: "chore: update Home Assistant to ${{ steps.ha-version.outputs.version }}"
