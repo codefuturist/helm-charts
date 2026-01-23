@@ -1,0 +1,68 @@
+# Self-hosted Renovate Bot
+# Runs on schedule to check for dependency updates
+# https://github.com/renovatebot/github-action
+#
+# Token Setup (required):
+#   1. Create Classic PAT at https://github.com/settings/tokens
+#   2. Scopes needed: repo, workflow (Fine-grained tokens NOT supported)
+#   3. Add as repository secret: gh secret set RENOVATE_TOKEN
+#
+# Production schedule: Weekly on Monday 8am UTC
+
+name: Renovate
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+
+  # Manual trigger with options
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Dry-run mode"
+        required: false
+        default: "null"
+        type: choice
+        options:
+          - "null" # Normal run - creates PRs
+          - extract # Only extract dependencies, no PRs
+          - lookup # Extract + lookup versions, no PRs
+          - full # Full run simulation, no PRs
+      log-level:
+        description: "Log level"
+        required: false
+        default: "info"
+        type: choice
+        options:
+          - debug
+          - info
+          - warn
+
+# Prevent concurrent runs
+concurrency:
+  group: renovate-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    name: Renovate
+    runs-on: ubuntu-latest
+    # Only run on main repo, not forks
+    if: github.repository == 'codefuturist/helm-charts'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Renovate
+        uses: renovatebot/github-action@v44.2.5
+        with:
+          configurationFile: renovate.json
+          token: ${{ secrets.RENOVATE_TOKEN }}
+        env:
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          LOG_LEVEL: ${{ inputs.log-level || 'info' }}
+          RENOVATE_DRY_RUN: ${{ inputs.dry-run || 'null' }}
+          RENOVATE_ONBOARDING: "false"
+          RENOVATE_REQUIRE_CONFIG: "optional"
+          RENOVATE_REPOSITORY_CACHE: "enabled"
