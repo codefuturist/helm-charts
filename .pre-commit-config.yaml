@@ -1,4 +1,15 @@
 repos:
+  # Usage: pre-commit run autoupdate --hook-stage manual
+  - repo: local
+    hooks:
+      - id: autoupdate
+        name: autoupdate
+        entry: pre-commit autoupdate
+        language: system
+        always_run: true
+        pass_filenames: false
+        stages: [manual]
+
   - repo: https://github.com/norwoodj/helm-docs
     rev: v1.14.2
     hooks:
