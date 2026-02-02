@@ -190,3 +190,124 @@ list-charts: ## List all charts in the repository
 		fi \
 	done
 
+
+# ==============================================================================
+# Git hooks helpers (pre-commit)
+# ==============================================================================
+# =============================================================================
+# Git hooks helpers (pre-commit)
+# =============================================================================
+# DEVELOPER-FRIENDLY: hooks run on STAGED FILES ONLY by default (fast!)
+# For full repo checks (CI, releases): use hooks-run-all
+#
+# Quick reference:
+#   make hooks-install    - Install hooks (one-time setup)
+#   make hooks-run        - Run on staged files only (fast, for dev)
+#   make hooks-run-all    - Run on ALL files (slower, for CI/release)
+#   make hooks-run-hook HOOK=ruff  - Run specific hook on staged files
+# =============================================================================
+
+PRE_COMMIT ?= pre-commit
+PRE_COMMIT_CONFIG ?= .pre-commit-config.yaml
+
+.PHONY: hooks-install hooks-uninstall hooks-status hooks-run hooks-run-all hooks-run-hook hooks-run-hook-all hooks-autoupdate hooks-clean
+
+hooks-install: ## Install git hooks (runs on staged files by default)
+	@echo "$(GREEN)Installing git hooks...$(RESET)"
+	@$(PRE_COMMIT) --version >/dev/null 2>&1 || { echo "$(YELLOW)pre-commit not available; skipping.$(RESET)"; exit 0; }
+	@if [ ! -f "$(PRE_COMMIT_CONFIG)" ]; then \
+		echo "$(YELLOW)No pre-commit config found at $(PRE_COMMIT_CONFIG).$(RESET)"; \
+		echo "$(YELLOW)Tip: set PRE_COMMIT_CONFIG to one of:$(RESET)"; \
+		find . -name .pre-commit-config.yaml -print 2>/dev/null | head -n 20 | sed 's|^\./|  - |'; \
+		exit 0; \
+	else \
+		$(PRE_COMMIT) install -c $(PRE_COMMIT_CONFIG) --install-hooks; \
+		$(PRE_COMMIT) install -c $(PRE_COMMIT_CONFIG) --hook-type commit-msg --install-hooks; \
+		echo ""; \
+		echo "$(GREEN)✓ Hooks installed! They will run on STAGED files only (fast).$(RESET)"; \
+		echo "$(YELLOW)  Tip: Use 'make hooks-run-all' for full repo check.$(RESET)"; \
+	fi
+
+hooks-uninstall: ## Uninstall git hooks
+	@echo "$(GREEN)Uninstalling git hooks...$(RESET)"
+	@$(PRE_COMMIT) --version >/dev/null 2>&1 || { echo "$(YELLOW)pre-commit not available; skipping.$(RESET)"; exit 0; }
+	@$(PRE_COMMIT) uninstall -t pre-commit || true
+	@$(PRE_COMMIT) uninstall -t commit-msg || true
+
+hooks-status: ## Show git hook status and configuration
+	@echo "$(GREEN)Git hooks status$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Configuration:$(RESET)"
+	@echo "  Config file: $(PRE_COMMIT_CONFIG)"
+	@echo "  core.hooksPath: $$(git config --get core.hooksPath || echo '(default .git/hooks)')"
+	@echo ""
+	@echo "$(YELLOW)Installed hooks in .git/hooks:$(RESET)"
+	@ls -1 .git/hooks 2>/dev/null | grep -v '\.sample$$' | sed 's/^/  ✓ /' || echo "  (none)"
+	@echo ""
+	@echo "$(YELLOW)Available commands:$(RESET)"
+	@echo "  make hooks-run       - Run on staged files (fast, default)"
+	@echo "  make hooks-run-all   - Run on ALL files (slower)"
+	@echo "  make hooks-run-hook HOOK=<name>  - Run specific hook"
+
+hooks-run: ## Run hooks on STAGED files only (fast, recommended for dev)
+	@echo "$(GREEN)Running hooks on staged files...$(RESET)"
+	@$(PRE_COMMIT) --version >/dev/null 2>&1 || { echo "$(YELLOW)pre-commit not available; skipping.$(RESET)"; exit 0; }
+	@if [ ! -f "$(PRE_COMMIT_CONFIG)" ]; then \
+		echo "$(YELLOW)No pre-commit config found at $(PRE_COMMIT_CONFIG); skipping.$(RESET)"; \
+		exit 0; \
+	else \
+		$(PRE_COMMIT) run -c $(PRE_COMMIT_CONFIG) || { \
+			echo ""; \
+			echo "$(YELLOW)Tip: Some issues can be auto-fixed. Check the output above.$(RESET)"; \
+			exit 1; \
+		}; \
+	fi
+
+hooks-run-all: ## Run hooks on ALL files (slower, for CI or full repo check)
+	@echo "$(GREEN)Running hooks on ALL files (this may take a while)...$(RESET)"
+	@$(PRE_COMMIT) --version >/dev/null 2>&1 || { echo "$(YELLOW)pre-commit not available; skipping.$(RESET)"; exit 0; }
+	@if [ ! -f "$(PRE_COMMIT_CONFIG)" ]; then \
+		echo "$(YELLOW)No pre-commit config found at $(PRE_COMMIT_CONFIG); skipping.$(RESET)"; \
+		exit 0; \
+	else \
+		$(PRE_COMMIT) run -c $(PRE_COMMIT_CONFIG) --all-files --show-diff-on-failure; \
+	fi
+
+hooks-run-hook: ## Run a specific hook (usage: make hooks-run-hook HOOK=ruff)
+ifndef HOOK
+	@echo "$(RED)Error: HOOK is required$(RESET)"
+	@echo "Usage: make hooks-run-hook HOOK=<hook-id>"
+	@echo ""
+	@echo "Available hooks (from $(PRE_COMMIT_CONFIG)):"
+	@$(PRE_COMMIT) run -c $(PRE_COMMIT_CONFIG) --list-hooks 2>/dev/null | sed 's/^/  /' || echo "  (run 'make hooks-install' first)"
+	@exit 1
+else
+	@echo "$(GREEN)Running hook '$(HOOK)' on staged files...$(RESET)"
+	@$(PRE_COMMIT) run -c $(PRE_COMMIT_CONFIG) $(HOOK) || exit 1
+endif
+
+hooks-run-hook-all: ## Run a specific hook on ALL files (usage: make hooks-run-hook-all HOOK=ruff)
+ifndef HOOK
+	@echo "$(RED)Error: HOOK is required$(RESET)"
+	@echo "Usage: make hooks-run-hook-all HOOK=<hook-id>"
+	@exit 1
+else
+	@echo "$(GREEN)Running hook '$(HOOK)' on ALL files...$(RESET)"
+	@$(PRE_COMMIT) run -c $(PRE_COMMIT_CONFIG) $(HOOK) --all-files || exit 1
+endif
+
+hooks-autoupdate: ## Update pre-commit hook versions
+	@echo "$(GREEN)Updating pre-commit hooks...$(RESET)"
+	@$(PRE_COMMIT) --version >/dev/null 2>&1 || { echo "$(YELLOW)pre-commit not available; skipping.$(RESET)"; exit 0; }
+	@if [ ! -f "$(PRE_COMMIT_CONFIG)" ]; then \
+		echo "$(YELLOW)No pre-commit config found at $(PRE_COMMIT_CONFIG); skipping.$(RESET)"; \
+		exit 0; \
+	else \
+		$(PRE_COMMIT) autoupdate -c $(PRE_COMMIT_CONFIG); \
+	fi
+
+hooks-clean: ## Clean pre-commit cache (useful if hooks are misbehaving)
+	@echo "$(GREEN)Cleaning pre-commit cache...$(RESET)"
+	@$(PRE_COMMIT) clean 2>/dev/null || true
+	@$(PRE_COMMIT) gc 2>/dev/null || true
+	@echo "$(GREEN)✓ Cache cleaned. Run 'make hooks-install' to reinstall.$(RESET)"

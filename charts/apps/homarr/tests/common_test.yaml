@@ -1,7 +1,7 @@
 suite: Common
 
 templates:
-  - '*.yaml'
+  - "*.yaml"
 
 values:
   - ../values-test.yaml

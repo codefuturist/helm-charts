@@ -567,21 +567,21 @@ ingress:
       # @section -- Ingress Parameters
       host: chart-example.local
       paths:
-      - # -- (string) Path.
-        # @section -- Ingress Parameters
-        path: /
-        # -- (string) Path type.
-        # @default -- `ImplementationSpecific`
-        # @section -- Ingress Parameters
-        pathType:
-        # -- (string) Service name.
-        # @default -- `{{ include "application.name" $ }}`
-        # @section -- Ingress Parameters
-        serviceName:
-        # -- (string) Service port.
-        # @default -- `http`
-        # @section -- Ingress Parameters
-        servicePort:
+        - # -- (string) Path.
+          # @section -- Ingress Parameters
+          path: /
+          # -- (string) Path type.
+          # @default -- `ImplementationSpecific`
+          # @section -- Ingress Parameters
+          pathType:
+          # -- (string) Service name.
+          # @default -- `{{ include "application.name" $ }}`
+          # @section -- Ingress Parameters
+          serviceName:
+          # -- (string) Service port.
+          # @default -- `http`
+          # @section -- Ingress Parameters
+          servicePort:
   # -- (object) Additional labels for ingress.
   # @section -- Ingress Parameters
   additionalLabels:
@@ -615,7 +615,7 @@ httpRoute:
   # default Gateway supporting the named scope, subject to the usual rules
   # about which Routes a Gateway is allowed to claim.
   # @section -- HTTPRoute Parameters
-  useDefaultGateways: 
+  useDefaultGateways:
   # -- (string) Namespace of the Gateway to attach this HTTPRoute to.
   # If not set, the HTTPRoute will be attached to the Gateway in the same namespace as the HTTPRoute.
   # @section -- HTTPRoute Parameters
@@ -638,7 +638,7 @@ httpRoute:
             value: /
       backendRefs:
         - name: '{{ include "application.name" $ }}'
-          port: '{{ (first $.Values.service.ports).port | int }}'
+          port: "{{ (first $.Values.service.ports).port | int }}"
 
 route:
   # -- (bool) Deploy a Route (OpenShift) resource.
@@ -666,14 +666,14 @@ route:
     targetPort: http
   to:
     # -- (int) Service weight.
-  # @section -- Route Parameters
-      weight: 100
+    # @section -- Route Parameters
+    weight: 100
   # -- (string) Wildcard policy.
   # @section -- Route Parameters
   wildcardPolicy: None
   tls:
     # -- (string) TLS termination strategy.
-  # @section -- Route Parameters
+    # @section -- Route Parameters
     termination: edge
     # -- (string) TLS insecure termination policy.
     # @section -- Route Parameters
@@ -892,9 +892,9 @@ serviceMonitor:
   # -- (list) Service endpoints from which prometheus will scrape data.
   # @section -- ServiceMonitor Parameters
   endpoints:
-  - interval: 5s
-    path: /actuator/prometheus
-    port: http
+    - interval: 5s
+      path: /actuator/prometheus
+      port: http
 
 autoscaling:
   # -- (bool) Enable Horizontal Pod Autoscaling.
@@ -917,18 +917,18 @@ autoscaling:
   # -- (list) Metrics used for autoscaling.
   # @section -- Autoscaling - Horizontal Pod Autoscaling Parameters
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-         type: Utilization
-         averageUtilization: 60
-  - type: Resource
-    resource:
-      name: memory
-      target:
-         type: Utilization
-         averageUtilization: 60
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 60
 
 vpa:
   # -- (bool) Enable Vertical Pod Autoscaling.
@@ -1315,7 +1315,7 @@ backup:
   # @default -- `[ {{ include "application.namespace" $ }} ]`
   # @section -- Backup Parameters
   includedNamespaces:
-  - '{{ include "application.namespace" $ }}'
+    - '{{ include "application.namespace" $ }}'
   # -- (list) List of resource types to include in the backup.
   # @section -- Backup Parameters
   includedResources:

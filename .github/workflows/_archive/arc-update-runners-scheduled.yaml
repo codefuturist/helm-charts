@@ -58,8 +58,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: debug
-        run:
-          echo "RUNNER_CURRENT_VERSION=${{ needs.check_versions.outputs.runner_current_version }}"
+        run: echo "RUNNER_CURRENT_VERSION=${{ needs.check_versions.outputs.runner_current_version }}"
           echo "RUNNER_LATEST_VERSION=${{ needs.check_versions.outputs.runner_latest_version }}"
           echo "CONTAINER_HOOKS_CURRENT_VERSION=${{ needs.check_versions.outputs.container_hooks_current_version }}"
           echo "CONTAINER_HOOKS_LATEST_VERSION=${{ needs.check_versions.outputs.container_hooks_latest_version }}"

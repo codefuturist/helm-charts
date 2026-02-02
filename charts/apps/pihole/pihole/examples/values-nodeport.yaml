@@ -19,14 +19,14 @@ deployment:
 
   # Use emptyDir or PVCs for storage
   volumes:
-  - name: etc-pihole
-    type: emptyDir
-    mountPath: /etc/pihole
-    readOnly: false
-  - name: etc-dnsmasq-d
-    type: emptyDir
-    mountPath: /etc/dnsmasq.d
-    readOnly: false
+    - name: etc-pihole
+      type: emptyDir
+      mountPath: /etc/pihole
+      readOnly: false
+    - name: etc-dnsmasq-d
+      type: emptyDir
+      mountPath: /etc/dnsmasq.d
+      readOnly: false
 
 # NodePort service configuration
 service:
@@ -37,11 +37,11 @@ service:
   # Optional: Specify custom NodePort numbers
   # If not specified, Kubernetes will auto-assign ports from 30000-32767
   nodePorts:
-    http: 30080      # Access web UI at http://<NODE_IP>:30080/admin
-    https: 30443     # Access web UI at https://<NODE_IP>:30443/admin
-    dns-tcp: 30053   # DNS TCP queries at <NODE_IP>:30053
-    dns-udp: 30053   # DNS UDP queries at <NODE_IP>:30053
-    dhcp: 30067      # DHCP server (if needed)
+    http: 30080 # Access web UI at http://<NODE_IP>:30080/admin
+    https: 30443 # Access web UI at https://<NODE_IP>:30443/admin
+    dns-tcp: 30053 # DNS TCP queries at <NODE_IP>:30053
+    dns-udp: 30053 # DNS UDP queries at <NODE_IP>:30053
+    dhcp: 30067 # DHCP server (if needed)
 
   # Use Local to preserve source IP and reduce latency
   # Use Cluster for better load distribution across nodes
@@ -55,6 +55,7 @@ persistence:
   etc-dnsmasq:
     enabled: false
     size: 500Mi
+
 
 # Environment configuration
 # deployment:

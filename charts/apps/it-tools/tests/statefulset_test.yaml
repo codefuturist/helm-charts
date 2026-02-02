@@ -51,4 +51,3 @@ tests:
       - equal:
           path: spec.updateStrategy.type
           value: OnDelete
-

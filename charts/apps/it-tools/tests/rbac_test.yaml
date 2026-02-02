@@ -57,4 +57,3 @@ tests:
       - isKind:
           of: RoleBinding
         documentIndex: 1
-

@@ -7,10 +7,10 @@ on:
   # are available to the workflow run
   push:
     branches:
-      - 'master'
+      - "master"
     paths:
-      - 'runner/VERSION'
-      - '.github/workflows/arc-release-runners.yaml'
+      - "runner/VERSION"
+      - ".github/workflows/arc-release-runners.yaml"
 
 env:
   # Safeguard to prevent pushing images to registeries after build

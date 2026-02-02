@@ -1,0 +1,103 @@
+# ==============================================================================
+# Cocogitto Configuration
+# ==============================================================================
+# Docs: https://docs.cocogitto.io/reference/config.html
+#
+# Quick Commands:
+#   cog bump --auto                    # Auto-bump based on commits
+#   cog bump --minor                   # Manual minor bump
+#   cog check                          # Verify commit history
+#   cog log                            # View conventional commit log
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Global Settings
+# ------------------------------------------------------------------------------
+from_latest_tag = true
+ignore_merge_commits = true
+ignore_fixup_commits = true
+disable_changelog = false
+disable_bump_commit = false
+branch_whitelist = ["main", "develop", "release/**", "hotfix/**"]
+skip_ci = "[skip ci]"
+skip_untracked = false
+pre_bump_hooks = []
+post_bump_hooks = []
+tag_prefix = "v"
+
+# ------------------------------------------------------------------------------
+# Git Hooks (install with: cog install-hook --all)
+# ------------------------------------------------------------------------------
+[git_hooks]
+
+[git_hooks.commit-msg]
+script = """#!/bin/sh
+cog verify --file "$1" 2>/dev/null || {
+    echo ""
+    echo "❌ Invalid commit message format"
+    echo ""
+    echo "Expected: <type>(<scope>): <description>"
+    echo "Example:  feat(charts): add ingress chart"
+    echo ""
+    echo "Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+    echo ""
+    exit 1
+}
+"""
+
+[git_hooks.pre-push]
+script = """#!/bin/sh
+remote_ref=$(git rev-parse origin/main 2>/dev/null || echo "")
+if [ -n "$remote_ref" ]; then
+    cog check "$remote_ref..HEAD" 2>/dev/null || {
+        echo "❌ Invalid commits found. Run 'cog check' to see details."
+        exit 1
+    }
+fi
+"""
+
+# ------------------------------------------------------------------------------
+# Commit Types
+# ------------------------------------------------------------------------------
+[commit_types]
+feat = { changelog_title = "✨ Features" }
+fix = { changelog_title = "🐛 Bug Fixes" }
+perf = { changelog_title = "⚡ Performance" }
+refactor = { changelog_title = "♻️ Refactoring" }
+docs = { changelog_title = "📚 Documentation" }
+build = { changelog_title = "Build", hidden = true }
+ci = { changelog_title = "CI", hidden = true }
+test = { changelog_title = "Tests", hidden = true }
+style = { changelog_title = "Styles", hidden = true }
+chore = { changelog_title = "Chores", hidden = true }
+revert = { changelog_title = "⏪ Reverts" }
+
+# ------------------------------------------------------------------------------
+# Changelog Configuration
+# ------------------------------------------------------------------------------
+[changelog]
+path = "CHANGELOG.md"
+template = "remote"
+remote = "github.com"
+owner = "codefuturist"
+repository = "helm-charts"
+authors = [
+    { signature = "58808821+codefuturist@users.noreply.github.com", username = "codefuturist" },
+]
+
+# ------------------------------------------------------------------------------
+# Bump Profiles
+# ------------------------------------------------------------------------------
+[bump_profiles]
+
+[bump_profiles.default]
+pre_bump_hooks = []
+post_bump_hooks = []
+
+[bump_profiles.release]
+pre_bump_hooks = []
+post_bump_hooks = ["git push origin HEAD", "git push origin {{version}}"]
+
+[bump_profiles.ci]
+pre_bump_hooks = []
+post_bump_hooks = []

@@ -9,11 +9,11 @@ tests:
       service.loadBalancerIP: 1.1.1.1
     asserts:
       - matchRegexRaw:
-          pattern: 'service.loadBalancerIP:'
+          pattern: "service.loadBalancerIP:"
 
   - it: does not emit a warning for loadBalancerIP when not set
     set:
       service.loadBalancerIP: null
     asserts:
       - notMatchRegexRaw:
-          pattern: 'service.loadBalancerIP:'
+          pattern: "service.loadBalancerIP:"

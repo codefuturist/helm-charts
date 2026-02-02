@@ -140,4 +140,3 @@ tests:
           content:
             name: CUSTOM_VAR
             value: custom-value
-

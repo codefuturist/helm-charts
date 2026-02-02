@@ -67,4 +67,3 @@ tests:
       - equal:
           path: spec.egress[0].ports[0].protocol
           value: UDP
-

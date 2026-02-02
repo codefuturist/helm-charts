@@ -7,11 +7,11 @@ appVersion: 2024.07.0
 keywords:
 home: https://pi-hole.net/
 sources:
-- https://github.com/pi-hole/pi-hole
-- https://docs.pi-hole.net/docker/configuration/
+  - https://github.com/pi-hole/pi-hole
+  - https://docs.pi-hole.net/docker/configuration/
 maintainers:
-- name: Your Name
-  email: your.email@example.com
+  - name: Your Name
+    email: your.email@example.com
 
 dependencies:
   - name: common

@@ -30,15 +30,15 @@ networkPolicy:
   egress:
     # Allow egress to self-hosted Bitwarden
     - to:
-      - namespaceSelector: {}
+        - namespaceSelector: {}
       ports:
-      - protocol: TCP
-        port: 443
+        - protocol: TCP
+          port: 443
     # DNS
     - to:
-      - namespaceSelector: {}
+        - namespaceSelector: {}
       ports:
-      - protocol: TCP
-        port: 53
-      - protocol: UDP
-        port: 53
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53

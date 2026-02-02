@@ -7,9 +7,9 @@ mealie:
   env:
     # General Configuration
     ALLOW_SIGNUP:
-      value: 'false'
+      value: "false"
     ALLOW_PASSWORD_LOGIN:
-      value: 'false'  # Disable password login when using OIDC
+      value: "false" # Disable password login when using OIDC
     TZ:
       value: America/New_York
     BASE_URL:
@@ -17,30 +17,30 @@ mealie:
 
     # OpenID Connect (OIDC) Authentication
     OIDC_AUTH_ENABLED:
-      value: 'true'
+      value: "true"
     OIDC_SIGNUP_ENABLED:
-      value: 'true'  # Allow new users to be created on first login
+      value: "true" # Allow new users to be created on first login
     OIDC_CONFIGURATION_URL:
-      value: 'https://auth.example.com/.well-known/openid-configuration'
+      value: "https://auth.example.com/.well-known/openid-configuration"
     OIDC_CLIENT_ID:
-      value: 'mealie'
+      value: "mealie"
     OIDC_CLIENT_SECRET:
       valueFrom:
         secretKeyRef:
           name: mealie-oidc-secret
           key: client-secret
     OIDC_AUTO_REDIRECT:
-      value: 'true'  # Skip login page and go directly to IdP
+      value: "true" # Skip login page and go directly to IdP
     OIDC_PROVIDER_NAME:
-      value: 'Keycloak'  # Shown on login button
+      value: "Keycloak" # Shown on login button
     OIDC_REMEMBER_ME:
-      value: 'true'
+      value: "true"
     OIDC_SIGNING_ALGORITHM:
-      value: 'RS256'
+      value: "RS256"
     OIDC_USER_CLAIM:
-      value: 'email'  # Claim used to identify users
+      value: "email" # Claim used to identify users
     OIDC_NAME_CLAIM:
-      value: 'name'
+      value: "name"
 
     # Optional: Restrict access to specific group
     # OIDC_USER_GROUP:
@@ -98,17 +98,17 @@ ingress:
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
-  - host: mealie.example.com
-    paths:
-    - path: /
-      pathType: Prefix
-      port: 80
+    - host: mealie.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          port: 80
   tls:
-  - secretName: mealie-tls
-    hosts:
-    - mealie.example.com
+    - secretName: mealie-tls
+      hosts:
+        - mealie.example.com
 
 # Prerequisites:
 # 1. Create OIDC secret:

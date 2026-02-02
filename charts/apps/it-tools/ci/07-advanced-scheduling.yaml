@@ -54,4 +54,3 @@ hostAliases:
     hostnames:
       - "db.example.com"
       - "database.local"
-

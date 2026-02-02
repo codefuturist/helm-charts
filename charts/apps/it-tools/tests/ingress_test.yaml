@@ -76,4 +76,3 @@ tests:
       - equal:
           path: metadata.annotations["cert-manager.io/cluster-issuer"]
           value: letsencrypt-prod
-

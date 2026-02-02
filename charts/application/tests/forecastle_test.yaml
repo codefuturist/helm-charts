@@ -107,7 +107,7 @@ tests:
         enabled: true
       ingress:
         enabled: true
-      namespaceOverride: "app-namespace" 
+      namespaceOverride: "app-namespace"
     capabilities:
       apiVersions:
         - forecastle.stakater.com/v1alpha1

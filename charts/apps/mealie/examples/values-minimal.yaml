@@ -6,13 +6,13 @@ mealie:
   replicas: 1
   env:
     ALLOW_SIGNUP:
-      value: 'true'
+      value: "true"
     TZ:
       value: America/Anchorage
     BASE_URL:
       value: http://mealie.local
     LOG_LEVEL:
-      value: 'info'
+      value: "info"
 
 # Database configuration - SQLite mode
 database:

@@ -66,7 +66,7 @@ deployment:
         driver: secrets-store.csi.k8s.io
         readOnly: true
         volumeAttributes:
-          secretProviderClass: pihole-test  # Will match chart name
+          secretProviderClass: pihole-test # Will match chart name
 
   # Use the synced Kubernetes secret in environment variables
   env:
@@ -76,7 +76,7 @@ deployment:
     FTLCONF_webserver_api_password:
       valueFrom:
         secretKeyRef:
-          name: pihole-secrets  # Created by secretObjects above
+          name: pihole-secrets # Created by secretObjects above
           key: FTLCONF_webserver_api_password
 
     FTLCONF_dns_listeningMode:

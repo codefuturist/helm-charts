@@ -5,8 +5,8 @@ on:
     branches:
       - master
     paths:
-      - 'charts/**'
-      - '.github/workflows/publish-helm-chart.yaml'
+      - "charts/**"
+      - ".github/workflows/publish-helm-chart.yaml"
   workflow_dispatch:
 
 permissions:

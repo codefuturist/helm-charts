@@ -12,4 +12,3 @@ persistence:
   enabled: true
   size: 1Gi
   mountPath: /data
-

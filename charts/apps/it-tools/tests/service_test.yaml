@@ -80,4 +80,3 @@ tests:
       - equal:
           path: spec.sessionAffinityConfig.clientIP.timeoutSeconds
           value: 10800
-

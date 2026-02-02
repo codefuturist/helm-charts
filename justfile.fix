@@ -8,12 +8,6 @@
 # Import core
 import '.just-modules/core/mod.just'
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Configuration
-# ─────────────────────────────────────────────────────────────────────────────
-
-project_name := 'Helm Charts'
-
 # Import language modules
 mod python '.just-modules/languages/python/mod.just'
 
@@ -250,68 +244,7 @@ clean:
 # Show project info
 info:
     @just _header "{{project_name}}"
-    @just _kv "Version" "{{_git_tag}}"
+    @just _kv "Version" "{{_version_from_git}}"
     @just _kv "Branch" "{{_git_branch}}"
     @just _kv "Charts" "$(ls -1 charts/ | wc -l | tr -d ' ')"
     @just _kv "Repository" "{{helm_repo_url}}"
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Just-Modules Management
-# ══════════════════════════════════════════════════════════════════════════════
-
-# Browse and interactively add just-modules to this project
-[group('modules')]
-modules-browse:
-    @just _header "Available just-modules"
-    @echo ""
-    @echo "{{ BOLD }}{{ CYAN }}Language Modules:{{ NORMAL }}"
-    @ls -1 .just-modules/languages/ 2>/dev/null | sed 's/^/  • /' || echo "  (none found)"
-    @echo ""
-    @echo "{{ BOLD }}{{ CYAN }}Traits/Features:{{ NORMAL }}"
-    @ls -1 .just-modules/traits/*.just 2>/dev/null | xargs -n1 basename | sed 's/.just$//' | sed 's/^/  • /' || echo "  (none found)"
-    @echo ""
-    @echo "{{ BOLD }}{{ YELLOW }}To add a module, edit your justfile and add:{{ NORMAL }}"
-    @echo "  {{ GREEN }}mod <name> '.just-modules/languages/<name>/mod.just'{{ NORMAL }}  # For languages"
-    @echo "  {{ GREEN }}import '.just-modules/traits/<name>.just'{{ NORMAL }}              # For traits"
-    @echo ""
-    @echo "{{ BOLD }}Example - Add Go support:{{ NORMAL }}"
-    @echo "  Add this line to your imports section:"
-    @echo "  {{ CYAN }}mod go '.just-modules/languages/go/mod.just'{{ NORMAL }}"
-
-# Show currently imported modules
-[group('modules')]
-modules-list:
-    @just _header "Currently Imported Modules"
-    @echo ""
-    @echo "{{ BOLD }}Language Modules:{{ NORMAL }}"
-    @grep "^mod .* '.just-modules/languages/" justfile | sed "s/^mod /  • /" | sed "s/ '.*//" || echo "  (none)"
-    @echo ""
-    @echo "{{ BOLD }}Trait Imports:{{ NORMAL }}"
-    @grep "^import '.just-modules/traits/" justfile | sed "s/^import '.just-modules\/traits\//  • /" | sed "s/.just'.*//" || echo "  (none)"
-    @echo ""
-    @echo "{{ BOLD }}Trait Modules:{{ NORMAL }}"
-    @grep "^mod .* '.just-modules/traits/" justfile | sed "s/^mod /  • /" | sed "s/ '.*//" || echo "  (none)"
-
-# Update just-modules submodule to latest version
-[group('modules')]
-modules-update:
-    @just _header "Updating just-modules"
-    @just _info "Pulling latest from remote..."
-    @cd .just-modules && git pull origin main
-    @just _success "just-modules updated to latest version"
-
-# Show just-modules submodule status
-[group('modules')]
-modules-status:
-    @just _header "just-modules Submodule Status"
-    @cd .just-modules && git log -1 --format="  {{ BOLD }}Commit:{{ NORMAL }} %h - %s" && git log -1 --format="  {{ BOLD }}Date:{{ NORMAL }}   %cr"
-    @cd .just-modules && echo "  {{ BOLD }}Branch:{{ NORMAL }} $(git branch --show-current || echo 'detached')"
-    @echo ""
-    @cd .just-modules && git fetch origin --quiet && \
-        LOCAL=$(git rev-parse HEAD) && \
-        REMOTE=$(git rev-parse origin/main 2>/dev/null || echo "$LOCAL") && \
-        if [ "$LOCAL" = "$REMOTE" ]; then \
-            echo "  {{ GREEN }}✓ Up to date{{ NORMAL }}"; \
-        else \
-            echo "  {{ YELLOW }}⚠ Updates available{{ NORMAL }} (run: just modules-update)"; \
-        fi

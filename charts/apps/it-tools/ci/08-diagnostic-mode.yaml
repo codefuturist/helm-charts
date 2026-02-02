@@ -15,4 +15,3 @@ readinessProbe:
   enabled: true
 startupProbe:
   enabled: true
-

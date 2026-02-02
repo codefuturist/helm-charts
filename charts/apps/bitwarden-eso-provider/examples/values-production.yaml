@@ -58,7 +58,7 @@ securityContext:
   allowPrivilegeEscalation: false
   capabilities:
     drop:
-    - ALL
+      - ALL
   readOnlyRootFilesystem: true
 
 resources:
@@ -99,22 +99,22 @@ tolerations:
 affinity:
   podAntiAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
-    - labelSelector:
-        matchExpressions:
-        - key: app.kubernetes.io/name
-          operator: In
-          values:
-          - bitwarden-eso-provider
-      topologyKey: kubernetes.io/hostname
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+                - bitwarden-eso-provider
+        topologyKey: kubernetes.io/hostname
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 100
-      preference:
-        matchExpressions:
-        - key: node-role.kubernetes.io/worker
-          operator: In
-          values:
-          - "true"
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: node-role.kubernetes.io/worker
+              operator: In
+              values:
+                - "true"
 
 externalSecretsOperator:
   createClusterSecretStore: true
@@ -130,27 +130,27 @@ networkPolicy:
   enabled: true
   ingress:
     - from:
-      - namespaceSelector:
-          matchLabels:
-            name: external-secrets-operator
-      - namespaceSelector:
-          matchLabels:
-            environment: production
+        - namespaceSelector:
+            matchLabels:
+              name: external-secrets-operator
+        - namespaceSelector:
+            matchLabels:
+              environment: production
   egress:
     # Bitwarden API
     - to:
-      - namespaceSelector: {}
+        - namespaceSelector: {}
       ports:
-      - protocol: TCP
-        port: 443
+        - protocol: TCP
+          port: 443
     # DNS
     - to:
-      - namespaceSelector: {}
+        - namespaceSelector: {}
       ports:
-      - protocol: TCP
-        port: 53
-      - protocol: UDP
-        port: 53
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
 
 metrics:
   enabled: true

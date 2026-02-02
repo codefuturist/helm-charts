@@ -5,20 +5,20 @@ on:
     branches:
       - main
     paths:
-      - 'charts/**'
-      - 'docs/**'
-      - 'templates/**'
-      - 'scripts/**'
-      - 'mkdocs.yml'
+      - "charts/**"
+      - "docs/**"
+      - "templates/**"
+      - "scripts/**"
+      - "mkdocs.yml"
   pull_request:
     branches:
       - main
     paths:
-      - 'charts/**'
-      - 'docs/**'
-      - 'templates/**'
-      - 'scripts/**'
-      - 'mkdocs.yml'
+      - "charts/**"
+      - "docs/**"
+      - "templates/**"
+      - "scripts/**"
+      - "mkdocs.yml"
   workflow_dispatch:
 
 permissions:

@@ -17,4 +17,3 @@ ingress:
     - secretName: app-tls
       hosts:
         - app.example.com
-

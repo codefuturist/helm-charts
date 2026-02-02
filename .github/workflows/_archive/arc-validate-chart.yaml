@@ -5,20 +5,20 @@ on:
     branches:
       - master
     paths:
-      - 'charts/**'
-      - '.github/workflows/arc-validate-chart.yaml'
-      - '!charts/actions-runner-controller/docs/**'
-      - '!**.md'
-      - '!charts/gha-runner-scale-set-controller/**'
-      - '!charts/gha-runner-scale-set/**'
+      - "charts/**"
+      - ".github/workflows/arc-validate-chart.yaml"
+      - "!charts/actions-runner-controller/docs/**"
+      - "!**.md"
+      - "!charts/gha-runner-scale-set-controller/**"
+      - "!charts/gha-runner-scale-set/**"
   push:
     paths:
-      - 'charts/**'
-      - '.github/workflows/arc-validate-chart.yaml'
-      - '!charts/actions-runner-controller/docs/**'
-      - '!**.md'
-      - '!charts/gha-runner-scale-set-controller/**'
-      - '!charts/gha-runner-scale-set/**'
+      - "charts/**"
+      - ".github/workflows/arc-validate-chart.yaml"
+      - "!charts/actions-runner-controller/docs/**"
+      - "!**.md"
+      - "!charts/gha-runner-scale-set-controller/**"
+      - "!charts/gha-runner-scale-set/**"
   workflow_dispatch:
 env:
   KUBE_SCORE_VERSION: 1.10.0
@@ -57,19 +57,19 @@ jobs:
 
       - name: Kube-score generated manifests
         run: helm template  --values charts/.ci/values-kube-score.yaml charts/* | ./kube-score score -
-              --ignore-test pod-networkpolicy
-              --ignore-test deployment-has-poddisruptionbudget
-              --ignore-test deployment-has-host-podantiaffinity
-              --ignore-test container-security-context
-              --ignore-test pod-probes
-              --ignore-test container-image-tag
-              --enable-optional-test container-security-context-privileged
-              --enable-optional-test container-security-context-readonlyrootfilesystem
+          --ignore-test pod-networkpolicy
+          --ignore-test deployment-has-poddisruptionbudget
+          --ignore-test deployment-has-host-podantiaffinity
+          --ignore-test container-security-context
+          --ignore-test pod-probes
+          --ignore-test container-image-tag
+          --enable-optional-test container-security-context-privileged
+          --enable-optional-test container-security-context-readonlyrootfilesystem
 
       # python is a requirement for the chart-testing action below (supports yamllint among other tests)
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.6.0

@@ -1,0 +1,3 @@
+[submodule ".just-modules"]
+	path = .just-modules
+	url = https://github.com/codefuturist/just-modules.git

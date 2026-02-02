@@ -1,9 +1,9 @@
-name: 'Execute and Assert ARC E2E Test Action'
-description: 'Queue E2E test workflow and assert workflow run result to be succeed'
+name: "Execute and Assert ARC E2E Test Action"
+description: "Queue E2E test workflow and assert workflow run result to be succeed"
 
 inputs:
   auth-token:
-    description: 'GitHub access token to queue workflow run'
+    description: "GitHub access token to queue workflow run"
     required: true
   repo-owner:
     description: "The repository owner name that has the test workflow file, ex: actions"
@@ -12,23 +12,23 @@ inputs:
     description: "The repository name that has the test workflow file, ex: test"
     required: true
   workflow-file:
-    description: 'The file name of the workflow yaml, ex: test.yml'
+    description: "The file name of the workflow yaml, ex: test.yml"
     required: true
   arc-name:
-    description: 'The name of the configured gha-runner-scale-set'
+    description: "The name of the configured gha-runner-scale-set"
     required: true
   arc-namespace:
-    description: 'The namespace of the configured gha-runner-scale-set'
+    description: "The namespace of the configured gha-runner-scale-set"
     required: true
   arc-controller-namespace:
-    description: 'The namespace of the configured gha-runner-scale-set-controller'
+    description: "The namespace of the configured gha-runner-scale-set-controller"
     required: true
   wait-to-finish:
-    description: 'Wait for the workflow run to finish'
+    description: "Wait for the workflow run to finish"
     required: true
     default: "true"
   wait-to-running:
-    description: 'Wait for the workflow run to start running'
+    description: "Wait for the workflow run to start running"
     required: true
     default: "false"
 

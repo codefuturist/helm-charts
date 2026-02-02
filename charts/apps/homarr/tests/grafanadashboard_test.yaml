@@ -74,7 +74,7 @@ tests:
         enabled: true
         contents:
           test-dashboard:
-            json: '{}'
+            json: "{}"
         additionalLabels:
           custom: label
     capabilities:
@@ -91,7 +91,7 @@ tests:
         enabled: true
         contents:
           test-dashboard:
-            json: '{}'
+            json: "{}"
         annotations:
           custom: annotation
     capabilities:
@@ -123,7 +123,7 @@ tests:
         enabled: true
         contents:
           test-dashboard:
-            json: '{}'
+            json: "{}"
             allowCrossNamespaceImport: true
     capabilities:
       apiVersions:
@@ -139,7 +139,7 @@ tests:
         enabled: true
         contents:
           test-dashboard:
-            json: '{}'
+            json: "{}"
             folder: TestFolder
     capabilities:
       apiVersions:
@@ -155,7 +155,7 @@ tests:
         enabled: true
         contents:
           test-dashboard:
-            json: '{}'
+            json: "{}"
             instanceSelector:
               matchLabels:
                 grafana: main
@@ -173,7 +173,7 @@ tests:
         enabled: true
         contents:
           test-dashboard:
-            json: '{}'
+            json: "{}"
             configMapRef:
               name: dashboard-config
               key: dashboard.json
@@ -194,7 +194,7 @@ tests:
         enabled: true
         contents:
           test-dashboard:
-            json: '{}'
+            json: "{}"
             datasources:
               - inputName: DS_PROMETHEUS
                 datasourceName: Prometheus

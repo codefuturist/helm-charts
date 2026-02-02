@@ -98,7 +98,7 @@ tests:
         enabled: true
         hosts:
           - host: example.com
-            paths: []  # No paths provided
+            paths: [] # No paths provided
     asserts:
       - failedTemplate:
           errorMessage: "Specify paths for ingress host, check values.yaml"

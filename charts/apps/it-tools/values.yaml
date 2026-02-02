@@ -504,4 +504,3 @@ diagnosticMode:
   # -- Args override for diagnostic mode
   args:
     - infinity
-

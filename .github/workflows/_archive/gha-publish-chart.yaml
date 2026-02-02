@@ -4,27 +4,27 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'The branch, tag or SHA to cut a release from'
+        description: "The branch, tag or SHA to cut a release from"
         required: false
         type: string
-        default: ''
+        default: ""
       release_tag_name:
-        description: 'The name to tag the controller image with'
+        description: "The name to tag the controller image with"
         required: true
         type: string
-        default: 'canary'
+        default: "canary"
       push_to_registries:
-        description: 'Push images to registries'
+        description: "Push images to registries"
         required: true
         type: boolean
         default: false
       publish_gha_runner_scale_set_controller_chart:
-        description: 'Publish new helm chart for gha-runner-scale-set-controller'
+        description: "Publish new helm chart for gha-runner-scale-set-controller"
         required: true
         type: boolean
         default: false
       publish_gha_runner_scale_set_chart:
-        description: 'Publish new helm chart for gha-runner-scale-set'
+        description: "Publish new helm chart for gha-runner-scale-set"
         required: true
         type: boolean
         default: false

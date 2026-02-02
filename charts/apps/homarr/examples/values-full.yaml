@@ -27,19 +27,19 @@ deployment:
     # GENERAL CONFIGURATION
     # ============================================================
     LOG_LEVEL:
-      value: "info"  # debug / info / warn / error
+      value: "info" # debug / info / warn / error
 
     PUID:
-      value: "1000"  # User ID to run as
+      value: "1000" # User ID to run as
 
     PGID:
-      value: "1000"  # Group ID to run as
+      value: "1000" # Group ID to run as
 
     NO_EXTERNAL_CONNECTION:
-      value: "false"  # Disable external requests
+      value: "false" # Disable external requests
 
     ENABLE_DNS_CACHING:
-      value: "false"  # Enable DNS caching
+      value: "false" # Enable DNS caching
 
     # ============================================================
     # DOCKER INTEGRATION (Optional)
@@ -181,7 +181,7 @@ persistence:
   mountPVC: true
   mountPath: "/appdata"
   storageSize: 2Gi
-  storageClass: ""  # Use default storage class
+  storageClass: "" # Use default storage class
   accessMode: ReadWriteOnce
 
 # ============================================================

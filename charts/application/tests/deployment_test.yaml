@@ -185,7 +185,7 @@ tests:
       deployment:
         image:
           repository: "{{ .Values.custom.image.repository }}"
-          tag:  "{{ .Values.custom.image.tag }}"
+          tag: "{{ .Values.custom.image.tag }}"
           digest: "{{ .Values.custom.image.digest }}"
     asserts:
       - equal:
@@ -201,7 +201,7 @@ tests:
       deployment:
         image:
           repository: "{{ .Values.custom.image.repository }}"
-          tag:  "{{ .Values.custom.image.tag }}"
+          tag: "{{ .Values.custom.image.tag }}"
           digest: "{{ .Values.custom.image.digest }}"
     asserts:
       - equal:
@@ -217,7 +217,7 @@ tests:
       deployment:
         image:
           repository: "{{ .Values.custom.image.repository }}"
-          tag:  "{{ .Values.custom.image.tag }}"
+          tag: "{{ .Values.custom.image.tag }}"
           digest: "{{ .Values.custom.image.digest }}"
     asserts:
       - equal:
@@ -232,7 +232,7 @@ tests:
       deployment:
         image:
           repository: "{{ .Values.custom.image.repository }}"
-          tag:  "{{ .Values.custom.image.tag }}"
+          tag: "{{ .Values.custom.image.tag }}"
           digest: "{{ .Values.custom.image.digest }}"
     asserts:
       - equal:

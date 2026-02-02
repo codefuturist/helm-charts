@@ -29,20 +29,20 @@ tests:
         enabled: true
         spec:
           route:
-            groupBy: ['alertname']
+            groupBy: ["alertname"]
             groupInterval: 5m
             groupWait: 30s
             repeatInterval: 1h
           receivers:
-            - name: 'team-X-mails'
+            - name: "team-X-mails"
               emailConfigs:
-                - to: 'team-X@example.com'
+                - to: "team-X@example.com"
           inhibitRules:
             - sourceMatch:
                 severity: warning
               targetMatch:
                 severity: critical
-              equal: ['alertname', 'team']
+              equal: ["alertname", "team"]
     capabilities:
       apiVersions:
         - monitoring.coreos.com/v1alpha1

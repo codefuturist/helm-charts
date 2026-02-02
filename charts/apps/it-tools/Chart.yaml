@@ -31,4 +31,3 @@ annotations:
   artifacthub.io/changes: |
     - kind: added
       description: Initial release of it-tools Helm chart v0.1.0
-

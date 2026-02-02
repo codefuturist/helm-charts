@@ -8,7 +8,6 @@ type: application
 
 version: 6.14.1
 
-
 keywords:
   - java
   - node
@@ -19,7 +18,7 @@ keywords:
 
 home: https://github.com/stakater/application
 maintainers:
-- name: Stakater
-  email: hello@stakater.com
+  - name: Stakater
+    email: hello@stakater.com
 
 icon: https://github.com/stakater/ForecastleIcons/blob/master/stakater.png
