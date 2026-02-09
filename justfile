@@ -3,10 +3,35 @@
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Configuration
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Imports
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Import core
+# Core (required)
 import '.just-modules/core/mod.just'
+
+# Automation & Project Management
+import '.just-modules/traits/automation-helpers.just'
+import '.just-modules/traits/env.just'
+
+# Features
+mod versioning '.just-modules/traits/versioning.just'
+mod gitflow '.just-modules/traits/gitflow.just'
+mod hooks '.just-modules/traits/hooks.just'
+mod docs '.just-modules/traits/docs.just'
+mod cog '.just-modules/traits/cocogitto.just'
+
+# Code Quality & Refactoring
+import '.just-modules/traits/ast-grep.just'
+import '.just-modules/traits/megalinter.just'
+import '.just-modules/traits/backup.just'
+
+# Security & Encryption
+import '.just-modules/traits/encryption.just'
+
+# AI Features
+import '.just-modules/traits/ai.just'
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Configuration
@@ -130,7 +155,7 @@ docs-chart chart:
 
 # Generate documentation for all charts
 [group('docs')]
-docs:
+build-docs:
     @just _header "Generating Documentation"
     @helm-docs charts/
     @just _success "Docs generated"
@@ -161,17 +186,17 @@ docs-deploy:
 
 # Update chart dependencies
 [group('deps')]
-deps-update chart:
+helm-deps-update chart:
     @just _info "Updating dependencies for: {{chart}}"
     @helm dependency update charts/{{chart}}
     @just _success "Dependencies updated"
 
 # Update all chart dependencies
 [group('deps')]
-deps-update-all:
+helm-deps-update-all:
     @just _header "Updating All Dependencies"
     @for chart in charts/*/; do \
-        just deps-update $$(basename $$chart); \
+        just helm-deps-update $$(basename $$chart); \
     done
     @just _success "All dependencies updated"
 
