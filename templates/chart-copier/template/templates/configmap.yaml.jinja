@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "[[ chart_name ]].fullname" . }}
+  labels:
+    {{- include "[[ chart_name ]].labels" . | nindent 4 }}
+data: {}
+  # Add your configuration data here, for example:
+  # APP_ENV: "production"
+  # LOG_LEVEL: "info"

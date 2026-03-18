@@ -1,0 +1,205 @@
+# Default values for [[ chart_name ]].
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- Number of replicas for the deployment.
+# @section -- Deployment Parameters
+replicaCount: [[ replica_count ]]
+
+image:
+  # -- Container image repository.
+  # @section -- Image Parameters
+  repository: [[ image_repository ]]
+  # -- Image pull policy.
+  # @section -- Image Parameters
+  pullPolicy: IfNotPresent
+  # -- Overrides the image tag whose default is the chart appVersion.
+  # @section -- Image Parameters
+  tag: "[[ image_tag ]]"
+
+# -- Secrets for pulling images from a private repository.
+# @section -- Image Parameters
+imagePullSecrets: []
+
+# -- Override the chart name.
+# @section -- General Parameters
+nameOverride: ""
+
+# -- Override the full name.
+# @section -- General Parameters
+fullnameOverride: ""
+[% if use_service_account %]
+serviceAccount:
+  # -- Specifies whether a service account should be created.
+  # @section -- ServiceAccount Parameters
+  create: true
+  # -- Automatically mount a ServiceAccount's API credentials.
+  # @section -- ServiceAccount Parameters
+  automount: true
+  # -- Annotations to add to the service account.
+  # @section -- ServiceAccount Parameters
+  annotations: {}
+  # -- The name of the service account to use. If not set and create is true, a name is generated.
+  # @section -- ServiceAccount Parameters
+  name: ""
+[% endif %]
+# -- Annotations for pods.
+# @section -- Pod Parameters
+podAnnotations: {}
+
+# -- Labels for pods.
+# @section -- Pod Parameters
+podLabels: {}
+
+# -- Pod security context.
+# @section -- Pod Parameters
+podSecurityContext: {}
+  # fsGroup: 2000
+
+# -- Container security context.
+# @section -- Pod Parameters
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  # -- Service type (ClusterIP, NodePort, LoadBalancer).
+  # @section -- Service Parameters
+  type: [[ service_type ]]
+  # -- Service port.
+  # @section -- Service Parameters
+  port: [[ service_port ]]
+[% if use_ingress %]
+ingress:
+  # -- Enable ingress.
+  # @section -- Ingress Parameters
+  enabled: false
+  # -- Ingress class name.
+  # @section -- Ingress Parameters
+  className: ""
+  # -- Ingress annotations.
+  # @section -- Ingress Parameters
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- Ingress hosts configuration.
+  # @section -- Ingress Parameters
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  # -- Ingress TLS configuration.
+  # @section -- Ingress Parameters
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+[% endif %]
+# -- Resource limits and requests.
+# @section -- Resource Parameters
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# -- Liveness probe configuration.
+# @section -- Probe Parameters
+livenessProbe:
+  httpGet:
+    path: /
+    port: [[ container_port_name ]]
+
+# -- Readiness probe configuration.
+# @section -- Probe Parameters
+readinessProbe:
+  httpGet:
+    path: /
+    port: [[ container_port_name ]]
+[% if use_hpa %]
+autoscaling:
+  # -- Enable horizontal pod autoscaling.
+  # @section -- Autoscaling Parameters
+  enabled: false
+  # -- Minimum number of replicas.
+  # @section -- Autoscaling Parameters
+  minReplicas: 1
+  # -- Maximum number of replicas.
+  # @section -- Autoscaling Parameters
+  maxReplicas: 100
+  # -- Target CPU utilization percentage.
+  # @section -- Autoscaling Parameters
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+[% endif %]
+[% if use_pdb %]
+pdb:
+  # -- Enable PodDisruptionBudget.
+  # @section -- PDB Parameters
+  enabled: false
+  # -- Minimum number of pods that must be available.
+  # @section -- PDB Parameters
+  minAvailable: 1
+  # -- Maximum number of pods that can be unavailable.
+  # @section -- PDB Parameters
+  # maxUnavailable: 1
+[% endif %]
+[% if use_networkpolicy %]
+networkPolicy:
+  # -- Enable NetworkPolicy.
+  # @section -- NetworkPolicy Parameters
+  enabled: false
+[% endif %]
+[% if use_pvc %]
+persistence:
+  # -- Enable persistent storage.
+  # @section -- Persistence Parameters
+  enabled: false
+  # -- Storage class name.
+  # @section -- Persistence Parameters
+  # storageClass: ""
+  # -- Access mode for the PVC.
+  # @section -- Persistence Parameters
+  accessMode: ReadWriteOnce
+  # -- Size of the persistent volume.
+  # @section -- Persistence Parameters
+  size: 1Gi
+[% endif %]
+[% if use_secret %]
+# -- Use an existing secret instead of creating one.
+# @section -- Secret Parameters
+existingSecret: ""
+[% endif %]
+# -- Additional volumes for the deployment.
+# @section -- Volume Parameters
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# -- Additional volume mounts for the deployment.
+# @section -- Volume Parameters
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+# -- Node selector for pod scheduling.
+# @section -- Scheduling Parameters
+nodeSelector: {}
+
+# -- Tolerations for pod scheduling.
+# @section -- Scheduling Parameters
+tolerations: []
+
+# -- Affinity rules for pod scheduling.
+# @section -- Scheduling Parameters
+affinity: {}

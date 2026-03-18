@@ -1,0 +1,41 @@
+suite: deployment tests
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: should render a Deployment
+    asserts:
+      - isKind:
+          of: Deployment
+
+  - it: should use the correct image
+    set:
+      image.repository: my-app
+      image.tag: v1.0.0
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "my-app:v1.0.0"
+
+  - it: should set the correct replica count
+    set:
+      replicaCount: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+
+  - it: should include selector labels
+    asserts:
+      - isNotEmpty:
+          path: spec.selector.matchLabels
+
+  - it: should set resource limits when specified
+    set:
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 100m

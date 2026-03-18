@@ -1,0 +1,18 @@
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "[[ chart_name ]].fullname" . }}
+  labels:
+    {{- include "[[ chart_name ]].labels" . | nindent 4 }}
+spec:
+  {{- with .Values.pdb.minAvailable }}
+  minAvailable: {{ . }}
+  {{- end }}
+  {{- with .Values.pdb.maxUnavailable }}
+  maxUnavailable: {{ . }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "[[ chart_name ]].selectorLabels" . | nindent 6 }}
+{{- end }}

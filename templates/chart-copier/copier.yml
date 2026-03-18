@@ -1,0 +1,205 @@
+# Copier template for generating Helm charts for simple deployments.
+# https://copier.readthedocs.io/
+#
+# Usage:
+#   copier copy templates/chart-copier charts/apps/my-app
+#   copier copy --trust templates/chart-copier charts/apps/my-app
+#
+# Update an existing chart when the template evolves:
+#   copier update charts/apps/my-app
+
+_min_copier_version: "9.0.0"
+
+_subdirectory: template
+
+_templates_suffix: .jinja
+
+# Use [[ ]] delimiters to avoid conflicts with Helm's {{ }} Go templates.
+_envops:
+  variable_start_string: "[["
+  variable_end_string: "]]"
+  block_start_string: "[%"
+  block_end_string: "%]"
+  comment_start_string: "[#"
+  comment_end_string: "#]"
+  keep_trailing_newline: true
+
+_exclude:
+  - "*.pyc"
+  - "__pycache__"
+  - ".git"
+  - ".DS_Store"
+  # Conditional resource exclusions
+  - "[% if not use_ingress %]templates/ingress.yaml[% endif %]"
+  - "[% if not use_hpa %]templates/hpa.yaml[% endif %]"
+  - "[% if not use_pdb %]templates/pdb.yaml[% endif %]"
+  - "[% if not use_configmap %]templates/configmap.yaml[% endif %]"
+  - "[% if not use_secret %]templates/secret.yaml[% endif %]"
+  - "[% if not use_networkpolicy %]templates/networkpolicy.yaml[% endif %]"
+  - "[% if not use_pvc %]templates/pvc.yaml[% endif %]"
+  - "[% if not use_service_account %]templates/serviceaccount.yaml[% endif %]"
+  - "[% if not use_ingress %]tests/ingress_test.yaml[% endif %]"
+
+# ---------------------------------------------------------------------------
+# Questions
+# ---------------------------------------------------------------------------
+
+# -- Core Identity ----------------------------------------------------------
+
+chart_name:
+  type: str
+  help: >-
+    Helm chart name (lowercase alphanumeric with hyphens).
+    This becomes the directory name and the chart's `name` field.
+  default: "[[ _copier_conf.dst_path | basename ]]"
+  validator: >-
+    [% if not (chart_name | regex_search('^[a-z][a-z0-9-]*$')) %]
+    Chart name must start with a letter and contain only lowercase letters, numbers, and hyphens.
+    [% endif %]
+
+chart_description:
+  type: str
+  help: A one-line description of what this chart deploys.
+  default: "A Helm chart for deploying [[ chart_name ]]"
+
+chart_version:
+  type: str
+  help: Initial chart version (SemVer).
+  default: "0.1.0"
+  validator: >-
+    [% if not (chart_version | regex_search('^\\d+\\.\\d+\\.\\d+')) %]
+    Version must follow SemVer (e.g. 0.1.0, 1.2.3).
+    [% endif %]
+
+app_version:
+  type: str
+  help: Application version (shown in Chart.yaml appVersion).
+  default: "1.0.0"
+
+# -- Image Configuration ---------------------------------------------------
+
+image_repository:
+  type: str
+  help: Container image repository (e.g. nginx, ghcr.io/org/app).
+  default: nginx
+
+image_tag:
+  type: str
+  help: Default image tag. Leave empty to use appVersion.
+  default: ""
+
+container_port:
+  type: int
+  help: Primary container port.
+  default: 80
+
+container_port_name:
+  type: str
+  help: Name for the primary container port.
+  default: http
+
+# -- Maintainer -------------------------------------------------------------
+
+maintainer_name:
+  type: str
+  help: Chart maintainer name.
+  default: codefuturist
+
+maintainer_email:
+  type: str
+  help: Chart maintainer email.
+  default: hello@allcloud.trade
+
+# -- Feature Toggles --------------------------------------------------------
+
+use_service_account:
+  type: bool
+  help: Generate a ServiceAccount resource?
+  default: true
+
+use_ingress:
+  type: bool
+  help: Generate an Ingress resource?
+  default: true
+
+use_hpa:
+  type: bool
+  help: Generate a HorizontalPodAutoscaler resource?
+  default: false
+
+use_pdb:
+  type: bool
+  help: Generate a PodDisruptionBudget resource?
+  default: false
+
+use_configmap:
+  type: bool
+  help: Generate a ConfigMap resource?
+  default: false
+
+use_secret:
+  type: bool
+  help: Generate a Secret resource?
+  default: false
+
+use_networkpolicy:
+  type: bool
+  help: Generate a NetworkPolicy resource?
+  default: false
+
+use_pvc:
+  type: bool
+  help: Generate a PersistentVolumeClaim resource?
+  default: false
+
+# -- Deployment Defaults ----------------------------------------------------
+
+replica_count:
+  type: int
+  help: Default number of replicas.
+  default: 1
+
+service_type:
+  type: str
+  help: Kubernetes Service type.
+  choices:
+    - ClusterIP
+    - NodePort
+    - LoadBalancer
+  default: ClusterIP
+
+service_port:
+  type: int
+  help: Service port (exposed port).
+  default: 80
+
+# ---------------------------------------------------------------------------
+# Messages & UX
+# ---------------------------------------------------------------------------
+
+_message_after_copy: |
+  ✅ Chart '[[ chart_name ]]' generated successfully!
+
+  Next steps:
+    1. Review the generated files
+    2. Run:  helm lint [[ _copier_conf.dst_path ]]
+    3. Run:  helm template test [[ _copier_conf.dst_path ]]
+
+  To update this chart when the template evolves:
+    ./tools/update-charts.sh [[ _copier_conf.dst_path ]]
+    just update-chart [[ _copier_conf.dst_path ]]
+    make update-chart DEST=[[ _copier_conf.dst_path ]]
+
+  Copier will merge template changes while preserving your customizations.
+  Conflicts are shown as standard git conflict markers (<<<<<<< / =======).
+
+_message_before_update: |
+  ⎈ Updating chart '[[ chart_name ]]' from template...
+
+  What happens next:
+  - Copier re-renders all template files with your saved answers
+  - Files you customized will show conflict markers if they conflict with template changes
+  - Resolve conflicts, then delete conflict markers and commit
+
+  Tip: Run with --pretend first to preview changes:
+    ./tools/update-charts.sh --pretend charts/.../'[[ chart_name ]]'

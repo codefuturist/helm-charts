@@ -86,6 +86,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [restic-backup](../charts/restic-backup.md#value-additionalRules) | `additionalRules` | list | RBAC Parameters |
 | [application](../charts/application.md#value-affinity) | `affinity` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-affinity) | `affinity` | object | Pod Configuration |
+| [e2e-test](../charts/e2e-test.md#value-affinity) | `affinity` | object | Scheduling Parameters |
 | [homarr](../charts/homarr.md#value-affinity) | `affinity` | object | Deployment Parameters |
 | [home-assistant](../charts/home-assistant.md#value-affinity) | `affinity` | object | General |
 | [it-tools](../charts/it-tools.md#value-affinity) | `affinity` | object | Pod Configuration |
@@ -125,6 +126,8 @@ Complete alphabetical listing of all configuration values across all charts.
 | [compass-web](../charts/compass-web.md#value-annotations) | `annotations` | object | Persistence Configuration |
 | [compass-web](../charts/compass-web.md#value-annotations) | `annotations` | object | Monitoring |
 | [compass-web](../charts/compass-web.md#value-annotations) | `annotations` | object | RBAC Configuration |
+| [e2e-test](../charts/e2e-test.md#value-annotations) | `annotations` | object | ServiceAccount Parameters |
+| [e2e-test](../charts/e2e-test.md#value-annotations) | `annotations` | object | Ingress Parameters |
 | [homarr](../charts/homarr.md#value-annotations) | `annotations` | object | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-annotations) | `annotations` | object | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-annotations) | `annotations` | object | Service Parameters |
@@ -197,6 +200,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-args) | `args` | list | Controller Configuration |
 | [test-final](../charts/test-final.md#value-args) | `args` | string | Diagnostic Mode |
 | [shlink](../charts/shlink.md#value-auth) | `auth` | string | PostgreSQL Configuration |
+| [e2e-test](../charts/e2e-test.md#value-automount) | `automount` | bool | ServiceAccount Parameters |
 | [nginx](../charts/nginx.md#value-automount) | `automount` | bool | ServiceAccount Parameters |
 | [restic-backup](../charts/restic-backup.md#value-automountServiceAccountToken) | `automountServiceAccountToken` | bool | ServiceAccount Parameters |
 | [restic-backup](../charts/restic-backup.md#value-backendEnv) | `backendEnv` | object | Restic Configuration |
@@ -208,6 +212,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [redisinsight](../charts/redisinsight.md#value-cert) | `cert` | string | Redis Insight Configuration |
 | [restic-backup](../charts/restic-backup.md#value-check) | `check` | object | Restic Configuration |
 | [compass-web](../charts/compass-web.md#value-className) | `className` | string | Ingress Configuration |
+| [e2e-test](../charts/e2e-test.md#value-className) | `className` | string | Ingress Parameters |
 | [it-tools](../charts/it-tools.md#value-className) | `className` | string | Ingress Configuration |
 | [nginx](../charts/nginx.md#value-className) | `className` | string | Ingress Parameters |
 | [pgadmin](../charts/pgadmin.md#value-className) | `className` | string | Ingress Configuration |
@@ -263,6 +268,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [application](../charts/application.md#value-create) | `create` | bool | cert-manager Certificate Parameters |
 | [compass-web](../charts/compass-web.md#value-create) | `create` | bool | RBAC Configuration |
 | [compass-web](../charts/compass-web.md#value-create) | `create` | bool | RBAC Configuration |
+| [e2e-test](../charts/e2e-test.md#value-create) | `create` | bool | ServiceAccount Parameters |
 | [homarr](../charts/homarr.md#value-create) | `create` | bool | cert-manager Certificate Parameters |
 | [homarr](../charts/homarr.md#value-create) | `create` | bool | cert-manager Certificate Parameters |
 | [home-assistant](../charts/home-assistant.md#value-create) | `create` | bool | General |
@@ -388,6 +394,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [compass-web](../charts/compass-web.md#value-enabled) | `enabled` | bool | High Availability |
 | [compass-web](../charts/compass-web.md#value-enabled) | `enabled` | bool | Network Policy |
 | [compass-web](../charts/compass-web.md#value-enabled) | `enabled` | bool | Diagnostic Mode |
+| [e2e-test](../charts/e2e-test.md#value-enabled) | `enabled` | bool | Ingress Parameters |
 | [homarr](../charts/homarr.md#value-enabled) | `enabled` | bool | CronJob Parameters |
 | [homarr](../charts/homarr.md#value-enabled) | `enabled` | bool | Job Parameters |
 | [homarr](../charts/homarr.md#value-enabled) | `enabled` | bool | Deployment Parameters |
@@ -597,6 +604,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [home-assistant](../charts/home-assistant.md#value-forceInit) | `forceInit` | bool | General |
 | [pgadmin](../charts/pgadmin.md#value-fromAddress) | `fromAddress` | string | pgAdmin Configuration |
 | [compass-web](../charts/compass-web.md#value-fullnameOverride) | `fullnameOverride` | string | Global Parameters |
+| [e2e-test](../charts/e2e-test.md#value-fullnameOverride) | `fullnameOverride` | string | General Parameters |
 | [it-tools](../charts/it-tools.md#value-fullnameOverride) | `fullnameOverride` | string | Global Parameters |
 | [nginx](../charts/nginx.md#value-fullnameOverride) | `fullnameOverride` | string | General Parameters |
 | [pgadmin](../charts/pgadmin.md#value-fullnameOverride) | `fullnameOverride` | string | Global Parameters |
@@ -636,6 +644,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [restic-backup](../charts/restic-backup.md#value-hostNetwork) | `hostNetwork` | bool | Advanced Parameters |
 | [restic-backup](../charts/restic-backup.md#value-hostPath) | `hostPath` | object | Backup Volume Configuration |
 | [compass-web](../charts/compass-web.md#value-hosts) | `hosts` | list | Ingress Configuration |
+| [e2e-test](../charts/e2e-test.md#value-hosts) | `hosts` | string | Ingress Parameters |
 | [it-tools](../charts/it-tools.md#value-hosts) | `hosts` | list | Ingress Configuration |
 | [nginx](../charts/nginx.md#value-hosts) | `hosts` | string | Ingress Parameters |
 | [pgadmin](../charts/pgadmin.md#value-hosts) | `hosts` | list | Ingress Configuration |
@@ -663,6 +672,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [shlink](../charts/shlink.md#value-image) | `image` | string | PostgreSQL Configuration |
 | [application](../charts/application.md#value-imagePullSecrets) | `imagePullSecrets` | list | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image Configuration |
+| [e2e-test](../charts/e2e-test.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image Parameters |
 | [homarr](../charts/homarr.md#value-imagePullSecrets) | `imagePullSecrets` | list | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image Configuration |
 | [nginx](../charts/nginx.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image Parameters |
@@ -770,6 +780,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [pgadmin](../charts/pgadmin.md#value-limitRequestLine) | `limitRequestLine` | int | pgAdmin Configuration |
 | [application](../charts/application.md#value-livenessProbe) | `livenessProbe` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-livenessProbe) | `livenessProbe` | string | Health Probes |
+| [e2e-test](../charts/e2e-test.md#value-livenessProbe) | `livenessProbe` | string | Probe Parameters |
 | [homarr](../charts/homarr.md#value-livenessProbe) | `livenessProbe` | object | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-livenessProbe) | `livenessProbe` | string | Health Probes |
 | [nginx](../charts/nginx.md#value-livenessProbe) | `livenessProbe` | string | Probe Parameters |
@@ -858,6 +869,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [application](../charts/application.md#value-name) | `name` | string | ExternalSecret Parameters |
 | [bitwarden-eso-provider](../charts/bitwarden-eso-provider.md#value-name) | `name` | string | General |
 | [compass-web](../charts/compass-web.md#value-name) | `name` | string | RBAC Configuration |
+| [e2e-test](../charts/e2e-test.md#value-name) | `name` | string | ServiceAccount Parameters |
 | [homarr](../charts/homarr.md#value-name) | `name` | string | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-name) | `name` | string | SecretProviderClass Parameters |
 | [homarr](../charts/homarr.md#value-name) | `name` | string | RBAC Parameters |
@@ -875,6 +887,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [restic-backup](../charts/restic-backup.md#value-name) | `name` | string | ServiceAccount Parameters |
 | [test-final](../charts/test-final.md#value-name) | `name` | string | RBAC Configuration |
 | [compass-web](../charts/compass-web.md#value-nameOverride) | `nameOverride` | string | Global Parameters |
+| [e2e-test](../charts/e2e-test.md#value-nameOverride) | `nameOverride` | string | General Parameters |
 | [it-tools](../charts/it-tools.md#value-nameOverride) | `nameOverride` | string | Global Parameters |
 | [nginx](../charts/nginx.md#value-nameOverride) | `nameOverride` | string | General Parameters |
 | [pgadmin](../charts/pgadmin.md#value-nameOverride) | `nameOverride` | string | Global Parameters |
@@ -916,6 +929,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-nodePort) | `nodePort` | string | Service Configuration |
 | [application](../charts/application.md#value-nodeSelector) | `nodeSelector` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-nodeSelector) | `nodeSelector` | object | Pod Configuration |
+| [e2e-test](../charts/e2e-test.md#value-nodeSelector) | `nodeSelector` | object | Scheduling Parameters |
 | [homarr](../charts/homarr.md#value-nodeSelector) | `nodeSelector` | object | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-nodeSelector) | `nodeSelector` | object | Pod Configuration |
 | [nginx](../charts/nginx.md#value-nodeSelector) | `nodeSelector` | object | Scheduling Parameters |
@@ -952,6 +966,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [shlink](../charts/shlink.md#value-persistence) | `persistence` | string | PostgreSQL Configuration |
 | [pgadmin](../charts/pgadmin.md#value-pgpassFile) | `pgpassFile` | string | pgAdmin Configuration |
 | [compass-web](../charts/compass-web.md#value-podAnnotations) | `podAnnotations` | object | Pod Configuration |
+| [e2e-test](../charts/e2e-test.md#value-podAnnotations) | `podAnnotations` | object | Pod Parameters |
 | [it-tools](../charts/it-tools.md#value-podAnnotations) | `podAnnotations` | object | Pod Configuration |
 | [nginx](../charts/nginx.md#value-podAnnotations) | `podAnnotations` | object | Pod Parameters |
 | [pgadmin](../charts/pgadmin.md#value-podAnnotations) | `podAnnotations` | object | Pod Configuration |
@@ -961,6 +976,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-podAnnotations) | `podAnnotations` | object | Pod Configuration |
 | [application](../charts/application.md#value-podLabels) | `podLabels` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-podLabels) | `podLabels` | object | Pod Configuration |
+| [e2e-test](../charts/e2e-test.md#value-podLabels) | `podLabels` | object | Pod Parameters |
 | [homarr](../charts/homarr.md#value-podLabels) | `podLabels` | object | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-podLabels) | `podLabels` | object | Pod Configuration |
 | [nginx](../charts/nginx.md#value-podLabels) | `podLabels` | object | Pod Parameters |
@@ -975,6 +991,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [redisinsight](../charts/redisinsight.md#value-podManagementPolicy) | `podManagementPolicy` | string | Controller Configuration |
 | [test-final](../charts/test-final.md#value-podManagementPolicy) | `podManagementPolicy` | string | Controller Configuration |
 | [compass-web](../charts/compass-web.md#value-podSecurityContext) | `podSecurityContext` | string | Security Context |
+| [e2e-test](../charts/e2e-test.md#value-podSecurityContext) | `podSecurityContext` | object | Pod Parameters |
 | [it-tools](../charts/it-tools.md#value-podSecurityContext) | `podSecurityContext` | object | Security Context |
 | [nginx](../charts/nginx.md#value-podSecurityContext) | `podSecurityContext` | object | Pod Parameters |
 | [pgadmin](../charts/pgadmin.md#value-podSecurityContext) | `podSecurityContext` | string | Security Context |
@@ -990,6 +1007,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [application](../charts/application.md#value-port) | `port` | int | Deployment Parameters |
 | [application](../charts/application.md#value-port) | `port` | object | Route Parameters |
 | [compass-web](../charts/compass-web.md#value-port) | `port` | int | Service Configuration |
+| [e2e-test](../charts/e2e-test.md#value-port) | `port` | int | Service Parameters |
 | [homarr](../charts/homarr.md#value-port) | `port` | int | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-port) | `port` | object | Route Parameters |
 | [it-tools](../charts/it-tools.md#value-port) | `port` | int | Service Configuration |
@@ -1027,6 +1045,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [redisinsight](../charts/redisinsight.md#value-proxyPath) | `proxyPath` | string | Redis Insight Configuration |
 | [application](../charts/application.md#value-pullPolicy) | `pullPolicy` | string | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-pullPolicy) | `pullPolicy` | string | Image Configuration |
+| [e2e-test](../charts/e2e-test.md#value-pullPolicy) | `pullPolicy` | string | Image Parameters |
 | [homarr](../charts/homarr.md#value-pullPolicy) | `pullPolicy` | string | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-pullPolicy) | `pullPolicy` | string | Image Configuration |
 | [nginx](../charts/nginx.md#value-pullPolicy) | `pullPolicy` | string | Image Parameters |
@@ -1040,6 +1059,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [restic-backup](../charts/restic-backup.md#value-readData) | `readData` | bool | Restic Configuration |
 | [application](../charts/application.md#value-readinessProbe) | `readinessProbe` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-readinessProbe) | `readinessProbe` | string | Health Probes |
+| [e2e-test](../charts/e2e-test.md#value-readinessProbe) | `readinessProbe` | string | Probe Parameters |
 | [homarr](../charts/homarr.md#value-readinessProbe) | `readinessProbe` | object | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-readinessProbe) | `readinessProbe` | string | Health Probes |
 | [nginx](../charts/nginx.md#value-readinessProbe) | `readinessProbe` | string | Probe Parameters |
@@ -1063,6 +1083,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [application](../charts/application.md#value-renewBefore) | `renewBefore` | string | cert-manager Certificate Parameters |
 | [homarr](../charts/homarr.md#value-renewBefore) | `renewBefore` | string | cert-manager Certificate Parameters |
 | [pgadmin](../charts/pgadmin.md#value-replaceServersOnStartup) | `replaceServersOnStartup` | bool | pgAdmin Configuration |
+| [e2e-test](../charts/e2e-test.md#value-replicaCount) | `replicaCount` | int | Deployment Parameters |
 | [nginx](../charts/nginx.md#value-replicaCount) | `replicaCount` | int | Deployment Parameters |
 | [application](../charts/application.md#value-replicas) | `replicas` | int | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-replicas) | `replicas` | int | Controller Configuration |
@@ -1074,6 +1095,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-replicas) | `replicas` | int | Controller Configuration |
 | [application](../charts/application.md#value-repository) | `repository` | tpl/string | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-repository) | `repository` | string | Image Configuration |
+| [e2e-test](../charts/e2e-test.md#value-repository) | `repository` | string | Image Parameters |
 | [homarr](../charts/homarr.md#value-repository) | `repository` | string | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-repository) | `repository` | string | Image Configuration |
 | [nginx](../charts/nginx.md#value-repository) | `repository` | string | Image Parameters |
@@ -1085,6 +1107,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-repository) | `repository` | string | Image Configuration |
 | [application](../charts/application.md#value-resources) | `resources` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-resources) | `resources` | string | Resources |
+| [e2e-test](../charts/e2e-test.md#value-resources) | `resources` | object | Resource Parameters |
 | [homarr](../charts/homarr.md#value-resources) | `resources` | object | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-resources) | `resources` | string | Resources |
 | [nginx](../charts/nginx.md#value-resources) | `resources` | object | Resource Parameters |
@@ -1149,6 +1172,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [homarr](../charts/homarr.md#value-secretStore) | `secretStore` | object | ExternalSecret Parameters |
 | [application](../charts/application.md#value-securityContext) | `securityContext` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-securityContext) | `securityContext` | string | Security Context |
+| [e2e-test](../charts/e2e-test.md#value-securityContext) | `securityContext` | object | Pod Parameters |
 | [homarr](../charts/homarr.md#value-securityContext) | `securityContext` | object | Deployment Parameters |
 | [home-assistant](../charts/home-assistant.md#value-securityContext) | `securityContext` | object | General |
 | [it-tools](../charts/it-tools.md#value-securityContext) | `securityContext` | object | Security Context |
@@ -1234,6 +1258,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [homarr](../charts/homarr.md#value-successThreshold) | `successThreshold` | int | Deployment Parameters |
 | [application](../charts/application.md#value-tag) | `tag` | tpl/string | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-tag) | `tag` | string | Image Configuration |
+| [e2e-test](../charts/e2e-test.md#value-tag) | `tag` | string | Image Parameters |
 | [homarr](../charts/homarr.md#value-tag) | `tag` | string | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-tag) | `tag` | string | Image Configuration |
 | [nginx](../charts/nginx.md#value-tag) | `tag` | string | Image Parameters |
@@ -1292,6 +1317,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-timezone) | `timezone` | string | Proxmox Backup Server Configuration |
 | [application](../charts/application.md#value-tls) | `tls` | list | Ingress Parameters |
 | [compass-web](../charts/compass-web.md#value-tls) | `tls` | list | Ingress Configuration |
+| [e2e-test](../charts/e2e-test.md#value-tls) | `tls` | list | Ingress Parameters |
 | [homarr](../charts/homarr.md#value-tls) | `tls` | list | Ingress Parameters |
 | [it-tools](../charts/it-tools.md#value-tls) | `tls` | list | Ingress Configuration |
 | [nginx](../charts/nginx.md#value-tls) | `tls` | list | Ingress Parameters |
@@ -1302,6 +1328,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-tls) | `tls` | list | Ingress Configuration |
 | [application](../charts/application.md#value-tolerations) | `tolerations` | list | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-tolerations) | `tolerations` | list | Pod Configuration |
+| [e2e-test](../charts/e2e-test.md#value-tolerations) | `tolerations` | list | Scheduling Parameters |
 | [homarr](../charts/homarr.md#value-tolerations) | `tolerations` | list | Deployment Parameters |
 | [home-assistant](../charts/home-assistant.md#value-tolerations) | `tolerations` | list | General |
 | [it-tools](../charts/it-tools.md#value-tolerations) | `tolerations` | list | Pod Configuration |
@@ -1328,6 +1355,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [application](../charts/application.md#value-type) | `type` | string | Service Parameters |
 | [compass-web](../charts/compass-web.md#value-type) | `type` | string | Controller Configuration |
 | [compass-web](../charts/compass-web.md#value-type) | `type` | string | Service Configuration |
+| [e2e-test](../charts/e2e-test.md#value-type) | `type` | string | Service Parameters |
 | [homarr](../charts/homarr.md#value-type) | `type` | string | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-type) | `type` | string | Service Parameters |
 | [it-tools](../charts/it-tools.md#value-type) | `type` | string | Controller Configuration |
@@ -1370,12 +1398,14 @@ Complete alphabetical listing of all configuration values across all charts.
 | [application](../charts/application.md#value-volumeMode) | `volumeMode` | string | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-volumeMode) | `volumeMode` | string | Deployment Parameters |
 | [application](../charts/application.md#value-volumeMounts) | `volumeMounts` | object | Deployment Parameters |
+| [e2e-test](../charts/e2e-test.md#value-volumeMounts) | `volumeMounts` | list | Volume Parameters |
 | [homarr](../charts/homarr.md#value-volumeMounts) | `volumeMounts` | object | Deployment Parameters |
 | [home-assistant](../charts/home-assistant.md#value-volumeMounts) | `volumeMounts` | list | General |
 | [nginx](../charts/nginx.md#value-volumeMounts) | `volumeMounts` | list | Volume Parameters |
 | [application](../charts/application.md#value-volumeName) | `volumeName` | string | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-volumeName) | `volumeName` | string | Deployment Parameters |
 | [application](../charts/application.md#value-volumes) | `volumes` | object | Deployment Parameters |
+| [e2e-test](../charts/e2e-test.md#value-volumes) | `volumes` | list | Volume Parameters |
 | [homarr](../charts/homarr.md#value-volumes) | `volumes` | object | Deployment Parameters |
 | [nginx](../charts/nginx.md#value-volumes) | `volumes` | list | Volume Parameters |
 | [restic-backup](../charts/restic-backup.md#value-volumes) | `volumes` | list | Volumes Configuration |
@@ -1392,4 +1422,4 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-workingDir) | `workingDir` | string | Controller Configuration |
 
 
-*Total: 1380 values across 14 charts*
+*Total: 1410 values across 15 charts*

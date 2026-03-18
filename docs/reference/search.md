@@ -19,6 +19,7 @@ Search across all chart values in this repository.
   <button class="filter-btn" data-section="application">application</button>
   <button class="filter-btn" data-section="bitwarden-eso-provider">bitwarden-eso-provider</button>
   <button class="filter-btn" data-section="compass-web">compass-web</button>
+  <button class="filter-btn" data-section="e2e-test">e2e-test</button>
   <button class="filter-btn" data-section="homarr">homarr</button>
   <button class="filter-btn" data-section="home-assistant">home-assistant</button>
   <button class="filter-btn" data-section="it-tools">it-tools</button>
@@ -2768,6 +2769,216 @@ Search across all chart values in this repository.
 <td><span class="type-badge string">string</span></td>
 <td><code>`nil`</code></td>
 <td>Args override for diagnostic mode</td>
+</tr>
+<tr id="e2e-test-value-replicaCount" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-replicaCount">e2e-test</a></td>
+<td><code class="value-key">replicaCount</code></td>
+<td><span class="type-badge int">int</span></td>
+<td><code>1</code></td>
+<td>Number of replicas for the deployment.</td>
+</tr>
+<tr id="e2e-test-value-repository" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-repository">e2e-test</a></td>
+<td><code class="value-key">repository</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>nginx</code></td>
+<td>Container image repository.</td>
+</tr>
+<tr id="e2e-test-value-pullPolicy" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-pullPolicy">e2e-test</a></td>
+<td><code class="value-key">pullPolicy</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>IfNotPresent</code></td>
+<td>Image pull policy.</td>
+</tr>
+<tr id="e2e-test-value-tag" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-tag">e2e-test</a></td>
+<td><code class="value-key">tag</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Overrides the image tag whose default is the chart appVersion.</td>
+</tr>
+<tr id="e2e-test-value-imagePullSecrets" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-imagePullSecrets">e2e-test</a></td>
+<td><code class="value-key">imagePullSecrets</code></td>
+<td><span class="type-badge list">list</span></td>
+<td><code>[]</code></td>
+<td>Secrets for pulling images from a private repository.</td>
+</tr>
+<tr id="e2e-test-value-nameOverride" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-nameOverride">e2e-test</a></td>
+<td><code class="value-key">nameOverride</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Override the chart name.</td>
+</tr>
+<tr id="e2e-test-value-fullnameOverride" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-fullnameOverride">e2e-test</a></td>
+<td><code class="value-key">fullnameOverride</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Override the full name.</td>
+</tr>
+<tr id="e2e-test-value-create" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-create">e2e-test</a></td>
+<td><code class="value-key">create</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>true</code></td>
+<td>Specifies whether a service account should be created.</td>
+</tr>
+<tr id="e2e-test-value-automount" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-automount">e2e-test</a></td>
+<td><code class="value-key">automount</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>true</code></td>
+<td>Automatically mount a ServiceAccount's API credentials.</td>
+</tr>
+<tr id="e2e-test-value-annotations" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-annotations">e2e-test</a></td>
+<td><code class="value-key">annotations</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Annotations to add to the service account.</td>
+</tr>
+<tr id="e2e-test-value-name" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-name">e2e-test</a></td>
+<td><code class="value-key">name</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>The name of the service account to use. If not set and create is true, a name is generated.</td>
+</tr>
+<tr id="e2e-test-value-podAnnotations" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-podAnnotations">e2e-test</a></td>
+<td><code class="value-key">podAnnotations</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Annotations for pods.</td>
+</tr>
+<tr id="e2e-test-value-podLabels" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-podLabels">e2e-test</a></td>
+<td><code class="value-key">podLabels</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Labels for pods.</td>
+</tr>
+<tr id="e2e-test-value-podSecurityContext" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-podSecurityContext">e2e-test</a></td>
+<td><code class="value-key">podSecurityContext</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Pod security context.</td>
+</tr>
+<tr id="e2e-test-value-securityContext" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-securityContext">e2e-test</a></td>
+<td><code class="value-key">securityContext</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Container security context.</td>
+</tr>
+<tr id="e2e-test-value-type" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-type">e2e-test</a></td>
+<td><code class="value-key">type</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>ClusterIP</code></td>
+<td>Service type (ClusterIP, NodePort, LoadBalancer).</td>
+</tr>
+<tr id="e2e-test-value-port" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-port">e2e-test</a></td>
+<td><code class="value-key">port</code></td>
+<td><span class="type-badge int">int</span></td>
+<td><code>80</code></td>
+<td>Service port.</td>
+</tr>
+<tr id="e2e-test-value-enabled" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-enabled">e2e-test</a></td>
+<td><code class="value-key">enabled</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>false</code></td>
+<td>Enable ingress.</td>
+</tr>
+<tr id="e2e-test-value-className" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-className">e2e-test</a></td>
+<td><code class="value-key">className</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Ingress class name.</td>
+</tr>
+<tr id="e2e-test-value-annotations" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-annotations">e2e-test</a></td>
+<td><code class="value-key">annotations</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Ingress annotations.</td>
+</tr>
+<tr id="e2e-test-value-hosts" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-hosts">e2e-test</a></td>
+<td><code class="value-key">hosts</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>`nil`</code></td>
+<td>Ingress hosts configuration.</td>
+</tr>
+<tr id="e2e-test-value-tls" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-tls">e2e-test</a></td>
+<td><code class="value-key">tls</code></td>
+<td><span class="type-badge list">list</span></td>
+<td><code>[]</code></td>
+<td>Ingress TLS configuration.</td>
+</tr>
+<tr id="e2e-test-value-resources" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-resources">e2e-test</a></td>
+<td><code class="value-key">resources</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Resource limits and requests.</td>
+</tr>
+<tr id="e2e-test-value-livenessProbe" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-livenessProbe">e2e-test</a></td>
+<td><code class="value-key">livenessProbe</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>`nil`</code></td>
+<td>Liveness probe configuration.</td>
+</tr>
+<tr id="e2e-test-value-readinessProbe" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-readinessProbe">e2e-test</a></td>
+<td><code class="value-key">readinessProbe</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>`nil`</code></td>
+<td>Readiness probe configuration.</td>
+</tr>
+<tr id="e2e-test-value-volumes" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-volumes">e2e-test</a></td>
+<td><code class="value-key">volumes</code></td>
+<td><span class="type-badge list">list</span></td>
+<td><code>[]</code></td>
+<td>Additional volumes for the deployment.</td>
+</tr>
+<tr id="e2e-test-value-volumeMounts" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-volumeMounts">e2e-test</a></td>
+<td><code class="value-key">volumeMounts</code></td>
+<td><span class="type-badge list">list</span></td>
+<td><code>[]</code></td>
+<td>Additional volume mounts for the deployment.</td>
+</tr>
+<tr id="e2e-test-value-nodeSelector" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-nodeSelector">e2e-test</a></td>
+<td><code class="value-key">nodeSelector</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Node selector for pod scheduling.</td>
+</tr>
+<tr id="e2e-test-value-tolerations" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-tolerations">e2e-test</a></td>
+<td><code class="value-key">tolerations</code></td>
+<td><span class="type-badge list">list</span></td>
+<td><code>[]</code></td>
+<td>Tolerations for pod scheduling.</td>
+</tr>
+<tr id="e2e-test-value-affinity" class="value-anchor" data-section="e2e-test">
+<td><a href="../charts/e2e-test.md#value-affinity">e2e-test</a></td>
+<td><code class="value-key">affinity</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Affinity rules for pod scheduling.</td>
 </tr>
 <tr id="homarr-value-namespaceOverride" class="value-anchor" data-section="homarr">
 <td><a href="../charts/homarr.md#value-namespaceOverride">homarr</a></td>
@@ -9711,4 +9922,4 @@ Search across all chart values in this repository.
 
 ---
 
-*Last updated: 2026-02-02 13:44:40*
+*Last updated: 2026-03-18 11:28:02*

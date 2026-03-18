@@ -78,6 +78,31 @@ helm-plugin-install:
 # Chart Management
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# Create a new chart from the Copier template
+[group('charts')]
+new-chart dest:
+    @just _info "Creating new chart at {{dest}}..."
+    @copier copy --trust templates/chart-copier {{dest}}
+    @just _success "Chart created at {{dest}}"
+
+# Update an existing chart from the Copier template
+[group('charts')]
+update-chart dest:
+    @just _info "Updating chart at {{dest}} from template..."
+    @./tools/update-charts.sh {{dest}}
+    @just _success "Chart updated"
+
+# List all Copier-managed charts
+[group('charts')]
+list-managed-charts:
+    @./tools/update-charts.sh --list
+
+# Update all Copier-managed charts (uses saved answers, no prompts)
+[group('charts')]
+update-all-charts:
+    @just _info "Updating all managed charts..."
+    @./tools/update-charts.sh --defaults
+
 # List all charts
 [group('charts')]
 list:

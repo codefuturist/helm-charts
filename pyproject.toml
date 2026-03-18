@@ -17,6 +17,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "copier>=9.0.0",
     "pre-commit>=3.0.0",
 ]
 

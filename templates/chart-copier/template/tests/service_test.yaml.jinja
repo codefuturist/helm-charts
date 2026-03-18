@@ -1,0 +1,27 @@
+suite: service tests
+templates:
+  - templates/service.yaml
+tests:
+  - it: should render a Service
+    asserts:
+      - isKind:
+          of: Service
+
+  - it: should use ClusterIP by default
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+
+  - it: should use the configured port
+    set:
+      service.port: 8080
+    asserts:
+      - equal:
+          path: spec.ports[0].port
+          value: 8080
+
+  - it: should include selector labels
+    asserts:
+      - isNotEmpty:
+          path: spec.selector

@@ -1,0 +1,35 @@
+suite: ingress tests
+templates:
+  - templates/ingress.yaml
+tests:
+  - it: should not render when disabled
+    set:
+      ingress.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render when enabled
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - host: test.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - isKind:
+          of: Ingress
+
+  - it: should set the correct host
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - host: my-app.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - equal:
+          path: spec.rules[0].host
+          value: "my-app.example.com"

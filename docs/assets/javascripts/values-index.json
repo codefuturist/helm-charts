@@ -11493,6 +11493,276 @@
     "chart": "home-assistant"
   },
   {
+    "key": "replicaCount",
+    "type": "int",
+    "default": "1",
+    "description": "Number of replicas for the deployment.",
+    "section": "Deployment Parameters",
+    "line_number": 7,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "repository",
+    "type": "string",
+    "default": "nginx",
+    "description": "Container image repository.",
+    "section": "Image Parameters",
+    "line_number": 12,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "pullPolicy",
+    "type": "string",
+    "default": "IfNotPresent",
+    "description": "Image pull policy.",
+    "section": "Image Parameters",
+    "line_number": 15,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "tag",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Overrides the image tag whose default is the chart appVersion.",
+    "section": "Image Parameters",
+    "line_number": 18,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "imagePullSecrets",
+    "type": "list",
+    "default": "[]",
+    "description": "Secrets for pulling images from a private repository.",
+    "section": "Image Parameters",
+    "line_number": 22,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "nameOverride",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Override the chart name.",
+    "section": "General Parameters",
+    "line_number": 26,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "fullnameOverride",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Override the full name.",
+    "section": "General Parameters",
+    "line_number": 30,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "create",
+    "type": "bool",
+    "default": "true",
+    "description": "Specifies whether a service account should be created.",
+    "section": "ServiceAccount Parameters",
+    "line_number": 35,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "automount",
+    "type": "bool",
+    "default": "true",
+    "description": "Automatically mount a ServiceAccount's API credentials.",
+    "section": "ServiceAccount Parameters",
+    "line_number": 38,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "{}",
+    "description": "Annotations to add to the service account.",
+    "section": "ServiceAccount Parameters",
+    "line_number": 41,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "name",
+    "type": "string",
+    "default": "\"\"",
+    "description": "The name of the service account to use. If not set and create is true, a name is generated.",
+    "section": "ServiceAccount Parameters",
+    "line_number": 44,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "podAnnotations",
+    "type": "object",
+    "default": "{}",
+    "description": "Annotations for pods.",
+    "section": "Pod Parameters",
+    "line_number": 48,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "podLabels",
+    "type": "object",
+    "default": "{}",
+    "description": "Labels for pods.",
+    "section": "Pod Parameters",
+    "line_number": 52,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "podSecurityContext",
+    "type": "object",
+    "default": "{}",
+    "description": "Pod security context.",
+    "section": "Pod Parameters",
+    "line_number": 56,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "securityContext",
+    "type": "object",
+    "default": "{}",
+    "description": "Container security context.",
+    "section": "Pod Parameters",
+    "line_number": 61,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "type",
+    "type": "string",
+    "default": "ClusterIP",
+    "description": "Service type (ClusterIP, NodePort, LoadBalancer).",
+    "section": "Service Parameters",
+    "line_number": 72,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "port",
+    "type": "int",
+    "default": "80",
+    "description": "Service port.",
+    "section": "Service Parameters",
+    "line_number": 75,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "enabled",
+    "type": "bool",
+    "default": "false",
+    "description": "Enable ingress.",
+    "section": "Ingress Parameters",
+    "line_number": 80,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "className",
+    "type": "string",
+    "default": "\"\"",
+    "description": "Ingress class name.",
+    "section": "Ingress Parameters",
+    "line_number": 83,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "annotations",
+    "type": "object",
+    "default": "{}",
+    "description": "Ingress annotations.",
+    "section": "Ingress Parameters",
+    "line_number": 86,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "hosts",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Ingress hosts configuration.",
+    "section": "Ingress Parameters",
+    "line_number": 91,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "tls",
+    "type": "list",
+    "default": "[]",
+    "description": "Ingress TLS configuration.",
+    "section": "Ingress Parameters",
+    "line_number": 98,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "resources",
+    "type": "object",
+    "default": "{}",
+    "description": "Resource limits and requests.",
+    "section": "Resource Parameters",
+    "line_number": 105,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "livenessProbe",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Liveness probe configuration.",
+    "section": "Probe Parameters",
+    "line_number": 115,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "readinessProbe",
+    "type": "string",
+    "default": "`nil`",
+    "description": "Readiness probe configuration.",
+    "section": "Probe Parameters",
+    "line_number": 122,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "volumes",
+    "type": "list",
+    "default": "[]",
+    "description": "Additional volumes for the deployment.",
+    "section": "Volume Parameters",
+    "line_number": 133,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "volumeMounts",
+    "type": "list",
+    "default": "[]",
+    "description": "Additional volume mounts for the deployment.",
+    "section": "Volume Parameters",
+    "line_number": 141,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "nodeSelector",
+    "type": "object",
+    "default": "{}",
+    "description": "Node selector for pod scheduling.",
+    "section": "Scheduling Parameters",
+    "line_number": 148,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "tolerations",
+    "type": "list",
+    "default": "[]",
+    "description": "Tolerations for pod scheduling.",
+    "section": "Scheduling Parameters",
+    "line_number": 152,
+    "chart": "e2e-test"
+  },
+  {
+    "key": "affinity",
+    "type": "object",
+    "default": "{}",
+    "description": "Affinity rules for pod scheduling.",
+    "section": "Scheduling Parameters",
+    "line_number": 156,
+    "chart": "e2e-test"
+  },
+  {
     "key": "namespaceOverride",
     "type": "string",
     "default": "`.Release.Namespace`",

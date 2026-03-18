@@ -21,8 +21,9 @@ pipx install copier
 # Interactive — prompts for all options
 ./tools/new-chart.sh charts/apps/my-app
 
-# Or with just
+# Or with just / make
 just new-chart charts/apps/my-app
+make new-chart DEST=charts/apps/my-app
 
 # Or directly with copier
 copier copy --trust templates/chart-copier charts/apps/my-app
@@ -44,21 +45,6 @@ existing charts can **pull in those improvements** while keeping their customiza
 Read [`TEMPLATE_CHANGELOG.md`](./TEMPLATE_CHANGELOG.md) to understand what's new
 and whether any migration steps are needed.
 
-### Pre-requisite — clean git state
-
-`copier update` requires a clean git working tree (no modified or staged tracked files).
-Commit or stash any pending changes before running an update:
-
-```bash
-# Option A — commit first (recommended)
-git add . && git commit -m "chore: work in progress"
-
-# Option B — stash, update, pop
-git stash
-./tools/update-charts.sh --defaults charts/apps/my-app
-git stash pop
-```
-
 ### Step 2 — Preview the update (optional but recommended)
 
 ```bash
@@ -75,10 +61,12 @@ git stash pop
 # Update all managed charts at once
 ./tools/update-charts.sh --defaults
 just update-all-charts
+make update-all-charts
 
 # Update interactively (lets you re-answer questions)
 ./tools/update-charts.sh charts/apps/my-app
 just update-chart charts/apps/my-app
+make update-chart DEST=charts/apps/my-app
 ```
 
 ### Step 4 — Resolve conflicts
@@ -107,6 +95,7 @@ helm template test charts/apps/my-app
 # List all charts generated from this template
 ./tools/update-charts.sh --list
 just list-managed-charts
+make list-managed-charts
 ```
 
 A chart is "managed" when it has a `.copier-answers.yml` file in its root.
@@ -191,7 +180,9 @@ uses custom delimiters to avoid conflicts, configured in `copier.yml` via `_envo
 
 ### Portability
 
-The `update-charts.sh` script and all `just` targets always pass
-`--src-path templates/chart-copier` to `copier update`. This overrides the
-absolute path stored in `.copier-answers.yml`, making updates portable across
-different machines and checkout locations.
+`update-charts.sh` and the `just`/`make` targets use `copier recopy` (not `copier update`),
+which is the correct command for local, non-VCS-tagged templates. Before running, the script
+patches `_src_path` in `.copier-answers.yml` to the current template directory, making updates
+portable across different machines and checkout locations.
+
+`copier recopy` also works without a clean git working tree, unlike `copier update`.
