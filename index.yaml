@@ -1,5 +1,44 @@
 apiVersion: v1
 entries:
+  actualbudget:
+  - annotations:
+      artifacthub.io/changes: |
+        - kind: changed
+          description: Fixed Chart.yaml metadata (was incorrectly copied from metube)
+        - kind: changed
+          description: Updated appVersion to pinned version 25.11.0
+    apiVersion: v2
+    appVersion: 25.11.0
+    created: "2026-04-20T04:02:23.953288891Z"
+    dependencies:
+    - name: common
+      repository: file://../../libs/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: A Helm chart for Actual Budget - A local-first personal finance app
+    digest: 1f63afaf6bed47651c39105e733f45178134f51dbaed4690e9dd034aae48bcf7
+    home: https://actualbudget.org
+    icon: https://actualbudget.org/img/actual.png
+    keywords:
+    - actualbudget
+    - actual
+    - budget
+    - finance
+    - personal-finance
+    - money
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: actualbudget
+    sources:
+    - https://github.com/actualbudget/actual
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/actualbudget-1.0.0/actualbudget-1.0.0.tgz
+    version: 1.0.0
   application:
   - apiVersion: v2
     created: "2025-11-10T09:03:29.081631769Z"
@@ -490,6 +529,38 @@ entries:
     urls:
     - https://github.com/codefuturist/helm-charts/releases/download/home-assistant-1.0.0/home-assistant-1.0.0.tgz
     version: 1.0.0
+  it-tools:
+  - annotations:
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release of it-tools Helm chart v0.1.0
+    apiVersion: v2
+    appVersion: latest
+    created: "2026-04-20T04:02:24.585032449Z"
+    dependencies:
+    - name: common
+      repository: file://../../libs/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: A Helm chart for IT Tools - Useful tools for developers
+    digest: b78276fa32bccd87d36584de7366646915f09af9d46f44028d0a2597554213ac
+    home: https://github.com/sharevb/it-tools
+    icon: https://raw.githubusercontent.com/sharevb/it-tools/main/public/favicon.ico
+    keywords:
+    - it-tools
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: it-tools
+    sources:
+    - https://github.com/sharevb/it-tools
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/it-tools-1.0.0/it-tools-1.0.0.tgz
+    version: 1.0.0
   mailrise:
   - annotations:
       artifacthub.io/category: integration-delivery
@@ -625,6 +696,35 @@ entries:
     version: 1.0.0
   mealie:
   - apiVersion: v2
+    appVersion: 3.5.0
+    created: "2026-04-20T04:02:24.811519777Z"
+    dependencies:
+    - name: common
+      repository: file://../../libs/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: A Helm chart for mealie
+    digest: 74d891bec86c522f35650a7355ffb4c72b6304c53506c1787e949784a13e3c41
+    home: https://mealie.io
+    keywords:
+    - mealie
+    - recipes
+    - recipe-manager
+    - meal-planning
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: mealie
+    sources:
+    - https://github.com/mealie-recipes/mealie
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/mealie-1.0.0/mealie-1.0.0.tgz
+    version: 1.0.0
+  - apiVersion: v2
     appVersion: 1.0.0
     created: "2025-11-27T21:51:29.623979649Z"
     description: A Helm chart for mealie
@@ -714,6 +814,37 @@ entries:
     - https://github.com/codefuturist/helm-charts/releases/download/metube-1.0.0/metube-1.0.0.tgz
     version: 1.0.0
   netbootxyz:
+  - apiVersion: v2
+    appVersion: 0.7.6-nbxyz10
+    created: "2026-04-20T04:02:25.032974768Z"
+    dependencies:
+    - name: common
+      repository: file://../../libs/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: 'netboot.xyz is a network boot environment that allows PXE booting
+      various operating system installers or utilities from a central location. '
+    digest: 95a26464394c5225fdf23fc9c99bb6289e755b71803a2943d136059f3998257f
+    home: https://netboot.xyz
+    icon: https://netboot.xyz/images/netboot.xyz-logo.svg
+    keywords:
+    - netboot
+    - pxe
+    - tftp
+    - network-boot
+    - ipxe
+    maintainers:
+    - name: codefuturist
+      url: https://github.com/codefuturist
+    name: netbootxyz
+    sources:
+    - https://github.com/netbootxyz/netboot.xyz
+    - https://github.com/netbootxyz/docker-netbootxyz
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/netbootxyz-1.0.0/netbootxyz-1.0.0.tgz
+    version: 1.0.0
   - apiVersion: v2
     appVersion: 0.7.6-nbxyz10
     created: "2025-11-27T21:51:29.895038799Z"
@@ -883,6 +1014,43 @@ entries:
     - https://github.com/codefuturist/helm-charts/releases/download/nginx-0.1.2/nginx-0.1.2.tgz
     version: 0.1.2
   paperless-ngx:
+  - apiVersion: v2
+    appVersion: 2.13.5
+    created: "2026-04-20T04:02:25.18021515Z"
+    dependencies:
+    - name: common
+      repository: file://../../libs/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.x.x
+    - condition: redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 20.x.x
+    description: 'A Helm chart for Paperless-ngx - A community-supported supercharged
+      version of paperless based on paperless-ng '
+    digest: ab0e58bb188dbcb2bdfb679d7750f0d137c566d200fe9251489b9de7afb347e3
+    home: https://github.com/paperless-ngx/paperless-ngx
+    keywords:
+    - paperless
+    - document-management
+    - ocr
+    - archive
+    maintainers:
+    - name: codefuturist
+      url: https://github.com/codefuturist
+    name: paperless-ngx
+    sources:
+    - https://github.com/paperless-ngx/paperless-ngx
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/paperless-ngx-1.0.0/paperless-ngx-1.0.0.tgz
+    version: 1.0.0
   - apiVersion: v2
     appVersion: 2.13.5
     created: "2025-11-27T21:51:30.198327006Z"
@@ -1260,6 +1428,43 @@ entries:
     urls:
     - https://github.com/codefuturist/helm-charts/releases/download/postgresql-1.7.0/postgresql-1.7.0.tgz
     version: 1.7.0
+  protonpass-eso-provider:
+  - annotations:
+      category: Security
+    apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-04-20T04:02:25.432667268Z"
+    dependencies:
+    - name: common
+      repository: file://../../libs/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: A Proton Pass webhook provider for External Secrets Operator that
+      fetches secrets from Proton Pass vaults using pass-cli
+    digest: 12133c05464b042ee9bcaf81e826a1e525156d34cb2413813c78184bc1f2005e
+    home: https://github.com/codefuturist/helm-charts
+    keywords:
+    - protonpass
+    - proton-pass
+    - secrets
+    - external-secrets
+    - eso
+    - webhook
+    - security
+    - password-manager
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: protonpass-eso-provider
+    sources:
+    - https://github.com/codefuturist/helm-charts
+    - https://github.com/protonpass/pass-cli
+    - https://protonpass.github.io/pass-cli/
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/protonpass-eso-provider-1.0.0/protonpass-eso-provider-1.0.0.tgz
+    version: 1.0.0
   proxmox-backup-server:
   - annotations:
       artifacthub.io/category: storage
@@ -1637,6 +1842,59 @@ entries:
     urls:
     - https://github.com/codefuturist/helm-charts/releases/download/restic-backup-1.2.0/restic-backup-1.2.0.tgz
     version: 1.2.0
+  - annotations:
+      artifacthub.io/changes: |
+        - kind: added
+          description: "Default dedicated backup volume for out-of-the-box local backups"
+        - kind: added
+          description: "Automatic PVC creation for backup repository storage"
+        - kind: added
+          description: "Support for multiple backup volume types (PVC, hostPath, NFS, emptyDir)"
+        - kind: changed
+          description: "Simplified default configuration for better user experience"
+        - kind: changed
+          description: "Updated examples to demonstrate local-first backup approach"
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/license: MIT
+      artifacthub.io/signKey: |
+        fingerprint: 0000000000000000000000000000000000000000
+        url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0000000000000000000000000000000000000000
+    apiVersion: v2
+    appVersion: 0.17.3
+    created: "2026-04-20T04:02:25.78296917Z"
+    dependencies:
+    - name: common
+      repository: file://../../libs/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: 'A user-friendly Helm chart for automated Kubernetes volume backups
+      using restic with support for multiple storage backends and flexible scheduling '
+    digest: 374725765f746a85d192375f60c3ff126d42c6f079fd42d92c26a632d2531d70
+    home: https://restic.net
+    icon: https://restic.net/img/logo.png
+    keywords:
+    - restic
+    - backup
+    - restore
+    - volumes
+    - pvc
+    - kubernetes
+    - s3
+    - azure
+    - google-cloud
+    - sftp
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: restic-backup
+    sources:
+    - https://github.com/restic/restic
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/restic-backup-1.0.0/restic-backup-1.0.0.tgz
+    version: 1.0.0
   semaphore:
   - annotations:
       artifacthub.io/category: integration-delivery
@@ -1772,6 +2030,83 @@ entries:
     urls:
     - https://github.com/codefuturist/helm-charts/releases/download/semaphore-1.3.0/semaphore-1.3.0.tgz
     version: 1.3.0
+  - annotations:
+      artifacthub.io/category: integration-delivery
+      artifacthub.io/changes: |
+        - kind: added
+          description: Added SEMAPHORE_DB_OPTIONS environment variable support for database connection tuning
+        - kind: added
+          description: >-
+            Added JSON configuration environment variables
+            (SEMAPHORE_APPS, SEMAPHORE_ENV_VARS, SEMAPHORE_FORWARDED_ENV_VARS)
+        - kind: added
+          description: >-
+            Added TLS/HTTPS configuration environment variables
+            (SEMAPHORE_TLS_ENABLED, TLS_CERT_FILE, TLS_KEY_FILE, TLS_HTTP_REDIRECT_PORT)
+        - kind: added
+          description: Added process control environment variables (SEMAPHORE_PROCESS_USER, UID, GID, CHROOT)
+        - kind: added
+          description: Added health probes to runner deployment (liveness, readiness, startup)
+        - kind: added
+          description: Added SSH private key management for runner operations
+        - kind: added
+          description: Added optional database migration init container support
+        - kind: changed
+          description: Enhanced ConfigMap to properly store JSON configurations
+        - kind: changed
+          description: Updated chart to v1.3.0 with comprehensive environment variable support
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/kubeVersion: '>=1.21.0-0'
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Chart Documentation
+          url: https://github.com/codefuturist/helm-charts/tree/main/charts/semaphore
+        - name: Semaphore Documentation
+          url: https://semaphoreui.com
+        - name: Semaphore GitHub
+          url: https://github.com/semaphoreui/semaphore
+      artifacthub.io/maintainers: |
+        - name: codefuturist
+          email: 58808821+codefuturist@users.noreply.github.com
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 2.10.32
+    created: "2026-04-20T04:02:25.903147919Z"
+    dependencies:
+    - name: common
+      repository: file://../../libs/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: Modern UI for Ansible, Terraform, OpenTofu, Bash, and Pulumi - task
+      automation and infrastructure orchestration
+    digest: 92ed62859092a10e57496375958f3a6fa67ab68f5ba003833bec18a73ba172cd
+    home: https://semaphoreui.com
+    icon: https://raw.githubusercontent.com/semaphoreui/semaphore/main/web/public/img/logo.png
+    keywords:
+    - semaphore
+    - ansible
+    - terraform
+    - opentofu
+    - automation
+    - ci-cd
+    - devops
+    - infrastructure
+    - orchestration
+    - homelab
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: semaphore
+    sources:
+    - https://github.com/semaphoreui/semaphore
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/semaphore-1.0.0/semaphore-1.0.0.tgz
+    version: 1.0.0
   shlink:
   - annotations:
       artifacthub.io/category: integration-delivery
@@ -1860,6 +2195,130 @@ entries:
     urls:
     - https://github.com/codefuturist/helm-charts/releases/download/shlink-1.0.1/shlink-1.0.1.tgz
     version: 1.0.1
+  - annotations:
+      artifacthub.io/category: integration-delivery
+      artifacthub.io/changes: |
+        - kind: fixed
+          description: Default secret key names now match generated Secret data to prevent missing API/GeoLite keys
+        - kind: added
+          description: New Traefik/docker-compose example values and documentation updates
+        - kind: removed
+          description: Removed stray values.yaml.backup file to avoid confusing defaults
+        - kind: added
+          description: Initial release of Shlink Helm chart v1.0.0
+        - kind: added
+          description: Support for Deployment and StatefulSet controller types
+        - kind: added
+          description: Separate deployments for backend API and web client UI
+        - kind: added
+          description: Integrated PostgreSQL subchart (Bitnami) for easy setup
+        - kind: added
+          description: Support for external database configuration
+        - kind: added
+          description: Comprehensive security with pod security contexts, RBAC, and network policies
+        - kind: added
+          description: Monitoring support with ServiceMonitor and PrometheusRule
+        - kind: added
+          description: Complete Shlink environment variable support (database, domains, API keys, GeoLite)
+        - kind: added
+          description: Web client configuration with customizable server definitions
+        - kind: added
+          description: Dual ingress support (API and web UI) with path-based or host-based routing
+        - kind: added
+          description: High availability features (HPA, PDB, anti-affinity)
+        - kind: added
+          description: Production-ready defaults with persistence enabled
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/kubeVersion: '>=1.21.0-0'
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Chart Documentation
+          url: https://github.com/codefuturist/helm-charts/tree/main/charts/shlink
+        - name: Shlink Official Docs
+          url: https://shlink.io/documentation/
+        - name: Shlink Docker Image
+          url: https://hub.docker.com/r/shlinkio/shlink
+        - name: Web Client Repository
+          url: https://github.com/shlinkio/shlink-web-client
+      artifacthub.io/maintainers: |
+        - name: codefuturist
+          email: 58808821+codefuturist@users.noreply.github.com
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "false"
+      artifacthub.io/recommendations: |
+        - url: https://artifacthub.io/packages/helm/bitnami/postgresql
+        - url: https://artifacthub.io/packages/helm/bitnami/redis
+      artifacthub.io/signKey: ""
+    apiVersion: v2
+    appVersion: 4.2.4
+    created: "2026-04-20T04:02:26.023920876Z"
+    dependencies:
+    - name: common
+      repository: file://../../libs/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: ~16.2.0
+    description: A production-ready Helm chart for Shlink - Self-hosted URL shortener
+      with analytics and web UI
+    digest: 9e37627632e6d205d9d6561de83957582c88c2d8323b5f2494980a1d25c829fe
+    home: https://shlink.io/
+    icon: https://shlink.io/images/shlink-logo-blue.svg
+    keywords:
+    - shlink
+    - url-shortener
+    - link-management
+    - analytics
+    - web
+    - api
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: shlink
+    sources:
+    - https://github.com/shlinkio/shlink
+    - https://github.com/shlinkio/shlink-web-client
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/shlink-1.0.0/shlink-1.0.0.tgz
+    version: 1.0.0
+  test-final:
+  - annotations:
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release of test-final Helm chart v0.1.0
+    apiVersion: v2
+    appVersion: 1.27.3
+    created: "2026-04-20T04:02:26.158897762Z"
+    dependencies:
+    - name: common
+      repository: file://../../libs/common
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: Test chart with auto-version
+    digest: 75bb53f72e2608d27c8df945b292a4225b864e48ec9c5c7f94c88ec64c407d92
+    home: https://example.com
+    icon: https://example.com/icon.png
+    keywords:
+    - test-final
+    - kubernetes
+    maintainers:
+    - email: 58808821+codefuturist@users.noreply.github.com
+      name: codefuturist
+    name: test-final
+    sources:
+    - https://github.com/example/app
+    - https://github.com/codefuturist/helm-charts
+    type: application
+    urls:
+    - https://github.com/codefuturist/helm-charts/releases/download/test-final-1.0.0/test-final-1.0.0.tgz
+    version: 1.0.0
   uptime-kuma:
   - annotations:
       artifacthub.io/category: monitoring-logging
@@ -1993,4 +2452,4 @@ entries:
     urls:
     - https://github.com/codefuturist/helm-charts/releases/download/uptime-kuma-1.0.0/uptime-kuma-1.0.0.tgz
     version: 1.0.0
-generated: "2025-12-13T07:35:23.435164183Z"
+generated: "2026-04-20T04:02:26.274073127Z"
