@@ -12,6 +12,7 @@ tags:
 
 A Helm chart for Paperless-ngx - A community-supported supercharged version of paperless based on paperless-ng
 
+
 ## Quick Links
 
 - [Installation](#installing-the-chart)

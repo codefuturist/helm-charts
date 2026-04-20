@@ -30,6 +30,7 @@ tests/
 tekton/
 quick-starts/
 test-install-values.yaml
-test-values-with-secret.yaml
 # Chart configuration
 .chartconfig.yaml
+# Copier answers (not needed in packages)
+.copier-answers.yml

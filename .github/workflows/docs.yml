@@ -1,3 +1,4 @@
+---
 name: Documentation
 
 on:
@@ -49,7 +50,7 @@ jobs:
       - name: Check chart documentation sync
         run: |
           uv run python scripts/sync-chart-docs.py --check || {
-            echo "::error::Chart documentation is out of sync. Run './scripts/sync-chart-docs.py' locally and commit the changes."
+            echo "::error::Chart docs out of sync. Run './scripts/sync-chart-docs.py' locally and commit."
             exit 1
           }
 

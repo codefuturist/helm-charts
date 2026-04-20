@@ -124,20 +124,9 @@ readinessProbe:
     path: /
     port: http
 
-autoscaling:
-  # -- Enable horizontal pod autoscaling.
-  # @section -- Autoscaling Parameters
-  enabled: false
-  # -- Minimum number of replicas.
-  # @section -- Autoscaling Parameters
-  minReplicas: 1
-  # -- Maximum number of replicas.
-  # @section -- Autoscaling Parameters
-  maxReplicas: 100
-  # -- Target CPU utilization percentage.
-  # @section -- Autoscaling Parameters
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
+
+
+
 
 # -- Additional volumes for the deployment.
 # @section -- Volume Parameters

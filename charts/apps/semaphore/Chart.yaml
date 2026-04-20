@@ -1,6 +1,9 @@
+---
 apiVersion: v2
 name: semaphore
-description: Modern UI for Ansible, Terraform, OpenTofu, Bash, and Pulumi - task automation and infrastructure orchestration
+description: >-
+  Modern UI for Ansible, Terraform, OpenTofu, Bash, and Pulumi -
+  task automation and infrastructure orchestration
 type: application
 version: 1.0.0
 appVersion: "2.10.32"
@@ -41,9 +44,13 @@ annotations:
     - kind: added
       description: Added SEMAPHORE_DB_OPTIONS environment variable support for database connection tuning
     - kind: added
-      description: Added JSON configuration environment variables (SEMAPHORE_APPS, SEMAPHORE_ENV_VARS, SEMAPHORE_FORWARDED_ENV_VARS)
+      description: >-
+        Added JSON configuration environment variables
+        (SEMAPHORE_APPS, SEMAPHORE_ENV_VARS, SEMAPHORE_FORWARDED_ENV_VARS)
     - kind: added
-      description: Added TLS/HTTPS configuration environment variables (SEMAPHORE_TLS_ENABLED, TLS_CERT_FILE, TLS_KEY_FILE, TLS_HTTP_REDIRECT_PORT)
+      description: >-
+        Added TLS/HTTPS configuration environment variables
+        (SEMAPHORE_TLS_ENABLED, TLS_CERT_FILE, TLS_KEY_FILE, TLS_HTTP_REDIRECT_PORT)
     - kind: added
       description: Added process control environment variables (SEMAPHORE_PROCESS_USER, UID, GID, CHROOT)
     - kind: added

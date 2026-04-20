@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: pgadmin
 description: A production-ready Helm chart for pgAdmin 4 - PostgreSQL management and administration tool

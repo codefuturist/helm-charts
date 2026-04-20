@@ -1,14 +1,9 @@
+---
 apiVersion: v2
 name: homarr
 description: Generic helm chart for all kind of applications
-
 type: application
-
-# Helm chart Version
-
 version: 5.2.12
-
-
 keywords:
   - java
   - node
@@ -16,10 +11,8 @@ keywords:
   - kubernetes
   - stakater
   - application
-
 home: https://github.com/codefuturist/application
 maintainers:
-- name: codefuturist
-  email: hello@allcloud.trade
-
+  - name: codefuturist
+    email: hello@allcloud.trade
 icon: https://github.com/stakater/ForecastleIcons/blob/master/stakater.png

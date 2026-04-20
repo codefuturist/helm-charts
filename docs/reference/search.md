@@ -13,18 +13,18 @@ Search across all chart values in this repository.
     - ++escape++ - Clear search
     - Click 🔗 to copy direct link to a value
 
-<input type="text" id="values-search" placeholder="🔍 Search all values... (e.g., 'replicas', 'image.tag', 'enabled')" autofocus />
+<input type="text" id="values-search" placeholder="🔍 Search all values..." autofocus />
 
 <div class="filter-buttons">
   <button class="filter-btn" data-section="application">application</button>
   <button class="filter-btn" data-section="bitwarden-eso-provider">bitwarden-eso-provider</button>
   <button class="filter-btn" data-section="compass-web">compass-web</button>
-  <button class="filter-btn" data-section="e2e-test">e2e-test</button>
   <button class="filter-btn" data-section="homarr">homarr</button>
   <button class="filter-btn" data-section="home-assistant">home-assistant</button>
   <button class="filter-btn" data-section="it-tools">it-tools</button>
   <button class="filter-btn" data-section="nginx">nginx</button>
   <button class="filter-btn" data-section="pgadmin">pgadmin</button>
+  <button class="filter-btn" data-section="protonpass-eso-provider">protonpass-eso-provider</button>
   <button class="filter-btn" data-section="proxmox-backup-server">proxmox-backup-server</button>
   <button class="filter-btn" data-section="redisinsight">redisinsight</button>
   <button class="filter-btn" data-section="restic-backup">restic-backup</button>
@@ -2770,216 +2770,6 @@ Search across all chart values in this repository.
 <td><code>`nil`</code></td>
 <td>Args override for diagnostic mode</td>
 </tr>
-<tr id="e2e-test-value-replicaCount" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-replicaCount">e2e-test</a></td>
-<td><code class="value-key">replicaCount</code></td>
-<td><span class="type-badge int">int</span></td>
-<td><code>1</code></td>
-<td>Number of replicas for the deployment.</td>
-</tr>
-<tr id="e2e-test-value-repository" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-repository">e2e-test</a></td>
-<td><code class="value-key">repository</code></td>
-<td><span class="type-badge string">string</span></td>
-<td><code>nginx</code></td>
-<td>Container image repository.</td>
-</tr>
-<tr id="e2e-test-value-pullPolicy" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-pullPolicy">e2e-test</a></td>
-<td><code class="value-key">pullPolicy</code></td>
-<td><span class="type-badge string">string</span></td>
-<td><code>IfNotPresent</code></td>
-<td>Image pull policy.</td>
-</tr>
-<tr id="e2e-test-value-tag" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-tag">e2e-test</a></td>
-<td><code class="value-key">tag</code></td>
-<td><span class="type-badge string">string</span></td>
-<td><code>""</code></td>
-<td>Overrides the image tag whose default is the chart appVersion.</td>
-</tr>
-<tr id="e2e-test-value-imagePullSecrets" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-imagePullSecrets">e2e-test</a></td>
-<td><code class="value-key">imagePullSecrets</code></td>
-<td><span class="type-badge list">list</span></td>
-<td><code>[]</code></td>
-<td>Secrets for pulling images from a private repository.</td>
-</tr>
-<tr id="e2e-test-value-nameOverride" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-nameOverride">e2e-test</a></td>
-<td><code class="value-key">nameOverride</code></td>
-<td><span class="type-badge string">string</span></td>
-<td><code>""</code></td>
-<td>Override the chart name.</td>
-</tr>
-<tr id="e2e-test-value-fullnameOverride" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-fullnameOverride">e2e-test</a></td>
-<td><code class="value-key">fullnameOverride</code></td>
-<td><span class="type-badge string">string</span></td>
-<td><code>""</code></td>
-<td>Override the full name.</td>
-</tr>
-<tr id="e2e-test-value-create" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-create">e2e-test</a></td>
-<td><code class="value-key">create</code></td>
-<td><span class="type-badge bool">bool</span></td>
-<td><code>true</code></td>
-<td>Specifies whether a service account should be created.</td>
-</tr>
-<tr id="e2e-test-value-automount" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-automount">e2e-test</a></td>
-<td><code class="value-key">automount</code></td>
-<td><span class="type-badge bool">bool</span></td>
-<td><code>true</code></td>
-<td>Automatically mount a ServiceAccount's API credentials.</td>
-</tr>
-<tr id="e2e-test-value-annotations" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-annotations">e2e-test</a></td>
-<td><code class="value-key">annotations</code></td>
-<td><span class="type-badge object">object</span></td>
-<td><code>{}</code></td>
-<td>Annotations to add to the service account.</td>
-</tr>
-<tr id="e2e-test-value-name" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-name">e2e-test</a></td>
-<td><code class="value-key">name</code></td>
-<td><span class="type-badge string">string</span></td>
-<td><code>""</code></td>
-<td>The name of the service account to use. If not set and create is true, a name is generated.</td>
-</tr>
-<tr id="e2e-test-value-podAnnotations" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-podAnnotations">e2e-test</a></td>
-<td><code class="value-key">podAnnotations</code></td>
-<td><span class="type-badge object">object</span></td>
-<td><code>{}</code></td>
-<td>Annotations for pods.</td>
-</tr>
-<tr id="e2e-test-value-podLabels" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-podLabels">e2e-test</a></td>
-<td><code class="value-key">podLabels</code></td>
-<td><span class="type-badge object">object</span></td>
-<td><code>{}</code></td>
-<td>Labels for pods.</td>
-</tr>
-<tr id="e2e-test-value-podSecurityContext" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-podSecurityContext">e2e-test</a></td>
-<td><code class="value-key">podSecurityContext</code></td>
-<td><span class="type-badge object">object</span></td>
-<td><code>{}</code></td>
-<td>Pod security context.</td>
-</tr>
-<tr id="e2e-test-value-securityContext" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-securityContext">e2e-test</a></td>
-<td><code class="value-key">securityContext</code></td>
-<td><span class="type-badge object">object</span></td>
-<td><code>{}</code></td>
-<td>Container security context.</td>
-</tr>
-<tr id="e2e-test-value-type" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-type">e2e-test</a></td>
-<td><code class="value-key">type</code></td>
-<td><span class="type-badge string">string</span></td>
-<td><code>ClusterIP</code></td>
-<td>Service type (ClusterIP, NodePort, LoadBalancer).</td>
-</tr>
-<tr id="e2e-test-value-port" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-port">e2e-test</a></td>
-<td><code class="value-key">port</code></td>
-<td><span class="type-badge int">int</span></td>
-<td><code>80</code></td>
-<td>Service port.</td>
-</tr>
-<tr id="e2e-test-value-enabled" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-enabled">e2e-test</a></td>
-<td><code class="value-key">enabled</code></td>
-<td><span class="type-badge bool">bool</span></td>
-<td><code>false</code></td>
-<td>Enable ingress.</td>
-</tr>
-<tr id="e2e-test-value-className" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-className">e2e-test</a></td>
-<td><code class="value-key">className</code></td>
-<td><span class="type-badge string">string</span></td>
-<td><code>""</code></td>
-<td>Ingress class name.</td>
-</tr>
-<tr id="e2e-test-value-annotations" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-annotations">e2e-test</a></td>
-<td><code class="value-key">annotations</code></td>
-<td><span class="type-badge object">object</span></td>
-<td><code>{}</code></td>
-<td>Ingress annotations.</td>
-</tr>
-<tr id="e2e-test-value-hosts" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-hosts">e2e-test</a></td>
-<td><code class="value-key">hosts</code></td>
-<td><span class="type-badge string">string</span></td>
-<td><code>`nil`</code></td>
-<td>Ingress hosts configuration.</td>
-</tr>
-<tr id="e2e-test-value-tls" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-tls">e2e-test</a></td>
-<td><code class="value-key">tls</code></td>
-<td><span class="type-badge list">list</span></td>
-<td><code>[]</code></td>
-<td>Ingress TLS configuration.</td>
-</tr>
-<tr id="e2e-test-value-resources" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-resources">e2e-test</a></td>
-<td><code class="value-key">resources</code></td>
-<td><span class="type-badge object">object</span></td>
-<td><code>{}</code></td>
-<td>Resource limits and requests.</td>
-</tr>
-<tr id="e2e-test-value-livenessProbe" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-livenessProbe">e2e-test</a></td>
-<td><code class="value-key">livenessProbe</code></td>
-<td><span class="type-badge string">string</span></td>
-<td><code>`nil`</code></td>
-<td>Liveness probe configuration.</td>
-</tr>
-<tr id="e2e-test-value-readinessProbe" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-readinessProbe">e2e-test</a></td>
-<td><code class="value-key">readinessProbe</code></td>
-<td><span class="type-badge string">string</span></td>
-<td><code>`nil`</code></td>
-<td>Readiness probe configuration.</td>
-</tr>
-<tr id="e2e-test-value-volumes" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-volumes">e2e-test</a></td>
-<td><code class="value-key">volumes</code></td>
-<td><span class="type-badge list">list</span></td>
-<td><code>[]</code></td>
-<td>Additional volumes for the deployment.</td>
-</tr>
-<tr id="e2e-test-value-volumeMounts" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-volumeMounts">e2e-test</a></td>
-<td><code class="value-key">volumeMounts</code></td>
-<td><span class="type-badge list">list</span></td>
-<td><code>[]</code></td>
-<td>Additional volume mounts for the deployment.</td>
-</tr>
-<tr id="e2e-test-value-nodeSelector" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-nodeSelector">e2e-test</a></td>
-<td><code class="value-key">nodeSelector</code></td>
-<td><span class="type-badge object">object</span></td>
-<td><code>{}</code></td>
-<td>Node selector for pod scheduling.</td>
-</tr>
-<tr id="e2e-test-value-tolerations" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-tolerations">e2e-test</a></td>
-<td><code class="value-key">tolerations</code></td>
-<td><span class="type-badge list">list</span></td>
-<td><code>[]</code></td>
-<td>Tolerations for pod scheduling.</td>
-</tr>
-<tr id="e2e-test-value-affinity" class="value-anchor" data-section="e2e-test">
-<td><a href="../charts/e2e-test.md#value-affinity">e2e-test</a></td>
-<td><code class="value-key">affinity</code></td>
-<td><span class="type-badge object">object</span></td>
-<td><code>{}</code></td>
-<td>Affinity rules for pod scheduling.</td>
-</tr>
 <tr id="homarr-value-namespaceOverride" class="value-anchor" data-section="homarr">
 <td><a href="../charts/homarr.md#value-namespaceOverride">homarr</a></td>
 <td><code class="value-key">namespaceOverride</code></td>
@@ -5675,34 +5465,6 @@ Search across all chart values in this repository.
 <td><code>`nil`</code></td>
 <td>Readiness probe configuration.</td>
 </tr>
-<tr id="nginx-value-enabled" class="value-anchor" data-section="nginx">
-<td><a href="../charts/nginx.md#value-enabled">nginx</a></td>
-<td><code class="value-key">enabled</code></td>
-<td><span class="type-badge bool">bool</span></td>
-<td><code>false</code></td>
-<td>Enable horizontal pod autoscaling.</td>
-</tr>
-<tr id="nginx-value-minReplicas" class="value-anchor" data-section="nginx">
-<td><a href="../charts/nginx.md#value-minReplicas">nginx</a></td>
-<td><code class="value-key">minReplicas</code></td>
-<td><span class="type-badge int">int</span></td>
-<td><code>1</code></td>
-<td>Minimum number of replicas.</td>
-</tr>
-<tr id="nginx-value-maxReplicas" class="value-anchor" data-section="nginx">
-<td><a href="../charts/nginx.md#value-maxReplicas">nginx</a></td>
-<td><code class="value-key">maxReplicas</code></td>
-<td><span class="type-badge int">int</span></td>
-<td><code>100</code></td>
-<td>Maximum number of replicas.</td>
-</tr>
-<tr id="nginx-value-targetCPUUtilizationPercentage" class="value-anchor" data-section="nginx">
-<td><a href="../charts/nginx.md#value-targetCPUUtilizationPercentage">nginx</a></td>
-<td><code class="value-key">targetCPUUtilizationPercentage</code></td>
-<td><span class="type-badge int">int</span></td>
-<td><code>80</code></td>
-<td>Target CPU utilization percentage.</td>
-</tr>
 <tr id="nginx-value-volumes" class="value-anchor" data-section="nginx">
 <td><a href="../charts/nginx.md#value-volumes">nginx</a></td>
 <td><code class="value-key">volumes</code></td>
@@ -6703,6 +6465,454 @@ Search across all chart values in this repository.
 <td><span class="type-badge string">string</span></td>
 <td><code>`nil`</code></td>
 <td>Args override for diagnostic mode</td>
+</tr>
+<tr id="protonpass-eso-provider-value-replicaCount" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-replicaCount">protonpass-eso-provider</a></td>
+<td><code class="value-key">replicaCount</code></td>
+<td><span class="type-badge int">int</span></td>
+<td><code>See below</code></td>
+<td>Proton Pass ESO Provider Number of replicas</td>
+</tr>
+<tr id="protonpass-eso-provider-value-additionalLabels" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-additionalLabels">protonpass-eso-provider</a></td>
+<td><code class="value-key">additionalLabels</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Additional labels for all resources</td>
+</tr>
+<tr id="protonpass-eso-provider-value-podAnnotations" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-podAnnotations">protonpass-eso-provider</a></td>
+<td><code class="value-key">podAnnotations</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Pod annotations</td>
+</tr>
+<tr id="protonpass-eso-provider-value-podLabels" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-podLabels">protonpass-eso-provider</a></td>
+<td><code class="value-key">podLabels</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Pod labels</td>
+</tr>
+<tr id="protonpass-eso-provider-value-logLevel" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-logLevel">protonpass-eso-provider</a></td>
+<td><code class="value-key">logLevel</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>"info"</code></td>
+<td>Log level (debug, info, warn, error)</td>
+</tr>
+<tr id="protonpass-eso-provider-value-extraEnv" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-extraEnv">protonpass-eso-provider</a></td>
+<td><code class="value-key">extraEnv</code></td>
+<td><span class="type-badge list">list</span></td>
+<td><code>[]</code></td>
+<td>Extra environment variables</td>
+</tr>
+<tr id="protonpass-eso-provider-value-extraVolumeMounts" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-extraVolumeMounts">protonpass-eso-provider</a></td>
+<td><code class="value-key">extraVolumeMounts</code></td>
+<td><span class="type-badge list">list</span></td>
+<td><code>[]</code></td>
+<td>Extra volume mounts</td>
+</tr>
+<tr id="protonpass-eso-provider-value-extraVolumes" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-extraVolumes">protonpass-eso-provider</a></td>
+<td><code class="value-key">extraVolumes</code></td>
+<td><span class="type-badge list">list</span></td>
+<td><code>[]</code></td>
+<td>Extra volumes</td>
+</tr>
+<tr id="protonpass-eso-provider-value-registry" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-registry">protonpass-eso-provider</a></td>
+<td><code class="value-key">registry</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>ghcr.io</code></td>
+<td>Image registry</td>
+</tr>
+<tr id="protonpass-eso-provider-value-repository" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-repository">protonpass-eso-provider</a></td>
+<td><code class="value-key">repository</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>codefuturist/protonpass-eso-provider</code></td>
+<td>Image repository</td>
+</tr>
+<tr id="protonpass-eso-provider-value-tag" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-tag">protonpass-eso-provider</a></td>
+<td><code class="value-key">tag</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Image tag (defaults to chart appVersion)</td>
+</tr>
+<tr id="protonpass-eso-provider-value-pullPolicy" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-pullPolicy">protonpass-eso-provider</a></td>
+<td><code class="value-key">pullPolicy</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>IfNotPresent</code></td>
+<td>Image pull policy</td>
+</tr>
+<tr id="protonpass-eso-provider-value-imagePullSecrets" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-imagePullSecrets">protonpass-eso-provider</a></td>
+<td><code class="value-key">imagePullSecrets</code></td>
+<td><span class="type-badge list">list</span></td>
+<td><code>[]</code></td>
+<td>Image pull secrets</td>
+</tr>
+<tr id="protonpass-eso-provider-value-existingSecret" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-existingSecret">protonpass-eso-provider</a></td>
+<td><code class="value-key">existingSecret</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>`nil`</code></td>
+<td>Use an existing Kubernetes secret for Proton Pass credentials</td>
+</tr>
+<tr id="protonpass-eso-provider-value-name" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-name">protonpass-eso-provider</a></td>
+<td><code class="value-key">name</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Name of the existing secret</td>
+</tr>
+<tr id="protonpass-eso-provider-value-usernameKey" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-usernameKey">protonpass-eso-provider</a></td>
+<td><code class="value-key">usernameKey</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>"username"</code></td>
+<td>Key in the secret containing the username/email</td>
+</tr>
+<tr id="protonpass-eso-provider-value-passwordKey" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-passwordKey">protonpass-eso-provider</a></td>
+<td><code class="value-key">passwordKey</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>"password"</code></td>
+<td>Key in the secret containing the password</td>
+</tr>
+<tr id="protonpass-eso-provider-value-credentials" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-credentials">protonpass-eso-provider</a></td>
+<td><code class="value-key">credentials</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>`nil`</code></td>
+<td>Credentials to create a new secret (NOT recommended for production)</td>
+</tr>
+<tr id="protonpass-eso-provider-value-username" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-username">protonpass-eso-provider</a></td>
+<td><code class="value-key">username</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Proton account email address</td>
+</tr>
+<tr id="protonpass-eso-provider-value-password" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-password">protonpass-eso-provider</a></td>
+<td><code class="value-key">password</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Proton account password</td>
+</tr>
+<tr id="protonpass-eso-provider-value-keyProvider" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-keyProvider">protonpass-eso-provider</a></td>
+<td><code class="value-key">keyProvider</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>"fs"</code></td>
+<td>pass-cli key provider for session encryption</td>
+</tr>
+<tr id="protonpass-eso-provider-value-shared" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-shared">protonpass-eso-provider</a></td>
+<td><code class="value-key">shared</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Default/shared company vault name or Share ID</td>
+</tr>
+<tr id="protonpass-eso-provider-value-allowed" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-allowed">protonpass-eso-provider</a></td>
+<td><code class="value-key">allowed</code></td>
+<td><span class="type-badge list">list</span></td>
+<td><code>[]</code></td>
+<td>Allowed vaults (empty = all accessible vaults)</td>
+</tr>
+<tr id="protonpass-eso-provider-value-denied" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-denied">protonpass-eso-provider</a></td>
+<td><code class="value-key">denied</code></td>
+<td><span class="type-badge list">list</span></td>
+<td><code>[]</code></td>
+<td>Denied vaults (these vaults will never be accessed)</td>
+</tr>
+<tr id="protonpass-eso-provider-value-enabled" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-enabled">protonpass-eso-provider</a></td>
+<td><code class="value-key">enabled</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>true</code></td>
+<td>Enable in-memory secret caching</td>
+</tr>
+<tr id="protonpass-eso-provider-value-ttlSeconds" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-ttlSeconds">protonpass-eso-provider</a></td>
+<td><code class="value-key">ttlSeconds</code></td>
+<td><span class="type-badge int">int</span></td>
+<td><code>300</code></td>
+<td>Cache time-to-live in seconds</td>
+</tr>
+<tr id="protonpass-eso-provider-value-maxEntries" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-maxEntries">protonpass-eso-provider</a></td>
+<td><code class="value-key">maxEntries</code></td>
+<td><span class="type-badge int">int</span></td>
+<td><code>1000</code></td>
+<td>Maximum cached entries</td>
+</tr>
+<tr id="protonpass-eso-provider-value-createSecretStore" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-createSecretStore">protonpass-eso-provider</a></td>
+<td><code class="value-key">createSecretStore</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>true</code></td>
+<td>Create a SecretStore/ClusterSecretStore for ESO</td>
+</tr>
+<tr id="protonpass-eso-provider-value-namespaced" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-namespaced">protonpass-eso-provider</a></td>
+<td><code class="value-key">namespaced</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>false</code></td>
+<td>Create a namespaced SecretStore instead of ClusterSecretStore</td>
+</tr>
+<tr id="protonpass-eso-provider-value-timeout" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-timeout">protonpass-eso-provider</a></td>
+<td><code class="value-key">timeout</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>"10s"</code></td>
+<td>Webhook timeout for ESO requests</td>
+</tr>
+<tr id="protonpass-eso-provider-value-name" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-name">protonpass-eso-provider</a></td>
+<td><code class="value-key">name</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>"protonpass"</code></td>
+<td>Name of the SecretStore/ClusterSecretStore</td>
+</tr>
+<tr id="protonpass-eso-provider-value-annotations" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-annotations">protonpass-eso-provider</a></td>
+<td><code class="value-key">annotations</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Additional annotations</td>
+</tr>
+<tr id="protonpass-eso-provider-value-labels" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-labels">protonpass-eso-provider</a></td>
+<td><code class="value-key">labels</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Additional labels</td>
+</tr>
+<tr id="protonpass-eso-provider-value-existingSecret" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-existingSecret">protonpass-eso-provider</a></td>
+<td><code class="value-key">existingSecret</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>`nil`</code></td>
+<td>Use an existing secret for the ESO webhook bearer token</td>
+</tr>
+<tr id="protonpass-eso-provider-value-name" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-name">protonpass-eso-provider</a></td>
+<td><code class="value-key">name</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Name of the existing secret (leave empty to auto-generate)</td>
+</tr>
+<tr id="protonpass-eso-provider-value-key" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-key">protonpass-eso-provider</a></td>
+<td><code class="value-key">key</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>"token"</code></td>
+<td>Key in the secret containing the token</td>
+</tr>
+<tr id="protonpass-eso-provider-value-token" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-token">protonpass-eso-provider</a></td>
+<td><code class="value-key">token</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Token value (leave empty to auto-generate a random 32-char token)</td>
+</tr>
+<tr id="protonpass-eso-provider-value-type" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-type">protonpass-eso-provider</a></td>
+<td><code class="value-key">type</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>ClusterIP</code></td>
+<td>Service type</td>
+</tr>
+<tr id="protonpass-eso-provider-value-port" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-port">protonpass-eso-provider</a></td>
+<td><code class="value-key">port</code></td>
+<td><span class="type-badge int">int</span></td>
+<td><code>8080</code></td>
+<td>Service port</td>
+</tr>
+<tr id="protonpass-eso-provider-value-labels" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-labels">protonpass-eso-provider</a></td>
+<td><code class="value-key">labels</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Additional service labels</td>
+</tr>
+<tr id="protonpass-eso-provider-value-annotations" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-annotations">protonpass-eso-provider</a></td>
+<td><code class="value-key">annotations</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Additional service annotations</td>
+</tr>
+<tr id="protonpass-eso-provider-value-create" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-create">protonpass-eso-provider</a></td>
+<td><code class="value-key">create</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>true</code></td>
+<td>Create a service account</td>
+</tr>
+<tr id="protonpass-eso-provider-value-name" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-name">protonpass-eso-provider</a></td>
+<td><code class="value-key">name</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Service account name (defaults to fullname)</td>
+</tr>
+<tr id="protonpass-eso-provider-value-annotations" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-annotations">protonpass-eso-provider</a></td>
+<td><code class="value-key">annotations</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Service account annotations</td>
+</tr>
+<tr id="protonpass-eso-provider-value-automount" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-automount">protonpass-eso-provider</a></td>
+<td><code class="value-key">automount</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>false</code></td>
+<td>Automount service account token</td>
+</tr>
+<tr id="protonpass-eso-provider-value-podSecurityContext" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-podSecurityContext">protonpass-eso-provider</a></td>
+<td><code class="value-key">podSecurityContext</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>`nil`</code></td>
+<td>Pod security context</td>
+</tr>
+<tr id="protonpass-eso-provider-value-securityContext" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-securityContext">protonpass-eso-provider</a></td>
+<td><code class="value-key">securityContext</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>`nil`</code></td>
+<td>Container security context</td>
+</tr>
+<tr id="protonpass-eso-provider-value-enabled" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-enabled">protonpass-eso-provider</a></td>
+<td><code class="value-key">enabled</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>false</code></td>
+<td>Enable network policy</td>
+</tr>
+<tr id="protonpass-eso-provider-value-ingress" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-ingress">protonpass-eso-provider</a></td>
+<td><code class="value-key">ingress</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>`nil`</code></td>
+<td>Ingress rules (who can reach the provider)</td>
+</tr>
+<tr id="protonpass-eso-provider-value-egress" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-egress">protonpass-eso-provider</a></td>
+<td><code class="value-key">egress</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>`nil`</code></td>
+<td>Egress rules (provider needs HTTPS to Proton API + DNS)</td>
+</tr>
+<tr id="protonpass-eso-provider-value-enabled" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-enabled">protonpass-eso-provider</a></td>
+<td><code class="value-key">enabled</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>false</code></td>
+<td>Enable PDB</td>
+</tr>
+<tr id="protonpass-eso-provider-value-minAvailable" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-minAvailable">protonpass-eso-provider</a></td>
+<td><code class="value-key">minAvailable</code></td>
+<td><span class="type-badge int">int</span></td>
+<td><code>1</code></td>
+<td>Minimum available pods</td>
+</tr>
+<tr id="protonpass-eso-provider-value-maxUnavailable" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-maxUnavailable">protonpass-eso-provider</a></td>
+<td><code class="value-key">maxUnavailable</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Maximum unavailable pods</td>
+</tr>
+<tr id="protonpass-eso-provider-value-enabled" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-enabled">protonpass-eso-provider</a></td>
+<td><code class="value-key">enabled</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>false</code></td>
+<td>Enable Prometheus metrics endpoint</td>
+</tr>
+<tr id="protonpass-eso-provider-value-enabled" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-enabled">protonpass-eso-provider</a></td>
+<td><code class="value-key">enabled</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>false</code></td>
+<td>Create a ServiceMonitor resource</td>
+</tr>
+<tr id="protonpass-eso-provider-value-interval" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-interval">protonpass-eso-provider</a></td>
+<td><code class="value-key">interval</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>"30s"</code></td>
+<td>Scrape interval</td>
+</tr>
+<tr id="protonpass-eso-provider-value-scrapeTimeout" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-scrapeTimeout">protonpass-eso-provider</a></td>
+<td><code class="value-key">scrapeTimeout</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>Scrape timeout</td>
+</tr>
+<tr id="protonpass-eso-provider-value-namespace" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-namespace">protonpass-eso-provider</a></td>
+<td><code class="value-key">namespace</code></td>
+<td><span class="type-badge string">string</span></td>
+<td><code>""</code></td>
+<td>ServiceMonitor namespace (defaults to release namespace)</td>
+</tr>
+<tr id="protonpass-eso-provider-value-labels" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-labels">protonpass-eso-provider</a></td>
+<td><code class="value-key">labels</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Additional labels for ServiceMonitor</td>
+</tr>
+<tr id="protonpass-eso-provider-value-enabled" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-enabled">protonpass-eso-provider</a></td>
+<td><code class="value-key">enabled</code></td>
+<td><span class="type-badge bool">bool</span></td>
+<td><code>false</code></td>
+<td>Enable admin endpoints (/api/v1/vaults, /api/v1/items, /api/v1/cache)</td>
+</tr>
+<tr id="protonpass-eso-provider-value-nodeSelector" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-nodeSelector">protonpass-eso-provider</a></td>
+<td><code class="value-key">nodeSelector</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Node selector</td>
+</tr>
+<tr id="protonpass-eso-provider-value-tolerations" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-tolerations">protonpass-eso-provider</a></td>
+<td><code class="value-key">tolerations</code></td>
+<td><span class="type-badge list">list</span></td>
+<td><code>[]</code></td>
+<td>Tolerations</td>
+</tr>
+<tr id="protonpass-eso-provider-value-affinity" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-affinity">protonpass-eso-provider</a></td>
+<td><code class="value-key">affinity</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Affinity</td>
+</tr>
+<tr id="protonpass-eso-provider-value-global" class="value-anchor" data-section="protonpass-eso-provider">
+<td><a href="../charts/protonpass-eso-provider.md#value-global">protonpass-eso-provider</a></td>
+<td><code class="value-key">global</code></td>
+<td><span class="type-badge object">object</span></td>
+<td><code>{}</code></td>
+<td>Global values (for common library)</td>
 </tr>
 <tr id="proxmox-backup-server-value-namespaceOverride" class="value-anchor" data-section="proxmox-backup-server">
 <td><a href="../charts/proxmox-backup-server.md#value-namespaceOverride">proxmox-backup-server</a></td>
@@ -9919,7 +10129,3 @@ Search across all chart values in this repository.
 </tr>
 </tbody>
 </table>
-
----
-
-*Last updated: 2026-03-18 11:28:02*

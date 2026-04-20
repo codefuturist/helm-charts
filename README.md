@@ -185,8 +185,8 @@ helm install test-release charts/<chart-name> --dry-run --debug
 # Start local documentation server with live reload
 ./scripts/docs-dev.sh serve
 
-# Or use make
-make docs-serve
+# Or use just
+just docs-serve
 ```
 
 This will:
@@ -208,14 +208,14 @@ This will:
 ./scripts/docs-dev.sh check     # Check if docs are in sync
 ./scripts/docs-dev.sh clean     # Clean generated files
 
-# Using make
-make docs-deps      # Install dependencies only
-make docs-generate  # Generate MkDocs pages from charts
-make docs-build     # Build documentation site
-make docs-sync      # Sync charts with docs
-make docs-check     # Check if docs are in sync
-make docs-open      # Open built docs in browser
-make docs-clean     # Clean documentation artifacts
+# Using just
+just docs-deps      # Install dependencies only
+just docs-generate  # Generate MkDocs pages from charts
+just docs-build     # Build documentation site
+just docs-sync      # Sync charts with docs
+just docs-check     # Check if docs are in sync
+just docs-open      # Open built docs in browser
+just docs-clean     # Clean documentation artifacts
 ```
 
 **Automatic Sync:**
@@ -232,7 +232,7 @@ To manually sync after adding/removing charts:
 ```bash
 ./scripts/docs-dev.sh sync
 # or
-make docs-sync
+just docs-sync
 ```
 
 ## Contributing

@@ -4,47 +4,36 @@ description: A Helm chart for Pi-hole DNS ad blocker with Kubernetes best practi
 type: application
 version: 1.0.0
 appVersion: 2024.07.0
-keywords:
+keywords: null
 home: https://pi-hole.net/
 sources:
-  - https://github.com/pi-hole/pi-hole
-  - https://docs.pi-hole.net/docker/configuration/
+- https://github.com/pi-hole/pi-hole
+- https://docs.pi-hole.net/docker/configuration/
 maintainers:
-  - name: Your Name
-    email: your.email@example.com
-
+- name: Your Name
+  email: your.email@example.com
+- name: codefuturist
+  email: hello@allcloud.trade
 dependencies:
-  - name: common
-    repository: file://../../../libs/common
-    version: 2.x.x
-    tags:
-      - bitnami-common
-
+- name: common
+  repository: file://../../../libs/common
+  version: 2.x.x
+  tags:
+  - bitnami-common
 annotations:
   artifacthub.io/category: networking
   artifacthub.io/license: MIT
-  artifacthub.io/signKey: |
-    # Optional: Add your signing key
-  artifacthub.io/prerelease: "false"
-  artifacthub.io/recommendations: |
-    - url: https://artifacthub.io/packages/helm/prometheus-community/prometheus
+  artifacthub.io/signKey: '# Optional: Add your signing key
+
+    '
+  artifacthub.io/prerelease: 'false'
+  artifacthub.io/recommendations: '- url: https://artifacthub.io/packages/helm/prometheus-community/prometheus
+
     - url: https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx
-  artifacthub.io/changes: |
-    - kind: added
-      description: ServiceAccount with RBAC support
-    - kind: added
-      description: NetworkPolicy for network isolation
-    - kind: added
-      description: PodDisruptionBudget for high availability
-    - kind: added
-      description: ServiceMonitor for Prometheus integration
-    - kind: added
-      description: Pod and container security contexts
-    - kind: added
-      description: Startup, readiness, and liveness probes
-    - kind: added
-      description: HPA with behavior configuration
-    - kind: added
-      description: Persistence configuration
-    - kind: improved
-      description: Kubernetes best practices implementation
+
+    '
+  artifacthub.io/changes: "- kind: added\n  description: ServiceAccount with RBAC support\n- kind: added\n  description: NetworkPolicy\
+    \ for network isolation\n- kind: added\n  description: PodDisruptionBudget for high availability\n- kind: added\n  description:\
+    \ ServiceMonitor for Prometheus integration\n- kind: added\n  description: Pod and container security contexts\n- kind:\
+    \ added\n  description: Startup, readiness, and liveness probes\n- kind: added\n  description: HPA with behavior configuration\n\
+    - kind: added\n  description: Persistence configuration\n- kind: improved\n  description: Kubernetes best practices implementation\n"

@@ -1,3 +1,4 @@
+---
 name: Auto Update Home Assistant Version
 
 on:
@@ -75,13 +76,17 @@ jobs:
           body: |
             ## 🏠 Home Assistant Version Update
 
-            This PR updates the Home Assistant version from `${{ steps.ha-version.outputs.current }}` to `${{ steps.ha-version.outputs.version }}`.
+            This PR updates the Home Assistant version
+            from `${{ steps.ha-version.outputs.current }}`
+            to `${{ steps.ha-version.outputs.version }}`.
 
             ### Changes
             - Updated `appVersion` in `charts/apps/home-assistant/Chart.yaml`
 
             ### Release Notes
-            See [Home Assistant Release Notes](https://github.com/home-assistant/core/releases/tag/${{ steps.ha-version.outputs.version }})
+            See the [Release Notes][] for details.
+
+            [Release Notes]: https://github.com/home-assistant/core/releases/tag/${{ steps.ha-version.outputs.version }}
 
             ---
             🤖 This PR was automatically created by GitHub Actions

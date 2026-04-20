@@ -1,0 +1,12 @@
+---
+# Example profile: microservice production environment
+# Copy to: ~/.config/protonpass-provider/profiles/api-prod.yaml
+name: "api-prod"
+description: "API service production secrets"
+vault: "Production"
+mappings:
+  DATABASE_URL: "pass://Production/API Service DB/connection_string"
+  JWT_SECRET: "pass://Production/API Service Auth/jwt_secret"
+  ENCRYPTION_KEY: "pass://Production/API Service Auth/encryption_key"
+  EXTERNAL_API_KEY: "pass://Production/Third Party APIs/service_key"
+  SENTRY_DSN: "pass://Production/Monitoring/sentry_dsn"

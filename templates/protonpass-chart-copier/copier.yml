@@ -1,0 +1,131 @@
+---
+# Copier template for generating charts pre-configured with Proton Pass ExternalSecrets.
+# https://copier.readthedocs.io/
+#
+# Usage:
+#   copier copy templates/protonpass-chart-copier charts/apps/my-app
+#   copier copy --trust templates/protonpass-chart-copier charts/apps/my-app
+#
+# Update an existing chart when the template evolves:
+#   copier update charts/apps/my-app
+
+_min_copier_version: "9.0.0"
+
+_subdirectory: template
+
+_templates_suffix: .jinja
+
+# Use [[ ]] delimiters to avoid conflicts with Helm's {{ }} Go templates.
+_envops:
+  variable_start_string: "[["
+  variable_end_string: "]]"
+  block_start_string: "[%"
+  block_end_string: "%]"
+  comment_start_string: "[#"
+  comment_end_string: "#]"
+  keep_trailing_newline: true
+
+_exclude:
+  - "*.pyc"
+  - "__pycache__"
+  - ".git"
+  - ".DS_Store"
+
+# ---------------------------------------------------------------------------
+# Questions
+# ---------------------------------------------------------------------------
+
+chart_name:
+  type: str
+  help: >-
+    Chart name (lowercase alphanumeric with hyphens).
+  default: "[[ _copier_conf.dst_path | basename ]]"
+  validator: >-
+    [% if not (chart_name | regex_search('^[a-z][a-z0-9-]*$')) %]
+    Chart name must start with a letter and contain only lowercase letters, numbers, and hyphens.
+    [% endif %]
+
+chart_description:
+  type: str
+  help: One-line chart description.
+  default: "A Helm chart for [[ chart_name ]] with Proton Pass secrets"
+
+app_version:
+  type: str
+  help: Application version.
+  default: "1.0.0"
+
+namespace:
+  type: str
+  help: Target Kubernetes namespace.
+  default: "default"
+
+# -- Proton Pass Configuration -----------------------------------------------
+
+protonpass_vault:
+  type: str
+  help: >-
+    Proton Pass vault name to fetch secrets from.
+  default: "Company Secrets"
+
+protonpass_store_name:
+  type: str
+  help: >-
+    ClusterSecretStore name (must match your protonpass-eso-provider deployment).
+  default: "protonpass"
+
+refresh_interval:
+  type: str
+  help: How often ESO refreshes secrets from Proton Pass.
+  default: "5m"
+
+# -- Secrets ------------------------------------------------------------------
+
+secrets:
+  type: str
+  help: >-
+    Comma-separated list of secrets as ENV_VAR:item/field pairs.
+    Example: DB_PASSWORD:MyApp Database/password,API_KEY:API Keys/myapp
+  default: "APP_SECRET:App Secrets/secret_key"
+
+# -- Image --------------------------------------------------------------------
+
+image_repository:
+  type: str
+  help: Container image repository.
+  default: nginx
+
+container_port:
+  type: int
+  help: Primary container port.
+  default: 80
+
+# -- Maintainer ---------------------------------------------------------------
+
+maintainer_name:
+  type: str
+  help: Chart maintainer name.
+  default: codefuturist
+
+maintainer_email:
+  type: str
+  help: Chart maintainer email.
+  default: hello@allcloud.trade
+
+# ---------------------------------------------------------------------------
+# Messages
+# ---------------------------------------------------------------------------
+
+_message_after_copy: |
+  ✅ Chart '[[ chart_name ]]' generated with Proton Pass ExternalSecrets!
+
+  Secrets configured:
+  [% for pair in secrets.split(',') %]
+    - [[ pair.strip().split(':')[0] ]] → pass://[[ protonpass_vault ]]/[[ pair.strip().split(':')[1] ]]
+  [% endfor %]
+
+  Next steps:
+    1. Review the generated files
+    2. Ensure the protonpass-eso-provider chart is deployed
+    3. Run:  helm lint [[ _copier_conf.dst_path ]]
+    4. Run:  helm template test [[ _copier_conf.dst_path ]]

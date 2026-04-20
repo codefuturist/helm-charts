@@ -12,6 +12,7 @@ tags:
 
 netboot.xyz is a network boot environment that allows PXE booting various operating system installers or utilities from a central location.
 
+
 ## Quick Links
 
 - [Installation](#installing-the-chart)

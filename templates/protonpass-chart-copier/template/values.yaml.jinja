@@ -1,0 +1,45 @@
+# Default values for [[ chart_name ]]
+# Proton Pass secrets are managed via ExternalSecret resources.
+
+replicaCount: 1
+
+image:
+  repository: [[ image_repository ]]
+  pullPolicy: IfNotPresent
+  tag: ""
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: [[ container_port ]]
+
+# -- External Secrets (Proton Pass)
+externalSecret:
+  enabled: true
+  refreshInterval: "[[ refresh_interval ]]"
+  secretStore:
+    name: "[[ protonpass_store_name ]]"
+    kind: ClusterSecretStore
+  target:
+    name: "[[ chart_name ]]-secrets"
+  data:
+[% for pair in secrets.split(',') %]
+[% set env_var = pair.strip().split(':')[0] %]
+[% set ref = pair.strip().split(':')[1] %]
+[% set item = ref.split('/')[0] %]
+[% set field = ref.split('/')[1] if '/' in ref else 'password' %]
+    [[ env_var ]]:
+      remoteRef:
+        key: "[[ item ]]"
+        property: "[[ field ]]"
+[% endfor %]
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi

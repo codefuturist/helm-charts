@@ -12,6 +12,7 @@ tags:
 
 A self-hosted monitoring tool - monitor uptime for HTTP(s) / TCP / HTTP(s) Keyword / Ping / DNS Record / Push / Steam Game Server
 
+
 ## Quick Links
 
 - [Installation](#installing-the-chart)

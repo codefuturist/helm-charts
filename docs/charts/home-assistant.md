@@ -12,6 +12,7 @@ tags:
 
 A comprehensive Helm chart for Home Assistant - Open source home automation that puts local control and privacy first
 
+
 ## Quick Links
 
 - [Installation](#installing-the-chart)

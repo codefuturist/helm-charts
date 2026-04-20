@@ -27,5 +27,10 @@ examples/
 # CI and test files
 ci/
 tests/
+tekton/
+quick-starts/
+test-install-values.yaml
+# Chart configuration
+.chartconfig.yaml
 # Copier answers (not needed in packages)
 .copier-answers.yml

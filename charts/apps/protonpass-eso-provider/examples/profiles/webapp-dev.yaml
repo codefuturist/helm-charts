@@ -1,0 +1,18 @@
+---
+# Example profile: web application development environment
+# Copy to: ~/.config/protonpass-provider/profiles/webapp-dev.yaml
+name: "webapp-dev"
+description: "Web application development secrets"
+vault: "Development"
+mappings:
+  DATABASE_URL: "pass://Development/Webapp DB/connection_string"
+  DATABASE_PASSWORD: "pass://Development/Webapp DB/password"
+  REDIS_URL: "pass://Development/Redis Dev/url"
+  REDIS_PASSWORD: "pass://Development/Redis Dev/password"
+  SESSION_SECRET: "pass://Development/Webapp Config/session_secret"
+  SMTP_PASSWORD: "pass://Development/Email Service/password"
+  STRIPE_SECRET_KEY: "pass://Development/Stripe Dev/secret_key"
+  STRIPE_WEBHOOK_SECRET: "pass://Development/Stripe Dev/webhook_secret"
+personal:
+  GITHUB_TOKEN: "pass://Personal/GitHub/token"
+  NPM_TOKEN: "pass://Personal/NPM/token"

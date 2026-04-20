@@ -12,6 +12,7 @@ tags:
 
 A Bitwarden webhook provider for External Secrets Operator that works with personal/organizational vaults using the Bitwarden CLI
 
+
 ## Quick Links
 
 - [Installation](#installing-the-chart)

@@ -188,7 +188,6 @@ _message_after_copy: |
   To update this chart when the template evolves:
     ./tools/update-charts.sh [[ _copier_conf.dst_path ]]
     just update-chart [[ _copier_conf.dst_path ]]
-    make update-chart DEST=[[ _copier_conf.dst_path ]]
 
   Copier will merge template changes while preserving your customizations.
   Conflicts are shown as standard git conflict markers (<<<<<<< / =======).

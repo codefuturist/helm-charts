@@ -30,6 +30,9 @@ import '.just-modules/traits/backup.just'
 # Security & Encryption
 import '.just-modules/traits/encryption.just'
 
+# Secret Providers
+import '.just-modules/traits/protonpass.just'
+
 # AI Features
 import '.just-modules/traits/ai.just'
 
@@ -47,6 +50,8 @@ mod security '.just-modules/traits/security.just'
 
 # Helm settings
 helm_repo_url := env_var_or_default('HELM_REPO_URL', 'https://charts.example.com')
+charts_dir := 'charts'
+docs_port := env_var_or_default('DOCS_PORT', '8000')
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Default
@@ -103,11 +108,35 @@ update-all-charts:
     @just _info "Updating all managed charts..."
     @./tools/update-charts.sh --defaults
 
-# List all charts
+# List all charts with name and version
 [group('charts')]
 list:
     @just _header "Available Charts"
-    @ls -1 charts/
+    @for chart in charts/*/; do \
+        if [ -f "$$chart/Chart.yaml" ]; then \
+            name=$$(grep "^name:" "$$chart/Chart.yaml" | awk '{print $$2}'); \
+            version=$$(grep "^version:" "$$chart/Chart.yaml" | awk '{print $$2}'); \
+            echo "  $$name ($$version)"; \
+        fi; \
+    done
+
+# Bump chart version (usage: just bump-chart <chart> <version>)
+[group('charts')]
+bump-chart chart version:
+    @just _info "Bumping {{chart}} to version {{version}}..."
+    @sed -i '' 's/^version: [0-9]*\.[0-9]*\.[0-9]*/version: {{version}}/' charts/{{chart}}/Chart.yaml
+    @just _success "Bumped {{chart}} to version {{version}}"
+
+# Lint all charts using chart-testing
+[group('charts')]
+ct-lint:
+    @just _header "Linting All Charts (chart-testing)"
+    @ct lint --config ct.yaml --all
+
+# Validate all charts (lint + build-docs)
+[group('charts')]
+validate: ct-lint build-docs
+    @just _success "All charts validated"
 
 # Package chart
 [group('charts')]
@@ -185,18 +214,68 @@ build-docs:
     @helm-docs charts/
     @just _success "Docs generated"
 
+# Install documentation dependencies
+[group('docs')]
+docs-deps:
+    @just _info "Installing documentation dependencies..."
+    @uv sync --quiet
+    @just _success "Dependencies installed"
+
+# Generate MkDocs pages from chart values
+[group('docs')]
+docs-generate:
+    @just _info "Generating documentation from charts..."
+    @uv run python scripts/generate-docs.py
+
+# Sync chart documentation (add new, remove deleted)
+[group('docs')]
+docs-sync:
+    @just _info "Syncing chart documentation..."
+    @uv run python scripts/sync-chart-docs.py
+
+# Check if chart documentation is in sync
+[group('docs')]
+docs-check:
+    @uv run python scripts/sync-chart-docs.py --check
+
 # Build MkDocs site
 [group('docs')]
-docs-build:
+docs-build: docs-deps docs-generate
     @just _info "Building MkDocs site..."
-    @uv run mkdocs build
-    @just _success "Site built"
+    @uv run mkdocs build -d site-docs
+    @just _success "Documentation built in site-docs/"
+
+# Full documentation build (alias for docs-build)
+[group('docs')]
+docs-all: docs-build
+    @just _info "Documentation ready at site-docs/index.html"
 
 # Serve MkDocs site
 [group('docs')]
-docs-serve:
-    @just _info "Starting MkDocs server..."
-    @uv run mkdocs serve
+docs-serve: docs-deps docs-generate
+    @just _info "Starting MkDocs server on port {{docs_port}}..."
+    @uv run mkdocs serve -a localhost:{{docs_port}}
+
+# Open documentation in browser (macOS)
+[group('docs')]
+[script]
+docs-open:
+    if [ -f "site-docs/index.html" ]; then
+        open site-docs/index.html
+    else
+        echo "⚠️  Documentation not built yet. Run 'just docs-build' first."
+        exit 1
+    fi
+
+# Clean documentation build artifacts
+[group('docs')]
+docs-clean:
+    @just _info "Cleaning documentation artifacts..."
+    @rm -rf site-docs
+    @rm -rf docs/charts/*.md
+    @rm -rf docs/reference/search.md docs/reference/values-index.md
+    @rm -f docs/assets/javascripts/values-index.json
+    @just _success "Documentation artifacts cleaned"
 
 # Deploy docs
 [group('docs')]
@@ -252,22 +331,48 @@ repo-update: package-all repo-index
 # Testing
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Test chart
+# Test chart (helm lint + template + unittest if tests/ dir exists)
 [group('test')]
+[script]
 test chart:
-    @just _header "Testing Chart: {{chart}}"
-    @helm lint charts/{{chart}}
-    @helm template test-{{chart}} charts/{{chart}} > /dev/null
-    @just _success "Chart tests passed"
+    just _header "Testing Chart: {{chart}}"
+    helm lint charts/{{chart}}
+    helm template test-{{chart}} charts/{{chart}} > /dev/null
+    if [ -d "charts/{{chart}}/tests" ]; then
+        echo "Running unit tests..."
+        helm unittest charts/{{chart}}
+    fi
+    just _success "Chart tests passed"
 
 # Test all charts
 [group('test')]
+[script]
 test-all:
-    @just _header "Testing All Charts"
-    @for chart in charts/*/; do \
-        just test $$(basename $$chart); \
+    just _header "Testing All Charts"
+    for chart in charts/*/; do
+        just test "$(basename "$chart")"
     done
-    @just _success "All tests passed"
+    just _success "All tests passed"
+
+# Run helm unittest only (requires helm unittest plugin)
+[group('test')]
+[script]
+unittest chart:
+    just _info "Running unit tests for: {{chart}}"
+    helm unittest charts/{{chart}}
+
+# Run helm unittest on all charts that have tests
+[group('test')]
+[script]
+unittest-all:
+    just _header "Running All Unit Tests"
+    for chart in charts/*/; do
+        if [ -d "$chart/tests" ]; then
+            echo "Testing $chart..."
+            helm unittest "$chart"
+        fi
+    done
+    just _success "All unit tests passed"
 
 # Run Python tests
 [group('test')]
@@ -285,17 +390,104 @@ health:
     @bash scripts/health-check.sh
     @just _success "Health check complete"
 
+# Run health check with verbose output
+[group('health')]
+health-verbose:
+    @just _header "Health Check (verbose)"
+    @bash scripts/health-check.sh --verbose
+
+# Run health check with JSON output
+[group('health')]
+health-json:
+    @bash scripts/health-check.sh --json
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Chart Consistency
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Sync boilerplate files (.helmignore, Chart.yaml annotations) across all charts
+[group('consistency')]
+chart-sync:
+    @just _header "Syncing Chart Boilerplate"
+    @uv run python scripts/hooks/sync-boilerplate.py
+    @just _success "Boilerplate synced"
+
+# Sync boilerplate (dry-run — show what would change)
+[group('consistency')]
+chart-sync-check:
+    @just _header "Checking Chart Boilerplate (dry-run)"
+    @uv run python scripts/hooks/sync-boilerplate.py --dry-run
+
+# Run drift detection on all charts
+[group('consistency')]
+chart-drift-check:
+    @just _header "Chart Drift Check"
+    @uv run python scripts/chart-drift-check.py
+
+# Run drift detection (strict — fail on warnings too)
+[group('consistency')]
+chart-drift-check-strict:
+    @just _header "Chart Drift Check (strict)"
+    @uv run python scripts/chart-drift-check.py --strict
+
+# Run drift detection with JSON output
+[group('consistency')]
+chart-drift-check-json:
+    @uv run python scripts/chart-drift-check.py --json
+
+# Recopy all Copier-managed charts from template
+[group('consistency')]
+chart-recopy-all:
+    @just _header "Recopy Copier-Managed Charts"
+    @./scripts/hooks/copier-recopy.sh
+    @just _success "Charts recopied"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Pre-commit Hooks (extended)
+# ═══════════════════════════════════════════════════════════════════════════════
+# The hooks module (.just-modules/traits/hooks.just) provides basic hook
+# management. These recipes extend it with pre-commit-specific features.
+
+# Run a specific pre-commit hook on staged files (usage: just hooks-run-hook <hook-id>)
+[group('hooks')]
+hooks-run-hook hook:
+    @just _info "Running hook '{{hook}}' on staged files..."
+    @pre-commit run {{hook}}
+
+# Run a specific pre-commit hook on ALL files (usage: just hooks-run-hook-all <hook-id>)
+[group('hooks')]
+hooks-run-hook-all hook:
+    @just _info "Running hook '{{hook}}' on all files..."
+    @pre-commit run {{hook}} --all-files
+
+# Update pre-commit hook versions
+[group('hooks')]
+hooks-autoupdate:
+    @just _info "Updating pre-commit hooks..."
+    @pre-commit autoupdate
+
+# Clean pre-commit cache
+[group('hooks')]
+hooks-clean:
+    @just _info "Cleaning pre-commit cache..."
+    @pre-commit clean 2>/dev/null || true
+    @pre-commit gc 2>/dev/null || true
+    @just _success "Cache cleaned. Run 'just hooks install' to reinstall."
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Maintenance
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # Clean artifacts
 [group('maintenance')]
+[script]
 clean:
-    @just _info "Cleaning..."
-    @rm -rf dist/ charts/*/charts/ charts/*/Chart.lock
-    @just python::clean
-    @just _success "Cleaned"
+    just _info "Cleaning..."
+    rm -rf dist/ .cr-release-packages .cr-index site-docs
+    find charts -name "Chart.lock" -delete 2>/dev/null || true
+    find charts -type d -name "charts" -mindepth 2 -maxdepth 2 -exec rm -rf {} + 2>/dev/null || true
+    just python::clean
+    just _success "Cleaned"
 
 # Show project info
 info:
@@ -304,6 +496,35 @@ info:
     @just _kv "Branch" "{{_git_branch}}"
     @just _kv "Charts" "$(ls -1 charts/ | wc -l | tr -d ' ')"
     @just _kv "Repository" "{{helm_repo_url}}"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Local Kubernetes Development (k3d)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+k3d_cluster_name := "helm-dev"
+k3d_context := "k3d-helm-dev"
+
+# Create local k3d cluster for chart development
+[group('local')]
+local-up:
+    @just _header "Creating Local K8s Cluster"
+    @k3d cluster create {{k3d_cluster_name}} --port "80:80@loadbalancer" --port "443:443@loadbalancer"
+    @just _success "Cluster ready at context {{k3d_context}}"
+
+# Delete local k3d cluster
+[group('local')]
+local-down:
+    @just _header "Deleting Local K8s Cluster"
+    @k3d cluster delete {{k3d_cluster_name}}
+    @just _success "Cluster deleted"
+
+# Lint and install-test changed charts against local cluster
+[group('local')]
+local-ct-test:
+    @just _header "Chart Testing on Local Cluster"
+    @kubectl config use-context {{k3d_context}}
+    @ct install --config ct.yaml --target-branch main --excluded-charts common
+    @just _success "Chart testing complete"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Just-Modules Management

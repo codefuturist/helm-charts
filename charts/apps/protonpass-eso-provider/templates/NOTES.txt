@@ -1,0 +1,49 @@
+╔══════════════════════════════════════════════════════════════════╗
+║           Proton Pass ESO Provider has been deployed!            ║
+╚══════════════════════════════════════════════════════════════════╝
+
+{{- if .Values.externalSecretsOperator.createSecretStore }}
+
+{{ if .Values.externalSecretsOperator.namespaced -}}
+SecretStore "{{ .Values.externalSecretsOperator.secretStore.name }}" created in namespace {{ .Release.Namespace }}.
+{{- else -}}
+ClusterSecretStore "{{ .Values.externalSecretsOperator.secretStore.name }}" created (cluster-wide).
+{{- end }}
+
+Use it in your ExternalSecret resources:
+
+  apiVersion: external-secrets.io/v1
+  kind: ExternalSecret
+  metadata:
+    name: my-app-secrets
+  spec:
+    refreshInterval: "5m"
+    secretStoreRef:
+      name: {{ .Values.externalSecretsOperator.secretStore.name }}
+      kind: {{ .Values.externalSecretsOperator.namespaced | ternary "SecretStore" "ClusterSecretStore" }}
+    data:
+      - secretKey: DB_PASSWORD
+        remoteRef:
+          key: "my-database-item"       # Proton Pass item title or ID
+          property: "password"           # Field name (password, username, etc.)
+      - secretKey: API_KEY
+        remoteRef:
+          key: "my-api-keys"
+          property: "api_key"            # Custom field name
+
+{{- end }}
+
+{{- if not .Values.protonpass.auth.existingSecret.name }}
+⚠️  Credentials are stored in a Helm-managed Secret.
+    For production, use an existing SOPS-encrypted Secret:
+
+    protonpass:
+      auth:
+        existingSecret:
+          name: "protonpass-credentials"
+{{- end }}
+
+To verify the deployment:
+
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "protonpass-eso-provider.name" . }}
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "protonpass-eso-provider.name" . }}

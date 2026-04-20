@@ -1,0 +1,8 @@
+---
+# Minimal values — just get it running
+protonpass:
+  auth:
+    existingSecret:
+      name: "protonpass-credentials"
+  vaults:
+    shared: "Company Secrets"

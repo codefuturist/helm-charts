@@ -68,7 +68,7 @@ brew install chart-testing
 pip install yamllint
 
 # Install pre-commit hooks (optional)
-make install-hooks
+just hooks install
 ```
 
 ### Testing Locally

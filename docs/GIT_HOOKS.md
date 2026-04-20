@@ -6,10 +6,10 @@ Comprehensive guide to RSR's git hooks system with developer-friendly features.
 
 ```bash
 # Install hooks
-make setup-hooks
+just hooks install
 
 # Or manually
-npm install  # Installs husky
+pre-commit install
 husky install
 pre-commit install
 
@@ -323,8 +323,8 @@ Before submitting PR:
 
 ```bash
 # Run everything locally
-make lint
-make test
+just ct-lint
+just test-all
 pre-commit run --all-files
 
 # Commit with full checks
@@ -356,7 +356,7 @@ git commit --amend --no-edit
 **Tests failed:**
 
 ```bash
-make test  # Run tests locally
+just test-all  # Run tests locally
 # Fix failing tests
 git add .
 git commit --amend --no-edit
@@ -365,8 +365,7 @@ git commit --amend --no-edit
 **Linters failed:**
 
 ```bash
-make lint-fix  # Auto-fix
-make format    # Format code
+just ct-lint    # Run linters
 git add .
 git commit --amend --no-edit
 ```
@@ -446,8 +445,8 @@ mv .git/hooks/pre-commit.disabled .git/hooks/pre-commit
 bash .husky/pre-commit
 
 # Or run individual checks
-make lint
-make test
+just ct-lint
+just test-all
 pre-commit run --all-files
 ```
 
@@ -457,9 +456,8 @@ pre-commit run --all-files
 **Solution:**
 
 ```bash
-make setup-hooks
+just hooks install
 # or
-husky install
 pre-commit install
 ```
 
@@ -518,8 +516,7 @@ git commit --no-verify -m "fix: update registry"
 3. **Fix auto-fixable issues**
 
    ```bash
-   make lint-fix
-   make format
+   just ct-lint
    ```
 
 4. **Use WIP commits on feature branches**
@@ -532,8 +529,8 @@ git commit --no-verify -m "fix: update registry"
 5. **Test changes before committing**
 
    ```bash
-   make lint
-   make test
+   just ct-lint
+   just test-all
    ```
 
 6. **Review hook output**

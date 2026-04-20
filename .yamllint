@@ -15,6 +15,7 @@ rules:
     level: warning
   truthy:
     allowed-values: ["true", "false"]
+    check-keys: false
 
 ignore:
   - .sops.yaml

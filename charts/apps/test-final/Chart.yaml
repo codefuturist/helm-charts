@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: test-final
 description: Test chart with auto-version
@@ -31,4 +32,3 @@ annotations:
   artifacthub.io/changes: |
     - kind: added
       description: Initial release of test-final Helm chart v0.1.0
-

@@ -1,8 +1,10 @@
 {{- if .Values.ingress.enabled -}}
+{{- $fullName := include "nginx.fullname" . -}}
+{{- $svcPort := .Values.service.port -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "nginx.fullname" . }}
+  name: {{ $fullName }}
   labels:
     {{- include "nginx.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
@@ -35,9 +37,9 @@ spec:
             {{- end }}
             backend:
               service:
-                name: {{ include "nginx.fullname" $ }}
+                name: {{ $fullName }}
                 port:
-                  number: {{ $.Values.service.port }}
+                  number: {{ $svcPort }}
           {{- end }}
     {{- end }}
 {{- end }}

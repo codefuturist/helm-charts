@@ -1,65 +1,52 @@
 # nginx
 
-![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.27.0](https://img.shields.io/badge/AppVersion-1.27.0-informational?style=flat-square)
-
 Helm chart for deploying NGINX web server with customizable configuration
 
-**Homepage:** <https://github.com/codefuturist/helm-charts>
+## Prerequisites
 
-## Maintainers
+- Kubernetes 1.26+
+- Helm 3.8+
 
-| Name         | Email                  | Url |
-| ------------ | ---------------------- | --- |
-| codefuturist | <hello@allcloud.trade> |     |
+## Installing the Chart
 
-## Source Code
+```bash
+helm install nginx ./charts/nginx
+```
 
-- <https://github.com/codefuturist/helm-charts/tree/main/charts/nginx>
-- <https://nginx.org>
+## Uninstalling the Chart
 
-## Values
+```bash
+helm uninstall nginx
+```
 
-| Key                                        | Type   | Default                    | Description |
-| ------------------------------------------ | ------ | -------------------------- | ----------- |
-| affinity                                   | object | `{}`                       |             |
-| autoscaling.enabled                        | bool   | `false`                    |             |
-| autoscaling.maxReplicas                    | int    | `100`                      |             |
-| autoscaling.minReplicas                    | int    | `1`                        |             |
-| autoscaling.targetCPUUtilizationPercentage | int    | `80`                       |             |
-| fullnameOverride                           | string | `""`                       |             |
-| image.pullPolicy                           | string | `"IfNotPresent"`           |             |
-| image.repository                           | string | `"nginx"`                  |             |
-| image.tag                                  | string | `""`                       |             |
-| imagePullSecrets                           | list   | `[]`                       |             |
-| ingress.annotations                        | object | `{}`                       |             |
-| ingress.className                          | string | `""`                       |             |
-| ingress.enabled                            | bool   | `false`                    |             |
-| ingress.hosts[0].host                      | string | `"chart-example.local"`    |             |
-| ingress.hosts[0].paths[0].path             | string | `"/"`                      |             |
-| ingress.hosts[0].paths[0].pathType         | string | `"ImplementationSpecific"` |             |
-| ingress.tls                                | list   | `[]`                       |             |
-| livenessProbe.httpGet.path                 | string | `"/"`                      |             |
-| livenessProbe.httpGet.port                 | string | `"http"`                   |             |
-| nameOverride                               | string | `""`                       |             |
-| nodeSelector                               | object | `{}`                       |             |
-| podAnnotations                             | object | `{}`                       |             |
-| podLabels                                  | object | `{}`                       |             |
-| podSecurityContext                         | object | `{}`                       |             |
-| readinessProbe.httpGet.path                | string | `"/"`                      |             |
-| readinessProbe.httpGet.port                | string | `"http"`                   |             |
-| replicaCount                               | int    | `3`                        |             |
-| resources                                  | object | `{}`                       |             |
-| securityContext                            | object | `{}`                       |             |
-| service.port                               | int    | `80`                       |             |
-| service.type                               | string | `"ClusterIP"`              |             |
-| serviceAccount.annotations                 | object | `{}`                       |             |
-| serviceAccount.automount                   | bool   | `true`                     |             |
-| serviceAccount.create                      | bool   | `true`                     |             |
-| serviceAccount.name                        | string | `""`                       |             |
-| tolerations                                | list   | `[]`                       |             |
-| volumeMounts                               | list   | `[]`                       |             |
-| volumes                                    | list   | `[]`                       |             |
+## Parameters
+
+See [values.yaml](values.yaml) for the full list of configurable parameters.
+
+### General Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `nameOverride` | Override the chart name | `""` |
+| `fullnameOverride` | Override the full name | `""` |
+| `replicaCount` | Number of replicas | `3` |
+
+### Image Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `image.repository` | Container image repository | `nginx` |
+| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `image.tag` | Image tag (defaults to appVersion) | `""` |
+
+### Service Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `service.type` | Service type | `ClusterIP` |
+| `service.port` | Service port | `80` |
 
 ---
 
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+> This chart was generated with [Copier](https://copier.readthedocs.io/).
+> Run `copier update` to pull in template improvements.

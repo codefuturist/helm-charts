@@ -1,6 +1,9 @@
+---
 apiVersion: v2
 name: restic-backup
-description: A user-friendly Helm chart for automated Kubernetes volume backups using restic with support for multiple storage backends and flexible scheduling
+description: >
+  A user-friendly Helm chart for automated Kubernetes volume backups using restic with support for
+  multiple storage backends and flexible scheduling
 
 type: application
 

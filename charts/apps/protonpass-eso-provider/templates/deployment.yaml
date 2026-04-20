@@ -1,0 +1,147 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "protonpass-eso-provider.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "protonpass-eso-provider.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "protonpass-eso-provider.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "protonpass-eso-provider.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "protonpass-eso-provider.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: provider
+          image: {{ include "protonpass-eso-provider.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            # Proton Pass authentication
+            - name: PROTONPASS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "protonpass-eso-provider.credentialsSecretName" . }}
+                  key: {{ .Values.protonpass.auth.existingSecret.usernameKey | default "username" }}
+            - name: PROTONPASS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "protonpass-eso-provider.credentialsSecretName" . }}
+                  key: {{ .Values.protonpass.auth.existingSecret.passwordKey | default "password" }}
+            # API token for ESO webhook authentication
+            - name: API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "protonpass-eso-provider.apiTokenSecretName" . }}
+                  key: {{ .Values.api.existingSecret.key | default "token" }}
+            # pass-cli configuration
+            - name: PROTON_PASS_KEY_PROVIDER
+              value: {{ .Values.protonpass.keyProvider | quote }}
+            {{- if .Values.protonpass.vaults.shared }}
+            - name: PROTONPASS_DEFAULT_VAULT
+              value: {{ .Values.protonpass.vaults.shared | quote }}
+            {{- end }}
+            {{- if .Values.protonpass.vaults.allowed }}
+            - name: PROTONPASS_ALLOWED_VAULTS
+              value: {{ join "," .Values.protonpass.vaults.allowed | quote }}
+            {{- end }}
+            {{- if .Values.protonpass.vaults.denied }}
+            - name: PROTONPASS_DENIED_VAULTS
+              value: {{ join "," .Values.protonpass.vaults.denied | quote }}
+            {{- end }}
+            # Cache configuration
+            - name: CACHE_ENABLED
+              value: {{ .Values.protonpass.cache.enabled | quote }}
+            - name: CACHE_TTL
+              value: {{ .Values.protonpass.cache.ttlSeconds | quote }}
+            - name: CACHE_MAX_ENTRIES
+              value: {{ .Values.protonpass.cache.maxEntries | quote }}
+            # Server configuration
+            - name: PORT
+              value: {{ .Values.service.port | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.logLevel | default "info" | quote }}
+            {{- if .Values.metrics.enabled }}
+            - name: METRICS_ENABLED
+              value: "true"
+            {{- end }}
+            {{- if .Values.admin.enabled }}
+            - name: ADMIN_ENABLED
+              value: "true"
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds | default 15 }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds | default 20 }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold | default 3 }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds | default 10 }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds | default 10 }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold | default 3 }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: session
+              mountPath: /app/.session
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: session
+          emptyDir:
+            sizeLimit: 50Mi
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

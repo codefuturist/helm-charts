@@ -1,0 +1,25 @@
+# This file is managed by Copier. Do NOT edit manually.
+# To update this chart: ./tools/update-charts.sh charts/.../<chart-name>
+#   OR: just update-chart charts/.../<chart-name>
+_src_path: /Users/colin/Developer/Projects/personal/helm-charts/templates/chart-copier
+chart_name: nginx
+chart_description: Helm chart for deploying NGINX web server with customizable configuration
+chart_version: 0.1.2
+app_version: 1.27.0
+image_repository: nginx
+image_tag: ""
+container_port: 80
+container_port_name: http
+maintainer_name: codefuturist
+maintainer_email: hello@allcloud.trade
+use_service_account: True
+use_ingress: True
+use_hpa: False
+use_pdb: False
+use_configmap: False
+use_secret: False
+use_networkpolicy: False
+use_pvc: False
+replica_count: 3
+service_type: ClusterIP
+service_port: 80

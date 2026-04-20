@@ -1,0 +1,93 @@
+---
+# Production values — hardened configuration
+replicaCount: 2
+
+protonpass:
+  auth:
+    existingSecret:
+      name: "protonpass-credentials"
+      usernameKey: "username"
+      passwordKey: "password"
+  keyProvider: "fs"
+  vaults:
+    shared: "Production Secrets"
+    allowed:
+      - "Production Secrets"
+      - "Shared Infrastructure"
+    denied:
+      - "Personal"
+  cache:
+    enabled: true
+    ttlSeconds: 600
+    maxEntries: 2000
+
+externalSecretsOperator:
+  createSecretStore: true
+  namespaced: false
+  timeout: "15s"
+  secretStore:
+    name: "protonpass"
+    labels:
+      environment: production
+
+api:
+  existingSecret:
+    name: "protonpass-api-token"
+    key: "token"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 192Mi
+  limits:
+    cpu: 500m
+    memory: 384Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  capabilities:
+    drop:
+      - ALL
+
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: external-secrets
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: "30s"
+    labels:
+      release: prometheus
+
+logLevel: "warn"

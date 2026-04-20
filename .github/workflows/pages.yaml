@@ -1,3 +1,4 @@
+---
 name: Deploy GitHub Pages
 
 on:
@@ -217,7 +218,8 @@ jobs:
           for chart_dir in charts/*/; do
             chart_name=$(basename "$chart_dir")
             if [ -f "$chart_dir/Chart.yaml" ]; then
-              description=$(grep "^description:" "$chart_dir/Chart.yaml" | sed 's/description: //' | sed 's/^"//' | sed 's/"$//' | head -1)
+              description=$(grep "^description:" "$chart_dir/Chart.yaml" \
+                | sed 's/description: //' | sed 's/^"//' | sed 's/"$//' | head -1)
               version=$(grep "^version:" "$chart_dir/Chart.yaml" | awk '{print $2}' | head -1)
 
               cat >> site/charts/index.html << HTMLEOF

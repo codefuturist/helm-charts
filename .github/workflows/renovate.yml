@@ -1,3 +1,4 @@
+---
 # Self-hosted Renovate Bot
 # Runs on schedule to check for dependency updates
 # https://github.com/renovatebot/github-action

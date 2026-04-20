@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: compass-web
 description: A production-ready Helm chart for MongoDB Compass Web - MongoDB database management and administration tool

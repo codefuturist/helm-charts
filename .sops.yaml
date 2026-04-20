@@ -1,5 +1,10 @@
 # .sops.yaml - SOPS configuration for FluxCD
 creation_rules:
+  # Proton Pass provider credentials
+  - path_regex: .*protonpass.*credential.*\.ya?ml$
+    encrypted_regex: ^(data|stringData)$
+    age: "age1yubikey1qv3fxvnkgvn6txfld39ztg2fksqgtqhp29dntdhtwmll39q2z3fs2k3wjcn,age1t8gm5avm9z5pquta4w2kaud7zn3c588mkk2shdpdskvp76wxh3gsxctyst"
+
   # FluxCD secrets - encrypt all YAML files with 'secret' in the path
   - path_regex: .*/flux/.*secret.*\.ya?ml$
     encrypted_regex: ^(data|stringData)$

@@ -32,7 +32,6 @@ helm install my-nginx pandia/nginx
     Press ++ctrl+k++ or ++cmd+k++ to search, or use the [interactive values search](../reference/search.md).
 
 <div class="filter-buttons">
-  <button class="filter-btn" data-section="autoscaling-parameters">Autoscaling Parameters</button>
   <button class="filter-btn" data-section="deployment-parameters">Deployment Parameters</button>
   <button class="filter-btn" data-section="general-parameters">General Parameters</button>
   <button class="filter-btn" data-section="image-parameters">Image Parameters</button>
@@ -60,31 +59,6 @@ helm install my-nginx pandia/nginx
 </tr>
 </thead>
 <tbody>
-<tr class="values-section-header"><td colspan="4"><strong>Autoscaling Parameters</strong></td></tr>
-<tr id="value-enabled" class="value-anchor" data-section="autoscaling-parameters">
-<td><code class="value-key">enabled</code></td>
-<td><span class="type-badge bool">bool</span></td>
-<td><code>false</code></td>
-<td>Enable horizontal pod autoscaling.</td>
-</tr>
-<tr id="value-minReplicas" class="value-anchor" data-section="autoscaling-parameters">
-<td><code class="value-key">minReplicas</code></td>
-<td><span class="type-badge int">int</span></td>
-<td><code>1</code></td>
-<td>Minimum number of replicas.</td>
-</tr>
-<tr id="value-maxReplicas" class="value-anchor" data-section="autoscaling-parameters">
-<td><code class="value-key">maxReplicas</code></td>
-<td><span class="type-badge int">int</span></td>
-<td><code>100</code></td>
-<td>Maximum number of replicas.</td>
-</tr>
-<tr id="value-targetCPUUtilizationPercentage" class="value-anchor" data-section="autoscaling-parameters">
-<td><code class="value-key">targetCPUUtilizationPercentage</code></td>
-<td><span class="type-badge int">int</span></td>
-<td><code>80</code></td>
-<td>Target CPU utilization percentage.</td>
-</tr>
 <tr class="values-section-header"><td colspan="4"><strong>Deployment Parameters</strong></td></tr>
 <tr id="value-replicaCount" class="value-anchor" data-section="deployment-parameters">
 <td><code class="value-key">replicaCount</code></td>

@@ -1,0 +1,256 @@
+---
+# -- Proton Pass ESO Provider
+# Webhook provider for External Secrets Operator backed by Proton Pass CLI
+# @default -- See below
+# @section -- Global
+
+# -- Number of replicas
+replicaCount: 1
+
+# -- Additional labels for all resources
+additionalLabels: {}
+
+# -- Pod annotations
+podAnnotations: {}
+
+# -- Pod labels
+podLabels: {}
+
+# -- Log level (debug, info, warn, error)
+logLevel: "info"
+
+# -- Extra environment variables
+extraEnv: []
+
+# -- Extra volume mounts
+extraVolumeMounts: []
+
+# -- Extra volumes
+extraVolumes: []
+
+# @section -- Image
+
+image:
+  # -- Image registry
+  registry: ghcr.io
+  # -- Image repository
+  repository: codefuturist/protonpass-eso-provider
+  # -- Image tag (defaults to chart appVersion)
+  tag: ""
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+
+# -- Image pull secrets
+imagePullSecrets: []
+
+# @section -- Proton Pass Authentication
+
+protonpass:
+  auth:
+    # -- Use an existing Kubernetes secret for Proton Pass credentials
+    # If set, the chart will NOT create a credentials secret
+    existingSecret:
+      # -- Name of the existing secret
+      name: ""
+      # -- Key in the secret containing the username/email
+      usernameKey: "username"
+      # -- Key in the secret containing the password
+      passwordKey: "password"
+
+    # -- Credentials to create a new secret (NOT recommended for production)
+    # For production, pre-create a Secret (encrypted with SOPS) and reference it above
+    credentials:
+      # -- Proton account email address
+      username: ""
+      # -- Proton account password
+      password: ""
+
+  # -- pass-cli key provider for session encryption
+  # Options: fs (filesystem - for containers), env (environment variable), keyring (OS keyring - not for containers)
+  keyProvider: "fs"
+
+  # @section -- Vault Access Control
+
+  vaults:
+    # -- Default/shared company vault name or Share ID
+    shared: ""
+    # -- Allowed vaults (empty = all accessible vaults)
+    allowed: []
+    # -- Denied vaults (these vaults will never be accessed)
+    denied: []
+
+  # @section -- Secret Cache
+
+  cache:
+    # -- Enable in-memory secret caching
+    enabled: true
+    # -- Cache time-to-live in seconds
+    ttlSeconds: 300
+    # -- Maximum cached entries
+    maxEntries: 1000
+
+# @section -- External Secrets Operator
+
+externalSecretsOperator:
+  # -- Create a SecretStore/ClusterSecretStore for ESO
+  createSecretStore: true
+  # -- Create a namespaced SecretStore instead of ClusterSecretStore
+  namespaced: false
+  # -- Webhook timeout for ESO requests
+  timeout: "10s"
+  secretStore:
+    # -- Name of the SecretStore/ClusterSecretStore
+    name: "protonpass"
+    # -- Additional annotations
+    annotations: {}
+    # -- Additional labels
+    labels: {}
+
+# @section -- API Authentication
+
+api:
+  # -- Use an existing secret for the ESO webhook bearer token
+  existingSecret:
+    # -- Name of the existing secret (leave empty to auto-generate)
+    name: ""
+    # -- Key in the secret containing the token
+    key: "token"
+  # -- Token value (leave empty to auto-generate a random 32-char token)
+  token: ""
+
+# @section -- Service
+
+service:
+  # -- Service type
+  type: ClusterIP
+  # -- Service port
+  port: 8080
+  # -- Additional service labels
+  labels: {}
+  # -- Additional service annotations
+  annotations: {}
+
+# @section -- Service Account
+
+serviceAccount:
+  # -- Create a service account
+  create: true
+  # -- Service account name (defaults to fullname)
+  name: ""
+  # -- Service account annotations
+  annotations: {}
+  # -- Automount service account token
+  automount: false
+
+# @section -- Resources
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# @section -- Security Context
+
+# -- Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 1000
+
+# -- Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  capabilities:
+    drop:
+      - ALL
+
+# @section -- Probes
+
+livenessProbe:
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# @section -- Network Policy
+
+networkPolicy:
+  # -- Enable network policy
+  enabled: false
+  # -- Ingress rules (who can reach the provider)
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: external-secrets
+      ports:
+        - protocol: TCP
+          port: 8080
+  # -- Egress rules (provider needs HTTPS to Proton API + DNS)
+  egress:
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
+
+# @section -- Pod Disruption Budget
+
+podDisruptionBudget:
+  # -- Enable PDB
+  enabled: false
+  # -- Minimum available pods
+  minAvailable: 1
+  # -- Maximum unavailable pods
+  maxUnavailable: ""
+
+# @section -- Monitoring
+
+metrics:
+  # -- Enable Prometheus metrics endpoint
+  enabled: false
+  serviceMonitor:
+    # -- Create a ServiceMonitor resource
+    enabled: false
+    # -- Scrape interval
+    interval: "30s"
+    # -- Scrape timeout
+    scrapeTimeout: ""
+    # -- ServiceMonitor namespace (defaults to release namespace)
+    namespace: ""
+    # -- Additional labels for ServiceMonitor
+    labels: {}
+
+# @section -- Admin API
+
+admin:
+  # -- Enable admin endpoints (/api/v1/vaults, /api/v1/items, /api/v1/cache)
+  enabled: false
+
+# @section -- Scheduling
+
+# -- Node selector
+nodeSelector: {}
+
+# -- Tolerations
+tolerations: []
+
+# -- Affinity
+affinity: {}
+
+# -- Global values (for common library)
+global: {}

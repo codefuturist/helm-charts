@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: mailrise
 description: An SMTP gateway for Apprise notifications - convert emails to 60+ notification services

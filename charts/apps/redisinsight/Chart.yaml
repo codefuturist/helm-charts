@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: redisinsight
 description: A production-ready Helm chart for Redis Insight - Redis database management and administration tool

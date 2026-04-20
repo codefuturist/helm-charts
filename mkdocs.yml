@@ -1,3 +1,4 @@
+---
 site_name: Helm Charts Documentation
 site_description: Documentation for Helm Charts with searchable values reference
 site_url: https://codefuturist.github.io/helm-charts
@@ -135,6 +136,7 @@ nav:
       - Nginx: charts/nginx.md
       - Paperless Ngx: charts/paperless-ngx.md
       - Pgadmin: charts/pgadmin.md
+      - Protonpass Eso Provider: charts/protonpass-eso-provider.md
       - Proxmox Backup Server: charts/proxmox-backup-server.md
       - Redisinsight: charts/redisinsight.md
       - Restic Backup: charts/restic-backup.md

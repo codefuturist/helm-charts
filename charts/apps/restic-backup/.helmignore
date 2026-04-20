@@ -14,24 +14,23 @@
 *.swp
 *.bak
 *.tmp
-*.orig
 *~
 # Various IDEs
 .project
 .idea/
 *.tmproj
 .vscode/
-# Documentation and examples (comment out if you want to include these)
+# Documentation and examples (not needed in packages)
+README.md
 docs/
 examples/
-TESTING.md
-ARCHITECTURE.md
-QUICK_REFERENCE.md
-*.md.gotmpl
-# Test files
+# CI and test files
+ci/
 tests/
-test-*.yaml
-values-test*.yaml
-# CI/CD
-.github/
-.gitlab-ci.yml
+tekton/
+quick-starts/
+test-install-values.yaml
+# Chart configuration
+.chartconfig.yaml
+# Copier answers (not needed in packages)
+.copier-answers.yml

@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: metube
 description: A Helm chart for MeTube - YouTube downloader with web interface powered by yt-dlp

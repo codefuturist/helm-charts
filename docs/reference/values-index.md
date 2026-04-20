@@ -73,6 +73,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [homarr](../charts/homarr.md#value-additionalLabels) | `additionalLabels` | object | Backup Parameters |
 | [it-tools](../charts/it-tools.md#value-additionalLabels) | `additionalLabels` | object | Global Parameters |
 | [pgadmin](../charts/pgadmin.md#value-additionalLabels) | `additionalLabels` | object | Global Parameters |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-additionalLabels) | `additionalLabels` | object | Global |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-additionalLabels) | `additionalLabels` | object | Global Parameters |
 | [redisinsight](../charts/redisinsight.md#value-additionalLabels) | `additionalLabels` | object | Global Parameters |
 | [restic-backup](../charts/restic-backup.md#value-additionalLabels) | `additionalLabels` | tpl/object | Global Parameters |
@@ -86,18 +87,19 @@ Complete alphabetical listing of all configuration values across all charts.
 | [restic-backup](../charts/restic-backup.md#value-additionalRules) | `additionalRules` | list | RBAC Parameters |
 | [application](../charts/application.md#value-affinity) | `affinity` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-affinity) | `affinity` | object | Pod Configuration |
-| [e2e-test](../charts/e2e-test.md#value-affinity) | `affinity` | object | Scheduling Parameters |
 | [homarr](../charts/homarr.md#value-affinity) | `affinity` | object | Deployment Parameters |
 | [home-assistant](../charts/home-assistant.md#value-affinity) | `affinity` | object | General |
 | [it-tools](../charts/it-tools.md#value-affinity) | `affinity` | object | Pod Configuration |
 | [nginx](../charts/nginx.md#value-affinity) | `affinity` | object | Scheduling Parameters |
 | [pgadmin](../charts/pgadmin.md#value-affinity) | `affinity` | object | Pod Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-affinity) | `affinity` | object | Scheduling |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-affinity) | `affinity` | object | Pod Configuration |
 | [redisinsight](../charts/redisinsight.md#value-affinity) | `affinity` | object | Pod Configuration |
 | [restic-backup](../charts/restic-backup.md#value-affinity) | `affinity` | object | CronJob Parameters |
 | [restic-backup](../charts/restic-backup.md#value-affinity) | `affinity` | object | Metrics Parameters |
 | [test-final](../charts/test-final.md#value-affinity) | `affinity` | object | Pod Configuration |
 | [compass-web](../charts/compass-web.md#value-aggregationSystemPrompt) | `aggregationSystemPrompt` | string | Compass Web Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-allowed) | `allowed` | list | Vault Access Control |
 | [application](../charts/application.md#value-alternateBackends) | `alternateBackends` | list | Route Parameters |
 | [homarr](../charts/homarr.md#value-alternateBackends) | `alternateBackends` | list | Route Parameters |
 | [application](../charts/application.md#value-annotations) | `annotations` | object | Deployment Parameters |
@@ -126,8 +128,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [compass-web](../charts/compass-web.md#value-annotations) | `annotations` | object | Persistence Configuration |
 | [compass-web](../charts/compass-web.md#value-annotations) | `annotations` | object | Monitoring |
 | [compass-web](../charts/compass-web.md#value-annotations) | `annotations` | object | RBAC Configuration |
-| [e2e-test](../charts/e2e-test.md#value-annotations) | `annotations` | object | ServiceAccount Parameters |
-| [e2e-test](../charts/e2e-test.md#value-annotations) | `annotations` | object | Ingress Parameters |
 | [homarr](../charts/homarr.md#value-annotations) | `annotations` | object | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-annotations) | `annotations` | object | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-annotations) | `annotations` | object | Service Parameters |
@@ -159,6 +159,9 @@ Complete alphabetical listing of all configuration values across all charts.
 | [pgadmin](../charts/pgadmin.md#value-annotations) | `annotations` | object | Persistence Configuration |
 | [pgadmin](../charts/pgadmin.md#value-annotations) | `annotations` | object | Monitoring |
 | [pgadmin](../charts/pgadmin.md#value-annotations) | `annotations` | object | RBAC Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-annotations) | `annotations` | object | External Secrets Operator |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-annotations) | `annotations` | object | Service |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-annotations) | `annotations` | object | Service Account |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-annotations) | `annotations` | object | Service Configuration |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-annotations) | `annotations` | object | Ingress Configuration |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-annotations) | `annotations` | object | Monitoring |
@@ -200,8 +203,8 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-args) | `args` | list | Controller Configuration |
 | [test-final](../charts/test-final.md#value-args) | `args` | string | Diagnostic Mode |
 | [shlink](../charts/shlink.md#value-auth) | `auth` | string | PostgreSQL Configuration |
-| [e2e-test](../charts/e2e-test.md#value-automount) | `automount` | bool | ServiceAccount Parameters |
 | [nginx](../charts/nginx.md#value-automount) | `automount` | bool | ServiceAccount Parameters |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-automount) | `automount` | bool | Service Account |
 | [restic-backup](../charts/restic-backup.md#value-automountServiceAccountToken) | `automountServiceAccountToken` | bool | ServiceAccount Parameters |
 | [restic-backup](../charts/restic-backup.md#value-backendEnv) | `backendEnv` | object | Restic Configuration |
 | [restic-backup](../charts/restic-backup.md#value-backup) | `backup` | object | Restic Configuration |
@@ -212,7 +215,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [redisinsight](../charts/redisinsight.md#value-cert) | `cert` | string | Redis Insight Configuration |
 | [restic-backup](../charts/restic-backup.md#value-check) | `check` | object | Restic Configuration |
 | [compass-web](../charts/compass-web.md#value-className) | `className` | string | Ingress Configuration |
-| [e2e-test](../charts/e2e-test.md#value-className) | `className` | string | Ingress Parameters |
 | [it-tools](../charts/it-tools.md#value-className) | `className` | string | Ingress Configuration |
 | [nginx](../charts/nginx.md#value-className) | `className` | string | Ingress Parameters |
 | [pgadmin](../charts/pgadmin.md#value-className) | `className` | string | Ingress Configuration |
@@ -268,7 +270,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [application](../charts/application.md#value-create) | `create` | bool | cert-manager Certificate Parameters |
 | [compass-web](../charts/compass-web.md#value-create) | `create` | bool | RBAC Configuration |
 | [compass-web](../charts/compass-web.md#value-create) | `create` | bool | RBAC Configuration |
-| [e2e-test](../charts/e2e-test.md#value-create) | `create` | bool | ServiceAccount Parameters |
 | [homarr](../charts/homarr.md#value-create) | `create` | bool | cert-manager Certificate Parameters |
 | [homarr](../charts/homarr.md#value-create) | `create` | bool | cert-manager Certificate Parameters |
 | [home-assistant](../charts/home-assistant.md#value-create) | `create` | bool | General |
@@ -278,6 +279,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [nginx](../charts/nginx.md#value-create) | `create` | bool | ServiceAccount Parameters |
 | [pgadmin](../charts/pgadmin.md#value-create) | `create` | bool | RBAC Configuration |
 | [pgadmin](../charts/pgadmin.md#value-create) | `create` | bool | RBAC Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-create) | `create` | bool | Service Account |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-create) | `create` | bool | RBAC Configuration |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-create) | `create` | bool | RBAC Configuration |
 | [redisinsight](../charts/redisinsight.md#value-create) | `create` | bool | RBAC Configuration |
@@ -287,6 +289,8 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-create) | `create` | bool | RBAC Configuration |
 | [test-final](../charts/test-final.md#value-create) | `create` | bool | RBAC Configuration |
 | [bitwarden-eso-provider](../charts/bitwarden-eso-provider.md#value-createClusterSecretStore) | `createClusterSecretStore` | bool | General |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-createSecretStore) | `createSecretStore` | bool | External Secrets Operator |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-credentials) | `credentials` | string | Proton Pass Authentication |
 | [restic-backup](../charts/restic-backup.md#value-custom) | `custom` | object | Backup Volume Configuration |
 | [compass-web](../charts/compass-web.md#value-customMetrics) | `customMetrics` | list | High Availability |
 | [it-tools](../charts/it-tools.md#value-customMetrics) | `customMetrics` | list | High Availability |
@@ -298,6 +302,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [redisinsight](../charts/redisinsight.md#value-databaseManagement) | `databaseManagement` | bool | Redis Insight Configuration |
 | [application](../charts/application.md#value-defaultVolumesToRestic) | `defaultVolumesToRestic` | bool | Backup Parameters |
 | [homarr](../charts/homarr.md#value-defaultVolumesToRestic) | `defaultVolumesToRestic` | bool | Backup Parameters |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-denied) | `denied` | list | Vault Access Control |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-devices) | `devices` | list | Proxmox Backup Server Configuration |
 | [application](../charts/application.md#value-digest) | `digest` | tpl/string | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-digest) | `digest` | string | Image Configuration |
@@ -339,6 +344,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [homarr](../charts/homarr.md#value-egress) | `egress` | list | NetworkPolicy Parameters |
 | [it-tools](../charts/it-tools.md#value-egress) | `egress` | string | Network Policy |
 | [pgadmin](../charts/pgadmin.md#value-egress) | `egress` | string | Network Policy |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-egress) | `egress` | string | Network Policy |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-egress) | `egress` | string | Network Policy |
 | [redisinsight](../charts/redisinsight.md#value-egress) | `egress` | string | Network Policy |
 | [restic-backup](../charts/restic-backup.md#value-egress) | `egress` | object | Network Policy Parameters |
@@ -394,7 +400,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [compass-web](../charts/compass-web.md#value-enabled) | `enabled` | bool | High Availability |
 | [compass-web](../charts/compass-web.md#value-enabled) | `enabled` | bool | Network Policy |
 | [compass-web](../charts/compass-web.md#value-enabled) | `enabled` | bool | Diagnostic Mode |
-| [e2e-test](../charts/e2e-test.md#value-enabled) | `enabled` | bool | Ingress Parameters |
 | [homarr](../charts/homarr.md#value-enabled) | `enabled` | bool | CronJob Parameters |
 | [homarr](../charts/homarr.md#value-enabled) | `enabled` | bool | Job Parameters |
 | [homarr](../charts/homarr.md#value-enabled) | `enabled` | bool | Deployment Parameters |
@@ -438,7 +443,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [it-tools](../charts/it-tools.md#value-enabled) | `enabled` | bool | Network Policy |
 | [it-tools](../charts/it-tools.md#value-enabled) | `enabled` | bool | Diagnostic Mode |
 | [nginx](../charts/nginx.md#value-enabled) | `enabled` | bool | Ingress Parameters |
-| [nginx](../charts/nginx.md#value-enabled) | `enabled` | bool | Autoscaling Parameters |
 | [pgadmin](../charts/pgadmin.md#value-enabled) | `enabled` | bool | pgAdmin Configuration |
 | [pgadmin](../charts/pgadmin.md#value-enabled) | `enabled` | bool | pgAdmin Configuration |
 | [pgadmin](../charts/pgadmin.md#value-enabled) | `enabled` | bool | Ingress Configuration |
@@ -449,6 +453,12 @@ Complete alphabetical listing of all configuration values across all charts.
 | [pgadmin](../charts/pgadmin.md#value-enabled) | `enabled` | bool | High Availability |
 | [pgadmin](../charts/pgadmin.md#value-enabled) | `enabled` | bool | Network Policy |
 | [pgadmin](../charts/pgadmin.md#value-enabled) | `enabled` | bool | Diagnostic Mode |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-enabled) | `enabled` | bool | Secret Cache |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-enabled) | `enabled` | bool | Network Policy |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-enabled) | `enabled` | bool | Pod Disruption Budget |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-enabled) | `enabled` | bool | Monitoring |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-enabled) | `enabled` | bool | Monitoring |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-enabled) | `enabled` | bool | Admin API |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-enabled) | `enabled` | bool | Ingress Configuration |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-enabled) | `enabled` | bool | Persistence Configuration |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-enabled) | `enabled` | bool | Monitoring |
@@ -523,6 +533,8 @@ Complete alphabetical listing of all configuration values across all charts.
 | [it-tools](../charts/it-tools.md#value-existingSecret) | `existingSecret` | string | Application Configuration |
 | [pgadmin](../charts/pgadmin.md#value-existingSecret) | `existingSecret` | string | pgAdmin Configuration |
 | [pgadmin](../charts/pgadmin.md#value-existingSecret) | `existingSecret` | string | pgAdmin Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-existingSecret) | `existingSecret` | string | Proton Pass Authentication |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-existingSecret) | `existingSecret` | string | API Authentication |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-existingSecret) | `existingSecret` | string | Proxmox Backup Server Configuration |
 | [redisinsight](../charts/redisinsight.md#value-existingSecret) | `existingSecret` | string | Redis Insight Configuration |
 | [restic-backup](../charts/restic-backup.md#value-existingSecret) | `existingSecret` | object | Restic Configuration |
@@ -557,6 +569,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [compass-web](../charts/compass-web.md#value-extraEnv) | `extraEnv` | list | Pod Configuration |
 | [it-tools](../charts/it-tools.md#value-extraEnv) | `extraEnv` | list | Pod Configuration |
 | [pgadmin](../charts/pgadmin.md#value-extraEnv) | `extraEnv` | list | Pod Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-extraEnv) | `extraEnv` | list | Global |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-extraEnv) | `extraEnv` | list | Pod Configuration |
 | [redisinsight](../charts/redisinsight.md#value-extraEnv) | `extraEnv` | list | Pod Configuration |
 | [test-final](../charts/test-final.md#value-extraEnv) | `extraEnv` | list | Pod Configuration |
@@ -571,6 +584,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [home-assistant](../charts/home-assistant.md#value-extraVolumeMounts) | `extraVolumeMounts` | object | General |
 | [it-tools](../charts/it-tools.md#value-extraVolumeMounts) | `extraVolumeMounts` | list | Pod Configuration |
 | [pgadmin](../charts/pgadmin.md#value-extraVolumeMounts) | `extraVolumeMounts` | list | Pod Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-extraVolumeMounts) | `extraVolumeMounts` | list | Global |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-extraVolumeMounts) | `extraVolumeMounts` | list | Pod Configuration |
 | [redisinsight](../charts/redisinsight.md#value-extraVolumeMounts) | `extraVolumeMounts` | list | Pod Configuration |
 | [restic-backup](../charts/restic-backup.md#value-extraVolumeMounts) | `extraVolumeMounts` | list | Advanced Parameters |
@@ -579,6 +593,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [home-assistant](../charts/home-assistant.md#value-extraVolumes) | `extraVolumes` | object | General |
 | [it-tools](../charts/it-tools.md#value-extraVolumes) | `extraVolumes` | list | Pod Configuration |
 | [pgadmin](../charts/pgadmin.md#value-extraVolumes) | `extraVolumes` | list | Pod Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-extraVolumes) | `extraVolumes` | list | Global |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-extraVolumes) | `extraVolumes` | list | Pod Configuration |
 | [redisinsight](../charts/redisinsight.md#value-extraVolumes) | `extraVolumes` | list | Pod Configuration |
 | [restic-backup](../charts/restic-backup.md#value-extraVolumes) | `extraVolumes` | list | Advanced Parameters |
@@ -604,7 +619,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [home-assistant](../charts/home-assistant.md#value-forceInit) | `forceInit` | bool | General |
 | [pgadmin](../charts/pgadmin.md#value-fromAddress) | `fromAddress` | string | pgAdmin Configuration |
 | [compass-web](../charts/compass-web.md#value-fullnameOverride) | `fullnameOverride` | string | Global Parameters |
-| [e2e-test](../charts/e2e-test.md#value-fullnameOverride) | `fullnameOverride` | string | General Parameters |
 | [it-tools](../charts/it-tools.md#value-fullnameOverride) | `fullnameOverride` | string | Global Parameters |
 | [nginx](../charts/nginx.md#value-fullnameOverride) | `fullnameOverride` | string | General Parameters |
 | [pgadmin](../charts/pgadmin.md#value-fullnameOverride) | `fullnameOverride` | string | Global Parameters |
@@ -613,6 +627,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-fullnameOverride) | `fullnameOverride` | string | Global Parameters |
 | [application](../charts/application.md#value-gatewayNamespace) | `gatewayNamespace` | string | HTTPRoute Parameters |
 | [compass-web](../charts/compass-web.md#value-genAI) | `genAI` | string | Compass Web Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-global) | `global` | object | Scheduling |
 | [application](../charts/application.md#value-group) | `group` | string | ForecastleApp Parameters |
 | [application](../charts/application.md#value-group) | `group` | string | cert-manager Certificate Parameters |
 | [homarr](../charts/homarr.md#value-group) | `group` | string | ForecastleApp Parameters |
@@ -644,7 +659,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [restic-backup](../charts/restic-backup.md#value-hostNetwork) | `hostNetwork` | bool | Advanced Parameters |
 | [restic-backup](../charts/restic-backup.md#value-hostPath) | `hostPath` | object | Backup Volume Configuration |
 | [compass-web](../charts/compass-web.md#value-hosts) | `hosts` | list | Ingress Configuration |
-| [e2e-test](../charts/e2e-test.md#value-hosts) | `hosts` | string | Ingress Parameters |
 | [it-tools](../charts/it-tools.md#value-hosts) | `hosts` | list | Ingress Configuration |
 | [nginx](../charts/nginx.md#value-hosts) | `hosts` | string | Ingress Parameters |
 | [pgadmin](../charts/pgadmin.md#value-hosts) | `hosts` | list | Ingress Configuration |
@@ -672,11 +686,11 @@ Complete alphabetical listing of all configuration values across all charts.
 | [shlink](../charts/shlink.md#value-image) | `image` | string | PostgreSQL Configuration |
 | [application](../charts/application.md#value-imagePullSecrets) | `imagePullSecrets` | list | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image Configuration |
-| [e2e-test](../charts/e2e-test.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image Parameters |
 | [homarr](../charts/homarr.md#value-imagePullSecrets) | `imagePullSecrets` | list | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image Configuration |
 | [nginx](../charts/nginx.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image Parameters |
 | [pgadmin](../charts/pgadmin.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image Configuration |
 | [redisinsight](../charts/redisinsight.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image Configuration |
 | [restic-backup](../charts/restic-backup.md#value-imagePullSecrets) | `imagePullSecrets` | list | Image Parameters |
@@ -690,6 +704,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [homarr](../charts/homarr.md#value-ingress) | `ingress` | list | NetworkPolicy Parameters |
 | [it-tools](../charts/it-tools.md#value-ingress) | `ingress` | list | Network Policy |
 | [pgadmin](../charts/pgadmin.md#value-ingress) | `ingress` | list | Network Policy |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-ingress) | `ingress` | string | Network Policy |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-ingress) | `ingress` | list | Network Policy |
 | [redisinsight](../charts/redisinsight.md#value-ingress) | `ingress` | list | Network Policy |
 | [restic-backup](../charts/restic-backup.md#value-ingress) | `ingress` | object | Network Policy Parameters |
@@ -716,6 +731,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [compass-web](../charts/compass-web.md#value-interval) | `interval` | string | Monitoring |
 | [it-tools](../charts/it-tools.md#value-interval) | `interval` | string | Monitoring |
 | [pgadmin](../charts/pgadmin.md#value-interval) | `interval` | string | Monitoring |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-interval) | `interval` | string | Monitoring |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-interval) | `interval` | string | Monitoring |
 | [redisinsight](../charts/redisinsight.md#value-interval) | `interval` | string | Monitoring |
 | [test-final](../charts/test-final.md#value-interval) | `interval` | string | Monitoring |
@@ -736,11 +752,13 @@ Complete alphabetical listing of all configuration values across all charts.
 | [application](../charts/application.md#value-key) | `key` | tpl/string | cert-manager Certificate Parameters |
 | [homarr](../charts/homarr.md#value-key) | `key` | string | cert-manager Certificate Parameters |
 | [homarr](../charts/homarr.md#value-key) | `key` | tpl/string | cert-manager Certificate Parameters |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-key) | `key` | string | API Authentication |
 | [redisinsight](../charts/redisinsight.md#value-key) | `key` | string | Redis Insight Configuration |
 | [application](../charts/application.md#value-keyAlgorithm) | `keyAlgorithm` | string | cert-manager Certificate Parameters |
 | [homarr](../charts/homarr.md#value-keyAlgorithm) | `keyAlgorithm` | string | cert-manager Certificate Parameters |
 | [application](../charts/application.md#value-keyEncoding) | `keyEncoding` | string | cert-manager Certificate Parameters |
 | [homarr](../charts/homarr.md#value-keyEncoding) | `keyEncoding` | string | cert-manager Certificate Parameters |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-keyProvider) | `keyProvider` | string | Proton Pass Authentication |
 | [application](../charts/application.md#value-keySize) | `keySize` | int | cert-manager Certificate Parameters |
 | [homarr](../charts/homarr.md#value-keySize) | `keySize` | int | cert-manager Certificate Parameters |
 | [application](../charts/application.md#value-kind) | `kind` | string | cert-manager Certificate Parameters |
@@ -758,6 +776,9 @@ Complete alphabetical listing of all configuration values across all charts.
 | [pgadmin](../charts/pgadmin.md#value-labels) | `labels` | object | Service Configuration |
 | [pgadmin](../charts/pgadmin.md#value-labels) | `labels` | object | Monitoring |
 | [pgadmin](../charts/pgadmin.md#value-labels) | `labels` | object | Monitoring |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-labels) | `labels` | object | External Secrets Operator |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-labels) | `labels` | object | Service |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-labels) | `labels` | object | Monitoring |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-labels) | `labels` | object | Service Configuration |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-labels) | `labels` | object | Monitoring |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-labels) | `labels` | object | Monitoring |
@@ -780,7 +801,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [pgadmin](../charts/pgadmin.md#value-limitRequestLine) | `limitRequestLine` | int | pgAdmin Configuration |
 | [application](../charts/application.md#value-livenessProbe) | `livenessProbe` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-livenessProbe) | `livenessProbe` | string | Health Probes |
-| [e2e-test](../charts/e2e-test.md#value-livenessProbe) | `livenessProbe` | string | Probe Parameters |
 | [homarr](../charts/homarr.md#value-livenessProbe) | `livenessProbe` | object | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-livenessProbe) | `livenessProbe` | string | Health Probes |
 | [nginx](../charts/nginx.md#value-livenessProbe) | `livenessProbe` | string | Probe Parameters |
@@ -801,13 +821,14 @@ Complete alphabetical listing of all configuration values across all charts.
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-loadBalancerSourceRanges) | `loadBalancerSourceRanges` | list | Service Configuration |
 | [redisinsight](../charts/redisinsight.md#value-loadBalancerSourceRanges) | `loadBalancerSourceRanges` | list | Service Configuration |
 | [test-final](../charts/test-final.md#value-loadBalancerSourceRanges) | `loadBalancerSourceRanges` | list | Service Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-logLevel) | `logLevel` | string | Global |
 | [redisinsight](../charts/redisinsight.md#value-logLevel) | `logLevel` | string | Redis Insight Configuration |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-logs) | `logs` | string | Persistence Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-maxEntries) | `maxEntries` | int | Secret Cache |
 | [application](../charts/application.md#value-maxReplicas) | `maxReplicas` | int | Autoscaling - Horizontal Pod Autoscaling Parameters |
 | [compass-web](../charts/compass-web.md#value-maxReplicas) | `maxReplicas` | int | High Availability |
 | [homarr](../charts/homarr.md#value-maxReplicas) | `maxReplicas` | int | Autoscaling - Horizontal Pod Autoscaling Parameters |
 | [it-tools](../charts/it-tools.md#value-maxReplicas) | `maxReplicas` | int | High Availability |
-| [nginx](../charts/nginx.md#value-maxReplicas) | `maxReplicas` | int | Autoscaling Parameters |
 | [pgadmin](../charts/pgadmin.md#value-maxReplicas) | `maxReplicas` | int | High Availability |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-maxReplicas) | `maxReplicas` | int | High Availability |
 | [redisinsight](../charts/redisinsight.md#value-maxReplicas) | `maxReplicas` | int | High Availability |
@@ -819,6 +840,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [homarr](../charts/homarr.md#value-maxUnavailable) | `maxUnavailable` | int | PodDisruptionBudget Parameters |
 | [it-tools](../charts/it-tools.md#value-maxUnavailable) | `maxUnavailable` | string | High Availability |
 | [pgadmin](../charts/pgadmin.md#value-maxUnavailable) | `maxUnavailable` | string | High Availability |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-maxUnavailable) | `maxUnavailable` | string | Pod Disruption Budget |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-maxUnavailable) | `maxUnavailable` | string | High Availability |
 | [redisinsight](../charts/redisinsight.md#value-maxUnavailable) | `maxUnavailable` | string | High Availability |
 | [shlink](../charts/shlink.md#value-maxUnavailable) | `maxUnavailable` | string | Pod Disruption Budget Configuration |
@@ -837,6 +859,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [homarr](../charts/homarr.md#value-minAvailable) | `minAvailable` | int | PodDisruptionBudget Parameters |
 | [it-tools](../charts/it-tools.md#value-minAvailable) | `minAvailable` | int | High Availability |
 | [pgadmin](../charts/pgadmin.md#value-minAvailable) | `minAvailable` | int | High Availability |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-minAvailable) | `minAvailable` | int | Pod Disruption Budget |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-minAvailable) | `minAvailable` | int | High Availability |
 | [redisinsight](../charts/redisinsight.md#value-minAvailable) | `minAvailable` | int | High Availability |
 | [shlink](../charts/shlink.md#value-minAvailable) | `minAvailable` | int | Pod Disruption Budget Configuration |
@@ -846,7 +869,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [compass-web](../charts/compass-web.md#value-minReplicas) | `minReplicas` | int | High Availability |
 | [homarr](../charts/homarr.md#value-minReplicas) | `minReplicas` | int | Autoscaling - Horizontal Pod Autoscaling Parameters |
 | [it-tools](../charts/it-tools.md#value-minReplicas) | `minReplicas` | int | High Availability |
-| [nginx](../charts/nginx.md#value-minReplicas) | `minReplicas` | int | Autoscaling Parameters |
 | [pgadmin](../charts/pgadmin.md#value-minReplicas) | `minReplicas` | int | High Availability |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-minReplicas) | `minReplicas` | int | High Availability |
 | [redisinsight](../charts/redisinsight.md#value-minReplicas) | `minReplicas` | int | High Availability |
@@ -869,7 +891,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [application](../charts/application.md#value-name) | `name` | string | ExternalSecret Parameters |
 | [bitwarden-eso-provider](../charts/bitwarden-eso-provider.md#value-name) | `name` | string | General |
 | [compass-web](../charts/compass-web.md#value-name) | `name` | string | RBAC Configuration |
-| [e2e-test](../charts/e2e-test.md#value-name) | `name` | string | ServiceAccount Parameters |
 | [homarr](../charts/homarr.md#value-name) | `name` | string | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-name) | `name` | string | SecretProviderClass Parameters |
 | [homarr](../charts/homarr.md#value-name) | `name` | string | RBAC Parameters |
@@ -882,12 +903,15 @@ Complete alphabetical listing of all configuration values across all charts.
 | [it-tools](../charts/it-tools.md#value-name) | `name` | string | RBAC Configuration |
 | [nginx](../charts/nginx.md#value-name) | `name` | string | ServiceAccount Parameters |
 | [pgadmin](../charts/pgadmin.md#value-name) | `name` | string | RBAC Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-name) | `name` | string | Proton Pass Authentication |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-name) | `name` | string | External Secrets Operator |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-name) | `name` | string | API Authentication |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-name) | `name` | string | Service Account |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-name) | `name` | string | RBAC Configuration |
 | [redisinsight](../charts/redisinsight.md#value-name) | `name` | string | RBAC Configuration |
 | [restic-backup](../charts/restic-backup.md#value-name) | `name` | string | ServiceAccount Parameters |
 | [test-final](../charts/test-final.md#value-name) | `name` | string | RBAC Configuration |
 | [compass-web](../charts/compass-web.md#value-nameOverride) | `nameOverride` | string | Global Parameters |
-| [e2e-test](../charts/e2e-test.md#value-nameOverride) | `nameOverride` | string | General Parameters |
 | [it-tools](../charts/it-tools.md#value-nameOverride) | `nameOverride` | string | Global Parameters |
 | [nginx](../charts/nginx.md#value-nameOverride) | `nameOverride` | string | General Parameters |
 | [pgadmin](../charts/pgadmin.md#value-nameOverride) | `nameOverride` | string | Global Parameters |
@@ -902,6 +926,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [it-tools](../charts/it-tools.md#value-namespace) | `namespace` | string | Monitoring |
 | [pgadmin](../charts/pgadmin.md#value-namespace) | `namespace` | string | Monitoring |
 | [pgadmin](../charts/pgadmin.md#value-namespace) | `namespace` | string | Monitoring |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-namespace) | `namespace` | string | Monitoring |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-namespace) | `namespace` | string | Monitoring |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-namespace) | `namespace` | string | Monitoring |
 | [redisinsight](../charts/redisinsight.md#value-namespace) | `namespace` | string | Monitoring |
@@ -909,6 +934,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-namespace) | `namespace` | string | Monitoring |
 | [test-final](../charts/test-final.md#value-namespace) | `namespace` | string | Monitoring |
 | [bitwarden-eso-provider](../charts/bitwarden-eso-provider.md#value-namespaced) | `namespaced` | bool | General |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-namespaced) | `namespaced` | bool | External Secrets Operator |
 | [application](../charts/application.md#value-namespaceOverride) | `namespaceOverride` | string | Parameters |
 | [compass-web](../charts/compass-web.md#value-namespaceOverride) | `namespaceOverride` | string | Global Parameters |
 | [homarr](../charts/homarr.md#value-namespaceOverride) | `namespaceOverride` | string | Parameters |
@@ -929,11 +955,11 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-nodePort) | `nodePort` | string | Service Configuration |
 | [application](../charts/application.md#value-nodeSelector) | `nodeSelector` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-nodeSelector) | `nodeSelector` | object | Pod Configuration |
-| [e2e-test](../charts/e2e-test.md#value-nodeSelector) | `nodeSelector` | object | Scheduling Parameters |
 | [homarr](../charts/homarr.md#value-nodeSelector) | `nodeSelector` | object | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-nodeSelector) | `nodeSelector` | object | Pod Configuration |
 | [nginx](../charts/nginx.md#value-nodeSelector) | `nodeSelector` | object | Scheduling Parameters |
 | [pgadmin](../charts/pgadmin.md#value-nodeSelector) | `nodeSelector` | object | Pod Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-nodeSelector) | `nodeSelector` | object | Scheduling |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-nodeSelector) | `nodeSelector` | object | Pod Configuration |
 | [redisinsight](../charts/redisinsight.md#value-nodeSelector) | `nodeSelector` | object | Pod Configuration |
 | [restic-backup](../charts/restic-backup.md#value-nodeSelector) | `nodeSelector` | object | CronJob Parameters |
@@ -950,9 +976,11 @@ Complete alphabetical listing of all configuration values across all charts.
 | [compass-web](../charts/compass-web.md#value-password) | `password` | string | Compass Web Configuration |
 | [pgadmin](../charts/pgadmin.md#value-password) | `password` | string | pgAdmin Configuration |
 | [pgadmin](../charts/pgadmin.md#value-password) | `password` | string | pgAdmin Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-password) | `password` | string | Proton Pass Authentication |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-password) | `password` | string | Proxmox Backup Server Configuration |
 | [restic-backup](../charts/restic-backup.md#value-password) | `password` | string | Restic Configuration |
 | [shlink](../charts/shlink.md#value-password) | `password` | string | PostgreSQL Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-passwordKey) | `passwordKey` | string | Proton Pass Authentication |
 | [application](../charts/application.md#value-path) | `path` | string | Route Parameters |
 | [homarr](../charts/homarr.md#value-path) | `path` | string | Route Parameters |
 | [application](../charts/application.md#value-pathType) | `pathType` | string | Ingress Parameters |
@@ -966,21 +994,21 @@ Complete alphabetical listing of all configuration values across all charts.
 | [shlink](../charts/shlink.md#value-persistence) | `persistence` | string | PostgreSQL Configuration |
 | [pgadmin](../charts/pgadmin.md#value-pgpassFile) | `pgpassFile` | string | pgAdmin Configuration |
 | [compass-web](../charts/compass-web.md#value-podAnnotations) | `podAnnotations` | object | Pod Configuration |
-| [e2e-test](../charts/e2e-test.md#value-podAnnotations) | `podAnnotations` | object | Pod Parameters |
 | [it-tools](../charts/it-tools.md#value-podAnnotations) | `podAnnotations` | object | Pod Configuration |
 | [nginx](../charts/nginx.md#value-podAnnotations) | `podAnnotations` | object | Pod Parameters |
 | [pgadmin](../charts/pgadmin.md#value-podAnnotations) | `podAnnotations` | object | Pod Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-podAnnotations) | `podAnnotations` | object | Global |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-podAnnotations) | `podAnnotations` | object | Pod Configuration |
 | [redisinsight](../charts/redisinsight.md#value-podAnnotations) | `podAnnotations` | object | Pod Configuration |
 | [restic-backup](../charts/restic-backup.md#value-podAnnotations) | `podAnnotations` | object | Metrics Parameters |
 | [test-final](../charts/test-final.md#value-podAnnotations) | `podAnnotations` | object | Pod Configuration |
 | [application](../charts/application.md#value-podLabels) | `podLabels` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-podLabels) | `podLabels` | object | Pod Configuration |
-| [e2e-test](../charts/e2e-test.md#value-podLabels) | `podLabels` | object | Pod Parameters |
 | [homarr](../charts/homarr.md#value-podLabels) | `podLabels` | object | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-podLabels) | `podLabels` | object | Pod Configuration |
 | [nginx](../charts/nginx.md#value-podLabels) | `podLabels` | object | Pod Parameters |
 | [pgadmin](../charts/pgadmin.md#value-podLabels) | `podLabels` | object | Pod Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-podLabels) | `podLabels` | object | Global |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-podLabels) | `podLabels` | object | Pod Configuration |
 | [redisinsight](../charts/redisinsight.md#value-podLabels) | `podLabels` | object | Pod Configuration |
 | [test-final](../charts/test-final.md#value-podLabels) | `podLabels` | object | Pod Configuration |
@@ -991,10 +1019,10 @@ Complete alphabetical listing of all configuration values across all charts.
 | [redisinsight](../charts/redisinsight.md#value-podManagementPolicy) | `podManagementPolicy` | string | Controller Configuration |
 | [test-final](../charts/test-final.md#value-podManagementPolicy) | `podManagementPolicy` | string | Controller Configuration |
 | [compass-web](../charts/compass-web.md#value-podSecurityContext) | `podSecurityContext` | string | Security Context |
-| [e2e-test](../charts/e2e-test.md#value-podSecurityContext) | `podSecurityContext` | object | Pod Parameters |
 | [it-tools](../charts/it-tools.md#value-podSecurityContext) | `podSecurityContext` | object | Security Context |
 | [nginx](../charts/nginx.md#value-podSecurityContext) | `podSecurityContext` | object | Pod Parameters |
 | [pgadmin](../charts/pgadmin.md#value-podSecurityContext) | `podSecurityContext` | string | Security Context |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-podSecurityContext) | `podSecurityContext` | string | Security Context |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-podSecurityContext) | `podSecurityContext` | string | Security Context |
 | [redisinsight](../charts/redisinsight.md#value-podSecurityContext) | `podSecurityContext` | string | Security Context |
 | [test-final](../charts/test-final.md#value-podSecurityContext) | `podSecurityContext` | object | Security Context |
@@ -1007,13 +1035,13 @@ Complete alphabetical listing of all configuration values across all charts.
 | [application](../charts/application.md#value-port) | `port` | int | Deployment Parameters |
 | [application](../charts/application.md#value-port) | `port` | object | Route Parameters |
 | [compass-web](../charts/compass-web.md#value-port) | `port` | int | Service Configuration |
-| [e2e-test](../charts/e2e-test.md#value-port) | `port` | int | Service Parameters |
 | [homarr](../charts/homarr.md#value-port) | `port` | int | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-port) | `port` | object | Route Parameters |
 | [it-tools](../charts/it-tools.md#value-port) | `port` | int | Service Configuration |
 | [nginx](../charts/nginx.md#value-port) | `port` | int | Service Parameters |
 | [pgadmin](../charts/pgadmin.md#value-port) | `port` | int | pgAdmin Configuration |
 | [pgadmin](../charts/pgadmin.md#value-port) | `port` | int | Service Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-port) | `port` | int | Service |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-port) | `port` | int | Service Configuration |
 | [redisinsight](../charts/redisinsight.md#value-port) | `port` | int | Redis Insight Configuration |
 | [redisinsight](../charts/redisinsight.md#value-port) | `port` | int | Service Configuration |
@@ -1045,11 +1073,11 @@ Complete alphabetical listing of all configuration values across all charts.
 | [redisinsight](../charts/redisinsight.md#value-proxyPath) | `proxyPath` | string | Redis Insight Configuration |
 | [application](../charts/application.md#value-pullPolicy) | `pullPolicy` | string | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-pullPolicy) | `pullPolicy` | string | Image Configuration |
-| [e2e-test](../charts/e2e-test.md#value-pullPolicy) | `pullPolicy` | string | Image Parameters |
 | [homarr](../charts/homarr.md#value-pullPolicy) | `pullPolicy` | string | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-pullPolicy) | `pullPolicy` | string | Image Configuration |
 | [nginx](../charts/nginx.md#value-pullPolicy) | `pullPolicy` | string | Image Parameters |
 | [pgadmin](../charts/pgadmin.md#value-pullPolicy) | `pullPolicy` | string | Image Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-pullPolicy) | `pullPolicy` | string | Image |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-pullPolicy) | `pullPolicy` | string | Image Configuration |
 | [redisinsight](../charts/redisinsight.md#value-pullPolicy) | `pullPolicy` | string | Image Configuration |
 | [restic-backup](../charts/restic-backup.md#value-pullPolicy) | `pullPolicy` | string | Image Parameters |
@@ -1059,7 +1087,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [restic-backup](../charts/restic-backup.md#value-readData) | `readData` | bool | Restic Configuration |
 | [application](../charts/application.md#value-readinessProbe) | `readinessProbe` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-readinessProbe) | `readinessProbe` | string | Health Probes |
-| [e2e-test](../charts/e2e-test.md#value-readinessProbe) | `readinessProbe` | string | Probe Parameters |
 | [homarr](../charts/homarr.md#value-readinessProbe) | `readinessProbe` | object | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-readinessProbe) | `readinessProbe` | string | Health Probes |
 | [nginx](../charts/nginx.md#value-readinessProbe) | `readinessProbe` | string | Probe Parameters |
@@ -1071,6 +1098,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [homarr](../charts/homarr.md#value-receivers) | `receivers` | list | AlertmanagerConfig Parameters |
 | [application](../charts/application.md#value-refreshInterval) | `refreshInterval` | string | ExternalSecret Parameters |
 | [homarr](../charts/homarr.md#value-refreshInterval) | `refreshInterval` | string | ExternalSecret Parameters |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-registry) | `registry` | string | Image |
 | [bitwarden-eso-provider](../charts/bitwarden-eso-provider.md#value-relabelings) | `relabelings` | list | General |
 | [compass-web](../charts/compass-web.md#value-relabelings) | `relabelings` | list | Monitoring |
 | [it-tools](../charts/it-tools.md#value-relabelings) | `relabelings` | list | Monitoring |
@@ -1083,8 +1111,8 @@ Complete alphabetical listing of all configuration values across all charts.
 | [application](../charts/application.md#value-renewBefore) | `renewBefore` | string | cert-manager Certificate Parameters |
 | [homarr](../charts/homarr.md#value-renewBefore) | `renewBefore` | string | cert-manager Certificate Parameters |
 | [pgadmin](../charts/pgadmin.md#value-replaceServersOnStartup) | `replaceServersOnStartup` | bool | pgAdmin Configuration |
-| [e2e-test](../charts/e2e-test.md#value-replicaCount) | `replicaCount` | int | Deployment Parameters |
 | [nginx](../charts/nginx.md#value-replicaCount) | `replicaCount` | int | Deployment Parameters |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-replicaCount) | `replicaCount` | int | Global |
 | [application](../charts/application.md#value-replicas) | `replicas` | int | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-replicas) | `replicas` | int | Controller Configuration |
 | [homarr](../charts/homarr.md#value-replicas) | `replicas` | int | Deployment Parameters |
@@ -1095,11 +1123,11 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-replicas) | `replicas` | int | Controller Configuration |
 | [application](../charts/application.md#value-repository) | `repository` | tpl/string | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-repository) | `repository` | string | Image Configuration |
-| [e2e-test](../charts/e2e-test.md#value-repository) | `repository` | string | Image Parameters |
 | [homarr](../charts/homarr.md#value-repository) | `repository` | string | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-repository) | `repository` | string | Image Configuration |
 | [nginx](../charts/nginx.md#value-repository) | `repository` | string | Image Parameters |
 | [pgadmin](../charts/pgadmin.md#value-repository) | `repository` | string | Image Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-repository) | `repository` | string | Image |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-repository) | `repository` | string | Image Configuration |
 | [redisinsight](../charts/redisinsight.md#value-repository) | `repository` | string | Image Configuration |
 | [restic-backup](../charts/restic-backup.md#value-repository) | `repository` | string | Restic Configuration |
@@ -1107,7 +1135,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-repository) | `repository` | string | Image Configuration |
 | [application](../charts/application.md#value-resources) | `resources` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-resources) | `resources` | string | Resources |
-| [e2e-test](../charts/e2e-test.md#value-resources) | `resources` | object | Resource Parameters |
 | [homarr](../charts/homarr.md#value-resources) | `resources` | object | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-resources) | `resources` | string | Resources |
 | [nginx](../charts/nginx.md#value-resources) | `resources` | object | Resource Parameters |
@@ -1158,6 +1185,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [compass-web](../charts/compass-web.md#value-scrapeTimeout) | `scrapeTimeout` | string | Monitoring |
 | [it-tools](../charts/it-tools.md#value-scrapeTimeout) | `scrapeTimeout` | string | Monitoring |
 | [pgadmin](../charts/pgadmin.md#value-scrapeTimeout) | `scrapeTimeout` | string | Monitoring |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-scrapeTimeout) | `scrapeTimeout` | string | Monitoring |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-scrapeTimeout) | `scrapeTimeout` | string | Monitoring |
 | [redisinsight](../charts/redisinsight.md#value-scrapeTimeout) | `scrapeTimeout` | string | Monitoring |
 | [test-final](../charts/test-final.md#value-scrapeTimeout) | `scrapeTimeout` | string | Monitoring |
@@ -1172,12 +1200,12 @@ Complete alphabetical listing of all configuration values across all charts.
 | [homarr](../charts/homarr.md#value-secretStore) | `secretStore` | object | ExternalSecret Parameters |
 | [application](../charts/application.md#value-securityContext) | `securityContext` | object | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-securityContext) | `securityContext` | string | Security Context |
-| [e2e-test](../charts/e2e-test.md#value-securityContext) | `securityContext` | object | Pod Parameters |
 | [homarr](../charts/homarr.md#value-securityContext) | `securityContext` | object | Deployment Parameters |
 | [home-assistant](../charts/home-assistant.md#value-securityContext) | `securityContext` | object | General |
 | [it-tools](../charts/it-tools.md#value-securityContext) | `securityContext` | object | Security Context |
 | [nginx](../charts/nginx.md#value-securityContext) | `securityContext` | object | Pod Parameters |
 | [pgadmin](../charts/pgadmin.md#value-securityContext) | `securityContext` | object | Security Context |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-securityContext) | `securityContext` | string | Security Context |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-securityContext) | `securityContext` | string | Security Context |
 | [redisinsight](../charts/redisinsight.md#value-securityContext) | `securityContext` | string | Security Context |
 | [restic-backup](../charts/restic-backup.md#value-securityContext) | `securityContext` | object | CronJob Parameters |
@@ -1206,6 +1234,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-sessionAffinityConfig) | `sessionAffinityConfig` | object | Service Configuration |
 | [redisinsight](../charts/redisinsight.md#value-sessionAffinityConfig) | `sessionAffinityConfig` | object | Service Configuration |
 | [test-final](../charts/test-final.md#value-sessionAffinityConfig) | `sessionAffinityConfig` | object | Service Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-shared) | `shared` | string | Vault Access Control |
 | [compass-web](../charts/compass-web.md#value-size) | `size` | string | Persistence Configuration |
 | [it-tools](../charts/it-tools.md#value-size) | `size` | string | Persistence Configuration |
 | [pgadmin](../charts/pgadmin.md#value-size) | `size` | string | Persistence Configuration |
@@ -1258,11 +1287,11 @@ Complete alphabetical listing of all configuration values across all charts.
 | [homarr](../charts/homarr.md#value-successThreshold) | `successThreshold` | int | Deployment Parameters |
 | [application](../charts/application.md#value-tag) | `tag` | tpl/string | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-tag) | `tag` | string | Image Configuration |
-| [e2e-test](../charts/e2e-test.md#value-tag) | `tag` | string | Image Parameters |
 | [homarr](../charts/homarr.md#value-tag) | `tag` | string | Deployment Parameters |
 | [it-tools](../charts/it-tools.md#value-tag) | `tag` | string | Image Configuration |
 | [nginx](../charts/nginx.md#value-tag) | `tag` | string | Image Parameters |
 | [pgadmin](../charts/pgadmin.md#value-tag) | `tag` | string | Image Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-tag) | `tag` | string | Image |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-tag) | `tag` | string | Image Configuration |
 | [redisinsight](../charts/redisinsight.md#value-tag) | `tag` | string | Image Configuration |
 | [restic-backup](../charts/restic-backup.md#value-tag) | `tag` | string | Image Parameters |
@@ -1270,7 +1299,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [restic-backup](../charts/restic-backup.md#value-tags) | `tags` | list | Restic Configuration |
 | [compass-web](../charts/compass-web.md#value-targetCPUUtilizationPercentage) | `targetCPUUtilizationPercentage` | int | High Availability |
 | [it-tools](../charts/it-tools.md#value-targetCPUUtilizationPercentage) | `targetCPUUtilizationPercentage` | int | High Availability |
-| [nginx](../charts/nginx.md#value-targetCPUUtilizationPercentage) | `targetCPUUtilizationPercentage` | int | Autoscaling Parameters |
 | [pgadmin](../charts/pgadmin.md#value-targetCPUUtilizationPercentage) | `targetCPUUtilizationPercentage` | int | High Availability |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-targetCPUUtilizationPercentage) | `targetCPUUtilizationPercentage` | int | High Availability |
 | [redisinsight](../charts/redisinsight.md#value-targetCPUUtilizationPercentage) | `targetCPUUtilizationPercentage` | int | High Availability |
@@ -1308,6 +1336,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [redisinsight](../charts/redisinsight.md#value-terminationGracePeriodSeconds) | `terminationGracePeriodSeconds` | int | Controller Configuration |
 | [test-final](../charts/test-final.md#value-terminationGracePeriodSeconds) | `terminationGracePeriodSeconds` | int | Controller Configuration |
 | [pgadmin](../charts/pgadmin.md#value-threads) | `threads` | int | pgAdmin Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-timeout) | `timeout` | string | External Secrets Operator |
 | [application](../charts/application.md#value-timeoutSeconds) | `timeoutSeconds` | int | Deployment Parameters |
 | [application](../charts/application.md#value-timeoutSeconds) | `timeoutSeconds` | int | Deployment Parameters |
 | [application](../charts/application.md#value-timeoutSeconds) | `timeoutSeconds` | int | Deployment Parameters |
@@ -1317,7 +1346,6 @@ Complete alphabetical listing of all configuration values across all charts.
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-timezone) | `timezone` | string | Proxmox Backup Server Configuration |
 | [application](../charts/application.md#value-tls) | `tls` | list | Ingress Parameters |
 | [compass-web](../charts/compass-web.md#value-tls) | `tls` | list | Ingress Configuration |
-| [e2e-test](../charts/e2e-test.md#value-tls) | `tls` | list | Ingress Parameters |
 | [homarr](../charts/homarr.md#value-tls) | `tls` | list | Ingress Parameters |
 | [it-tools](../charts/it-tools.md#value-tls) | `tls` | list | Ingress Configuration |
 | [nginx](../charts/nginx.md#value-tls) | `tls` | list | Ingress Parameters |
@@ -1326,14 +1354,15 @@ Complete alphabetical listing of all configuration values across all charts.
 | [redisinsight](../charts/redisinsight.md#value-tls) | `tls` | string | Redis Insight Configuration |
 | [redisinsight](../charts/redisinsight.md#value-tls) | `tls` | list | Ingress Configuration |
 | [test-final](../charts/test-final.md#value-tls) | `tls` | list | Ingress Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-token) | `token` | string | API Authentication |
 | [application](../charts/application.md#value-tolerations) | `tolerations` | list | Deployment Parameters |
 | [compass-web](../charts/compass-web.md#value-tolerations) | `tolerations` | list | Pod Configuration |
-| [e2e-test](../charts/e2e-test.md#value-tolerations) | `tolerations` | list | Scheduling Parameters |
 | [homarr](../charts/homarr.md#value-tolerations) | `tolerations` | list | Deployment Parameters |
 | [home-assistant](../charts/home-assistant.md#value-tolerations) | `tolerations` | list | General |
 | [it-tools](../charts/it-tools.md#value-tolerations) | `tolerations` | list | Pod Configuration |
 | [nginx](../charts/nginx.md#value-tolerations) | `tolerations` | list | Scheduling Parameters |
 | [pgadmin](../charts/pgadmin.md#value-tolerations) | `tolerations` | list | Pod Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-tolerations) | `tolerations` | list | Scheduling |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-tolerations) | `tolerations` | list | Pod Configuration |
 | [redisinsight](../charts/redisinsight.md#value-tolerations) | `tolerations` | list | Pod Configuration |
 | [restic-backup](../charts/restic-backup.md#value-tolerations) | `tolerations` | list | CronJob Parameters |
@@ -1350,12 +1379,12 @@ Complete alphabetical listing of all configuration values across all charts.
 | [home-assistant](../charts/home-assistant.md#value-trusted_proxies) | `trusted_proxies` | list | General |
 | [application](../charts/application.md#value-ttl) | `ttl` | string | Backup Parameters |
 | [homarr](../charts/homarr.md#value-ttl) | `ttl` | string | Backup Parameters |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-ttlSeconds) | `ttlSeconds` | int | Secret Cache |
 | [restic-backup](../charts/restic-backup.md#value-ttlSecondsAfterFinished) | `ttlSecondsAfterFinished` | int | CronJob Parameters |
 | [application](../charts/application.md#value-type) | `type` | string | Deployment Parameters |
 | [application](../charts/application.md#value-type) | `type` | string | Service Parameters |
 | [compass-web](../charts/compass-web.md#value-type) | `type` | string | Controller Configuration |
 | [compass-web](../charts/compass-web.md#value-type) | `type` | string | Service Configuration |
-| [e2e-test](../charts/e2e-test.md#value-type) | `type` | string | Service Parameters |
 | [homarr](../charts/homarr.md#value-type) | `type` | string | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-type) | `type` | string | Service Parameters |
 | [it-tools](../charts/it-tools.md#value-type) | `type` | string | Controller Configuration |
@@ -1363,6 +1392,7 @@ Complete alphabetical listing of all configuration values across all charts.
 | [nginx](../charts/nginx.md#value-type) | `type` | string | Service Parameters |
 | [pgadmin](../charts/pgadmin.md#value-type) | `type` | string | Controller Configuration |
 | [pgadmin](../charts/pgadmin.md#value-type) | `type` | string | Service Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-type) | `type` | string | Service |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-type) | `type` | string | Controller Configuration |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-type) | `type` | string | Service Configuration |
 | [redisinsight](../charts/redisinsight.md#value-type) | `type` | string | Controller Configuration |
@@ -1388,8 +1418,10 @@ Complete alphabetical listing of all configuration values across all charts.
 | [pgadmin](../charts/pgadmin.md#value-userBaseDN) | `userBaseDN` | string | pgAdmin Configuration |
 | [compass-web](../charts/compass-web.md#value-username) | `username` | string | Compass Web Configuration |
 | [pgadmin](../charts/pgadmin.md#value-username) | `username` | string | pgAdmin Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-username) | `username` | string | Proton Pass Authentication |
 | [proxmox-backup-server](../charts/proxmox-backup-server.md#value-username) | `username` | string | Proxmox Backup Server Configuration |
 | [shlink](../charts/shlink.md#value-username) | `username` | string | PostgreSQL Configuration |
+| [protonpass-eso-provider](../charts/protonpass-eso-provider.md#value-usernameKey) | `usernameKey` | string | Proton Pass Authentication |
 | [pgadmin](../charts/pgadmin.md#value-useSSL) | `useSSL` | bool | pgAdmin Configuration |
 | [pgadmin](../charts/pgadmin.md#value-useTLS) | `useTLS` | bool | pgAdmin Configuration |
 | [application](../charts/application.md#value-vaultAddress) | `vaultAddress` | string | SecretProviderClass Parameters |
@@ -1398,14 +1430,12 @@ Complete alphabetical listing of all configuration values across all charts.
 | [application](../charts/application.md#value-volumeMode) | `volumeMode` | string | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-volumeMode) | `volumeMode` | string | Deployment Parameters |
 | [application](../charts/application.md#value-volumeMounts) | `volumeMounts` | object | Deployment Parameters |
-| [e2e-test](../charts/e2e-test.md#value-volumeMounts) | `volumeMounts` | list | Volume Parameters |
 | [homarr](../charts/homarr.md#value-volumeMounts) | `volumeMounts` | object | Deployment Parameters |
 | [home-assistant](../charts/home-assistant.md#value-volumeMounts) | `volumeMounts` | list | General |
 | [nginx](../charts/nginx.md#value-volumeMounts) | `volumeMounts` | list | Volume Parameters |
 | [application](../charts/application.md#value-volumeName) | `volumeName` | string | Deployment Parameters |
 | [homarr](../charts/homarr.md#value-volumeName) | `volumeName` | string | Deployment Parameters |
 | [application](../charts/application.md#value-volumes) | `volumes` | object | Deployment Parameters |
-| [e2e-test](../charts/e2e-test.md#value-volumes) | `volumes` | list | Volume Parameters |
 | [homarr](../charts/homarr.md#value-volumes) | `volumes` | object | Deployment Parameters |
 | [nginx](../charts/nginx.md#value-volumes) | `volumes` | list | Volume Parameters |
 | [restic-backup](../charts/restic-backup.md#value-volumes) | `volumes` | list | Volumes Configuration |
@@ -1422,4 +1452,4 @@ Complete alphabetical listing of all configuration values across all charts.
 | [test-final](../charts/test-final.md#value-workingDir) | `workingDir` | string | Controller Configuration |
 
 
-*Total: 1410 values across 15 charts*
+*Total: 1440 values across 15 charts*

@@ -1,3 +1,4 @@
+---
 repos:
   # Usage: pre-commit run autoupdate --hook-stage manual
   - repo: local
@@ -34,3 +35,30 @@ repos:
         files: ^(charts/.*/(Chart\.yaml|values\.yaml)|mkdocs\.yml)$
         pass_filenames: false
         stages: [pre-commit]
+
+      - id: copier-recopy
+        name: Copier Recopy Managed Charts
+        description: Regenerate Copier-managed charts when template changes
+        entry: ./scripts/hooks/copier-recopy.sh
+        language: system
+        files: ^templates/chart-copier/
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: sync-boilerplate
+        name: Sync Chart Boilerplate
+        description: Sync canonical boilerplate files across all charts
+        entry: uv run python scripts/hooks/sync-boilerplate.py
+        language: system
+        files: ^(templates/chart-template/|charts/.*/(Chart\.yaml|\.helmignore))$
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: chart-drift-check
+        name: Chart Drift Check
+        description: Audit charts for consistency (warnings only)
+        entry: uv run python scripts/chart-drift-check.py
+        language: system
+        files: ^charts/
+        pass_filenames: false
+        stages: [manual]

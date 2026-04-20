@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: actualbudget
 description: A Helm chart for Actual Budget - A local-first personal finance app
