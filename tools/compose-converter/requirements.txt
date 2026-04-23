@@ -10,7 +10,7 @@ jsonschema>=4.0.0,<5.0.0
 PyYAML>=6.0,<7.0
 
 # Optional: For rich terminal output
-rich>=13.0.0,<14.0.0
+rich>=13.0.0,<15.0.0
 
 # Optional: For enhanced YAML processing
 ruamel.yaml>=0.17.0,<1.0.0
